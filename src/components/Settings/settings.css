@@ -1,0 +1,82 @@
+/* Settings-Panel: Modal über der App. */
+.settings-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 460px;
+  max-height: 86vh;
+  overflow-y: auto;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  color: var(--fg);
+  z-index: 100;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+.settings-panel h3 {
+  margin-top: 0;
+}
+.settings-panel label {
+  display: block;
+  font-size: 13px;
+  margin: 10px 0 2px;
+  color: var(--fg-dim);
+}
+.settings-panel input, .settings-panel select, .settings-panel textarea {
+  width: 100%;
+  padding: 6px;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: inherit;
+}
+.settings-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+.settings-actions button {
+  flex: 1;
+  padding: 8px;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+.settings-actions .save {
+  background: var(--accent);
+  color: #000;
+  border: none;
+}
+.conn-ok {
+  margin-top: 12px;
+  padding: 8px;
+  background: #143d14;
+  color: #7CFC7C;
+  border-radius: 4px;
+  font-size: 13px;
+}
+.conn-err {
+  margin-top: 12px;
+  padding: 8px;
+  background: #3d1414;
+  color: #fc7c7c;
+  border-radius: 4px;
+  font-size: 13px;
+}
+.conn-ok details, .conn-err details {
+  margin-top: 6px;
+}
+.conn-ok summary, .conn-err summary {
+  cursor: pointer;
+}
+.conn-ok ul, .conn-err ul {
+  margin: 4px 0;
+  padding-left: 18px;
+  max-height: 140px;
+  overflow-y: auto;
+}

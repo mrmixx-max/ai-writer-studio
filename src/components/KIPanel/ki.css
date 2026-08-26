@@ -1,0 +1,79 @@
+/* KI-Panel: rechte Seitenleiste. */
+.ki-panel {
+  width: 340px;
+  min-width: 340px;
+  border-left: 1px solid var(--border);
+  background: var(--bg-elev);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: var(--fg);
+  overflow-y: auto;
+}
+.ki-panel h3 {
+  margin: 0;
+}
+.ki-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.ki-actions button {
+  padding: 8px;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.ki-actions button:hover {
+  border-color: var(--accent);
+}
+.ki-style {
+  font-size: 12px;
+  color: var(--fg-dim);
+}
+.ki-style select {
+  width: 100%;
+  margin-top: 4px;
+  padding: 4px;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+}
+.ki-chat-input input {
+  width: 100%;
+  padding: 8px;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+.ki-output {
+  flex: 1;
+  margin-top: 8px;
+}
+.ki-output p {
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+.ki-output .streaming {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 10px;
+  font-size: 13px;
+  white-space: pre-wrap;
+  max-height: 300px;
+  overflow-y: auto;
+}
+.ki-insert {
+  padding: 8px;
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}

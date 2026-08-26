@@ -1,0 +1,86 @@
+{
+  "$schema": "https://schema.tauri.app/config/2.0.0",
+  "productName": "AI Writer Studio",
+  "version": "0.1.0",
+  "identifier": "com.aiwriterstudio.app",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:1420",
+    "beforeDevCommand": "npm run dev:vite",
+    "beforeBuildCommand": "npm run build"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "AI Writer Studio",
+        "width": 1440,
+        "height": 920,
+        "minWidth": 1000,
+        "minHeight": 640,
+        "resizable": true,
+        "fullscreen": false,
+        "center": true,
+        "decorations": true,
+        "transparent": false,
+        "theme": null,
+        "titleBarStyle": "Visible",
+        "visible": false,
+        "dragDropEnabled": true
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost http://localhost:* http://127.0.0.1:* https://api.openai.com https://openrouter.ai"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.ico"
+    ],
+    "category": "Productivity",
+    "publisher": "Erik Gieske",
+    "copyright": "(C) 2026 Erik Gieske",
+    "shortDescription": "Lokales Manuskriptstudio mit KI",
+    "longDescription": "AI Writer Studio ist ein lokales Manuskriptstudio für Romane, Sachbücher und KDP-Projekte. Schreiben, Projektwissen aufbauen, Konsistenz prüfen und exportieren – mit KI-Unterstützung durch Ollama, LM Studio oder OpenAI. Lokal-first, ohne Cloud-Zwang.",
+    "licenseFile": "../LICENSE.txt",
+    "resources": [],
+    "fileAssociations": [
+      {
+        "ext": ["aiwsproj"],
+        "name": "AIWriterStudio.Project",
+        "description": "AI Writer Studio Projekt",
+        "role": "Editor"
+      },
+      {
+        "ext": ["aiwschapter"],
+        "name": "AIWriterStudio.Chapter",
+        "description": "AI Writer Studio Kapitel",
+        "role": "Editor"
+      }
+    ],
+    "windows": {
+      "webviewInstallMode": {
+        "type": "downloadBootstrapper",
+        "silent": true
+      },
+      "allowDowngrades": false,
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": ["German", "English"],
+        "displayLanguageSelector": true,
+        "compression": "lzma"
+      }
+    }
+  },
+  "plugins": {
+    "fs": {
+      "requireLiteralLeadingDot": false
+    }
+  }
+}

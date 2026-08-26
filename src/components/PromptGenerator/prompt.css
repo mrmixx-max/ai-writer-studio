@@ -1,0 +1,101 @@
+/* Prompt-Generator UI – Panel + Karten + Offline-Badge + Timer. */
+.prompt-panel {
+  padding: 16px;
+  overflow-y: auto;
+  height: 100%;
+  color: var(--fg);
+}
+.prompt-panel h3 {
+  margin-top: 0;
+}
+.prompt-panel label {
+  display: block;
+  font-size: 13px;
+  margin: 8px 0 2px;
+  color: var(--fg-dim);
+}
+.prompt-panel select,
+.prompt-panel input {
+  width: 100%;
+  padding: 6px;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+.prompt-panel button {
+  margin-top: 10px;
+  background: var(--accent);
+  color: #000;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+}
+.prompt-panel button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.offline-badge {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 3px 8px;
+  background: #5a3a00;
+  color: #ffcf7a;
+  border-radius: 4px;
+  font-size: 12px;
+}
+.streaming {
+  margin-top: 10px;
+  padding: 10px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: pre-wrap;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.prompt-card {
+  margin-top: 14px;
+  padding: 12px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.prompt-text {
+  margin: 0 0 6px;
+  line-height: 1.5;
+}
+.prompt-hook {
+  margin: 0 0 6px;
+  font-size: 12px;
+  color: var(--fg-dim);
+  font-style: italic;
+}
+.prompt-meta {
+  font-size: 11px;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+.prompt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.prompt-actions button {
+  width: auto;
+  margin: 0;
+  padding: 4px 8px;
+  font-size: 12px;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+}
+.prompt-actions .timer {
+  align-self: center;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+  font-weight: 600;
+}

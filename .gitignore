@@ -1,0 +1,43 @@
+# --- Abhängigkeiten und Build-Ausgaben ------------------------------------
+node_modules
+dist
+dist-ssr
+src-tauri/target
+src-tauri/gen
+
+# --- Release-Artefakte ----------------------------------------------------
+# Installer und Binärdateien gehören nicht ins Repo, sondern an ein Release.
+release/
+*.exe
+*.sha256
+
+# Protokolle von Installer-Testläufen
+install.log
+iscc.log
+
+# --- Generierte Dateien ---------------------------------------------------
+# Wird von scripts/copy_wasm.py aus node_modules erzeugt.
+public/sql-wasm.wasm
+
+# HINWEIS: src-tauri/icons/ wird bewusst NICHT ignoriert. tauri.conf.json
+# verweist darauf, und ohne die Dateien scheitert `cargo build` auf einem
+# frischen Clone, sobald Python fehlt. Die Icons sind reproduzierbar über
+# scripts/generate_icons.py, werden aber trotzdem mitversioniert.
+
+# --- Lokale Konfiguration -------------------------------------------------
+*.local
+.env
+.env.local
+
+# --- Protokolle und Betriebssystem ---------------------------------------
+*.log
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Editor ---------------------------------------------------------------
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*~

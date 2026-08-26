@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  AI Writer Studio — App-Marke
+  Konzept: Manuskriptseite mit umgeschlagener Ecke, darauf eine Schreiblinie,
+  die sich zu einem Denkbogen öffnet. Atelier statt Assistent.
+  Keine Glühbirne, kein Sparkle, kein Roboter.
+
+  Palette: Tinte (#1C1917) auf Pergament (#F5F1E8), Akzent Siegelrot (#9A3B32).
+  Auf dunklem Grund trägt die Pergamentfläche das Motiv, auf hellem der Tintenrahmen.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="page" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FBF8F1"/>
+      <stop offset="100%" stop-color="#EFE9DB"/>
+    </linearGradient>
+    <linearGradient id="fold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#D8CFBB"/>
+      <stop offset="100%" stop-color="#BCB09A"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Grundfläche: dunkle Tintenkarte, damit das Icon auf hellem UND dunklem Hintergrund steht -->
+  <rect x="40" y="40" width="432" height="432" rx="96" fill="#1C1917"/>
+
+  <!-- Manuskriptseite -->
+  <path d="M150 116 h150 l62 62 v218 a18 18 0 0 1-18 18 H150 a18 18 0 0 1-18-18 V134 a18 18 0 0 1 18-18 z"
+        fill="url(#page)"/>
+
+  <!-- Umgeschlagene Ecke -->
+  <path d="M300 116 l62 62 h-44 a18 18 0 0 1-18-18 z" fill="url(#fold)"/>
+
+  <!-- Schreiblinien -->
+  <g stroke="#1C1917" stroke-width="13" stroke-linecap="round" opacity="0.82">
+    <line x1="176" y1="228" x2="318" y2="228"/>
+    <line x1="176" y1="274" x2="288" y2="274"/>
+  </g>
+
+  <!-- Denkbogen: die dritte Zeile löst sich von der Linie und schwingt auf -->
+  <path d="M176 320 C 232 320, 258 318, 286 300 C 314 282, 322 254, 314 232"
+        fill="none" stroke="#9A3B32" stroke-width="15" stroke-linecap="round"/>
+
+  <!-- Setzpunkt am Ende des Bogens -->
+  <circle cx="314" cy="226" r="13" fill="#9A3B32"/>
+</svg>

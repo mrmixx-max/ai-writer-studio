@@ -1,0 +1,164 @@
+/* ==========================================================================
+   Leere Zustaende.
+   Grundsatz: Ein leerer Bereich erklaert, was er ist, und nennt genau einen
+   naechsten Schritt. Keine Illustrationen, keine Ausrufezeichen, kein
+   "Hoppla, hier ist noch nichts!".
+   ========================================================================== */
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 48px 40px;
+  text-align: center;
+}
+
+.empty-inner {
+  max-width: 44ch;
+}
+
+/* Zierlinie statt Piktogramm: ruhig und typografisch. */
+.empty-rule {
+  width: 32px;
+  height: 1px;
+  background: var(--accent);
+  margin: 0 auto 22px;
+}
+
+.empty-title {
+  font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+  font-size: 19px;
+  font-weight: 400;
+  color: var(--fg);
+  margin: 0 0 10px;
+  line-height: 1.4;
+}
+
+.empty-text {
+  font-size: 13px;
+  line-height: 1.75;
+  color: var(--fg-dim);
+  margin: 0 0 22px;
+}
+
+.empty-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Nummerierte Schrittliste für den echten Erststart */
+.empty-steps {
+  list-style: none;
+  margin: 0 0 24px;
+  padding: 0;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.empty-step {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: 12px;
+  align-items: baseline;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--fg-dim);
+}
+
+.empty-step-num {
+  font-family: Georgia, serif;
+  font-size: 12px;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.empty-step strong {
+  color: var(--fg);
+  font-weight: 400;
+}
+
+/* Kompakte Variante für Seitenleisten-Bereiche */
+.empty.compact {
+  padding: 32px 20px;
+}
+.empty.compact .empty-title { font-size: 15px; }
+.empty.compact .empty-text  { font-size: 12px; margin-bottom: 16px; }
+.empty.compact .empty-rule  { margin-bottom: 16px; }
+
+/* Tastenkürzel-Hinweis am Fuß eines leeren Zustands */
+.empty-hint {
+  margin-top: 26px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  font-size: 11.5px;
+  line-height: 1.7;
+  color: var(--fg-faint);
+}
+
+.empty-hint kbd {
+  font-family: inherit;
+  font-size: 10.5px;
+  padding: 1px 5px;
+  border: 1px solid var(--border-strong);
+  border-radius: 2px;
+  color: var(--fg-dim);
+}
+
+/* ==========================================================================
+   Schwerwiegender Fehler (ErrorBoundary)
+   ========================================================================== */
+
+.fatal {
+  max-width: 62ch;
+  margin: 0 auto;
+  padding: 64px 32px;
+  color: var(--fg);
+}
+
+.fatal-title {
+  font-family: Georgia, "Iowan Old Style", serif;
+  font-size: 21px;
+  font-weight: 400;
+  margin: 0 0 16px;
+}
+
+.fatal-text {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--fg-dim);
+  margin: 0 0 16px;
+}
+
+.fatal-detail {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 11.5px;
+  line-height: 1.6;
+  padding: 14px 16px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--err);
+  border-radius: 3px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0 0 20px;
+  color: var(--fg);
+}
+
+/* ==========================================================================
+   Warnstreifen unter dem Kopf (z. B. fehlende Persistenz)
+   ========================================================================== */
+
+.app-warning {
+  padding: 9px 20px;
+  font-size: 12px;
+  line-height: 1.5;
+  background: color-mix(in srgb, var(--err) 14%, var(--bg));
+  border-bottom: 1px solid var(--border);
+  color: var(--fg);
+}

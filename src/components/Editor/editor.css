@@ -1,0 +1,104 @@
+/* Editor-Styles – Dark/Light via CSS-Variablen, Fokusmodus blendet Chrome aus. */
+
+:root {
+  --bg: #1e1e1e;
+  --bg-elev: #252526;
+  --fg: #e0e0e0;
+  --fg-dim: #9a9a9a;
+  --accent: #4ec9b0;
+  --border: #3a3a3a;
+}
+:root[data-theme="light"] {
+  --bg: #ffffff;
+  --bg-elev: #f3f3f3;
+  --fg: #1a1a1a;
+  --fg-dim: #666;
+  --accent: #007acc;
+  --border: #ddd;
+}
+
+.editor-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.editor-toolbar {
+  display: flex;
+  gap: 4px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-elev);
+  flex-wrap: wrap;
+}
+.editor-toolbar button {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--fg);
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.editor-toolbar button:hover {
+  background: var(--border);
+}
+.editor-toolbar button.active {
+  background: var(--accent);
+  color: #000;
+}
+
+.editor-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px max(24px, calc(50% - 380px));
+}
+.tiptap-editor {
+  outline: none;
+  line-height: 1.6;
+  font-size: 16px;
+  min-height: 100%;
+}
+.tiptap-editor p {
+  margin: 0 0 12px;
+}
+.tiptap-editor h1 {
+  font-size: 28px;
+  margin: 18px 0 10px;
+}
+.tiptap-editor h2 {
+  font-size: 22px;
+  margin: 16px 0 8px;
+}
+.tiptap-editor h3 {
+  font-size: 18px;
+  margin: 14px 0 6px;
+}
+.tiptap-editor blockquote {
+  border-left: 3px solid var(--accent);
+  margin: 12px 0;
+  padding-left: 14px;
+  color: var(--fg-dim);
+}
+.tiptap-editor ul,
+.tiptap-editor ol {
+  padding-left: 24px;
+  margin: 0 0 12px;
+}
+.tiptap-editor p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--fg-dim);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Fokusmodus: Toolbar ausblenden, zentrierter schmaler Text */
+.editor-shell.focus-mode .editor-toolbar {
+  display: none;
+}
+.editor-shell.focus-mode .editor-content {
+  padding: 40px max(24px, calc(50% - 340px));
+}

@@ -1,0 +1,46 @@
+/* Export-Bar: Dropdown im Header. */
+.export-bar {
+  position: relative;
+}
+.export-bar > button {
+  background: var(--bg-elev);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.export-menu {
+  position: absolute;
+  right: 0;
+  top: 38px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 200px;
+  z-index: 10;
+}
+.export-menu label {
+  font-size: 12px;
+  color: var(--fg-dim);
+}
+.export-menu select {
+  width: 100%;
+  padding: 4px;
+  margin-top: 2px;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+}
+.export-go {
+  background: var(--accent);
+  color: #000;
+  border: none;
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}

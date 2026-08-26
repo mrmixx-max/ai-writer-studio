@@ -1,0 +1,117 @@
+/* ==========================================================================
+   Theme-Grundlage: Farb-Token für Light und Dark.
+   Gestaltung: warme Neutralflächen, ein einzelner Akzent (Siegelrot),
+   ruhige Kontraste. Kein Blau-Grau-SaaS-Look.
+
+   Umschaltung über data-theme am <html>-Element. Ohne Attribut gilt Dark,
+   weil die App als Schreibumgebung für lange Sitzungen gedacht ist.
+   ========================================================================== */
+
+:root,
+:root[data-theme="dark"] {
+  /* Flächen */
+  --bg: #16150f;          /* Grundfläche, warmes Tintenschwarz */
+  --bg-elev: #1e1c15;     /* leicht erhoben */
+  --panel: #1a1812;       /* Seitenleisten, Dialoge */
+  --panel-2: #221f18;     /* Kartenflächen darin */
+
+  /* Text */
+  --fg: #ece7db;          /* Haupttext, gebrochenes Pergament */
+  --fg-dim: #8f8878;       /* Sekundärtext, Beschriftungen */
+  --fg-faint: #5f5a4e;     /* Hinweise, deaktiviert */
+
+  /* Linien */
+  --border: #2e2b22;
+  --border-strong: #423d31;
+
+  /* Akzent */
+  --accent: #b4483a;       /* Siegelrot */
+  --accent-dim: #7d3228;
+
+  /* Statusfarben, gedeckt */
+  --ok: #5c8a63;
+  --warn: #a8813f;
+  --err: #a85040;
+
+  /* Editorfläche: leicht abgesetzt vom Rahmen, damit Text ruht */
+  --editor-bg: #191710;
+  --editor-fg: #e8e3d6;
+
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --bg: #f7f4ec;          /* Pergament */
+  --bg-elev: #fffdf7;
+  --panel: #fffdf7;
+  --panel-2: #f2eee3;
+
+  --fg: #23201a;
+  --fg-dim: #6b6559;
+  --fg-faint: #9b9587;
+
+  --border: #ddd7c8;
+  --border-strong: #c4bcaa;
+
+  --accent: #9a3b32;
+  --accent-dim: #7d3228;
+
+  --ok: #4a7c59;
+  --warn: #8a6d3b;
+  --err: #8a4b3b;
+
+  --editor-bg: #fffdf7;
+  --editor-fg: #23201a;
+
+  color-scheme: light;
+}
+
+/* --- Grundlagen ---------------------------------------------------------- */
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  /* Textauswahl im Fensterrahmen unterdrücken; im Editor wieder erlaubt. */
+  user-select: none;
+}
+
+/* Im Editor und in Textfeldern muss Auswahl möglich sein. */
+.ProseMirror,
+input,
+textarea,
+[contenteditable="true"],
+.selectable {
+  user-select: text;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+/* Schlanke Bildlaufleisten, passend zur Fläche */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 5px;
+  border: 2px solid var(--bg);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--fg-faint); }
+
+/* Sichtbarer Fokus für Tastaturnutzung, aber nicht bei Maus-Klicks */
+:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 1px;
+}

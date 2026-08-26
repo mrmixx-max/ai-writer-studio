@@ -1,0 +1,120 @@
+/* Sidebar: Tabs + Inhalt + Projekt-Baum + Mode-Switcher. */
+.sidebar {
+  width: 320px;
+  min-width: 320px;
+  border-right: 1px solid var(--border);
+  background: var(--bg-elev);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.mode-switcher {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 4px;
+  border-bottom: 1px solid var(--border);
+}
+.mode-switcher button {
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.mode-switcher button.active {
+  background: var(--bg);
+  border-color: var(--accent);
+}
+.mode-placeholder {
+  padding: 16px;
+  color: var(--fg-dim);
+  font-size: 13px;
+  text-align: center;
+}
+.sidebar-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-tabs button {
+  flex: 1;
+  padding: 10px;
+  background: transparent;
+  border: none;
+  color: var(--fg-dim);
+  cursor: pointer;
+  font-size: 13px;
+}
+.sidebar-tabs button.active {
+  background: var(--bg);
+  color: var(--fg);
+  border-bottom: 2px solid var(--accent);
+}
+.sidebar-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.project-toolbar {
+  display: flex;
+  gap: 6px;
+  padding: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.project-toolbar button {
+  flex: 1;
+  padding: 6px;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.project-tree, .chapter-tree {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.project-tree > li, .chapter-tree > li {
+  border-bottom: 1px solid var(--border);
+}
+.node {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--fg);
+}
+.node:hover {
+  background: var(--bg);
+}
+.project-tree > li.active > .node,
+.chapter-tree > li.active > .node {
+  background: var(--bg);
+  color: var(--accent);
+}
+.chapter-tree {
+  padding-left: 16px;
+  border-top: 1px solid var(--border);
+}
+.node-actions {
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+}
+.node:hover .node-actions {
+  opacity: 1;
+}
+.node-actions button {
+  background: transparent;
+  border: none;
+  color: var(--fg-dim);
+  cursor: pointer;
+  font-size: 11px;
+  padding: 0 3px;
+}

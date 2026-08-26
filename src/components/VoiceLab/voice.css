@@ -1,0 +1,66 @@
+/* Stimmen-Labor: Stilprofile + Split-View. */
+.voice-lab {
+  padding: 16px;
+  overflow-y: auto;
+  height: 100%;
+  color: var(--fg);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.voice-toolbar {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.voice-toolbar button {
+  padding: 6px 12px;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.voice-toolbar button.active {
+  background: var(--accent);
+  color: #000;
+}
+.voice-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.voice-list button {
+  padding: 4px 8px;
+  background: var(--bg);
+  color: var(--fg-dim);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 11px;
+}
+.voice-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+.original, .translated {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+  overflow-y: auto;
+}
+.original h4, .translated h4 {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: var(--fg-dim);
+}
+.original pre, .translated pre {
+  white-space: pre-wrap;
+  font-size: 13px;
+  line-height: 1.5;
+}
