@@ -92,6 +92,9 @@ Nach der Rust-Installation eine **neue** Konsole öffnen, damit der PATH steht.
 
 ### Projektwissen (RAG)
 
+> **Stand 0.1.0:** Die Dienste sind fertig und getestet, die Oberfläche fehlt
+> noch. Nutzbar ist der Bereich erst mit der nächsten Version.
+
 Baut einen Suchindex über das gesamte Projekt auf — Kapitel, Fragmente,
 Figuren, Orte, Notizen.
 
@@ -118,6 +121,21 @@ Abweichungs-Detektor, Dialog mit dem Text und Traumlogik-Modi.
 ### Export
 
 DOCX, EPUB, PDF, Markdown und reiner Text.
+
+### In Arbeit
+
+Für diese Bereiche stehen Datenmodell, Typen und teils die Dienste, aber noch
+keine Oberfläche. Sie sind in Version 0.1.0 **nicht benutzbar**:
+
+| Bereich | Stand |
+|---|---|
+| Projektwissen-Tab | Dienste und 70 Tests fertig, Ansicht fehlt |
+| Konsistenz- und Stil-Checker | Datenmodell und Typen, keine Prüflogik |
+| KDP-/Export-Preflight | Datenmodell und Typen |
+| Snapshot-Versionierung | Datenmodell und Typen |
+
+Die Datenbank ist darauf vorbereitet: alle Tabellen existieren ab Schema-Version 2,
+eine spätere Aktualisierung braucht keine Datenmigration.
 
 ---
 
