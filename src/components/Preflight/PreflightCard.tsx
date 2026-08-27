@@ -4,6 +4,7 @@
 // und oft einen Strukturhinweis statt eines Textausschnitts — etwa
 // "Kapitel 3 von 12, 0 Wörter" bei einem leeren Kapitel.
 
+import { memo } from "react";
 import type { PreflightFinding } from "@/types/preflight";
 import {
   CATEGORY_LABELS,
@@ -25,7 +26,7 @@ interface Props {
   busy: boolean;
 }
 
-export function PreflightCard({
+export const PreflightCard = memo(function PreflightCard({
   finding: f,
   onJump,
   onIgnore,
@@ -118,4 +119,4 @@ export function PreflightCard({
       </div>
     </div>
   );
-}
+});

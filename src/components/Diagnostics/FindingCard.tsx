@@ -5,6 +5,7 @@
 // nur möglich, wenn der Befund eine Position hat — projektweite Befunde
 // (Zeitlinie, Begriffsdrift) haben keine.
 
+import { memo } from "react";
 import type { Finding } from "@/services/diagnostics/runner";
 
 interface Props {
@@ -33,7 +34,7 @@ const KIND_LABELS: Record<string, string> = {
   intentional: "bewusst",
 };
 
-export function FindingCard({
+export const FindingCard = memo(function FindingCard({
   finding: f,
   onJump,
   onIgnore,
@@ -104,4 +105,4 @@ export function FindingCard({
       </div>
     </div>
   );
-}
+});
