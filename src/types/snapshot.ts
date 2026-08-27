@@ -1,81 +1,111 @@
 // Snapshot-Versionierung — Typen.
 
-/** Ein Snapshot des gesamten Projektzustands. */
+/** Kopf eines Snapshots. */
 export interface Snapshot {
   id: string;
   projectId: string;
-  /** Frei wählbarer Name, z. B. "KDP-final". */
+  /** Frei wählbarer Name, etwa "Rohfassung komplett" oder "KDP-final". */
   name: string;
-  /** Notiz des Autors. */
   note: string | null;
-  /** Projektmetadaten zum Zeitpunkt des Snapshots als JSON (SnapshotMeta). */
-  meta: string;
+  /** Projektmetadaten zum Zeitpunkt der Aufnahme. */
+  meta: SnapshotMeta;
   chapterCount: number;
   wordCount: number;
-  /** ID des zugehörigen Preflight-Reports, falls vor dem Snapshot geprüft wurde. */
+  /** Verweis auf den Preflight-Bericht, sofern vor dem Export erstellt. */
   preflightReportId: string | null;
   createdAt: number;
 }
 
-/** In `Snapshot.meta` serialisierte Projektmetadaten. */
+/** Metadaten, die mit dem Snapshot festgehalten werden. */
 export interface SnapshotMeta {
   projectName: string;
+  /** Titel der Kapitel in ihrer Reihenfolge — für den Strukturvergleich. */
   chapterTitles: string[];
-  /** Preflight-Kurzstatus zum Zeitpunkt der Erstellung. */
-  preflight: {
-    blockerCount: number;
-    warningCount: number;
-    hintCount: number;
-  } | null;
-  /** Stilmetriken über das ganze Projekt, falls berechnet. */
-  metrics: Record<string, number> | null;
+  /** Wie der Snapshot entstanden ist. */
+  origin: "manual" | "before-export" | "bookwriter";
+  /** Schema-Version zur Zeit der Aufnahme, für spätere Wiederherstellung. */
+  schemaVersion: number;
 }
 
-/** Ein einzelnes Kapitel innerhalb eines Snapshots. */
+/** Ein Kapitel im Snapshot. */
 export interface SnapshotItem {
   id: string;
   snapshotId: string;
-  /** Ursprüngliche Kapitel-ID (kann nach Restore fehlen). */
   chapterId: string;
   title: string;
-  /** TipTap-JSON des Kapitelinhalts. */
+  /** Vollständiger TipTap-Inhalt. */
   content: string;
   orderIndex: number;
   wordCount: number;
 }
 
 /** Art einer Änderung zwischen zwei Snapshots. */
-export type DiffChangeType = "added" | "removed" | "modified" | "reordered" | "renamed";
+export type DiffKind = "added" | "removed" | "renamed" | "changed" | "moved" | "unchanged";
 
-/** Diff-Eintrag für ein Kapitel zwischen zwei Snapshots. */
-export interface SnapshotDiffEntry {
+/** Eine einzelne Änderung. */
+export interface DiffEntry {
+  kind: DiffKind;
   chapterId: string;
-  title: string;
-  changeType: DiffChangeType;
+  /** Titel im älteren Snapshot, null bei Neuanlage. */
+  titleBefore: string | null;
+  /** Titel im neueren Snapshot, null bei Löschung. */
+  titleAfter: string | null;
   wordsBefore: number;
   wordsAfter: number;
+  /** Differenz der Wortzahl, negativ bei Kürzung. */
   wordDelta: number;
-  /** Grobe Ähnlichkeit 0..1 (1 = identisch). */
-  similarity: number;
+  /** Verschiebung der Position, sofern verschoben. */
+  positionBefore: number | null;
+  positionAfter: number | null;
 }
 
-/** Vollständiger Vergleich zweier Snapshots. */
+/** Vergleich zweier Snapshots. */
 export interface SnapshotDiff {
-  id: string;
   fromSnapshotId: string;
   toSnapshotId: string;
-  /** JSON-Array von SnapshotDiffEntry. */
-  entries: string;
-  /** Strukturelle Zusammenfassung, rein rechnerisch. */
+  entries: DiffEntry[];
+  /** Klartext-Zusammenfassung der Strukturänderung. */
   structureSummary: string;
-  /** KI-Zusammenfassung der Ton-/Stilveränderung; null wenn kein Modell verfügbar war. */
+  /** KI-Zusammenfassung der Ton-/Stilveränderung, sofern erzeugt. */
   toneSummary: string | null;
-  createdAt: number;
+  /** Kennzahlen des Vergleichs. */
+  totals: {
+    added: number;
+    removed: number;
+    renamed: number;
+    changed: number;
+    moved: number;
+    unchanged: number;
+    wordDelta: number;
+  };
 }
 
-/** Ergebnis eines Restore-Vorgangs. */
+/** Ergebnis einer Wiederherstellung. */
 export interface RestoreResult {
-  restoredChapters: number;
-  /** Snapshot, der vor dem Restore automatisch als Sicherung erstellt wurde. */
-  backupSnapshotId: string;
+  /** Kapitel, die inhaltlich zurückgesetzt wurden. */
+  restored: number;
+  /** Kapitel, die neu angelegt wurden, weil sie fehlten. */
+  recreated: number;
+  /** Kapitel, die es im Snapshot nicht gab. */
+  extra: number;
+  /** Was mit den überzähligen Kapiteln geschehen ist. */
+  extraHandling: "kept" | "deleted";
+  /** Snapshot, der vor der Wiederherstellung als Sicherung angelegt wurde. */
+  safetySnapshotId: string | null;
+}
+
+/** Optionen für die Wiederherstellung. */
+export interface RestoreOptions {
+  /**
+   * Kapitel löschen, die im Snapshot nicht enthalten sind.
+   * Standard false — Löschen ist die gefährlichere Wahl und braucht
+   * eine ausdrückliche Entscheidung.
+   */
+  deleteExtra?: boolean;
+  /**
+   * Vor der Wiederherstellung einen Sicherungs-Snapshot anlegen.
+   * Standard true: Ein Restore ist die einzige Aktion im Programm, die
+   * Text vernichten kann. Ohne Netz darf sie nicht laufen.
+   */
+  createSafetySnapshot?: boolean;
 }
