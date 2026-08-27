@@ -38,7 +38,7 @@ export interface Posting {
  * behält Umlaute und ß, entfernt Stoppwörter und Einzelzeichen.
  */
 export function tokenize(text: string): string[] {
-  if (!text) return [];
+  if (typeof text !== "string" || !text) return [];
   return text
     .toLowerCase()
     .replace(/[\u2019']/g, "")

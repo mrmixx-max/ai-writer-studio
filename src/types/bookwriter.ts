@@ -105,6 +105,18 @@ export interface BookwriterArtifact {
   createdAt: number;
 }
 
+/** Ein hochgeladenes Dokument für RAG-Kontext. */
+export interface BookwriterDocument {
+  id: string;
+  projectId: string;
+  title: string;
+  fileType: string;
+  fileName: string;
+  content: string;
+  chunkCount: number;
+  createdAt: number;
+}
+
 /** Eine Nutzerentscheidung. */
 export interface BookwriterApproval {
   id: string;

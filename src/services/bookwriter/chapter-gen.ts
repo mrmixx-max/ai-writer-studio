@@ -5,6 +5,7 @@ import { createProvider, buildMessages } from "@/services/llm";
 import { createChapter, updateChapter } from "@/services/project";
 import { promptWriteChapter, promptSummarizeChapter, systemForGenre } from "./prompts";
 import { saveArtifact } from "./state";
+import { searchDocuments } from "./documents";
 import type { BookBriefing, BookOutline, OutlineChapter } from "@/types/bookwriter";
 
 /** Ein generiertes Kapitel. */
@@ -44,14 +45,23 @@ export async function generateChapter(
   previousSummaries: string[],
   onToken: (token: string) => void,
   signal?: AbortSignal,
+  projectId?: string,
 ): Promise<string> {
   const settings = loadSettings();
   const provider = createProvider(settings);
   const system = systemForGenre(briefing.genre, briefing.tone, briefing.language);
 
+  // RAG: Relevante Dokument-Passagen suchen.
+  let ragNotes: string[] = [];
+  if (projectId) {
+    const query = `${chapter.title} ${chapter.goal} ${chapter.conflict} ${chapter.outcome}`;
+    const hits = searchDocuments(projectId, query, 3);
+    ragNotes = hits.map((h) => `[Quelle: ${h.docTitle}]\n${h.text}`);
+  }
+
   const userPrompt = promptWriteChapter(briefing, chapter, {
     previousSummaries,
-    researchNotes: [],
+    researchNotes: ragNotes,
   });
 
   const messages = buildMessages(userPrompt, settings, [{ role: "system", content: system }]);
@@ -86,6 +96,7 @@ export async function generateManuskriptStreaming(
   onProgress: (status: GenerationStatus) => void,
   onToken: (token: string) => void,
   signal?: AbortSignal,
+  projectId?: string,
 ): Promise<GeneratedChapter[]> {
   const settings = loadSettings();
   const system = systemForGenre(briefing.genre, briefing.tone, briefing.language);
@@ -124,6 +135,7 @@ export async function generateManuskriptStreaming(
         summaries,
         onToken,
         signal,
+        projectId,
       );
 
       // Kapitel in der DB speichern.
