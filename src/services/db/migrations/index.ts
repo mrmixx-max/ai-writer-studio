@@ -4,6 +4,7 @@ import { migration001 } from "./001_base";
 import { migration002 } from "./002_knowledge_diagnostics";
 import { migration003 } from "./003_preflight";
 import { migration004 } from "./004_bookwriter";
+import { migration005 } from "./005_bookwriter_created_at";
 
 export interface Migration {
   version: number;
@@ -16,6 +17,7 @@ export const MIGRATIONS: Migration[] = [
   { version: 2, name: "knowledge_diagnostics", up: migration002 },
   { version: 3, name: "preflight", up: migration003 },
   { version: 4, name: "bookwriter", up: migration004 },
+  { version: 5, name: "bookwriter_created_at", up: migration005 },
 ];
 
 /**
