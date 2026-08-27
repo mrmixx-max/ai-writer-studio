@@ -5,6 +5,8 @@ import { usePromptStore } from "@/store/promptStore";
 import { PromptGenerator } from "@/components/PromptGenerator/PromptGenerator";
 import { KnowledgePanel } from "@/components/Knowledge/KnowledgePanel";
 import { DiagnosticsPanel } from "@/components/Diagnostics/DiagnosticsPanel";
+import { PreflightPanel } from "@/components/Preflight/PreflightPanel";
+import { SnapshotPanel } from "@/components/Preflight/SnapshotPanel";
 import { FragmentPanel } from "@/components/Fragment/FragmentPanel";
 import { VoiceLab } from "@/components/VoiceLab/VoiceLab";
 import { SemanticMap } from "@/components/SemanticMap/SemanticMap";
@@ -22,6 +24,8 @@ const MODES: { id: EditorMode; label: string; icon: string }[] = [
   { id: "prompts", label: "Prompts", icon: "💡" },
   { id: "knowledge", label: "Projektwissen", icon: "📚" },
   { id: "diagnostics", label: "Manuskriptprüfung", icon: "🔍" },
+  { id: "preflight", label: "Exportprüfung", icon: "✅" },
+  { id: "snapshots", label: "Snapshots", icon: "📂" },
   { id: "fragments", label: "Fragmente", icon: "🧩" },
   { id: "voices", label: "Stimmen", icon: "🎭" },
   { id: "map", label: "Karte", icon: "🗺️" },
@@ -70,7 +74,7 @@ export function Sidebar() {
 
   if (inSpecialMode) {
     return (
-      <aside className={`sidebar${mode === "knowledge" || mode === "diagnostics" ? " wide" : ""}`}>
+      <aside className={`sidebar${mode === "knowledge" || mode === "diagnostics" || mode === "preflight" || mode === "snapshots" ? " wide" : ""}`}>
         {switcher}
         <div className="sidebar-content">
           <ModePanel mode={mode} projectId={proj.activeProjectId} chapterId={proj.activeChapterId} />
@@ -151,6 +155,12 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
   // optional (für "Kapitel prüfen"), aber keine Voraussetzung.
   if (mode === "diagnostics") {
     return <DiagnosticsPanel projectId={projectId} chapterId={chapterId} />;
+  }
+  if (mode === "preflight") {
+    return <PreflightPanel projectId={projectId} chapterId={chapterId} />;
+  }
+  if (mode === "snapshots") {
+    return <SnapshotPanel projectId={projectId} />;
   }
   if (!projectId || !chapterId) {
     return <div className="mode-placeholder">Wähle links ein Projekt und Kapitel, um die Avantgarde-Funktionen zu nutzen.</div>;

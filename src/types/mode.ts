@@ -4,6 +4,8 @@ export type EditorMode =
   | "prompts"
   | "knowledge"
   | "diagnostics"
+  | "preflight"
+  | "snapshots"
   | "fragments"
   | "voices"
   | "map"
