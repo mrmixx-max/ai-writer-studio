@@ -120,6 +120,39 @@ Abweichungs-Detektor, Dialog mit dem Text und Traumlogik-Modi.
 
 DOCX, EPUB, PDF, Markdown und reiner Text.
 
+Vor dem Export in DOCX, PDF oder EPUB kann eine **Exportprüfung** (Preflight) laufen. Sie prüft auf kritische Befunde — leere Kapitel, fehlende Struktur — und verlangt bei Bedarf eine Bestätigung. Der Export wird nie verhindert, aber transparent gemacht. Markdown und TXT exportieren ohne Prüfung.
+
+### KDP-/Export-Preflight
+
+Erreichbar über das Häkchen-Symbol ✅. Prüft das Manuskript vor dem Export in DOCX, PDF und EPUB — **vollständig auf deinem Rechner, ohne KI**.
+
+**Struktur**
+- Leere oder fehlende Kapitel, doppelte Überschriften, übersprungene Überschriftenebenen
+- Sehr kurze oder sehr lange Kapitel, mehrfache Leerzeilen, uneinheitliche Szenentrenner
+- Harte Umbrüche (Shift+Enter) statt echter Absätze
+
+**Frontmatter / Backmatter**
+- Fehlender Titel, fehlendes Impressum, fehlendes Inhaltsverzeichnis
+- Fehlende Autorenseite, fehlende Hinweise auf weitere Bücher, fehlender Kontakt
+
+**Formate**
+- DOCX: Fehlende Überschriften-Struktur, übermäßige manuelle Formatierung
+- PDF: Sehr lange Absätze, Sonderzeichen die im PDF fehlen können
+- EPUB: Einzelkapitel für ganze Bücher, Bilder ohne Alternativtext
+- Markdown: Rohe Markdown-Zeichen im Text, Auszeichnung die Markdown nicht kennt
+- TXT: Informationsverlust (Formatierung, Bilder)
+
+**Zeichen**
+- Unsichtbare Zeichen aus Webseiten oder PDFs (Haarspatium, Nullbreiten-Leerzeichen, …)
+- Mögliche Arbeitsnotizen (TODO, FIXME, Platzhalter)
+- Uneinheitliche Einrückung
+
+Jeder Befund lässt sich **ignorieren**, als **bewusst so** markieren oder mit einem **Verbesserungsvorschlag** versehen. Entscheidungen überleben einen erneuten Prüflauf — Befunde werden über einen Fingerabdruck wiedererkannt. Regeln lassen sich für ein Projekt dauerhaft abschalten.
+
+**Ampel** zeigt den Status: rot (kritische Befunde), gelb (Warnungen oder noch nicht geprüft), grün (bereit).
+
+**KI-Offenlegung bei KDP** — Amazon verlangt die Angabe KI-generierter Inhalte. Der Hinweis steht im Preflight-Bereich; die Angabe erfolgt beim Upload im KDP-Konto. Diese App überträgt nichts.
+
 ### Manuskriptprüfung
 
 Erreichbar über das Lupen-Symbol 🔍. Prüft Konsistenz und Stil — **vollständig
@@ -164,7 +197,6 @@ keine Oberfläche. Sie sind in Version 0.1.0 **nicht benutzbar**:
 
 | Bereich | Stand |
 |---|---|
-| KDP-/Export-Preflight | Datenmodell und Typen |
 | Snapshot-Versionierung | Datenmodell und Typen |
 
 Ebenfalls offen: die **semantischen** Konsistenzprüfungen. Perspektivsprünge

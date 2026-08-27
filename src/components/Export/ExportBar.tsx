@@ -1,18 +1,51 @@
 // Export-Dialog: wählt Format + Bereich (Kapitel / Projekt) und startet Export.
+//
+// Vor DOCX/PDF/EPUB-Export: optionaler Preflight-Check. Blockierende Befunde
+// erfordern eine Bestätigung — der Export wird nie verhindert, aber transparent
+// gemacht.
 import { useState } from "react";
 import { exportProject, exportContent, type Format } from "@/services/export";
 import { useProjectStore } from "@/store/projectStore";
 import { useEditorStore } from "@/store/editorStore";
+import { runExportPreflight } from "@/services/preflight/runner";
+import { exportGate } from "@/services/preflight/filter";
+import type { PreflightFinding } from "@/types/preflight";
 
 const FORMATS: Format[] = ["docx", "md", "txt", "pdf", "epub"];
+
+// Formate, für die ein Preflight vor Export sinnvoll ist.
+const PRELIGHT_FORMATS: Format[] = ["docx", "pdf", "epub"];
 
 export function ExportBar() {
   const [open, setOpen] = useState(false);
   const [format, setFormat] = useState<Format>("docx");
   const [scope, setScope] = useState<"chapter" | "project">("project");
+  const [preflightVisible, setPreflightVisible] = useState(false);
+  const [findings, setFindings] = useState<PreflightFinding[]>([]);
+  const [preflightBusy, setPreflightBusy] = useState(false);
   const proj = useProjectStore();
   const editor = useEditorStore();
 
+  // --- Preflight -----------------------------------------------------------
+  async function runPreflightCheck() {
+    if (!proj.activeProjectId) return;
+    const p = proj.projects.find((x) => x.id === proj.activeProjectId);
+    if (!p) return;
+
+    setPreflightBusy(true);
+    try {
+      const r = await runExportPreflight(proj.activeProjectId, p.name, format);
+      setFindings(r.findings);
+      setPreflightVisible(true);
+    } catch {
+      // Preflight fehlgeschlagen — Export trotzdem erlauben.
+      setFindings([]);
+    } finally {
+      setPreflightBusy(false);
+    }
+  }
+
+  // --- Export --------------------------------------------------------------
   async function run() {
     if (scope === "project" && proj.activeProjectId) {
       const p = proj.projects.find((x) => x.id === proj.activeProjectId);
@@ -21,11 +54,23 @@ export function ExportBar() {
       const p = proj.projects.find((x) => x.id === proj.activeProjectId);
       if (p) await exportProject(p, format, proj.activeChapterId);
     } else {
-      // Insel-Export des aktuellen Editors
       await exportContent(editor.content, "Dokument", format);
     }
     setOpen(false);
+    setPreflightVisible(false);
+    setFindings([]);
   }
+
+  function startExport() {
+    // Preflight nur bei DOCX/PDF/EPUB, nicht bei Markdown/Text.
+    if (PRELIGHT_FORMATS.includes(format) && proj.activeProjectId) {
+      void runPreflightCheck();
+    } else {
+      void run();
+    }
+  }
+
+  const gate = findings.length > 0 ? exportGate(findings, format) : null;
 
   return (
     <div className="export-bar">
@@ -33,7 +78,7 @@ export function ExportBar() {
       {open && (
         <div className="export-menu">
           <label>Format
-            <select value={format} onChange={(e) => setFormat(e.target.value as Format)}>
+            <select value={format} onChange={(e) => { setFormat(e.target.value as Format); setPreflightVisible(false); }}>
               {FORMATS.map((f) => <option key={f} value={f}>{f.toUpperCase()}</option>)}
             </select>
           </label>
@@ -43,7 +88,49 @@ export function ExportBar() {
               <option value="chapter">Aktuelles Kapitel</option>
             </select>
           </label>
-          <button className="export-go" onClick={run}>Exportieren</button>
+
+          {!preflightVisible ? (
+            <button className="export-go" onClick={startExport} disabled={preflightBusy}>
+              {preflightBusy ? "Prüfung läuft…" : "Exportieren"}
+            </button>
+          ) : (
+            <div className="export-preflight">
+              {gate?.needsConfirm && (
+                <div className="pf-gate-warn">
+                  <strong>Achtung:</strong> {gate.blockers.length} kritische(r) Befund/Bunde.
+                  Der Export wird empfohlen, erst nach Behebung.
+                </div>
+              )}
+              {gate && !gate.needsConfirm && (
+                <div className="pf-gate-ok">
+                  Keine kritischen Befunde. Exportbereit.
+                </div>
+              )}
+              {findings.length > 0 && (
+                <details className="pf-gate-details">
+                  <summary>{findings.length} Befund/Bunde anzeigen</summary>
+                  <ul>
+                    {findings.map((f) => (
+                      <li key={f.id}>
+                        <span className={`pf-tag ${f.severity}`}>
+                          {f.severity === "blocker" ? "kritisch" : f.severity === "warning" ? "Warnung" : "Hinweis"}
+                        </span>{" "}
+                        {f.title}
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+              <div className="pf-gate-actions">
+                <button className="export-go" onClick={run}>
+                  {gate?.needsConfirm ? "Trotzdem exportieren" : "Exportieren"}
+                </button>
+                <button className="export-cancel" onClick={() => { setPreflightVisible(false); setFindings([]); }}>
+                  Zurück
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
