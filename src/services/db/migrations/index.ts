@@ -3,6 +3,7 @@ import type { Database } from "sql.js";
 import { migration001 } from "./001_base";
 import { migration002 } from "./002_knowledge_diagnostics";
 import { migration003 } from "./003_preflight";
+import { migration004 } from "./004_bookwriter";
 
 export interface Migration {
   version: number;
@@ -14,6 +15,7 @@ export const MIGRATIONS: Migration[] = [
   { version: 1, name: "base", up: migration001 },
   { version: 2, name: "knowledge_diagnostics", up: migration002 },
   { version: 3, name: "preflight", up: migration003 },
+  { version: 4, name: "bookwriter", up: migration004 },
 ];
 
 /**
