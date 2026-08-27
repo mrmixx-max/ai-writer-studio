@@ -14,6 +14,11 @@ export interface AppSettings {
   openrouterApiKey: string;
   gpt2apiBaseUrl: string;
   gpt2apiApiKey: string;
+  // Bildgenerierung
+  imageProvider: "openai-dalle" | "openrouter-flux" | "sd-webui" | "none";
+  sdWebuiUrl: string;
+  sdWebuiUsername: string;
+  sdWebuiPassword: string;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -30,4 +35,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   openrouterApiKey: "",
   gpt2apiBaseUrl: "http://localhost:8080/v1",
   gpt2apiApiKey: "",
+  imageProvider: "none",
+  sdWebuiUrl: "http://localhost:7860",
+  sdWebuiUsername: "",
+  sdWebuiPassword: "",
 };

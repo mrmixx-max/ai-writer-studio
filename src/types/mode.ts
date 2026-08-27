@@ -12,4 +12,5 @@ export type EditorMode =
   | "dialogue"
   | "versions"
   | "obstruction"
-  | "dream";
+  | "dream"
+  | "imagegen";

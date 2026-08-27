@@ -1,0 +1,105 @@
+/* Bildgenerierung Panel */
+.image-gen {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.image-gen-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.image-gen-section {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.image-gen-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+}
+
+.image-gen-select,
+.image-gen-input,
+.image-gen-textarea {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--foreground);
+  font-size: 14px;
+  font-family: inherit;
+}
+
+.image-gen-textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.image-gen-row {
+  display: flex;
+  gap: 8px;
+}
+
+.image-gen-row .image-gen-input {
+  flex: 1;
+}
+
+.image-gen-button {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.image-gen-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.image-gen-button:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.image-gen-error {
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: rgba(220, 38, 38, 0.15);
+  color: #f87171;
+  font-size: 13px;
+}
+
+.image-gen-results {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.image-gen-result {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.image-gen-img {
+  width: 100%;
+  display: block;
+}
+
+.image-gen-meta {
+  padding: 8px;
+  font-size: 12px;
+  opacity: 0.7;
+  word-break: break-word;
+}

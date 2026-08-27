@@ -14,6 +14,7 @@ import { DialoguePanel } from "@/components/Dialogue/DialoguePanel";
 import { VersionsPanel } from "@/components/Versions/VersionsPanel";
 import { ObstructionPanel } from "@/components/Obstruction/ObstructionPanel";
 import { DreamLogicPanel } from "@/components/DreamLogic/DreamLogicPanel";
+import { ImageGenerationPanel } from "@/components/ImageGen/ImageGenPanel";
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -33,6 +34,7 @@ const MODES: { id: EditorMode; label: string; icon: string }[] = [
   { id: "versions", label: "Versionen", icon: "🕐" },
   { id: "obstruction", label: "Obstruktion", icon: "⛓️" },
   { id: "dream", label: "Traumlogik", icon: "🌙" },
+  { id: "imagegen", label: "Bildgenerierung", icon: "🖼️" },
 ];
 
 export function Sidebar() {
@@ -180,6 +182,8 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
       return <ObstructionPanel text="(Text aus Editor wählen)" />;
     case "dream":
       return <DreamLogicPanel text="(Text aus Editor wählen)" />;
+    case "imagegen":
+      return <ImageGenerationPanel />;
     default:
       return null;
   }
