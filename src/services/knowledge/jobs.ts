@@ -100,7 +100,7 @@ export function recentJobs(projectId: string, limit = 10): KnowledgeIndexJob[] {
 /**
  * Setzt hängengebliebene Jobs zurück.
  * Wird beim App-Start aufgerufen: ein Absturz während der Indexierung
- * darf nicht dazu führen, dass die UI dauerhaft „läuft" anzeigt.
+ * darf nicht dazu führen, dass die UI dauerhaft „läuft“ anzeigt.
  */
 export async function resetStaleJobs(projectId: string): Promise<number> {
   const db = getDb();

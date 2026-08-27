@@ -1,4 +1,4 @@
-// „Frage an das Projekt" — KI-Antworten auf Basis des Wissensindex.
+// „Frage an das Projekt“ — KI-Antworten auf Basis des Wissensindex.
 //
 // Regel: Das Modell darf nur aus dem gelieferten Kontext antworten.
 // Fehlt Kontext, wird das gesagt statt geraten. Der Prompt erzwingt das,
@@ -145,7 +145,7 @@ export async function askProject(
 
 /**
  * Liefert den Retrieval-Kontext, ohne ein Modell zu befragen.
- * Für die Produktanforderung „Retrieval-Kontext vor dem Senden ansehen".
+ * Für die Produktanforderung „Retrieval-Kontext vor dem Senden ansehen“.
  */
 export async function previewContext(
   projectId: string,

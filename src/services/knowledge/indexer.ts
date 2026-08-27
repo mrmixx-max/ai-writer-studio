@@ -149,7 +149,7 @@ function buildNotice(probeNotice: string | null, failures: number, total: number
   return parts.length ? parts.join(" ") : null;
 }
 
-/** Indexiert genau eine Quelle. Komfort-Wrapper für „Nur dieses Kapitel indexieren". */
+/** Indexiert genau eine Quelle. Komfort-Wrapper für „Nur dieses Kapitel indexieren“. */
 export async function indexSingleSource(
   projectId: string,
   sourceId: string,

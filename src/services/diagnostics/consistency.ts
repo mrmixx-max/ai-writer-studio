@@ -151,7 +151,7 @@ export function checkCharacters(
           kind: "possible",
           message: `Beruf von ${c.name} kommt im Text nicht vor`,
           explanation:
-            `Das Profil nennt „${c.occupation}". Im geprüften Text wird das ` +
+            `Das Profil nennt „${c.occupation}“. Im geprüften Text wird das ` +
             "nicht erwähnt. Das ist unproblematisch, solange es an anderer " +
             "Stelle steht — der Hinweis dient nur der Übersicht.",
           subject: c.name,
@@ -195,9 +195,9 @@ export function checkWorld(
       issues.push({
         category: "world",
         kind: "possible",
-        message: `Ortsname „${l.name}" erscheint als „${near}"`,
+        message: `Ortsname „${l.name}“ erscheint als „${near}“`,
         explanation:
-          `Das Ortsprofil führt „${l.name}", im Text steht „${near}". ` +
+          `Das Ortsprofil führt „${l.name}“, im Text steht „${near}“. ` +
           "Wahrscheinlich ein Tippfehler oder eine uneinheitliche Schreibweise. " +
           "Ist die Abweichung gewollt, markiere den Befund als bewusst.",
         subject: l.name,
@@ -244,7 +244,7 @@ export function levenshtein(a: string, b: string): number {
  * überwiegen. Wechselt das Bild mitten im Text, liegt vermutlich ein
  * POV-Sprung vor.
  *
- * Wörtliche Rede wird ausgenommen — dort ist „ich" normal und sagt nichts
+ * Wörtliche Rede wird ausgenommen — dort ist „ich“ normal und sagt nichts
  * über die Erzählperspektive. Ohne diese Ausnahme wäre jeder Dialog ein
  * Fehlalarm.
  */
@@ -318,9 +318,9 @@ export function checkPointOfView(a: AnalyzedText): ConsistencyIssue[] {
  * Findet wechselnde Begriffe für dieselbe Sache.
  *
  * Erkannt werden zwei Muster:
- *   1. Ähnliche Wörter mit geringer Editierdistanz („Archiv"/„Archief")
+ *   1. Ähnliche Wörter mit geringer Editierdistanz („Archiv“/„Archief“)
  *   2. Uneinheitliche Schreibweise mit und ohne Bindestrich
- *      („Nachtwache"/„Nacht-Wache")
+ *      („Nachtwache“/„Nacht-Wache“)
  *
  * Bewusst konservativ: Es werden nur Wörter ab sechs Zeichen betrachtet und
  * nur solche, die mehrfach vorkommen. Sonst würde jede Flexionsform gemeldet.
@@ -352,7 +352,7 @@ export function checkTerminology(a: AnalyzedText): ConsistencyIssue[] {
         issues.push({
           category: "terminology",
           kind: "possible",
-          message: `Uneinheitliche Begriffe: „${x}" und „${y}"`,
+          message: `Uneinheitliche Begriffe: „${x}“ und „${y}“`,
           explanation:
             `Beide Formen kommen mehrfach vor (${counts.get(x)}× und ` +
             `${counts.get(y)}×). Wahrscheinlich ist dieselbe Sache gemeint. ` +
@@ -390,7 +390,7 @@ export function checkTerminology(a: AnalyzedText): ConsistencyIssue[] {
     issues.push({
       category: "terminology",
       kind: "possible",
-      message: `Mit und ohne Bindestrich: „${h}" und „${actual}"`,
+      message: `Mit und ohne Bindestrich: „${h}“ und „${actual}“`,
       explanation:
         "Dasselbe Wort erscheint in beiden Schreibweisen. Uneinheitliche " +
         "Bindestriche fallen im Druck auf und wirken unsauber.",

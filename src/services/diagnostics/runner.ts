@@ -121,7 +121,7 @@ export async function runDiagnostics(
   let done = 0;
 
   for (const ch of chapters) {
-    options.onProgress?.(done, total, `Kapitel „${ch.title}" wird geprüft…`);
+    options.onProgress?.(done, total, `Kapitel „${ch.title}“ wird geprüft…`);
     try {
       const full = getChapter(ch.id);
       const text = tiptapToText(full?.content ?? "{}");

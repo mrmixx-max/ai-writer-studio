@@ -78,7 +78,7 @@ export async function searchKnowledge(
       hits,
       strategyUsed: "lexical",
       degraded: false,
-      notice: hits.length ? null : `Für „${query}" wurde keine exakte Übereinstimmung gefunden.`,
+      notice: hits.length ? null : `Für „${query}“ wurde keine exakte Übereinstimmung gefunden.`,
       totalChunksSearched: chunks.length,
     };
   }

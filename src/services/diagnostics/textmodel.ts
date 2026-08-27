@@ -44,7 +44,7 @@ export interface AnalyzedText {
 
 /**
  * Erkennt wörtliche Rede.
- * Deutsche Anführungszeichen („…"), typografische („…") und geradlinige ("…")
+ * Deutsche Anführungszeichen („…“), typografische („…“) und geradlinige ("…")
  * werden gleich behandelt. Auch der Gedankenstrich-Dialog wird erfasst.
  */
 export function looksLikeDialogue(s: string): boolean {

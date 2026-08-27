@@ -158,7 +158,7 @@ export interface SourceStats {
   chunkCount: number;
 }
 
-/** Aggregierte Kennzahlen für die Statusanzeige im Tab „Projektwissen". */
+/** Aggregierte Kennzahlen für die Statusanzeige im Tab „Projektwissen“. */
 export function sourceStats(projectId: string): SourceStats {
   const db = getDb();
   const res = db.exec(

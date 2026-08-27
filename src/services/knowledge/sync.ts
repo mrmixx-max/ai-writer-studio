@@ -130,7 +130,7 @@ export async function syncProjectSources(projectId: string): Promise<SyncResult>
 }
 
 /**
- * Synchronisiert nur ein Kapitel. Für den Button „Nur dieses Kapitel indexieren"
+ * Synchronisiert nur ein Kapitel. Für den Button „Nur dieses Kapitel indexieren“
  * und für Autosave-getriebene Stale-Markierung.
  */
 export async function syncChapterSource(

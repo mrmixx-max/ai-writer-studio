@@ -25,8 +25,8 @@ export const FILLER_WORDS = [
 /**
  * Abgegriffene Wendungen.
  *
- * Bewusst ohne Artikel am Anfang notiert: „Herz schlug bis zum Hals" trifft
- * auch „sein Herz schlug…", „ihr Herz schlug…" und „das Herz schlug…".
+ * Bewusst ohne Artikel am Anfang notiert: „Herz schlug bis zum Hals“ trifft
+ * auch „sein Herz schlug…“, „ihr Herz schlug…“ und „das Herz schlug…“.
  * Mit Artikel notiert würde die Wendung nur in einer von vier Varianten
  * erkannt — genau dieser Fehler ist beim Testen aufgefallen.
  */
