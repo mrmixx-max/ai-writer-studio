@@ -9,6 +9,20 @@ export type KnowledgeSourceType =
   | "note"
   | "reference";
 
+/**
+ * Deutsche Bezeichnungen der Quellentypen für die Oberfläche.
+ * Hier statt in der Komponente, damit Listen und Filter dieselbe
+ * Benennung verwenden.
+ */
+export const SOURCE_TYPE_LABELS: Record<KnowledgeSourceType, string> = {
+  chapter: "Kapitel",
+  fragment: "Fragment",
+  character: "Figur",
+  location: "Ort",
+  note: "Notiz",
+  reference: "Referenz",
+};
+
 /** Indexierungsstatus einer Quelle. */
 export type KnowledgeIndexStatus = "indexed" | "stale" | "failed" | "pending";
 

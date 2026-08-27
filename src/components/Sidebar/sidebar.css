@@ -8,6 +8,16 @@
   flex-direction: column;
   height: 100%;
 }
+
+/*
+  Projektwissen braucht mehr Platz: Suchtreffer und KI-Antworten sind
+  Fliesstext, der bei 320 px unlesbar umbricht. Die Verbreiterung gilt nur
+  fuer diesen Modus, damit der Editor sonst den Platz behaelt.
+*/
+.sidebar.wide {
+  width: 460px;
+  min-width: 460px;
+}
 .mode-switcher {
   display: flex;
   flex-wrap: wrap;

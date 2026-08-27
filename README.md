@@ -92,11 +92,9 @@ Nach der Rust-Installation eine **neue** Konsole öffnen, damit der PATH steht.
 
 ### Projektwissen (RAG)
 
-> **Stand 0.1.0:** Die Dienste sind fertig und getestet, die Oberfläche fehlt
-> noch. Nutzbar ist der Bereich erst mit der nächsten Version.
-
 Baut einen Suchindex über das gesamte Projekt auf — Kapitel, Fragmente,
-Figuren, Orte, Notizen.
+Figuren, Orte, Notizen. Erreichbar über das Buch-Symbol 📚 im Modus-Umschalter
+oben in der Seitenleiste.
 
 - **Strukturorientiertes Chunking**: schneidet an Überschriften und
   Satzgrenzen, nie mitten im Satz. Kennt deutsche Abkürzungen (`z. B.`,
@@ -124,12 +122,11 @@ DOCX, EPUB, PDF, Markdown und reiner Text.
 
 ### In Arbeit
 
-Für diese Bereiche stehen Datenmodell, Typen und teils die Dienste, aber noch
+Für diese Bereiche stehen Datenmodell und Typen, aber noch keine Prüflogik und
 keine Oberfläche. Sie sind in Version 0.1.0 **nicht benutzbar**:
 
 | Bereich | Stand |
 |---|---|
-| Projektwissen-Tab | Dienste und 70 Tests fertig, Ansicht fehlt |
 | Konsistenz- und Stil-Checker | Datenmodell und Typen, keine Prüflogik |
 | KDP-/Export-Preflight | Datenmodell und Typen |
 | Snapshot-Versionierung | Datenmodell und Typen |
@@ -327,7 +324,7 @@ npm run test:watch
 npx vitest run src/services/knowledge     # ein Bereich
 ```
 
-**Stand: 105 Tests in 9 Dateien.**
+**Stand: 130 Tests in 11 Dateien.**
 
 | Datei | Prüft |
 |---|---|
@@ -335,17 +332,46 @@ npx vitest run src/services/knowledge     # ein Bereich
 | `knowledge/chunking.test.ts` | Chunking, Satzgrenzen, Abkürzungen, kein Inhaltsverlust |
 | `knowledge/lexical.test.ts` | BM25, exakte Suche, Rangfusion |
 | `knowledge/integration.test.ts` | Indexierung und Suche **ohne Modell** |
+| `Knowledge/knowledge-flow.test.ts` | Kette Einlesen → Indexieren → Suchen → Fragen |
+| `Sidebar/navigation.test.ts` | Erreichbarkeit aller Modi (Regressionsschutz) |
 | `setup/probe.test.ts` | Anbieterprüfung gegen echte HTTP-Server |
 | `setup/setup.test.ts` | Assistentenstatus, Beispielprojekt, Dublettenschutz |
 
-Zwei Tests verdienen Erwähnung, weil sie Produktversprechen prüfen statt
+### Prüfung gegen die echte Desktop-Datenbank
+
+Die Unit-Tests laufen gegen eine In-Memory-Datenbank. Ob Schema und Abfragen
+auch im echten Betrieb tragen, prüft ein eigenes Skript:
+
+```bash
+python scripts/verify_knowledge_db.py
+```
+
+Es prüft die Datei unter `%APPDATA%`: alle Tabellen, die Schema-Version, jede
+Spalte, auf die die Oberfläche zugreift, alle zehn Suchindizes namentlich und
+die Fremdschlüssel. Exitcode 1 bei jedem Problem — geeignet als CI-Schritt nach
+einem Smoke-Test.
+
+Zum Ausprobieren mit echten Daten:
+
+```bash
+python scripts/seed_demo_db.py    # Demoprojekt in die echte DB schreiben
+```
+
+Danach die App starten, das Projekt öffnen, 📚 wählen und „Quellen einlesen"
+gefolgt von „Projektwissen aktualisieren" drücken.
+
+Drei Tests verdienen Erwähnung, weil sie Produktversprechen prüfen statt
 Implementierung:
 
-- `integration.test.ts` zeigt auf `http://127.0.0.1:9` — einen garantiert
-  geschlossenen Port. Er beweist, dass Indexierung und Suche **ohne jedes
-  Modell** durchlaufen und die Einschränkung korrekt melden.
+- `integration.test.ts` und `knowledge-flow.test.ts` zeigen auf
+  `http://127.0.0.1:9` — einen garantiert geschlossenen Port. Sie beweisen, dass
+  Indexierung, Suche und Fragen **ohne jedes Modell** durchlaufen und die
+  Einschränkung korrekt melden.
 - `chunking.test.ts` enthält einen Regressionstest gegen Inhaltsverlust: Ein
   früherer Fehler verwarf kurze Absätze stillschweigend.
+- `navigation.test.ts` stellt sicher, dass jeder Modus aus dem Typ auch im
+  Umschalter erscheint. Ohne diesen Test waren acht Bereiche unerreichbar,
+  während Typprüfung und alle anderen Tests grün blieben.
 
 ### Manueller Test der Desktop-App
 

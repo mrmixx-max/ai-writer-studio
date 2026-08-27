@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useProjectStore } from "@/store/projectStore";
 import { usePromptStore } from "@/store/promptStore";
 import { PromptGenerator } from "@/components/PromptGenerator/PromptGenerator";
+import { KnowledgePanel } from "@/components/Knowledge/KnowledgePanel";
 import { FragmentPanel } from "@/components/Fragment/FragmentPanel";
 import { VoiceLab } from "@/components/VoiceLab/VoiceLab";
 import { SemanticMap } from "@/components/SemanticMap/SemanticMap";
@@ -18,6 +19,7 @@ import type { EditorMode } from "@/types/mode";
 const MODES: { id: EditorMode; label: string; icon: string }[] = [
   { id: "editor", label: "Editor", icon: "📝" },
   { id: "prompts", label: "Prompts", icon: "💡" },
+  { id: "knowledge", label: "Projektwissen", icon: "📚" },
   { id: "fragments", label: "Fragmente", icon: "🧩" },
   { id: "voices", label: "Stimmen", icon: "🎭" },
   { id: "map", label: "Karte", icon: "🗺️" },
@@ -37,22 +39,37 @@ export function Sidebar() {
     proj.refresh();
   }, []);
 
-  // Avantgarde-Modus aktiv?
-  if (mode !== "editor" && mode !== "prompts") {
+  // Avantgarde-Modus aktiv? Der Switcher wird weiter unten definiert und hier
+  // wiederverwendet — deshalb erst nach dessen Deklaration prüfen.
+  const inSpecialMode = mode !== "editor" && mode !== "prompts";
+
+  // Modus-Switcher — MUSS in jedem Zweig erscheinen, sonst sind die
+  // Spezialbereiche (Projektwissen, Fragmente, Stimmen …) unerreichbar.
+  // Genau dieser Fehler hat alle acht Modi unbenutzbar gemacht.
+  const switcher = (
+    <nav className="mode-switcher">
+      {MODES.map((m) => (
+        <button
+          key={m.id}
+          title={m.label}
+          className={mode === m.id ? "active" : ""}
+          onClick={() => {
+            setMode(m.id);
+            // Editor und Prompts sind gleichzeitig Tabs — synchron halten.
+            if (m.id === "editor") setTab("projects");
+            if (m.id === "prompts") setTab("prompts");
+          }}
+        >
+          {m.icon}
+        </button>
+      ))}
+    </nav>
+  );
+
+  if (inSpecialMode) {
     return (
-      <aside className="sidebar">
-        <nav className="mode-switcher">
-          {MODES.map((m) => (
-            <button
-              key={m.id}
-              title={m.label}
-              className={mode === m.id ? "active" : ""}
-              onClick={() => setMode(m.id)}
-            >
-              {m.icon}
-            </button>
-          ))}
-        </nav>
+      <aside className={`sidebar${mode === "knowledge" ? " wide" : ""}`}>
+        {switcher}
         <div className="sidebar-content">
           <ModePanel mode={mode} projectId={proj.activeProjectId} chapterId={proj.activeChapterId} />
         </div>
@@ -63,8 +80,9 @@ export function Sidebar() {
   if (tab === "prompts") {
     return (
       <aside className="sidebar">
+        {switcher}
         <nav className="sidebar-tabs">
-          <button onClick={() => setTab("projects")}>📁 Projekte</button>
+          <button onClick={() => { setTab("projects"); setMode("editor"); }}>📁 Projekte</button>
           <button className="active" onClick={() => prompt.set("tab", "generate")}>💡 Prompts</button>
         </nav>
         <div className="sidebar-content"><PromptGenerator /></div>
@@ -74,9 +92,10 @@ export function Sidebar() {
 
   return (
     <aside className="sidebar">
+      {switcher}
       <nav className="sidebar-tabs">
         <button className="active" onClick={() => setTab("projects")}>📁 Projekte</button>
-        <button onClick={() => setTab("prompts")}>💡 Prompts</button>
+        <button onClick={() => { setTab("prompts"); setMode("prompts"); }}>💡 Prompts</button>
       </nav>
       <div className="sidebar-content">
         <div className="project-toolbar">
@@ -120,6 +139,12 @@ export function Sidebar() {
 
 // Rendert das Panel für den aktiven Avantgarde-Modus.
 function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId: string | null; chapterId: string | null }) {
+  // Projektwissen arbeitet auf Projektebene und braucht kein offenes Kapitel —
+  // deshalb VOR der Kapitelprüfung. Der Panel zeigt selbst einen Hinweis,
+  // wenn noch kein Projekt gewählt ist.
+  if (mode === "knowledge") {
+    return <KnowledgePanel projectId={projectId} />;
+  }
   if (!projectId || !chapterId) {
     return <div className="mode-placeholder">Wähle links ein Projekt und Kapitel, um die Avantgarde-Funktionen zu nutzen.</div>;
   }
