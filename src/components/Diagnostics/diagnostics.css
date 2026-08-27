@@ -1,0 +1,372 @@
+/* ==========================================================================
+   Manuskriptpruefung.
+   Vier Untertabs, Befundliste mit Schweregrad, Filter, Kennwerte.
+   Gestaltung wie der Rest: ruhig, typografisch, ein Akzent.
+   ========================================================================== */
+
+.dg {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.dg-scroll {
+  overflow-y: auto;
+  padding: 14px 12px 24px;
+  flex: 1;
+}
+
+/* --- Kopfzeile mit Aktionen --------------------------------------------- */
+
+.dg-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+/* --- Untertabs ---------------------------------------------------------- */
+
+.dg-tabs {
+  display: flex;
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.dg-tab {
+  flex: 1;
+  padding: 6px 4px;
+  background: var(--panel-2);
+  border: none;
+  color: var(--fg-dim);
+  font-size: 10.5px;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.dg-tab:hover { color: var(--fg); }
+.dg-tab.active {
+  background: var(--bg-elev);
+  color: var(--fg);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.dg-tab-count {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.65;
+  margin-left: 3px;
+}
+
+/* --- Uebersicht --------------------------------------------------------- */
+
+.dg-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.dg-sum {
+  background: var(--panel-2);
+  padding: 9px 6px;
+  text-align: center;
+}
+
+.dg-sum-num {
+  font-family: Georgia, serif;
+  font-size: 17px;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+}
+.dg-sum-num.high   { color: var(--err); }
+.dg-sum-num.medium { color: var(--warn); }
+.dg-sum-num.ok     { color: var(--ok); }
+
+.dg-sum-lbl {
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  margin-top: 3px;
+}
+
+/* --- Filterzeile -------------------------------------------------------- */
+
+.dg-filters {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.dg-chip {
+  padding: 3px 9px;
+  font-size: 10.5px;
+  font-family: inherit;
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  border-radius: 11px;
+  color: var(--fg-dim);
+  cursor: pointer;
+}
+.dg-chip:hover { color: var(--fg); border-color: var(--fg-dim); }
+.dg-chip.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* --- Befundliste -------------------------------------------------------- */
+
+.dg-findings {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dg-finding {
+  border: 1px solid var(--border);
+  border-left-width: 2px;
+  border-radius: 3px;
+  background: var(--panel-2);
+  padding: 10px 12px;
+}
+
+/* Schweregrad ueber die linke Kante, nicht ueber Flaechenfarbe:
+   ruhiger bei langen Listen. */
+.dg-finding.high   { border-left-color: var(--err); }
+.dg-finding.medium { border-left-color: var(--warn); }
+.dg-finding.low    { border-left-color: var(--fg-faint); }
+.dg-finding.resolved {
+  opacity: 0.5;
+  border-left-color: var(--ok);
+}
+
+.dg-f-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+.dg-f-msg {
+  font-size: 12.5px;
+  color: var(--fg);
+  line-height: 1.45;
+}
+
+.dg-f-tags {
+  display: flex;
+  gap: 4px;
+  flex: none;
+  align-items: center;
+}
+
+.dg-tag {
+  font-size: 8.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  border: 1px solid var(--border-strong);
+  border-radius: 2px;
+  color: var(--fg-dim);
+  white-space: nowrap;
+}
+.dg-tag.error       { border-color: var(--err);  color: var(--err); }
+.dg-tag.intentional { border-color: var(--ok);   color: var(--ok); }
+.dg-tag.model       { border-color: var(--accent); color: var(--accent); }
+
+.dg-f-where {
+  font-size: 10px;
+  color: var(--fg-dim);
+  margin-bottom: 6px;
+}
+
+.dg-f-expl {
+  font-size: 11.5px;
+  line-height: 1.65;
+  color: var(--fg-dim);
+  margin-bottom: 8px;
+}
+
+.dg-f-snippet {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 10.5px;
+  line-height: 1.55;
+  padding: 7px 9px;
+  margin-bottom: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  color: var(--fg);
+  word-break: break-word;
+}
+
+.dg-f-acts {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+/* --- Kennwerte-Tabelle -------------------------------------------------- */
+
+.dg-metrics {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px 14px;
+  font-size: 11.5px;
+  margin-bottom: 16px;
+}
+
+.dg-m-key { color: var(--fg-dim); }
+.dg-m-val {
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.dg-m-val.warn { color: var(--warn); }
+
+.dg-m-group {
+  grid-column: 1 / -1;
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.dg-m-group:first-child { margin-top: 0; border-top: none; padding-top: 0; }
+
+/* Balken fuer Anteilswerte */
+.dg-bar {
+  grid-column: 1 / -1;
+  height: 2px;
+  background: var(--border);
+  border-radius: 1px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+.dg-bar-fill { height: 100%; background: var(--accent); }
+.dg-bar-fill.warn { background: var(--warn); }
+
+/* --- Kapitelliste im Stil-Tab ------------------------------------------ */
+
+.dg-chapters {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.dg-chapter {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 11px;
+  background: var(--panel-2);
+  font-size: 11.5px;
+}
+.dg-chapter:hover { background: var(--bg-elev); }
+
+.dg-ch-title {
+  color: var(--fg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dg-ch-num {
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-dim);
+  font-size: 10.5px;
+  white-space: nowrap;
+}
+
+/* --- Fortschritt und Meldungen ----------------------------------------- */
+
+.dg-progress {
+  margin-bottom: 12px;
+  padding: 9px 11px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--accent);
+  border-radius: 3px;
+}
+
+.dg-progress-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 11.5px;
+  color: var(--fg);
+  margin-bottom: 6px;
+}
+
+.dg-progress-track {
+  height: 2px;
+  background: var(--border);
+  border-radius: 1px;
+  overflow: hidden;
+}
+.dg-progress-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 160ms ease-out;
+}
+
+.dg-notice {
+  font-size: 11.5px;
+  line-height: 1.6;
+  padding: 9px 11px;
+  margin-bottom: 12px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-left: 2px solid var(--fg-dim);
+  border-radius: 3px;
+  color: var(--fg-dim);
+}
+.dg-notice.ok   { border-left-color: var(--ok);   color: var(--fg); }
+.dg-notice.warn { border-left-color: var(--warn); }
+.dg-notice.err  { border-left-color: var(--err); }
+
+/* --- Knoepfe ------------------------------------------------------------ */
+
+.dg-btn {
+  padding: 5px 11px;
+  font-size: 11.5px;
+  font-family: inherit;
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  border-radius: 3px;
+  color: var(--fg);
+  cursor: pointer;
+}
+.dg-btn:hover:not(:disabled) { border-color: var(--fg-dim); }
+.dg-btn:disabled { opacity: 0.4; cursor: default; }
+
+.dg-btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.dg-btn.primary:hover:not(:disabled) { filter: brightness(1.08); }
+
+.dg-btn.tiny { padding: 3px 7px; font-size: 10.5px; }

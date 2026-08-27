@@ -120,6 +120,43 @@ Abweichungs-Detektor, Dialog mit dem Text und Traumlogik-Modi.
 
 DOCX, EPUB, PDF, Markdown und reiner Text.
 
+### Manuskriptprüfung
+
+Erreichbar über das Lupen-Symbol 🔍. Prüft Konsistenz und Stil — **vollständig
+auf deinem Rechner, ohne KI**.
+
+**Konsistenz**
+- Figurenalter: Widersprüche im Text und Abweichungen vom Profil
+- Ortsnamen: abweichende Schreibweisen per Editierdistanz
+- Perspektive: Sprünge zwischen Ich- und Er/Sie-Form je Absatz
+- Zeitlinie: rückwärts laufende Jahre, mehrfache Monatsangaben
+- Begriffsdrift: wechselnde Begriffe, uneinheitliche Bindestriche
+
+**Stil**
+- Füllwörter, Wortwiederholungen auf engem Raum, Passivhäufung, Nominalstil
+- Klischees, überlange Sätze, gleichförmiger Satzrhythmus
+- Kennwerte: Satzlänge und Streuung, Dialoganteil, lexikalische Vielfalt
+
+**Drei Einordnungen** — unabhängig vom Schweregrad, weil eine bewusste
+Abweichung durchaus kritisch aussehen kann:
+
+| Einordnung | Bedeutung |
+|---|---|
+| Fehler | harter Widerspruch, etwa zwei Altersangaben zur selben Figur |
+| möglich | Auffälligkeit, die Absicht sein kann |
+| bewusst | von dir als literarische Entscheidung markiert |
+
+Jeder Befund lässt sich ignorieren, als bewusst markieren oder mit einem
+Verbesserungsvorschlag versehen. **Diese Entscheidungen überleben einen
+erneuten Prüflauf** — Befunde werden über einen Fingerabdruck wiedererkannt,
+der ohne Positionsangabe arbeitet, damit ein eingefügter Absatz nichts
+verwirft.
+
+Zwei bewusste Zurückhaltungen gegen Fehlalarme: Wörtliche Rede ist von der
+Perspektivprüfung ausgenommen (sonst wäre jeder Dialog mit „ich" ein Alarm),
+und rückwärts laufende Jahre werden nur ohne Rückblick-Signalwort gemeldet
+(Literatur springt ständig in der Zeit).
+
 ### In Arbeit
 
 Für diese Bereiche stehen Datenmodell und Typen, aber noch keine Prüflogik und
@@ -127,11 +164,15 @@ keine Oberfläche. Sie sind in Version 0.1.0 **nicht benutzbar**:
 
 | Bereich | Stand |
 |---|---|
-| Konsistenz- und Stil-Checker | Datenmodell und Typen, keine Prüflogik |
 | KDP-/Export-Preflight | Datenmodell und Typen |
 | Snapshot-Versionierung | Datenmodell und Typen |
 
-Die Datenbank ist darauf vorbereitet: alle Tabellen existieren ab Schema-Version 2,
+Ebenfalls offen: die **semantischen** Konsistenzprüfungen. Perspektivsprünge
+über Kapitelgrenzen und Widersprüche zwischen weit entfernten Stellen brauchen
+ein Sprachmodell. Die Befunde tragen bereits ein Feld für die Herkunft, damit
+regelbasiert und modellgestützt unterscheidbar bleiben.
+
+Die Datenbank ist vorbereitet: alle Tabellen existieren ab Schema-Version 2,
 eine spätere Aktualisierung braucht keine Datenmigration.
 
 ---

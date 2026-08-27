@@ -73,9 +73,12 @@ describe("Projektwissen braucht kein offenes Kapitel", () => {
 });
 
 describe("Sidebar-Breite", () => {
-  it("verbreitert sich im Projektwissen-Modus", () => {
-    // 320 px sind für Fließtext (Suchtreffer, KI-Antworten) unlesbar.
-    expect(SIDEBAR).toContain('mode === "knowledge" ? " wide" : ""');
+  it("verbreitert sich in den textlastigen Modi", () => {
+    // 320 px sind für Fließtext (Suchtreffer, KI-Antworten, Befundlisten)
+    // unlesbar. Projektwissen und Manuskriptprüfung brauchen mehr Platz.
+    expect(SIDEBAR).toContain('" wide"');
+    expect(SIDEBAR).toMatch(/mode === "knowledge"[\s\S]{0,60}" wide"/);
+    expect(SIDEBAR).toMatch(/mode === "diagnostics"[\s\S]{0,40}" wide"/);
   });
 
   it("hat die wide-Klasse im Stylesheet", () => {

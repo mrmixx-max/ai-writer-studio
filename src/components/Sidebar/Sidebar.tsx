@@ -4,6 +4,7 @@ import { useProjectStore } from "@/store/projectStore";
 import { usePromptStore } from "@/store/promptStore";
 import { PromptGenerator } from "@/components/PromptGenerator/PromptGenerator";
 import { KnowledgePanel } from "@/components/Knowledge/KnowledgePanel";
+import { DiagnosticsPanel } from "@/components/Diagnostics/DiagnosticsPanel";
 import { FragmentPanel } from "@/components/Fragment/FragmentPanel";
 import { VoiceLab } from "@/components/VoiceLab/VoiceLab";
 import { SemanticMap } from "@/components/SemanticMap/SemanticMap";
@@ -20,6 +21,7 @@ const MODES: { id: EditorMode; label: string; icon: string }[] = [
   { id: "editor", label: "Editor", icon: "📝" },
   { id: "prompts", label: "Prompts", icon: "💡" },
   { id: "knowledge", label: "Projektwissen", icon: "📚" },
+  { id: "diagnostics", label: "Manuskriptprüfung", icon: "🔍" },
   { id: "fragments", label: "Fragmente", icon: "🧩" },
   { id: "voices", label: "Stimmen", icon: "🎭" },
   { id: "map", label: "Karte", icon: "🗺️" },
@@ -68,7 +70,7 @@ export function Sidebar() {
 
   if (inSpecialMode) {
     return (
-      <aside className={`sidebar${mode === "knowledge" ? " wide" : ""}`}>
+      <aside className={`sidebar${mode === "knowledge" || mode === "diagnostics" ? " wide" : ""}`}>
         {switcher}
         <div className="sidebar-content">
           <ModePanel mode={mode} projectId={proj.activeProjectId} chapterId={proj.activeChapterId} />
@@ -144,6 +146,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
   // wenn noch kein Projekt gewählt ist.
   if (mode === "knowledge") {
     return <KnowledgePanel projectId={projectId} />;
+  }
+  // Die Manuskriptprüfung arbeitet auf Projektebene. Ein offenes Kapitel ist
+  // optional (für "Kapitel prüfen"), aber keine Voraussetzung.
+  if (mode === "diagnostics") {
+    return <DiagnosticsPanel projectId={projectId} chapterId={chapterId} />;
   }
   if (!projectId || !chapterId) {
     return <div className="mode-placeholder">Wähle links ein Projekt und Kapitel, um die Avantgarde-Funktionen zu nutzen.</div>;

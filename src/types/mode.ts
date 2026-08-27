@@ -3,6 +3,7 @@ export type EditorMode =
   | "editor"
   | "prompts"
   | "knowledge"
+  | "diagnostics"
   | "fragments"
   | "voices"
   | "map"
