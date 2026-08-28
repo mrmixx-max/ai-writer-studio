@@ -48,7 +48,6 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
   const setCounts = useEditorStore((s) => s.setCounts);
   const chapterId = useEditorStore((s) => s.chapterId);
   const insertTrigger = useEditorStore((s) => s.insertTrigger);
-  const pendingInsert = useEditorStore((s) => s.pendingInsert);
   const timerRef = useRef<number | null>(null);
   const countTimerRef = useRef<number | null>(null);
   const [editorInstance, setEditorInstance] = useState<TipTapEditor | null>(null);
@@ -106,12 +105,22 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
   }, [editor]);
 
   // KI-Panel: Text am Ende einfügen (lauscht auf insertTrigger)
+  // Verarbeitet die Queue (Race-Fix: mehrere Inserts hintereinander)
+  const pendingInserts = useEditorStore((s) => s.pendingInserts);
+  const consumeInsert = useEditorStore((s) => s.consumeInsert);
   useEffect(() => {
-    if (insertTrigger > 0 && editor && pendingInsert) {
-      editor.chain().focus().insertContent(pendingInsert).run();
+    if (insertTrigger > 0 && editor && pendingInserts.length > 0) {
+      // Verarbeitet alle Texte in der Reihenfolge der Einfügung
+      for (const text of pendingInserts) {
+        editor.chain().focus().insertContent(text).run();
+      }
       onChange?.(JSON.stringify(editor.getJSON()));
+      // Queue leeren
+      for (const text of pendingInserts) {
+        consumeInsert(text);
+      }
     }
-  }, [insertTrigger, pendingInsert]);
+  }, [insertTrigger, pendingInserts, editor, consumeInsert, onChange]);
 
   // Initiale Zählung
   useEffect(() => {
