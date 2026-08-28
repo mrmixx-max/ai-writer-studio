@@ -17,34 +17,64 @@ interface ModelPickerProps {
   settings: AppSettings;
   /** Wird bei Auswahl aufgerufen; der Aufrufer schreibt provider+model. */
   onSelect: (provider: ProviderId, model: string) => void;
+  /** "badge": dezente Darstellung für die Editor-Kopfzeile (gleiches Popover). */
+  variant?: "default" | "badge";
+  /** Optionale stabile ID für den Toggle-Button (z. B. Ziel von Strg+Shift+M). */
+  toggleId?: string;
 }
 
-export function ModelPicker({ settings, onSelect }: ModelPickerProps) {
+export function ModelPicker({ settings, onSelect, variant = "default", toggleId }: ModelPickerProps) {
   const [open, setOpen] = useState(false);
   const [results, setResults] = useState<DiscoveredModels[] | null>(null);
+  // loading: sichtbarer Ladezustand (Spinner statt Liste) beim Öffnen/Refresh.
+  // refreshing: stiller Hintergrund-Poll (10 s), Liste bleibt sichtbar.
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
   const load = useCallback(
-    async (force: boolean) => {
-      setLoading(true);
+    async (force: boolean, signal?: AbortSignal) => {
+      if (force || results === null) setLoading(true);
+      else setRefreshing(true);
       try {
-        const r = await discoverModels(settings, { force });
+        const r = await discoverModels(settings, { force, signal });
+        if (signal?.aborted) return;
         setResults(r);
       } catch {
         // Wirft nie — zur Sicherheit trotzdem abfangen.
-        setResults([]);
+        if (!signal?.aborted) setResults([]);
       } finally {
-        setLoading(false);
+        if (!signal?.aborted) {
+          setLoading(false);
+          setRefreshing(false);
+        }
       }
     },
-    [settings],
+    [settings, results],
   );
 
   // Beim Mount (und wenn sich die Einstellungen ändern) erkennen.
   useEffect(() => {
-    void load(false);
-  }, [load]);
+    const ctrl = new AbortController();
+    void load(false, ctrl.signal);
+    return () => ctrl.abort();
+  }, [settings]);
+
+  // Offenes Menü: sofortiger Refresh (keine Cache-Werte) + Polling alle 10 s,
+  // damit neue Modelle (z. B. nach "ollama pull") innerhalb von 10 s erscheinen.
+  useEffect(() => {
+    if (!open) return;
+    const ctrl = new AbortController();
+    const signal = ctrl.signal;
+    void load(true, signal);
+    const interval = window.setInterval(() => {
+      if (!signal.aborted) void load(false, signal);
+    }, 10_000);
+    return () => {
+      ctrl.abort();
+      window.clearInterval(interval);
+    };
+  }, [open, settings]);
 
   // Klick außerhalb / Escape schließt das Menü.
   useEffect(() => {
@@ -69,10 +99,11 @@ export function ModelPicker({ settings, onSelect }: ModelPickerProps) {
   const listDisabled = results !== null && !results.some((r) => r.reachable && r.models.length > 0);
 
   return (
-    <div className="ki-model-picker" ref={rootRef}>
+    <div className={`ki-model-picker${variant === "badge" ? " ki-model-picker-badge" : ""}`} ref={rootRef}>
       <div className="ki-model-picker-row">
         <button
           type="button"
+          id={toggleId}
           className="ki-model-picker-toggle"
           aria-haspopup="listbox"
           aria-expanded={open}
@@ -80,6 +111,11 @@ export function ModelPicker({ settings, onSelect }: ModelPickerProps) {
           title="Aktives Modell wechseln"
         >
           <span className="ki-model-picker-active">
+            {variant === "badge" ? (
+              <span className="ki-model-picker-bolt" aria-hidden="true">
+                ⚡{" "}
+              </span>
+            ) : null}
             {labelFor(settings.provider)} · {settings.model}
             {activeOffline ? " (offline)" : ""}
           </span>
@@ -101,16 +137,33 @@ export function ModelPicker({ settings, onSelect }: ModelPickerProps) {
 
       {open && (
         <div className="ki-model-menu" role="listbox" aria-label="Verfügbare Modelle">
-          {results === null && <p className="ki-model-menu-hint">Suche nach Modellen…</p>}
-          {results !== null && listDisabled && (
+          {/* Ladezustand: Spinner statt veraltete Liste (Öffnen/Aktualisieren). */}
+          {loading && (
+            <p className="ki-model-menu-hint" role="status" aria-live="polite">
+              <span className="ki-model-menu-spinner" aria-hidden="true">
+                ⟳
+              </span>{" "}
+              Suche nach Modellen…
+            </p>
+          )}
+          {!loading && results === null && (
+            <p className="ki-model-menu-hint">Suche nach Modellen…</p>
+          )}
+          {!loading && refreshing && (
+            <p className="ki-model-menu-hint" role="status" aria-live="polite">
+              Aktualisiere…
+            </p>
+          )}
+          {!loading && results !== null && listDisabled && (
             <p className="ki-model-menu-hint">
               Kein Anbieter erreichbar. Lokale Modelle starten (z. B. „ollama serve“) und
               aktualisieren.
             </p>
           )}
-          {results
-            ?.filter((r) => r.reachable && r.models.length > 0)
-            .map((r) => (
+          {!loading &&
+            results
+              ?.filter((r) => r.reachable && r.models.length > 0)
+              .map((r) => (
               <div key={r.provider} className="ki-model-group">
                 <p className="ki-model-group-label">
                   {r.label}

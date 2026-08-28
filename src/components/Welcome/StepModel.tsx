@@ -21,13 +21,6 @@ const FALLBACK: Record<string, string[]> = {
   nous: ["Hermes-4.5-405B", "Hermes-4-405B", "Hermes-4-70B", "Hermes-3-Llama-3.1-405B"],
 };
 
-/**
- * Offline-Modus: Kein Anbieter erreichbar. Einzige Auswahl ist llama3.2 —
- * der Standardname, den der Nutzer nach der Ollama-Installation zur Verfügung
- * hat, sobald er „ollama serve" startet. Die App funktioniert so oder ohne KI.
- */
-const OFFLINE_MODEL = "llama3.2";
-
 export function StepModel({ provider, model, onModelChange, probe, allProbes }: Props) {
   // Kombinierte Modellliste ALLER erreichbaren Anbieter (Ollama, LM Studio,
   // OpenRouter), ohne Duplikate, je Modell mit Herkunftslabel für die Anzeige.
@@ -43,7 +36,9 @@ export function StepModel({ provider, model, onModelChange, probe, allProbes }: 
   }
   const detected = localEntries.length > 0 ? localEntries : (probe?.models ?? []).map((m) => ({ id: m, source: probe?.label ?? "" }));
   const hasDetected = detected.length > 0;
-  // Offline: keine Modellliste UND kein lokaler Anbieter erreichbar.
+  // Kein Anbieter erreichbar: stattdessen Freitext-Eingabe — der Nutzer
+  // kennt sein Modell (oder den Standardnamen llama3.2) selbst. Kein
+  // Schein-Auswahlmenü mit nur einem Eintrag.
   const offline = !hasDetected && probe != null && !probe.reachable;
   const currentOk = detected.some((e) => e.id === model);
 
@@ -55,7 +50,7 @@ export function StepModel({ provider, model, onModelChange, probe, allProbes }: 
         {hasDetected
           ? "Diese Modelle wurden gefunden. Du kannst später je Aufgabe ein anderes wählen."
           : offline
-            ? "Kein KI-Anbieter ist gerade erreichbar. Die App arbeitet offline — als Standardmodell ist llama3.2 hinterlegt. Sobald du später Ollama startest („ollama serve“), steht es bereit."
+            ? "Kein KI-Anbieter ist gerade erreichbar. Trage den Modellnamen ein, den du verwenden möchtest — zum Beispiel llama3.2, sobald du Ollama startest („ollama serve“)."
             : "Es wurde keine Modellliste gefunden. Trage den Namen ein, den du verwenden möchtest — er muss beim Anbieter vorhanden sein."}
       </p>
 
@@ -72,16 +67,6 @@ export function StepModel({ provider, model, onModelChange, probe, allProbes }: 
                 {e.source ? `${e.id}  ·  ${e.source}` : e.id}
               </option>
             ))}
-          </select>
-        ) : offline ? (
-          <select
-            id="model-select"
-            value={model.trim() || OFFLINE_MODEL}
-            onChange={(e) => onModelChange(e.target.value)}
-          >
-            <option value={model.trim() || OFFLINE_MODEL}>
-              {model.trim() || OFFLINE_MODEL} (offline — Anbieter nicht erreichbar)
-            </option>
           </select>
         ) : (
           <input

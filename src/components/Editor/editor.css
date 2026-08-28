@@ -207,3 +207,7 @@
   flex: 1;
   min-width: 0;
 }
+
+/* Modell-Badge rechts in der Editor-Kopfzeile */
+.editor-toolbar { gap: 6px; }
+.editor-toolbar-spacer { flex: 1 1 auto; }

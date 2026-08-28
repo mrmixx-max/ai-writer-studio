@@ -86,3 +86,102 @@
   font-size: 0.8em;
   opacity: 0.75;
 }
+
+/* ---- Anbieter-Karten ---- */
+.provider-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 12px 0;
+}
+.provider-card {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+  background: var(--bg);
+}
+.provider-card.active {
+  border: 2px solid #2ecc71;
+}
+.provider-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.provider-card-title {
+  font-weight: 600;
+  flex: 1;
+}
+.provider-card-meta {
+  font-size: 12px;
+  opacity: 0.75;
+  margin-top: 2px;
+}
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.status-dot.status-ok { background: #2ecc71; }
+.status-dot.status-err { background: #e74c3c; }
+.status-dot.status-unknown { background: #888; }
+.active-badge {
+  font-size: 11px;
+  background: #143d14;
+  color: #7CFC7C;
+  padding: 1px 6px;
+  border-radius: 8px;
+}
+.dirty-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #f1c40f;
+  display: inline-block;
+}
+.provider-card-fields {
+  margin-top: 8px;
+}
+.provider-card-fields summary {
+  cursor: pointer;
+  font-size: 13px;
+  opacity: 0.8;
+}
+.provider-card-fields label {
+  margin-top: 8px;
+}
+.provider-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.provider-card-actions button {
+  flex: 1;
+  padding: 5px;
+  background: var(--bg-elev);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+.provider-card-actions .use-active:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.field-error {
+  display: block;
+  font-size: 0.8em;
+  color: #fc7c7c;
+  margin-top: 2px;
+}
+.conn-ok, .conn-err {
+  margin-top: 8px;
+  font-size: 12px;
+}
+.settings-actions button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

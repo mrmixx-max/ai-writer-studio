@@ -54,16 +54,33 @@ export function labelFor(provider: ProviderId): string {
 /** Timeout pro Anbieterprüfung. Kurz halten: die UI darf nicht hängen. */
 const PROBE_TIMEOUT_MS = 2500;
 
-/** Cache-Gültigkeit in Millisekunden. */
+/** Cache-Gültigkeit in Millisekunden (Standard). */
 const CACHE_TTL_MS = 60_000;
+
+/**
+ * Verkürzte TTL für lokale Anbieter, deren Modellbestand sich jederzeit
+ * ändern kann ("ollama pull" / Modell in LM Studio laden): 10 s.
+ */
+const LOCAL_TTL_MS = 10_000;
+
+/** TTL pro Anbieter: ollama lebt im Sekundentakt, Cloud-Provider seltener. */
+const TTL_BY_PROVIDER: Partial<Record<ProviderId, number>> = {
+  ollama: LOCAL_TTL_MS,
+};
+
+function ttlFor(provider: ProviderId): number {
+  return TTL_BY_PROVIDER[provider] ?? CACHE_TTL_MS;
+}
 
 interface CacheEntry {
   key: string;
   at: number;
-  results: DiscoveredModels[];
+  result: DiscoveredModels;
 }
 
-let cache: CacheEntry | null = null;
+/** Cache pro Anbieter (nicht global), damit ollama kürzer lebt als der Rest. */
+const cache = new Map<ProviderId, CacheEntry>();
+
 let inflight: { key: string; promise: Promise<DiscoveredModels[]> } | null = null;
 
 /** Cache-Schlüssel: nur die felder, die die Erreichbarkeit beeinflussen. */
@@ -83,7 +100,7 @@ function cacheKey(settings: AppSettings): string {
 
 /** Leert den Erkennungs-Cache (z. B. für den "Aktualisieren"-Button). */
 export function clearModelCache(): void {
-  cache = null;
+  cache.clear();
   inflight = null;
 }
 
@@ -190,16 +207,31 @@ export async function discoverModels(
 ): Promise<DiscoveredModels[]> {
   const signal = options?.signal;
   const key = cacheKey(settings);
+  const now = Date.now();
 
-  if (!options?.force && cache && cache.key === key && Date.now() - cache.at < CACHE_TTL_MS) {
-    return cache.results;
+  // Pro Anbieter entscheiden: frisch aus dem Cache, dedupliziert in flight
+  // oder neu ermitteln. ollama läuft mit 10-s-TTL, alle anderen mit 60 s.
+  const stale = REGISTRY_PROVIDERS.filter((p) => {
+    if (options?.force) return true;
+    const entry = cache.get(p);
+    return !entry || entry.key !== key || now - entry.at >= ttlFor(p);
+  });
+
+  if (stale.length === 0) {
+    return REGISTRY_PROVIDERS.map((p) => cache.get(p)!.result);
   }
+
+  // Deduplizierung: Falls bereits eine identische Ermittlung läuft, an diese
+  // andocken — aber nur für die Anbieter, die darin enthalten sind.
   if (!options?.force && inflight && inflight.key === key) {
     return inflight.promise;
   }
 
   const promise = Promise.all(
-    REGISTRY_PROVIDERS.map((p) => probeProvider(p, settings, signal)),
+    REGISTRY_PROVIDERS.map(async (p) => {
+      if (!stale.includes(p)) return cache.get(p)!.result;
+      return probeProvider(p, settings, signal);
+    }),
   );
 
   if (!options?.force) {
@@ -213,6 +245,10 @@ export async function discoverModels(
     if (inflight?.promise === promise) inflight = null;
   }
 
-  cache = { key, at: Date.now(), results };
+  results.forEach((result, i) => {
+    if (!stale.includes(REGISTRY_PROVIDERS[i])) return;
+    if (signal?.aborted) return;
+    cache.set(REGISTRY_PROVIDERS[i], { key, at: now, result });
+  });
   return results;
 }

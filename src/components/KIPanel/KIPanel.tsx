@@ -13,10 +13,9 @@ import {
   type StoredChatMessage,
 } from "@/services/ki/history";
 import { checkSlotHealth, type KIModelSlot } from "@/services/llm/multi";
-import { loadSettings, saveSettings } from "@/services/settings";
-import { DEFAULT_SETTINGS, type AppSettings } from "@/types/config";
-import type { ProviderId } from "@/types/llm";
+import { labelFor } from "@/services/llm/modelRegistry";
 import { ModelPicker } from "@/components/KIPanel/ModelPicker";
+import { useActiveModel } from "@/components/KIPanel/useActiveModel";
 import { useEditorStore } from "@/store/editorStore";
 import { useProjectStore } from "@/store/projectStore";
 import { WhisperButton } from "@/components/Whisper/WhisperButton";
@@ -57,19 +56,16 @@ export function KIPanel() {
   const [streaming, setStreaming] = useState("");
   const [busy, setBusy] = useState(false);
   const [offline, setOffline] = useState(false);
+  // Anzeige des bei der letzten Aktion verwendeten Modells ("→ ollama · llama3.2").
+  const [usedModel, setUsedModel] = useState("");
   const [style, setStyle] = useState<RewriteStyle>("sachlich");
   const [chatInput, setChatInput] = useState("");
   // Chatverlauf (persistiert in SQLite)
   const [history, setHistory] = useState<StoredChatMessage[]>([]);
   const [showHistory, setShowHistory] = useState(true);
-  // Aktive Einstellungen (persistiert): Der Modell-Wechsel im Header greift sofort.
-  const [settings, setSettings] = useState<AppSettings>(() => {
-    try {
-      return loadSettings();
-    } catch {
-      return { ...DEFAULT_SETTINGS };
-    }
-  });
+  // Aktive Einstellungen: zentraler Hook (geteilt mit Editor-Badge + Statusbar).
+  // Modellwechsel im Header greifen sofort und sind überall synchron sichtbar.
+  const { settings, selectModel } = useActiveModel();
   // Multi-Modell
   const slots: KIModelSlot[] = settings.kiModelSlots ?? [];
   const [slotId, setSlotId] = useState<string>(slots[0]?.id ?? "main");
@@ -137,14 +133,19 @@ export function KIPanel() {
     if (slots.length) checkSlotHealth(settings, slots).then(setSlotHealth);
   }, [settings]);
 
-  // Modellwechsel aus dem Header: provider+model schreiben, sofort aktiv, ohne Neustart.
-  function selectModel(provider: ProviderId, model: string) {
-    const next: AppSettings = { ...settings, provider, model };
-    setSettings(next);
-    saveSettings(next).catch(() => {
-      // Persistenz fehlgeschlagen (z. B. DB nicht initialisiert) — Auswahl bleibt für diese Sitzung aktiv.
-    });
-  }
+  // Modellwechsel aus dem Header: über den zentralen Hook (persistiert + Sync-Event).
+
+  // Strg+Shift+M: Fokus auf die Modell-Auswahl im KI-Panel.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.ctrlKey && e.shiftKey && (e.key === "M" || e.key === "m")) {
+        e.preventDefault();
+        document.getElementById("ki-model-picker-toggle")?.focus();
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   function insertIntoDoc() {
     // Hängt KI-Output als neuen Absatz ans Dokument-Ende
@@ -162,6 +163,8 @@ export function KIPanel() {
     setOffline(false);
     setAnalysis(null);
     const ctx = getDocumentContext();
+    // Verwendetes Modell am Antwort-Beginn anzeigen ("→ ollama · llama3.2").
+    setUsedModel(`${labelFor(settings.provider)} · ${settings.model}`);
     // Selektion: im echten Editor via window.getSelection(); hier Placeholder
     const selection = (window.getSelection()?.toString() ?? "").slice(0, 4000);
     // Chatverlauf (letzte 12 Nachrichten) an den Request anhängen
@@ -272,7 +275,7 @@ export function KIPanel() {
       <h3>KI-Assistent</h3>
 
       {/* Jederzeitige Modell-Auswahl (Header): aktives Modell, Wechsel ohne Neustart */}
-      <ModelPicker settings={settings} onSelect={selectModel} />
+      <ModelPicker settings={settings} onSelect={selectModel} toggleId="ki-model-picker-toggle" />
 
       {offline && <span className="offline-badge">Offline-Modus</span>}
 
@@ -363,6 +366,12 @@ export function KIPanel() {
       </div>
 
       <div className="ki-output">
+        {(streaming || output) && usedModel && (
+          <p className="ki-response-model">
+            → {usedModel}
+            {offline ? <span className="model-offline"> (offline)</span> : null}
+          </p>
+        )}
         {streaming && <pre className="streaming">{streaming}</pre>}
         {output && <p>{output}</p>}
       </div>
