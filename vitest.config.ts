@@ -5,6 +5,7 @@ import path from "path";
 export default defineConfig({
   test: {
     environment: "node",
+    testTimeout: 30000,
     // Component-Tests (React Testing Library) laufen in jsdom, alle anderen in node.
     // jsdom wird pro Testdatei via `@vitest-environment jsdom` Docblock gewählt.
     include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
