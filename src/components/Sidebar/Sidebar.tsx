@@ -65,6 +65,9 @@ const TimelinePanel = lazy(() =>
 const WorldbuildingPanel = lazy(() =>
   import("@/components/Worldbuilding/WorldbuildingPanel").then((m) => ({ default: m.WorldbuildingPanel }))
 );
+const InvestigatePanel = lazy(() =>
+  import("@/components/Writing/InvestigatePanel").then((m) => ({ default: m.InvestigatePanel }))
+);
 const ResearchPanel = lazy(() =>
   import("@/components/Research/ResearchPanel").then((m) => ({ default: m.ResearchPanel }))
 );
@@ -100,6 +103,7 @@ const MODES: { id: EditorMode; label: string; icon: string }[] = [
   { id: "characters", label: "Figuren", icon: "👥" },
   { id: "worldbuilding", label: "Worldbuilding", icon: "🌍" },
   { id: "research", label: "Recherche", icon: "🔎" },
+  { id: "investigate", label: "Investigativ", icon: "🕵️" },
 ];
 
 export function Sidebar() {
@@ -178,7 +182,7 @@ export function Sidebar() {
 
   if (inSpecialMode) {
     return (
-      <aside id="app-sidebar" tabIndex={-1} aria-label="Projektliste" className={`sidebar${mode === "knowledge" || mode === "research" || mode === "diagnostics" || mode === "preflight" || mode === "snapshots" || mode === "kdp" || mode === "publishing" ? " wide" : ""}`}>
+      <aside id="app-sidebar" tabIndex={-1} aria-label="Projektliste" className={`sidebar${mode === "knowledge" || mode === "research" || mode === "diagnostics" || mode === "preflight" || mode === "snapshots" || mode === "kdp" || mode === "publishing" || mode === "investigate" ? " wide" : ""}`}>
         {switcher}
         <div className="sidebar-content">
           <ModePanel mode={mode} projectId={activeProjectId} chapterId={activeChapterId} />
@@ -331,6 +335,7 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
       case "timeline": return <TimelinePanel projectId={projectId} />;
       case "characters": return <CharactersPanel projectId={projectId} />;
       case "worldbuilding": return <WorldbuildingPanel projectId={projectId} />;
+      case "investigate": return <InvestigatePanel />;
       default: return null;
     }
   })();

@@ -22,4 +22,5 @@ export type EditorMode =
   | "timeline"
   | "characters"
   | "worldbuilding"
-  | "research";
+  | "research"
+  | "investigate";
