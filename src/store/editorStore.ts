@@ -37,9 +37,16 @@ export const useEditorStore = create<EditorState>((set) => ({
   toggleFocusMode: () => set((s) => ({ focusMode: !s.focusMode })),
   markSaved: () => set({ dirty: false }),
   insertAtEnd: (text) =>
-    set((s) => ({
-      pendingInsert: text,
-      insertTrigger: s.insertTrigger + 1,
-      dirty: true,
-    })),
+    set((s) => {
+      const cur = JSON.parse(s.content || "{}");
+      const para = { type: "paragraph", content: [{ type: "text", text }] };
+      if (cur.content && Array.isArray(cur.content)) cur.content.push(para);
+      else cur.content = [para];
+      return {
+        content: JSON.stringify(cur),
+        pendingInsert: text,
+        insertTrigger: s.insertTrigger + 1,
+        dirty: true,
+      };
+    }),
 }));
