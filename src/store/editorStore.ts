@@ -42,21 +42,25 @@ export const useEditorStore = create<EditorState>((set) => ({
     // Empty-Guard: Whitespace-Only-Output nicht einfügen
     if (!text || !text.trim()) return;
     set((s) => {
+      const cur: { content?: { type: string; content?: { type: string; text: string }[] }[] } = {};
+      // JSON-Parsing mit Fallback: Bei korruptem Doc neues anlegen (User-Verlust vermeiden)
       try {
-        const cur = JSON.parse(s.content || "{}");
-        const para = { type: "paragraph", content: [{ type: "text", text }] };
-        if (cur.content && Array.isArray(cur.content)) cur.content.push(para);
-        else cur.content = [para];
-        return {
-          content: JSON.stringify(cur),
-          pendingInserts: [...s.pendingInserts, text],
-          insertTrigger: s.insertTrigger + 1,
-          dirty: true,
-        };
+        const parsed = JSON.parse(s.content || "{}");
+        if (parsed.content && Array.isArray(parsed.content)) {
+          cur.content = parsed.content;
+        }
       } catch {
-        // JSON-Parsing fehlgeschlagen — Insert ignorieren
-        return {};
+        // Korrupt — starte mit leerem Doc
       }
+      const para = { type: "paragraph", content: [{ type: "text", text }] };
+      if (!cur.content) cur.content = [];
+      cur.content.push(para);
+      return {
+        content: JSON.stringify(cur),
+        pendingInserts: [...s.pendingInserts, text],
+        insertTrigger: s.insertTrigger + 1,
+        dirty: true,
+      };
     });
   },
   consumeInsert: (text) =>
