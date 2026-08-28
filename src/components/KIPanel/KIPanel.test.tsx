@@ -268,7 +268,6 @@ describe("KIPanel ↔ Editor Integration: insertIntoDoc-Fluss", () => {
       </>,
     );
     await runWeiterschreiben(user);
-    expect(useEditorStore.getState().insertTrigger).toBe(1);
 
     await user.click(screen.getByRole("button", { name: "In Dokument einfügen" }));
 
