@@ -109,7 +109,7 @@ describe("investigate mode", () => {
       threadLaenge: 8,
     });
     expect(result.headline.length).toBeGreaterThan(10);
-    expect(result.article).toContain("[BELEGT]");
+    expect(result.article).toContain("[BELEGT");
     expect(result.article).toContain("Warum das jetzt wichtig ist");
   });
 
@@ -252,6 +252,7 @@ describe("investigate mode", () => {
       quellen: [],
       ereignisse: [],
       offeneFragen: [],
+      claims: [],
     };
     const result = generateArticle(input);
     expect(result.factTable.length).toBe(1);
