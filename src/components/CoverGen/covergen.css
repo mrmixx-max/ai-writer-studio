@@ -1,0 +1,135 @@
+/* Cover-Generator Panel */
+.covergen {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.covergen-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.covergen-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.covergen-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.covergen-field label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+}
+
+.covergen-field input,
+.covergen-field select {
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--card);
+  color: var(--foreground);
+  font-size: 13px;
+}
+
+.covergen-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.covergen-button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.covergen-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.covergen-button.secondary {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--foreground);
+}
+
+.covergen-button.small {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.covergen-result {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.covergen-result h3,
+.covergen-result h4 {
+  margin: 0;
+}
+
+.covergen-prompt,
+.covergen-negative {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.covergen-warnings {
+  background: rgba(220, 38, 38, 0.1);
+  padding: 8px;
+  border-radius: 4px;
+}
+
+.covergen-warnings li {
+  font-size: 12px;
+  color: #f87171;
+}
+
+.covergen-variants {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.covergen-variant {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px;
+}
+
+.covergen-variant h4 {
+  margin: 0 0 4px;
+}
+
+.covergen-variant pre {
+  font-size: 11px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 120px;
+  overflow-y: auto;
+}

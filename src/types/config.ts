@@ -19,6 +19,7 @@ export interface AppSettings {
   sdWebuiUrl: string;
   sdWebuiUsername: string;
   sdWebuiPassword: string;
+  coverGenerator: "active" | "none";
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -39,4 +40,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   sdWebuiUrl: "http://localhost:7860",
   sdWebuiUsername: "",
   sdWebuiPassword: "",
+  coverGenerator: "none",
 };
