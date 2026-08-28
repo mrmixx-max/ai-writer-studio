@@ -2,7 +2,7 @@
 // Component-Tests für KIPanel.tsx: KI-Aktion auslösen, Streaming-Output,
 // Chat-Eingabe, "In Dokument einfügen" in den EditorStore.
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 vi.mock("@/services/ki", () => ({
@@ -72,7 +72,63 @@ vi.mock("@/components/KIPanel/AIWritingAssistant/AIWritingAssistant", () => ({
 }));
 vi.mock("@/components/Whisper/whisper.css", () => ({}));
 
+// ---------------------------------------------------------------------------
+// Integration-Zusatz: TipTap-Stub mit insertContent-Spy (gleiche Technik wie
+// Editor.test.tsx) + gestubbte Editor-Kinder, damit KIPanel und Editor
+// gemeinsam den Insert-Fluss (insertIntoDoc → insertAtEnd → insertTrigger →
+// insertContent) testen können.
+// ---------------------------------------------------------------------------
+const tiptapStub = vi.hoisted(() => {
+  const insertContentSpy = vi.fn();
+  let doc: unknown = null;
+  let ready = true;
+  const chain = {
+    focus: () => chain,
+    insertContent: (arg: unknown) => {
+      insertContentSpy(arg);
+      return chain;
+    },
+    run: () => undefined,
+  };
+  // STABILE Referenz: Editor.tsx synchronisiert editorInstance via
+  // useEffect([editor]) — ein neues Objekt pro Render würde eine
+  // Infinite-Update-Loop auslösen (vgl. Editor.test.tsx).
+  const editorInstance = { chain: () => chain, isActive: () => false, getJSON: () => doc };
+  return {
+    insertContentSpy,
+    setDoc: (d: unknown) => {
+      doc = d;
+    },
+    getDoc: () => doc,
+    setReady: (v: boolean) => {
+      ready = v;
+    },
+    useEditor: () => (ready ? editorInstance : null),
+  };
+});
+
+vi.mock("@tiptap/react", () => ({
+  useEditor: () => tiptapStub.useEditor(),
+  EditorContent: () => <div data-testid="editor-content" />,
+}));
+vi.mock("@/components/Editor/extensions", () => ({
+  CharacterTagExtension: { configure: () => ({}) },
+  SceneMarkerExtension: {},
+  ChapterOutlineExtension: {},
+  ChapterOutlinePanel: () => null,
+  CharacterTooltip: () => null,
+}));
+vi.mock("@/components/Collaboration", () => ({
+  CommentMark: {},
+  TcInsertMark: {},
+  TcDeleteMark: {},
+  TrackChangesExtension: {},
+  CollaborationPanel: () => null,
+}));
+vi.mock("@/components/Editor/GitPanel", () => ({ GitPanel: () => null }));
+
 import { KIPanel } from "./KIPanel";
+import { Editor } from "@/components/Editor/Editor";
 import { runKIAction } from "@/services/ki";
 import { saveChatMessage, clearSession } from "@/services/ki/history";
 import { useEditorStore } from "@/store/editorStore";
@@ -163,5 +219,180 @@ describe("KIPanel", () => {
   it("leerer Chatverlauf zeigt Empty-State", () => {
     render(<KIPanel />);
     expect(screen.getByText("Noch keine Nachrichten.")).toBeInTheDocument();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Integration: insertIntoDoc → editorStore.insertAtEnd → Editor-Effect
+// (insertTrigger/pendingInsert → editor.insertContent → onChange)
+//
+// Die mit „Bug" markierten Tests sind bewusst Characterization-Tests: Sie
+// dokumentieren das AKTUELLE (fehlerhafte) Verhalten grün. Nach dem Fix müssen
+// die jeweilig markierten Assertions umgedreht werden (siehe TODO-Kommentare).
+// ---------------------------------------------------------------------------
+const AI_TEXT = "KI-Antwort: Es war einmal.";
+const NEW_DOC = {
+  type: "doc",
+  content: [{ type: "paragraph", content: [{ type: "text", text: "Neu" }] }],
+};
+
+describe("KIPanel ↔ Editor Integration: insertIntoDoc-Fluss", () => {
+  beforeEach(() => {
+    useEditorStore.setState({
+      content: DOC,
+      insertTrigger: 0,
+      pendingInserts: [],
+      dirty: false,
+      wordCount: 0,
+      charCount: 0,
+    });
+    tiptapStub.setDoc({
+      type: "doc",
+      content: [{ type: "paragraph", content: [{ type: "text", text: "Alt" }] }],
+    });
+    tiptapStub.setReady(true);
+  });
+
+  async function runWeiterschreiben(user: ReturnType<typeof userEvent.setup>) {
+    await user.click(screen.getByRole("button", { name: "Weiterschreiben" }));
+    await screen.findAllByText(AI_TEXT);
+  }
+
+  it("Happy Path: KI-Output → insertAtEnd → insertTrigger → Editor.insertContent mit dem richtigen Text", async () => {
+    const onChange = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <>
+        <Editor onChange={onChange} />
+        <KIPanel />
+      </>,
+    );
+    await runWeiterschreiben(user);
+    expect(useEditorStore.getState().insertTrigger).toBe(0);
+
+    await user.click(screen.getByRole("button", { name: "In Dokument einfügen" }));
+
+    // 1) Store: Absatz angehängt, Trigger +1, pendingInserts Queue gefüllt
+    const s = useEditorStore.getState();
+    expect(s.insertTrigger).toBe(1);
+    expect(s.pendingInserts).toContain(AI_TEXT);
+    expect(s.dirty).toBe(true);
+    const doc = JSON.parse(s.content);
+    expect(doc.content[doc.content.length - 1].content[0].text).toBe(AI_TEXT);
+    expect(doc.content[0].content[0].text).toBe("Alt"); // Original bleibt erhalten
+
+    // 2) Editor hat auf insertTrigger reagiert und DEN RICHTIGEN Text übergeben
+    expect(tiptapStub.insertContentSpy).toHaveBeenCalledWith(AI_TEXT);
+    // 3) onChange wurde nach dem Insert mit dem Editor-Doc-JSON aufgerufen
+    expect(onChange).toHaveBeenCalledWith(JSON.stringify(tiptapStub.getDoc()));
+  });
+
+  it("RACE (Bug): zwei inserts im selben Tick — Editor-Effect feuert nur einmal, 'Text A' geht verloren", async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <Editor />
+        <KIPanel />
+      </>,
+    );
+    await runWeiterschreiben(user);
+
+    await act(async () => {
+      useEditorStore.getState().insertAtEnd("Text A");
+      useEditorStore.getState().insertAtEnd("Text B");
+    });
+
+    // Store-Seite korrekt: beide Absätze angehängt, Trigger +2
+    const s = useEditorStore.getState();
+    expect(s.insertTrigger).toBe(2);
+    const texts = (JSON.parse(s.content).content as { content?: { text?: string }[] }[]).map(
+      (p) => p.content?.[0]?.text,
+    );
+    expect(texts).toContain("Text A");
+    expect(texts).toContain("Text B");
+
+    // BUG (React-Batching): beide Updates landen in EINEM Commit, der
+    // insertTrigger-Effekt läuft nur EINMAL (mit "Text B"). "Text A" ist im
+    // Store als eingefügt gebucht, wurde aber nie ins Live-Doc inserted und
+    // fällt beim nächsten Autosave (onChange → setContent) unter den Tisch.
+    expect(tiptapStub.insertContentSpy).toHaveBeenCalledTimes(1);
+    expect(tiptapStub.insertContentSpy).toHaveBeenLastCalledWith("Text B");
+    // TODO: Nach Fix (Insert-Queue im Store) — beide Texte an insertContent erwarten.
+  });
+
+  it("FEHLERBEHANDLUNG (Bug): insertAtEnd wirft bei korruptem JSON unbehandelt — kein safeParse-Fallback", () => {
+    useEditorStore.setState({ content: "{kaputt" });
+    // Aktuell: JSON.parse wirft aus dem zustand-Set-Updater heraus → die
+    // Exception landet im Click-Handler, kein insertTrigger, keine Rückmeldung.
+    expect(() => useEditorStore.getState().insertAtEnd("KI-Text")).toThrow();
+    expect(useEditorStore.getState().insertTrigger).toBe(0);
+    // TODO: Nach Fix (try/catch + Fallback-Doc wie Editor.safeParse) positiv testen:
+    // expect(() => ...).not.toThrow() und Absatz im Fallback-Doc vorhanden.
+  });
+
+  it("STALE STATE (Bug): pendingInsert wird nie geleert — Remount insertet den ALTEN KI-Text erneut", async () => {
+    const user = userEvent.setup();
+    const first = render(
+      <>
+        <Editor />
+        <KIPanel />
+      </>,
+    );
+    await runWeiterschreiben(user);
+    await user.click(screen.getByRole("button", { name: "In Dokument einfügen" }));
+    first.unmount();
+    tiptapStub.insertContentSpy.mockClear();
+
+    // Kapitelwechsel: Store hat IMMER NOCH insertTrigger > 0 + pendingInserts
+    expect(useEditorStore.getState().insertTrigger).toBeGreaterThan(0);
+    expect(useEditorStore.getState().pendingInserts).toContain(AI_TEXT);
+    tiptapStub.setDoc(NEW_DOC);
+    render(<Editor />);
+
+    // BUG: der Mount-Effekt feuert sofort mit dem ALTEN pendingInsert — der
+    // alte KI-Text landet im frischen Dokument. (Retention: der Output-String
+    // bleibt zudem dauerhaft im globalen Store referenziert.)
+    expect(tiptapStub.insertContentSpy).toHaveBeenCalledWith(AI_TEXT);
+    // TODO: Nach Fix (pendingInsert nach Insert leeren) — not.toHaveBeenCalled() erwarten.
+  });
+
+  it("NICHT BEREITER EDITOR (Bug): Insert geht verloren, wenn der Editor beim Trigger noch null ist", async () => {
+    tiptapStub.setReady(false);
+    const { rerender } = render(<Editor />); // „Lade Editor…" — editor === null
+    expect(screen.getByText("Lade Editor…")).toBeInTheDocument();
+
+    await act(async () => {
+      useEditorStore.getState().insertAtEnd("Verlorener Text");
+    });
+    expect(useEditorStore.getState().insertTrigger).toBe(1);
+    expect(tiptapStub.insertContentSpy).not.toHaveBeenCalled();
+
+    // Editor wird später bereit — der Effekt läuft NICHT erneut, weil sich die
+    // Deps [insertTrigger, pendingInserts] nicht mehr ändern (editor fehlt in
+    // den Deps; kein Cleanup/Retry beim Unmount).
+    tiptapStub.setReady(true);
+    tiptapStub.setDoc(NEW_DOC);
+    rerender(<Editor />);
+    expect(tiptapStub.insertContentSpy).not.toHaveBeenCalled(); // dauerhaft verloren
+    // TODO: Nach Fix (Queue/Retry, editor in Deps) — insertContent("Verlorener Text") erwarten.
+  });
+
+  it("EDGE (Bug): Whitespace-Only-Output rutscht durch insertIntoDoc (kein Empty-Guard)", async () => {
+    vi.mocked(runKIAction).mockResolvedValueOnce({ text: "   ", offline: false });
+    const user = userEvent.setup();
+    render(
+      <>
+        <Editor />
+        <KIPanel />
+      </>,
+    );
+    await user.click(screen.getByRole("button", { name: "Weiterschreiben" }));
+    const insertBtn = await screen.findByRole("button", { name: "In Dokument einfügen" });
+    await user.click(insertBtn);
+
+    const doc = JSON.parse(useEditorStore.getState().content);
+    expect(doc.content[doc.content.length - 1].content[0].text).toBe("   ");
+    expect(useEditorStore.getState().insertTrigger).toBe(1);
+    // TODO: Nach Fix (Guard in insertIntoDoc) — kein Insert, Trigger bleibt 0.
   });
 });
