@@ -15,4 +15,5 @@ export type EditorMode =
   | "dream"
   | "imagegen"
   | "covergen"
-  | "blurbgen";
+  | "blurbgen"
+  | "scientificwriting";

@@ -1,0 +1,139 @@
+/* Wissenschaftliches Schreiben Panel */
+.scientific {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.scientific-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.scientific-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.scientific-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.scientific-field.full {
+  grid-column: 1 / -1;
+}
+
+.scientific-field label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.7;
+}
+
+.scientific-field input,
+.scientific-field select,
+.scientific-field textarea {
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--card);
+  color: var(--foreground);
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.scientific-field textarea {
+  resize: vertical;
+}
+
+.scientific-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.scientific-button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.scientific-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.scientific-button.secondary {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--foreground);
+}
+
+.scientific-result {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.scientific-result h3,
+.scientific-result h4 {
+  margin: 0;
+}
+
+.scientific-outline {
+  list-style: none;
+  padding: 0;
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.scientific-outline li {
+  padding: 2px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.scientific-text {
+  line-height: 1.7;
+  font-size: 14px;
+  text-align: justify;
+}
+
+.scientific-rationale {
+  font-size: 12px;
+  opacity: 0.7;
+  font-style: italic;
+}
+
+.scientific-warnings {
+  background: rgba(220, 38, 38, 0.1);
+  padding: 8px;
+  border-radius: 4px;
+}
+
+.scientific-warnings li {
+  font-size: 12px;
+  color: #f87171;
+}
+
+.scientific-citations {
+  background: rgba(59, 130, 246, 0.1);
+  padding: 8px;
+  border-radius: 4px;
+}
+
+.scientific-citations li {
+  font-size: 12px;
+  color: #93c5fd;
+}
