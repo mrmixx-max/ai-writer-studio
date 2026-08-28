@@ -343,9 +343,9 @@ describe("KIPanel ↔ Editor Integration: insertIntoDoc-Fluss", () => {
     first.unmount();
     tiptapStub.insertContentSpy.mockClear();
 
-    // Kapitelwechsel: Store hat IMMER NOCH insertTrigger > 0 + pendingInserts
+    // Nach Fix: insertTrigger bleibt, aber Queue wurde durch consumeInsert geleert
     expect(useEditorStore.getState().insertTrigger).toBeGreaterThan(0);
-    expect(useEditorStore.getState().pendingInserts).toContain(AI_TEXT);
+    expect(useEditorStore.getState().pendingInserts).not.toContain(AI_TEXT);
     tiptapStub.setDoc(NEW_DOC);
     render(<Editor />);
 
@@ -384,8 +384,8 @@ describe("KIPanel ↔ Editor Integration: insertIntoDoc-Fluss", () => {
     const insertBtn = await screen.findByRole("button", { name: "In Dokument einfügen" });
     await user.click(insertBtn);
 
-    // Empty-Guard: Trigger bleibt 0, kein Absatz hinzugefügt
-    expect(useEditorStore.getState().insertTrigger).toBe(1);
+    // Empty-Guard: Whitespace wird ignoriert, Trigger bleibt 0
+    expect(useEditorStore.getState().insertTrigger).toBe(0);
     const doc = JSON.parse(useEditorStore.getState().content);
     expect(doc.content.length).toBe(1); // nur Original-Absatz
   });
