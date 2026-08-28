@@ -7,7 +7,20 @@
 // - Abbruch funktioniert
 // - Daten werden zwischengespeichert
 
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+// Mock LLM-Provider: verhindert echte Netzwerk-Aufrufe (chapter-gen versucht
+// Ollama/OpenRouter, was ohne laufendes Backend timeoutet).
+vi.mock("@/services/llm", () => ({
+  createProvider: () => ({
+    chat: async function* () {
+      yield "Mock-Antwort.";
+    },
+  }),
+  buildMessages: (u: string, _s: unknown, h: unknown[]) => [
+    ...(h ?? []),
+    { role: "user", content: u },
+  ],
+}));
 import initSqlJs from "sql.js";
 import { runMigrations } from "@/services/db/migrations";
 import { createProject } from "@/services/project";

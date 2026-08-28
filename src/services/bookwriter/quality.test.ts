@@ -4,6 +4,18 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 // setup.ts mockt sql.js global durch eine Fake-DB — diese Tests brauchen
 // das echte In-Memory-SQLite, daher nehmen wir das Original zurück.
 vi.mock("sql.js", async (importOriginal) => await importOriginal());
+// Mock LLM-Provider: verhindert echte Netzwerk-Aufrufe, die sonst timeouten.
+vi.mock("@/services/llm", () => ({
+  createProvider: () => ({
+    chat: async function* () {
+      yield JSON.stringify({ level: "yellow", score: 50, details: "Mock." });
+    },
+  }),
+  buildMessages: (u: string, _s: unknown, h: unknown[]) => [
+    ...(h ?? []),
+    { role: "user", content: u },
+  ],
+}));
 import initSqlJs from "sql.js";
 import { runMigrations } from "@/services/db/migrations";
 import { createProject } from "@/services/project";
