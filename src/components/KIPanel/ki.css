@@ -231,6 +231,47 @@
 .model-status-dot-degraded { background: #d29922; }
 .model-status-dot-down { background: #f85149; }
 
+/* Offline-Edit-Feld + CTA-Button */
+.model-status-edit {
+  flex: 1;
+  min-width: 120px;
+  padding: 2px 6px;
+  font-size: 0.72rem;
+  border: 1px solid var(--border, rgba(255,255,255,0.15));
+  border-radius: 3px;
+  background: var(--bg, #1a1a1a);
+  color: var(--text, inherit);
+}
+.model-status-edit-trigger {
+  background: none;
+  border: none;
+  color: var(--text-dim, #888);
+  cursor: pointer;
+  font-size: 0.72rem;
+  padding: 2px 4px;
+  text-decoration: underline;
+}
+.model-status-edit-trigger:hover { color: var(--text, inherit); }
+.model-status-cta {
+  padding: 2px 8px;
+  font-size: 0.68rem;
+  border: 1px solid var(--border, rgba(255,255,255,0.15));
+  border-radius: 3px;
+  background: transparent;
+  color: var(--text, inherit);
+  cursor: pointer;
+}
+.model-status-cta:hover { background: rgba(255,255,255,0.05); }
+.model-status-refresh {
+  background: none;
+  border: none;
+  color: var(--text-dim, #888);
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 2px 4px;
+}
+.model-status-refresh:hover { color: var(--text, inherit); }
+
 /* KI-Panel: verwendetes Modell am Antwort-Beginn */
 .ki-response-model {
   margin: 0 0 4px;
