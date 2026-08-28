@@ -240,9 +240,12 @@ Write-Ok 'EXE nach release\ kopiert'
 # ---------------------------------------------------------------------------
 Write-Step 'Installer erstellen'
 if ($CreateInstaller) {
-    $installerArgs = @('-Version', $Cfg.AppVersion)
-    if ($Sign) { $installerArgs += '-Sign' }
-    & (Join-Path $ScriptDir 'create-installer.ps1') @installerArgs
+    $installerPath = Join-Path $ScriptDir 'create-installer.ps1'
+    if ($Sign) {
+        & $installerPath -Version $Cfg.AppVersion -Sign
+    } else {
+        & $installerPath -Version $Cfg.AppVersion
+    }
     if ($LASTEXITCODE -ne 0) { throw 'Installer-Erstellung fehlgeschlagen.' }
 } else {
     Write-Info 'Uebersprungen. Mit -CreateInstaller aktivieren.'
