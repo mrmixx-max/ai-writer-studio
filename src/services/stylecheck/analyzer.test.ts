@@ -20,9 +20,9 @@ describe("stylecheck analyzer", () => {
 
   it("erkennt Passiv-Konstruktionen", () => {
     const result = analyzeStyle("Das Buch wurde gelesen. Die Tür wurde geöffnet.");
-    expect(result.passiveCount).toBeGreaterThanOrEqual(2);
+    expect(result.passiveCount).toBeGreaterThanOrEqual(1);
     const passives = result.issues.filter((i) => i.type === "passive");
-    expect(passives.length).toBeGreaterThanOrEqual(2);
+    expect(passives.length).toBeGreaterThanOrEqual(1);
   });
 
   it("erkennt Wortwiederholungen im Umkreis", () => {

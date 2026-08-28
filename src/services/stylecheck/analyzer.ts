@@ -31,10 +31,10 @@ const FILLER_WORDS = new Set([
 ]);
 
 // Passiv-Indikatoren: werden + Partiziv (vereinfacht).
-const PASSIVE_PATTERN = /\b(wurde|wurden|wird|werden|wirst|worden)\s+\w+(?:t|et|en)\b/gi;
+const PASSIVE_PATTERN = /\b(wurde|wurden|wird|werden|wirst|worden)\s+[\p{L}]+(?:t|et|en)\b/giu;
 
 // Adverbien auf -weise und -lich.
-const ADVERB_PATTERN = /\b\w{3,}(?:weise|lich)\b/gi;
+const ADVERB_PATTERN = /\b[\p{L}\p{N}]{3,}(?:weise|lich)\b/giu;
 
 /** Zählt Wörter im Text. */
 function countWords(text: string): number {
