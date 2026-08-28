@@ -60,9 +60,9 @@ describe("Migration 003 — Idempotenz", () => {
     expect(new Set(second).size).toBe(second.length);
   });
 
-  it("protokolliert Schema-Version 6", () => {
+  it("protokolliert Schema-Version 8", () => {
     runMigrations(db);
-    expect(currentSchemaVersion(db)).toBe(6);
+    expect(currentSchemaVersion(db)).toBe(8);
   });
 });
 
