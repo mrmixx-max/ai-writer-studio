@@ -13,7 +13,6 @@ import { Sidebar } from "@/components/Sidebar/Sidebar";
 import { Editor } from "@/components/Editor/Editor";
 import { WordCountBar } from "@/components/Editor/WordCountBar";
 import { KIPanel } from "@/components/KIPanel/KIPanel";
-import { ModelStatusBar } from "@/components/KIPanel/ModelStatusBar";
 import { ExportBar } from "@/components/Export/ExportBar";
 
 // Dialoge/Panel-Modals nur bei Bedarf laden — sie sind initial nicht sichtbar
@@ -277,7 +276,7 @@ function AppInner() {
                 />
                 <PluginBadges />
                 <WordCountBar />
-                <ModelStatusBar />
+{/* ModelStatusBar entfernt — war redundant mit ModelPicker */}
               </>
             ) : (
               <Suspense fallback={<Splash note="Editor wird geladen…" />}>

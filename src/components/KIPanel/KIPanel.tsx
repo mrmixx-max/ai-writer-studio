@@ -82,7 +82,6 @@ export function KIPanel() {
   const [memContent, setMemContent] = useState("");
   const [memKind, setMemKind] = useState<MemoryKind>("fakt");
   const [cleanupPreviewCount, setCleanupPreviewCount] = useState<number | null>(null);
-  const editor = useEditorStore();
   const chapterId = useProjectStore.getState().activeChapterId;
   const sessionId = sessionKeyFor(chapterId);
 
@@ -149,11 +148,7 @@ export function KIPanel() {
 
   function insertIntoDoc() {
     // Hängt KI-Output als neuen Absatz ans Dokument-Ende
-    const cur = JSON.parse(editor.content || "{}");
-    const para = { type: "paragraph", content: [{ type: "text", text: output }] };
-    if (cur.content && Array.isArray(cur.content)) cur.content.push(para);
-    else cur.content = [para];
-    editor.setContent(JSON.stringify(cur));
+    useEditorStore.getState().insertAtEnd(output);
   }
 
   async function run(action: KIAction) {
@@ -323,6 +318,9 @@ export function KIPanel() {
           }}
           rows={4}
         />
+        <button className="ki-send" onClick={() => run("chat")} disabled={busy}>
+          Senden
+        </button>
       </div>
 
       <WhisperButton

@@ -47,6 +47,8 @@ interface EditorProps {
 export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, showOutline, showCollaboration, showGit, gitDir }: EditorProps) {
   const setCounts = useEditorStore((s) => s.setCounts);
   const chapterId = useEditorStore((s) => s.chapterId);
+  const insertTrigger = useEditorStore((s) => s.insertTrigger);
+  const pendingInsert = useEditorStore((s) => s.pendingInsert);
   const timerRef = useRef<number | null>(null);
   const countTimerRef = useRef<number | null>(null);
   const [editorInstance, setEditorInstance] = useState<TipTapEditor | null>(null);
@@ -102,6 +104,14 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
   useEffect(() => {
     if (editor) setEditorInstance(editor);
   }, [editor]);
+
+  // KI-Panel: Text am Ende einfügen (lauscht auf insertTrigger)
+  useEffect(() => {
+    if (insertTrigger > 0 && editor && pendingInsert) {
+      editor.chain().focus().insertContent(pendingInsert).run();
+      onChange?.(JSON.stringify(editor.getJSON()));
+    }
+  }, [insertTrigger, pendingInsert]);
 
   // Initiale Zählung
   useEffect(() => {
