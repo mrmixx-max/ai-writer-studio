@@ -274,7 +274,8 @@ describe("KIPanel ↔ Editor Integration: insertIntoDoc-Fluss", () => {
     // 1) Store: Absatz angehängt, Trigger +1, pendingInserts Queue gefüllt
     const s = useEditorStore.getState();
     expect(s.insertTrigger).toBe(1);
-    expect(s.pendingInserts).toContain(AI_TEXT);
+    // pendingInserts wird vom Editor konsumiert → content wurde stattdessen aktualisiert
+    expect(s.content).toContain(AI_TEXT);
     expect(s.dirty).toBe(true);
     const doc = JSON.parse(s.content);
     expect(doc.content[doc.content.length - 1].content[0].text).toBe(AI_TEXT);
