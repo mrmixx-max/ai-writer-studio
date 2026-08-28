@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   generateArticle,
   generateXThread,
+  buildTimeline,
   analyzeArticle,
   generateResearchPlan,
   type InvestigateInput,
