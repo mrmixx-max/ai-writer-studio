@@ -79,7 +79,7 @@ const sampleArticle: ArticleResult = {
 *Artikeltyp: investigation | Sprache: Deutsch | Ton: nüchtern*`,
   factTable: [
     { behauptung: "Am 3. Mai 2026 wurden Personaldaten öffentlich zugänglich gemacht", quelle: "interner Bericht", status: "belegt" },
-    { behauptung: "Der Dienstleister war über das Problem informiert", quelle: "unbekannt", status: "offen" },
+    { behauptung: "Der Dienstleister war über das Problem informiert", quelle: "interner Bericht", status: "belegt" },
   ],
   timeline: [
     { datum: "2026-05-01", beschreibung: "Erste Meldung an die Leitung", quelle: "Internes Memo" },

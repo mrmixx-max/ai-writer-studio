@@ -342,7 +342,7 @@ export function stripInvisibleUnicode(text: string): string {
 // Formatierung für Ausgabe
 export function formatReport(report: WatermarkReport): string {
   return [
-    `AI Score:      ${report.aiScore.toFixed(1)}/100`,
+    `AI Score:      ${Math.min(report.aiScore, 100).toFixed(1)}/100`,
     `Perplexity:    ${report.perplexity.toFixed(2)}`,
     `Burstiness:    ${report.burstiness.toFixed(3)}`,
     `Word Entropy:  ${report.wordEntropy.toFixed(3)}`,
