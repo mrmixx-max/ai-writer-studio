@@ -23,4 +23,5 @@ export type EditorMode =
   | "characters"
   | "worldbuilding"
   | "research"
-  | "investigate";
+  | "investigate"
+  | "watermark";

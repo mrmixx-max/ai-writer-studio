@@ -422,3 +422,85 @@
 .research-section h5 { margin: 8px 0 4px; font-size: 0.82rem; }
 .research-section ul { padding-left: 18px; }
 .research-section li { margin: 3px 0; font-size: 0.8rem; line-height: 1.4; }
+
+/* ===== WATERMARK PANEL ===== */
+.watermark-panel {
+  padding: 12px;
+  color: var(--text, #eee);
+  font-size: 0.85rem;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+}
+.watermark-header h2 { margin: 0 0 4px; font-size: 1rem; }
+.watermark-subtitle { margin: 0 0 12px; font-size: 0.78rem; opacity: 0.7; }
+.watermark-input textarea {
+  width: 100%;
+  min-height: 120px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 4px;
+  color: inherit;
+  padding: 8px;
+  font-size: 0.82rem;
+  font-family: inherit;
+  resize: vertical;
+}
+.watermark-actions { display: flex; gap: 8px; margin-top: 8px; }
+.watermark-actions button {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 4px;
+  background: rgba(255,255,255,0.08);
+  color: inherit;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+.watermark-actions button:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-wash { background: var(--accent, #2563eb) !important; color: #fff !important; }
+.watermark-settings { margin: 12px 0; }
+.ai-score-bar {
+  height: 8px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+.ai-score-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #22c55e, #f59e0b, #ef4444);
+  transition: width 0.3s ease;
+}
+.ai-score-fill.improved { background: linear-gradient(90deg, #22c55e, #3b82f6); }
+.score-label { font-size: 0.78rem; opacity: 0.8; }
+.watermark-report pre {
+  background: rgba(0,0,0,0.3);
+  padding: 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  overflow-x: auto;
+}
+.comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+.comparison-side h4 { margin: 0 0 6px; font-size: 0.78rem; opacity: 0.8; }
+.cleaned-output textarea {
+  width: 100%;
+  min-height: 100px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 4px;
+  color: inherit;
+  padding: 8px;
+  font-size: 0.82rem;
+  font-family: inherit;
+  resize: vertical;
+}
+.btn-toggle {
+  margin-top: 8px;
+  padding: 6px 12px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 4px;
+  color: inherit;
+  cursor: pointer;
+  font-size: 0.78rem;
+}
