@@ -282,7 +282,7 @@ describe("KIPanel ↔ Editor Integration: insertIntoDoc-Fluss", () => {
     expect(doc.content[0].content[0].text).toBe("Alt"); // Original bleibt erhalten
 
     // 2) Editor hat auf insertTrigger reagiert und DEN RICHTIGEN Text übergeben
-    expect(tiptapStub.insertContentSpy).not.toHaveBeenCalled();
+    expect(tiptapStub.insertContentSpy).toHaveBeenCalledWith(AI_TEXT);
     // 3) onChange wurde nach dem Insert mit dem Editor-Doc-JSON aufgerufen
     expect(onChange).toHaveBeenCalledWith(JSON.stringify(tiptapStub.getDoc()));
   });
