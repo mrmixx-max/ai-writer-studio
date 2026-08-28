@@ -187,9 +187,11 @@ function generateHeadline(input: InvestigateInput): string {
 }
 
 function generateTeaser(input: InvestigateInput): string {
-  // Wichtigste Information zuerst
+  // Wichtigste Information zuerst — mit Quellen-Markierung
   if (input.kernfakten.length > 0) {
-    return input.kernfakten[0];
+    const fakt = input.kernfakten[0];
+    const quelle = input.quellen.find(q => fakt.includes(q.label));
+    return quelle ? `${fakt} [BELEGT: ${quelle.label}]` : fakt;
   }
   
   if (input.these) {
@@ -245,13 +247,30 @@ function generateHauptteil(
   // Kernfakten
   if (input.kernfakten.length > 0) {
     absätze.push('## Kernfakten');
-    input.kernfakten.forEach((fakt) => {
-      const quelle = input.quellen.find(q => fakt.includes(q.label));
+    input.kernfakten.forEach((fakt, index) => {
+      // Wenn eine Quelle mit passendem Index existiert → belegt, sonst unbelegt
+      const quelle = input.quellen[index] || input.quellen.find(q => fakt.includes(q.label));
       const markiert = marker(fakt, quelle?.label);
       absätze.push(`- ${markiert}`);
       
       factTable.push({
         behauptung: fakt,
+        quelle: quelle?.label || 'unbekannt',
+        status: quelle ? 'belegt' : 'offen',
+      });
+    });
+    absätze.push('');
+  }
+
+  // Claims (unbelegte Behauptungen) — als solche markiert
+  if (input.claims?.length) {
+    absätze.push('## Behauptungen');
+    input.claims.forEach((claim) => {
+      const quelle = input.quellen.find(q => claim.includes(q.label) || q.label.includes(claim.slice(0, 30)));
+      const markiert = quelle ? marker(claim, quelle.label) : `${claim} [UNBESTÄTIGT]`;
+      absätze.push(`- ${markiert}`);
+      factTable.push({
+        behauptung: claim,
         quelle: quelle?.label || 'unbekannt',
         status: quelle ? 'belegt' : 'offen',
       });
