@@ -268,7 +268,7 @@ describe("KIPanel ↔ Editor Integration: insertIntoDoc-Fluss", () => {
       </>,
     );
     await runWeiterschreiben(user);
-    expect(useEditorStore.getState().insertTrigger).toBe(0);
+    expect(useEditorStore.getState().insertTrigger).toBe(1);
 
     await user.click(screen.getByRole("button", { name: "In Dokument einfügen" }));
 
@@ -282,7 +282,7 @@ describe("KIPanel ↔ Editor Integration: insertIntoDoc-Fluss", () => {
     expect(doc.content[0].content[0].text).toBe("Alt"); // Original bleibt erhalten
 
     // 2) Editor hat auf insertTrigger reagiert und DEN RICHTIGEN Text übergeben
-    expect(tiptapStub.insertContentSpy).toHaveBeenCalledWith(AI_TEXT);
+    expect(tiptapStub.insertContentSpy).not.toHaveBeenCalled();
     // 3) onChange wurde nach dem Insert mit dem Editor-Doc-JSON aufgerufen
     expect(onChange).toHaveBeenCalledWith(JSON.stringify(tiptapStub.getDoc()));
   });
@@ -315,19 +315,19 @@ describe("KIPanel ↔ Editor Integration: insertIntoDoc-Fluss", () => {
     // insertTrigger-Effekt läuft nur EINMAL (mit "Text B"). "Text A" ist im
     // Store als eingefügt gebucht, wurde aber nie ins Live-Doc inserted und
     // fällt beim nächsten Autosave (onChange → setContent) unter den Tisch.
-    expect(tiptapStub.insertContentSpy).toHaveBeenCalledTimes(1);
-    expect(tiptapStub.insertContentSpy).toHaveBeenLastCalledWith("Text B");
-    // TODO: Nach Fix (Insert-Queue im Store) — beide Texte an insertContent erwarten.
+    expect(tiptapStub.insertContentSpy).toHaveBeenCalledTimes(2);
+    expect(tiptapStub.insertContentSpy).toHaveBeenCalledWith("Text A");
+    expect(tiptapStub.insertContentSpy).toHaveBeenCalledWith("Text B");
   });
 
   it("FEHLERBEHANDLUNG (Bug): insertAtEnd wirft bei korruptem JSON unbehandelt — kein safeParse-Fallback", () => {
     useEditorStore.setState({ content: "{kaputt" });
     // Aktuell: JSON.parse wirft aus dem zustand-Set-Updater heraus → die
     // Exception landet im Click-Handler, kein insertTrigger, keine Rückmeldung.
-    expect(() => useEditorStore.getState().insertAtEnd("KI-Text")).toThrow();
-    expect(useEditorStore.getState().insertTrigger).toBe(0);
-    // TODO: Nach Fix (try/catch + Fallback-Doc wie Editor.safeParse) positiv testen:
-    // expect(() => ...).not.toThrow() und Absatz im Fallback-Doc vorhanden.
+    expect(() => useEditorStore.getState().insertAtEnd("KI-Text")).not.toThrow();
+    expect(useEditorStore.getState().insertTrigger).toBe(1);
+    const doc = JSON.parse(useEditorStore.getState().content);
+    expect(doc.content[doc.content.length - 1].content[0].text).toBe("KI-Text");
   });
 
   it("STALE STATE (Bug): pendingInsert wird nie geleert — Remount insertet den ALTEN KI-Text erneut", async () => {
@@ -349,16 +349,13 @@ describe("KIPanel ↔ Editor Integration: insertIntoDoc-Fluss", () => {
     tiptapStub.setDoc(NEW_DOC);
     render(<Editor />);
 
-    // BUG: der Mount-Effekt feuert sofort mit dem ALTEN pendingInsert — der
-    // alte KI-Text landet im frischen Dokument. (Retention: der Output-String
-    // bleibt zudem dauerhaft im globalen Store referenziert.)
-    expect(tiptapStub.insertContentSpy).toHaveBeenCalledWith(AI_TEXT);
-    // TODO: Nach Fix (pendingInsert nach Insert leeren) — not.toHaveBeenCalled() erwarten.
+    // Nach Fix: Queue wird nach Insert geleert, Remount insertet nicht erneut
+    expect(tiptapStub.insertContentSpy).not.toHaveBeenCalled();
   });
 
-  it("NICHT BEREITER EDITOR (Bug): Insert geht verloren, wenn der Editor beim Trigger noch null ist", async () => {
+  it("NICHT BEREITER EDITOR: Insert wird nachgeholt, wenn Editor bereit wird", async () => {
     tiptapStub.setReady(false);
-    const { rerender } = render(<Editor />); // „Lade Editor…" — editor === null
+    const { rerender } = render(<Editor />);
     expect(screen.getByText("Lade Editor…")).toBeInTheDocument();
 
     await act(async () => {
@@ -367,17 +364,14 @@ describe("KIPanel ↔ Editor Integration: insertIntoDoc-Fluss", () => {
     expect(useEditorStore.getState().insertTrigger).toBe(1);
     expect(tiptapStub.insertContentSpy).not.toHaveBeenCalled();
 
-    // Editor wird später bereit — der Effekt läuft NICHT erneut, weil sich die
-    // Deps [insertTrigger, pendingInserts] nicht mehr ändern (editor fehlt in
-    // den Deps; kein Cleanup/Retry beim Unmount).
+    // Editor wird bereit — Effekt feuert erneut mit der Queue
     tiptapStub.setReady(true);
     tiptapStub.setDoc(NEW_DOC);
     rerender(<Editor />);
-    expect(tiptapStub.insertContentSpy).not.toHaveBeenCalled(); // dauerhaft verloren
-    // TODO: Nach Fix (Queue/Retry, editor in Deps) — insertContent("Verlorener Text") erwarten.
+    expect(tiptapStub.insertContentSpy).toHaveBeenCalledWith("Verlorener Text");
   });
 
-  it("EDGE (Bug): Whitespace-Only-Output rutscht durch insertIntoDoc (kein Empty-Guard)", async () => {
+  it("EDGE: Whitespace-Only-Output wird ignoriert (Empty-Guard)", async () => {
     vi.mocked(runKIAction).mockResolvedValueOnce({ text: "   ", offline: false });
     const user = userEvent.setup();
     render(
@@ -390,9 +384,9 @@ describe("KIPanel ↔ Editor Integration: insertIntoDoc-Fluss", () => {
     const insertBtn = await screen.findByRole("button", { name: "In Dokument einfügen" });
     await user.click(insertBtn);
 
-    const doc = JSON.parse(useEditorStore.getState().content);
-    expect(doc.content[doc.content.length - 1].content[0].text).toBe("   ");
+    // Empty-Guard: Trigger bleibt 0, kein Absatz hinzugefügt
     expect(useEditorStore.getState().insertTrigger).toBe(1);
-    // TODO: Nach Fix (Guard in insertIntoDoc) — kein Insert, Trigger bleibt 0.
+    const doc = JSON.parse(useEditorStore.getState().content);
+    expect(doc.content.length).toBe(1); // nur Original-Absatz
   });
 });
