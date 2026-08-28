@@ -16,6 +16,7 @@ import { ObstructionPanel } from "@/components/Obstruction/ObstructionPanel";
 import { DreamLogicPanel } from "@/components/DreamLogic/DreamLogicPanel";
 import { ImageGenerationPanel } from "@/components/ImageGen/ImageGenPanel";
 import { CoverGenPanel } from "@/components/CoverGen/CoverGenPanel";
+import { BlurbGenPanel } from "@/components/BlurbGen/BlurbGenPanel";
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -37,6 +38,7 @@ const MODES: { id: EditorMode; label: string; icon: string }[] = [
   { id: "dream", label: "Traumlogik", icon: "🌙" },
   { id: "imagegen", label: "Bildgenerierung", icon: "🖼️" },
   { id: "covergen", label: "Cover-Generator", icon: "📚" },
+  { id: "blurbgen", label: "Blurb-Generator", icon: "📝" },
 ];
 
 export function Sidebar() {
@@ -188,6 +190,8 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
       return <ImageGenerationPanel />;
     case "covergen":
       return <CoverGenPanel />;
+    case "blurbgen":
+      return <BlurbGenPanel />;
     default:
       return null;
   }

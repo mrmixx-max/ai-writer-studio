@@ -20,6 +20,7 @@ export interface AppSettings {
   sdWebuiUsername: string;
   sdWebuiPassword: string;
   coverGenerator: "active" | "none";
+  blurbGenerator: "active" | "none";
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -41,4 +42,5 @@ export const DEFAULT_SETTINGS: AppSettings = {
   sdWebuiUsername: "",
   sdWebuiPassword: "",
   coverGenerator: "none",
+  blurbGenerator: "none",
 };

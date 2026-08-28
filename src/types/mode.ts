@@ -14,4 +14,5 @@ export type EditorMode =
   | "obstruction"
   | "dream"
   | "imagegen"
-  | "covergen";
+  | "covergen"
+  | "blurbgen";
