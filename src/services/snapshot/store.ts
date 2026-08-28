@@ -6,7 +6,7 @@
 // kaputte Kette unbrauchbar werden.
 
 import { getDb, persist, persistNow } from "@/services/db";
-import { listChapters, getChapter } from "@/services/project";
+import { listChapters } from "@/services/project";
 import { tiptapToText } from "@/services/editor/count";
 import { uid } from "@/services/knowledge/util";
 import { currentSchemaVersion } from "@/services/db/migrations";
@@ -41,9 +41,8 @@ export async function createSnapshot(
   let totalWords = 0;
 
   for (const ch of chapters) {
-    // Den vollständigen Inhalt holen: listChapters liefert nur die Köpfe.
-    const full = getChapter(ch.id);
-    const content = full?.content ?? "{}";
+    // listChapters() liefert bereits den vollständigen Inhalt (content-Spalte)
+    const content = ch.content ?? "{}";
     const words = countWords(tiptapToText(content));
     totalWords += words;
 

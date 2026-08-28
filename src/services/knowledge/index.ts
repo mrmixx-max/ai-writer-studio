@@ -12,4 +12,5 @@ export * from "./indexer";
 export * from "./sync";
 export * from "./retrieval";
 export * from "./ask";
+export * from "./research";
 export { contentHash, preview } from "./util";

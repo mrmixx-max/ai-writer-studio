@@ -42,8 +42,8 @@ const TAB_LABELS: Record<Tab, string> = {
 type Notice = { text: string; kind: "ok" | "warn" | "err" } | null;
 
 export function DiagnosticsPanel({ projectId, chapterId }: Props) {
-  const proj = useProjectStore();
-
+  const chapters = useProjectStore((s) => s.chapters);
+  const openChapter = useProjectStore((s) => s.openChapter);
   const [tab, setTab] = useState<Tab>("consistency");
   const [findings, setFindings] = useState<Finding[]>([]);
   const [report, setReport] = useState<DiagnosticReport | null>(null);
@@ -66,7 +66,7 @@ export function DiagnosticsPanel({ projectId, chapterId }: Props) {
     try {
       const all = listFindings(projectId, { includeResolved: true });
       // Kapiteltitel nachtragen: die DB kennt nur die Id.
-      const titles = new Map(proj.chapters.map((c) => [c.id, c.title]));
+      const titles = new Map(chapters.map((c: any) => [c.id, c.title]));
       setFindings(
         all.map((f) => ({
           ...f,
@@ -78,7 +78,7 @@ export function DiagnosticsPanel({ projectId, chapterId }: Props) {
     } catch {
       // DB noch nicht bereit.
     }
-  }, [projectId, proj.chapters]);
+  }, [projectId, chapters]);
 
   useEffect(() => {
     reload();
@@ -163,7 +163,7 @@ export function DiagnosticsPanel({ projectId, chapterId }: Props) {
   }
 
   function jumpTo(f: Finding) {
-    if (f.chapterId) proj.openChapter(f.chapterId);
+    if (f.chapterId) openChapter(f.chapterId);
     setNotice({
       text:
         `Kapitel geöffnet. Die Stelle liegt bei Zeichen ${f.start}` +
@@ -275,7 +275,7 @@ export function DiagnosticsPanel({ projectId, chapterId }: Props) {
           <MetricsPanel
             metrics={report.metrics}
             perChapter={report.perChapter}
-            onOpenChapter={(id) => proj.openChapter(id)}
+            onOpenChapter={(id) => openChapter(id)}
           />
         ) : null}
 

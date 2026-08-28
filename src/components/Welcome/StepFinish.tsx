@@ -19,7 +19,7 @@ export function StepFinish({
 }: Props) {
   return (
     <>
-      <div className="welcome-step-label">Schritt 4 von 4</div>
+      <div className="welcome-step-label">Schritt 5 von 5</div>
       <h2 className="welcome-step-title">Womit möchtest du beginnen?</h2>
       <p className="welcome-step-intro">
         Beides ist optional und lässt sich jederzeit löschen oder nachträglich

@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2.0.0",
   "productName": "AI Writer Studio",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "identifier": "com.aiwriterstudio.app",
   "build": {
     "frontendDist": "../dist",
@@ -31,7 +31,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost http://localhost:* http://127.0.0.1:* https://api.openai.com https://openrouter.ai"
+      "csp": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' ipc: http://ipc.localhost http://localhost:* http://127.0.0.1:* https://api.openai.com https://openrouter.ai https://github.com https://objects.githubusercontent.com https://release-assets.githubusercontent.com"
     }
   },
   "bundle": {
@@ -76,11 +76,19 @@
         "displayLanguageSelector": true,
         "compression": "lzma"
       }
-    }
+    },
+    "createUpdaterArtifacts": true
   },
   "plugins": {
     "fs": {
       "requireLiteralLeadingDot": false
+    },
+    "updater": {
+      "active": true,
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDQ1RENBNjI0MUU4ODQ3RjQKUldUMFI0Z2VKS2JjUlNyaW1Db1FialY0WStnQThtV2s2eTI5YUFlZXBqeDVTdHp4bW1GWjlYbGUK",
+      "endpoints": [
+        "https://github.com/mrmixx-max/ai-writer-studio/releases/latest/download/latest.json"
+      ]
     }
   }
 }

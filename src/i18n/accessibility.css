@@ -1,0 +1,99 @@
+/* Accessibility-Stile: Skip-Link, Screen-Reader-Only, sichtbarer Fokus,
+   Hochkontrast-Modus (html[data-contrast="high"]). */
+
+/* --- Screen-Reader-only -------------------------------------------------- */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --- Skip-Link ----------------------------------------------------------- */
+.skip-link {
+  position: absolute;
+  top: -48px;
+  left: 8px;
+  z-index: 9999;
+  padding: 8px 14px;
+  background: var(--accent, #4f8cff);
+  color: #fff;
+  border-radius: 0 0 6px 6px;
+  text-decoration: none;
+  transition: top 0.15s ease;
+}
+.skip-link:focus {
+  top: 0;
+}
+
+/* --- Sichtbarer Tastaturfokus -------------------------------------------- */
+:focus-visible {
+  outline: 2px solid var(--accent, #4f8cff);
+  outline-offset: 2px;
+}
+
+/* --- Hochkontrast-Modus --------------------------------------------------- */
+html[data-contrast="high"] {
+  --bg: #000;
+  --bg-elev: #000;
+  --text: #fff;
+  --text-muted: #fff;
+  --border: #fff;
+  --accent: #ffff00;
+  --accent-text: #000;
+}
+
+html[data-contrast="high"] body {
+  background: #000;
+  color: #fff;
+}
+
+html[data-contrast="high"] * {
+  text-shadow: none !important;
+  box-shadow: none !important;
+  background-image: none !important;
+}
+
+html[data-contrast="high"] button,
+html[data-contrast="high"] a,
+html[data-contrast="high"] input,
+html[data-contrast="high"] select,
+html[data-contrast="high"] textarea {
+  background: #000 !important;
+  color: #fff !important;
+  border: 1px solid #fff !important;
+  font-size: 1.05em;
+}
+
+html[data-contrast="high"] button:hover,
+html[data-contrast="high"] a:hover {
+  background: #ffff00 !important;
+  color: #000 !important;
+}
+
+html[data-contrast="high"] .app-warning {
+  background: #ffff00 !important;
+  color: #000 !important;
+  font-weight: 700;
+}
+
+html[data-contrast="high"] :focus-visible {
+  outline: 3px solid #ffff00;
+  outline-offset: 2px;
+}
+
+/* Reduzierte Bewegung respektieren (auch ohne Hochkontrast). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

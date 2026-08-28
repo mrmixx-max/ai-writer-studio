@@ -1,11 +1,28 @@
 // Editor-Komponente: TipTap 2 Rich-Text mit Markdown-Shortcuts, Toolbar, Wortzähler.
-import { useEditor, EditorContent } from "@tiptap/react";
+// Erweitert um: CharacterTag, SceneMarker und ChapterOutline.
+import { useEditor, EditorContent, type Editor as TipTapEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import { useEditorStore } from "@/store/editorStore";
 import { tiptapToText, countWords, countChars } from "@/services/editor/count";
+import {
+  CommentMark,
+  TcInsertMark,
+  TcDeleteMark,
+  TrackChangesExtension,
+  CollaborationPanel,
+} from "@/components/Collaboration";
+import {
+  CharacterTagExtension,
+  SceneMarkerExtension,
+  ChapterOutlineExtension,
+  ChapterOutlinePanel,
+  CharacterTooltip,
+  type CharacterInfo,
+} from "./extensions";
 import "./editor.css";
+import { GitPanel } from "./GitPanel";
 
 interface EditorProps {
   /** Wird bei jeder Änderung (debounced via Autosave) aufgerufen. */
@@ -13,11 +30,25 @@ interface EditorProps {
   /** Initialer Inhalt (TipTap-JSON-String) beim Laden eines Kapitels. */
   initialContent?: string;
   focusMode?: boolean;
+  /** Callback zum Abrufen von Charakter-Infos für den Tooltip. */
+  getCharacterInfo?: (name: string) => CharacterInfo | null;
+  /** Zeigt die Kapitel-Gliederung-Sidebar an. */
+  showOutline?: boolean;
+  /** Zeigt die Collaboration-Sidebar an (Kommentare, Änderungen, Vorschläge, Vergleich). */
+  showCollaboration?: boolean;
+  /** Zeigt die Git-Sidebar an (Status, Commit, Branches, Konflikte, Diff). */
+  showGit?: boolean;
+  /** Projektverzeichnis für die Git-Integration. */
+  gitDir?: string | null;
 }
 
-export function Editor({ onChange, initialContent, focusMode }: EditorProps) {
+export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, showOutline, showCollaboration, showGit, gitDir }: EditorProps) {
   const setCounts = useEditorStore((s) => s.setCounts);
+  const chapterId = useEditorStore((s) => s.chapterId);
   const timerRef = useRef<number | null>(null);
+  const countTimerRef = useRef<number | null>(null);
+  const [editorInstance, setEditorInstance] = useState<TipTapEditor | null>(null);
+  const [trackChangesEnabled, setTrackChangesEnabled] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -25,19 +56,34 @@ export function Editor({ onChange, initialContent, focusMode }: EditorProps) {
         heading: { levels: [1, 2, 3] },
       }),
       Placeholder.configure({
-        placeholder: "Schreib hier… (Markdown-Shortcuts aktiv: # für H1, ## für H2, - für Liste, > für Zitat)",
+        placeholder: "Schreib hier… (Markdown-Shortcuts aktiv: # für H1, ## für H2, - für Liste, > für Zitat, @CharakterName für Charakter-Tags)",
       }),
+      // Custom Extensions
+      CharacterTagExtension.configure({
+        getCharacterInfo,
+      }),
+      SceneMarkerExtension,
+      ChapterOutlineExtension,
+      // Collaboration
+      CommentMark,
+      TcInsertMark,
+      TcDeleteMark,
+      TrackChangesExtension,
     ],
     content: initialContent ? safeParse(initialContent) : "",
     onUpdate: ({ editor }) => {
-      const json = JSON.stringify(editor.getJSON());
-      const text = tiptapToText(editor.getJSON());
-      setCounts(countWords(text), countChars(text));
       // Autosave: 5 Sekunden nach letzter Änderung
       if (timerRef.current) window.clearTimeout(timerRef.current);
       timerRef.current = window.setTimeout(() => {
-        onChange?.(json);
+        onChange?.(JSON.stringify(editor.getJSON()));
       }, 5000);
+
+      // Wortzählung entprellt (300ms) — verhindert Re-Render bei jedem Keystroke
+      if (countTimerRef.current) window.clearTimeout(countTimerRef.current);
+      countTimerRef.current = window.setTimeout(() => {
+        const text = tiptapToText(editor.getJSON());
+        setCounts(countWords(text), countChars(text));
+      }, 300);
     },
     editorProps: {
       attributes: {
@@ -46,6 +92,11 @@ export function Editor({ onChange, initialContent, focusMode }: EditorProps) {
       },
     },
   });
+
+  // Editor-Instanz für das Outline-Panel speichern
+  useEffect(() => {
+    if (editor) setEditorInstance(editor);
+  }, [editor]);
 
   // Initiale Zählung
   useEffect(() => {
@@ -107,8 +158,39 @@ export function Editor({ onChange, initialContent, focusMode }: EditorProps) {
         <button onClick={() => editor.chain().focus().toggleBlockquote().run()} className={editor.isActive("blockquote") ? "active" : ""}>
           ❝ Zitat
         </button>
+        <span className="toolbar-divider" />
+        <button
+          onClick={() => editor.chain().focus().detectCharacterTags().run()}
+          title="Charakter-Tags erkennen (@Name)"
+        >
+          @Tag
+        </button>
       </div>
-      <EditorContent editor={editor} className="editor-content" />
+      <div className="editor-body">
+        <EditorContent editor={editor} className="editor-content" />
+        {showOutline && (
+          <aside className="editor-outline-sidebar">
+            <ChapterOutlinePanel editor={editorInstance} />
+          </aside>
+        )}
+        {showCollaboration && chapterId && (
+          <aside className="editor-collab-sidebar">
+            <CollaborationPanel
+              editor={editorInstance}
+              chapterId={chapterId}
+              trackChangesEnabled={trackChangesEnabled}
+              onToggleTrackChanges={setTrackChangesEnabled}
+            />
+          </aside>
+        )}
+        {showGit && (
+          <aside className="editor-git-sidebar">
+            <GitPanel dir={gitDir ?? null} />
+          </aside>
+        )}
+      </div>
+      {/* Character Tooltip (global, über dem Editor) */}
+      <CharacterTooltip editor={editorInstance} getCharacterInfo={getCharacterInfo} />
     </div>
   );
 }

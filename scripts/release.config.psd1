@@ -9,7 +9,7 @@
 @{
     # ---- Produkt ----
     AppName        = 'AI Writer Studio'
-    AppVersion     = '0.1.0'
+    AppVersion     = '1.0.0'
     AppPublisher   = 'Erik Gieske'
     AppUrl         = 'https://github.com/mrmixx-max/ai-writer-studio'
     AppSupportUrl  = 'https://github.com/mrmixx-max/ai-writer-studio/issues'
@@ -42,4 +42,23 @@
     # ---- Build ----
     MinRustVersion = '1.77'
     MinNodeVersion = 20
+
+    # ---- Auto-Update (tauri-plugin-updater) ----
+    # Feed-Datei, die die App beim Start/Check abfragt (GitHub Releases).
+    UpdateFeedFile  = 'latest.json'
+    # Pfad zum Tauri-Updater-Signaturschluessel (relativ zum Nutzerprofil).
+    # Erzeugen mit:  npx tauri signer generate -w "$HOME\.tauri\ai-writer-studio.key"
+    TauriSigningKey = '.tauri\ai-writer-studio.key'
+
+    # ---- Code-Signing (Authenticode via signtool) ----
+    # Ohne Zertifikat wird der Build ohne Signatur durchgefuehrt (mit Warnung).
+    # SHA1-Fingerprint des Zertifikats im Windows-Zertifikatspeicher ODER PFX-Datei.
+    Signing = @{
+        CertThumbprint  = ''                                  # z. B. 'A1B2C3...' (Cert:\CurrentUser\My)
+        PfxPath         = ''                                  # alternativ: Pfad zur .pfx-Datei
+        # PfxPasswort NIE hier ablegen — kommt aus der Umgebungsvariable SIGNTOOL_PFX_PASSWORD.
+        TimestampServer = 'http://timestamp.digicert.com'
+        Description     = 'AI Writer Studio'
+        Url             = 'https://github.com/mrmixx-max/ai-writer-studio'
+    }
 }

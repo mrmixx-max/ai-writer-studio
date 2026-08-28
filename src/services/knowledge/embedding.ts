@@ -5,6 +5,7 @@
 // über `EmbeddingProbe`. Der Aufrufer entscheidet dann über den lexikalischen Fallback.
 
 import type { AppSettings } from "@/types/config";
+import { contentHash } from "./util";
 
 /** Ergebnis einer Verfügbarkeitsprüfung. */
 export interface EmbeddingProbe {
@@ -21,6 +22,85 @@ const DEFAULT_OPENAI_EMBED_MODEL = "text-embedding-3-small";
 
 /** Timeout für Embedding-Aufrufe, damit die UI nie hängt. */
 const EMBED_TIMEOUT_MS = 20000;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Embedding-Cache
+// ─────────────────────────────────────────────────────────────────────────────
+// In-Memory Cache: Map<contentHash, number[]>. Verhindert, dass identische
+// Chunks (z. B. bei Reindexierung oder duplizierten Quellen) neu eingebettet
+// werden. Der Cache ist pro Session gültig — bei Neustart wird er neu befüllt.
+
+/** Maximale Anzahl Einträge im Cache. Bei Überschreitung wird der älteste verworfen. */
+const MAX_CACHE_ENTRIES = 10_000;
+
+/** In-Memory Cache: Hash des Chunk-Text → Embedding-Vektor. */
+const embeddingCache = new Map<string, number[]>();
+
+/** Statistiken für Diagnosen. */
+export interface EmbeddingCacheStats {
+  hits: number;
+  misses: number;
+  size: number;
+}
+
+let cacheHits = 0;
+let cacheMisses = 0;
+
+/**
+ * Prüft, ob ein Embedding im Cache liegt, und liefert es bei Treffer.
+ * Der Hash wird aus dem normalisiertem Text gebildet (Whitespace-Normalisierung),
+ * damit minimal formatierte Varianten denselben Hash erzeugen.
+ */
+function cacheGet(text: string): number[] | undefined {
+  const key = cacheKey(text);
+  const hit = embeddingCache.get(key);
+  if (hit) {
+    cacheHits++;
+    // LRU-Verhalten: an's Ende verschieben (Map erhält Einfüge-Reihenfolge)
+    embeddingCache.delete(key);
+    embeddingCache.set(key, hit);
+  } else {
+    cacheMisses++;
+  }
+  return hit;
+}
+
+/**
+ * Legt ein Embedding im Cache ab. Bei Überschreitung von MAX_CACHE_ENTRIES
+ * wird der älteste Eintrag (erster in der Map) entfernt.
+ */
+function cachePut(text: string, vec: number[]): void {
+  const key = cacheKey(text);
+  if (embeddingCache.has(key)) {
+    embeddingCache.delete(key);
+  } else if (embeddingCache.size >= MAX_CACHE_ENTRIES) {
+    // Ältesten Eintrag entfernen (Map iteriert in Einfüge-Reihenfolge)
+    const oldest = embeddingCache.keys().next().value;
+    if (oldest !== undefined) embeddingCache.delete(oldest);
+  }
+  embeddingCache.set(key, vec);
+}
+
+/** Normalisiert Text für den Cache-Key (Whitespace-Kanonisierung). */
+function cacheKey(text: string): string {
+  return contentHash(text.trim().replace(/\s+/g, " "));
+}
+
+/** Liefert Cache-Statistiken für Diagnosen/Logging. */
+export function getEmbeddingCacheStats(): EmbeddingCacheStats {
+  return { hits: cacheHits, misses: cacheMisses, size: embeddingCache.size };
+}
+
+/** Leert den Cache (z. B. nach Modellwechsel oder für Tests). */
+export function clearEmbeddingCache(): void {
+  embeddingCache.clear();
+  cacheHits = 0;
+  cacheMisses = 0;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Embedding-Funktionen
+// ─────────────────────────────────────────────────────────────────────────────
 
 function withTimeout(ms: number): { signal: AbortSignal; cancel: () => void } {
   const ctrl = new AbortController();
@@ -68,10 +148,10 @@ export async function probeEmbeddings(settings: AppSettings): Promise<EmbeddingP
 function buildUnavailableNotice(settings: AppSettings, model: string, raw: string): string {
   const isNetwork = /fetch|network|abort|ECONNREFUSED|Failed to fetch/i.test(raw);
   if (settings.provider === "ollama" && isNetwork) {
-    return `Ollama ist nicht erreichbar (${settings.ollamaBaseUrl}). Die semantische Suche steht nicht zur Verfügung – es wird die lexikalische Suche verwendet. Starte Ollama mit „ollama serve“ und lade das Modell mit „ollama pull ${model}“.`;
+    return `Ollama ist nicht erreichbar (${settings.ollamaBaseUrl}). Die semantische Suche steht nicht zur Verfügung – es wird die lexikalische Suche verwendet. Starte Ollama mit „ollama serve" und lade das Modell mit „ollama pull ${model}".`;
   }
   if (/not found|no such model|model .* not found/i.test(raw)) {
-    return `Das Embedding-Modell „${model}“ ist nicht installiert. Lade es mit „ollama pull ${model}“. Bis dahin wird die lexikalische Suche verwendet.`;
+    return `Das Embedding-Modell „${model}“ ist nicht installiert. Lade es mit „ollama pull ${model}". Bis dahin wird die lexikalische Suche verwendet.`;
   }
   if (settings.provider === "openai" && /401|invalid.*key|unauthorized/i.test(raw)) {
     return `Der OpenAI-API-Schlüssel wurde nicht akzeptiert. Es wird die lexikalische Suche verwendet.`;
@@ -81,25 +161,37 @@ function buildUnavailableNotice(settings: AppSettings, model: string, raw: strin
 
 /** Erzeugt einen einzelnen Embedding-Vektor. Wirft bei Nichtverfügbarkeit. */
 export async function embedOne(text: string, settings: AppSettings): Promise<number[]> {
+  // Cache-Lookup: identische Texte nicht neu einbetten
+  const cached = cacheGet(text);
+  if (cached) return cached;
+
   const model = embeddingModelFor(settings);
+  let vec: number[];
+
   if (settings.provider === "openai") {
-    return embedOpenAI([text], model, settings.openaiApiKey ?? "", "https://api.openai.com/v1").then((r) => r[0]);
-  }
-  if (settings.provider === "openrouter") {
+    vec = await embedOpenAI([text], model, settings.openaiApiKey ?? "", "https://api.openai.com/v1").then((r) => r[0]);
+  } else if (settings.provider === "openrouter") {
     // OpenRouter bietet kein einheitliches Embedding-Endpoint → bewusst nicht raten.
     throw new Error("OpenRouter unterstützt keine Embeddings. Nutze Ollama oder OpenAI.");
-  }
-  if (settings.provider === "lmstudio" || settings.provider === "gpt2api") {
+  } else if (settings.provider === "lmstudio" || settings.provider === "gpt2api") {
     const base = settings.provider === "lmstudio" ? settings.lmstudioBaseUrl : settings.gpt2apiBaseUrl;
     const key = settings.provider === "gpt2api" ? (settings.gpt2apiApiKey ?? "") : "";
-    return embedOpenAI([text], model, key, base).then((r) => r[0]);
+    vec = await embedOpenAI([text], model, key, base).then((r) => r[0]);
+  } else {
+    vec = await embedOllama([text], model, settings.ollamaBaseUrl).then((r) => r[0]);
   }
-  return embedOllama([text], model, settings.ollamaBaseUrl).then((r) => r[0]);
+
+  cachePut(text, vec);
+  return vec;
 }
 
 /**
  * Erzeugt Embeddings für mehrere Texte.
  * Batching in Blöcken, damit lange Indexläufe die Verbindung nicht überfahren.
+ *
+ * Optimierung: Der Embedding-Cache wird vor jedem API-Aufruf konsultiert.
+ * Bereits bekannte Texte werden herausgefiltert und später wieder eingefügt,
+ * sodass der API-Call nur noch neue/ungecachte Texte enthält.
  */
 export async function embedBatch(
   texts: string[],
@@ -107,25 +199,60 @@ export async function embedBatch(
   onProgress?: (done: number, total: number) => void,
 ): Promise<number[][]> {
   const model = embeddingModelFor(settings);
-  const out: number[][] = [];
   const BATCH = settings.provider === "ollama" ? 1 : 16; // Ollama embeddings: 1 Text pro Request
 
-  for (let i = 0; i < texts.length; i += BATCH) {
-    const slice = texts.slice(i, i + BATCH);
-    let vecs: number[][];
-    if (settings.provider === "openai") {
-      vecs = await embedOpenAI(slice, model, settings.openaiApiKey ?? "", "https://api.openai.com/v1");
-    } else if (settings.provider === "lmstudio") {
-      vecs = await embedOpenAI(slice, model, "", settings.lmstudioBaseUrl);
-    } else if (settings.provider === "gpt2api") {
-      vecs = await embedOpenAI(slice, model, settings.gpt2apiApiKey ?? "", settings.gpt2apiBaseUrl);
-    } else {
-      vecs = await embedOllama(slice, model, settings.ollamaBaseUrl);
+  // Ergebnis-Array: Index ↔ Text-Zuordnung erhalten
+  const results: number[][] = new Array(texts.length).fill(null);
+  const toFetch: { index: number; text: string; dupes: number[] }[] = [];
+  /** Cache-Key → Position in toFetch: fängt Duplikate INNERHALB des Batches ab. */
+  const pending = new Map<string, number>();
+
+  // 1. Cache-Lookup für jeden Text; Batch-interne Duplikate werden zusammengefasst
+  for (let i = 0; i < texts.length; i++) {
+    const cached = cacheGet(texts[i]);
+    if (cached) {
+      results[i] = cached;
+      continue;
     }
-    out.push(...vecs);
-    onProgress?.(Math.min(i + BATCH, texts.length), texts.length);
+    const key = cacheKey(texts[i]);
+    const first = pending.get(key);
+    if (first !== undefined) {
+      // Gleicher Text wie ein noch nicht eingebetteter → Ergebnis später kopieren
+      toFetch[first].dupes.push(i);
+      continue;
+    }
+    pending.set(key, toFetch.length);
+    toFetch.push({ index: i, text: texts[i], dupes: [] });
   }
-  return out;
+
+  // 2. Nur fehlende Texte in Batches einbetten
+  for (let i = 0; i < toFetch.length; i += BATCH) {
+    const slice = toFetch.slice(i, i + BATCH);
+    const sliceTexts = slice.map((s) => s.text);
+    let vecs: number[][];
+
+    if (settings.provider === "openai") {
+      vecs = await embedOpenAI(sliceTexts, model, settings.openaiApiKey ?? "", "https://api.openai.com/v1");
+    } else if (settings.provider === "lmstudio") {
+      vecs = await embedOpenAI(sliceTexts, model, "", settings.lmstudioBaseUrl);
+    } else if (settings.provider === "gpt2api") {
+      vecs = await embedOpenAI(sliceTexts, model, settings.gpt2apiApiKey ?? "", settings.gpt2apiBaseUrl);
+    } else {
+      vecs = await embedOllama(sliceTexts, model, settings.ollamaBaseUrl);
+    }
+
+    // 3. Ergebnisse eintragen, cachen und auf Batch-interne Duplikate kopieren
+    for (let j = 0; j < vecs.length; j++) {
+      const { index, text, dupes } = slice[j];
+      results[index] = vecs[j];
+      cachePut(text, vecs[j]);
+      for (const d of dupes) results[d] = vecs[j];
+    }
+
+    onProgress?.(Math.min(i + BATCH, toFetch.length), toFetch.length);
+  }
+
+  return results;
 }
 
 /** Ollama /api/embeddings — ein Text pro Request. */

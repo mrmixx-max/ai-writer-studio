@@ -23,18 +23,20 @@ export function ExportBar() {
   const [preflightVisible, setPreflightVisible] = useState(false);
   const [findings, setFindings] = useState<PreflightFinding[]>([]);
   const [preflightBusy, setPreflightBusy] = useState(false);
-  const proj = useProjectStore();
-  const editor = useEditorStore();
+  const activeProjectId = useProjectStore((s) => s.activeProjectId);
+  const activeChapterId = useProjectStore((s) => s.activeChapterId);
+  const projects = useProjectStore((s) => s.projects);
+  const content = useEditorStore((s) => s.content);
 
   // --- Preflight -----------------------------------------------------------
   async function runPreflightCheck() {
-    if (!proj.activeProjectId) return;
-    const p = proj.projects.find((x) => x.id === proj.activeProjectId);
+    if (!activeProjectId) return;
+    const p = projects.find((x) => x.id === activeProjectId);
     if (!p) return;
 
     setPreflightBusy(true);
     try {
-      const r = await runExportPreflight(proj.activeProjectId, p.name, format);
+      const r = await runExportPreflight(activeProjectId, p.name, format);
       setFindings(r.findings);
       setPreflightVisible(true);
     } catch {
@@ -47,14 +49,14 @@ export function ExportBar() {
 
   // --- Export --------------------------------------------------------------
   async function run() {
-    if (scope === "project" && proj.activeProjectId) {
-      const p = proj.projects.find((x) => x.id === proj.activeProjectId);
+    if (scope === "project" && activeProjectId) {
+      const p = projects.find((x) => x.id === activeProjectId);
       if (p) await exportProject(p, format);
-    } else if (scope === "chapter" && proj.activeChapterId) {
-      const p = proj.projects.find((x) => x.id === proj.activeProjectId);
-      if (p) await exportProject(p, format, proj.activeChapterId);
+    } else if (scope === "chapter" && activeChapterId) {
+      const p = projects.find((x) => x.id === activeProjectId);
+      if (p) await exportProject(p, format, activeChapterId);
     } else {
-      await exportContent(editor.content, "Dokument", format);
+      await exportContent(content, "Dokument", format);
     }
     setOpen(false);
     setPreflightVisible(false);
@@ -63,7 +65,7 @@ export function ExportBar() {
 
   function startExport() {
     // Preflight nur bei DOCX/PDF/EPUB, nicht bei Markdown/Text.
-    if (PRELIGHT_FORMATS.includes(format) && proj.activeProjectId) {
+    if (PRELIGHT_FORMATS.includes(format) && activeProjectId) {
       void runPreflightCheck();
     } else {
       void run();

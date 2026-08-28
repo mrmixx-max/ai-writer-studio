@@ -4,16 +4,47 @@
 
 import { ProviderError } from "@/types/llm";
 
+/** Fetch mit Timeout — verhindert hängende Requests bei totem Server. */
+export function fetchWithTimeout(
+  url: string,
+  init: RequestInit,
+  timeoutMs: number = 30000,
+): Promise<Response> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  // Externes Signal mit Timeout-Signal kombinieren
+  let signal = ctrl.signal;
+  let onAbort: (() => void) | null = null;
+  if (init.signal) {
+    const combined = new AbortController();
+    onAbort = () => combined.abort();
+    init.signal.addEventListener("abort", onAbort);
+    ctrl.signal.addEventListener("abort", onAbort);
+    signal = combined.signal;
+  }
+  // finally räumt den Timer UND die Listener ab — sonst bleiben die
+  // Abort-Listener für die Lebensdauer des externen Signals hängen.
+  return fetch(url, { ...init, signal }).finally(() => {
+    clearTimeout(timer);
+    if (onAbort) {
+      ctrl.signal.removeEventListener("abort", onAbort);
+      init.signal?.removeEventListener("abort", onAbort);
+    }
+  });
+}
+
 /** Parst einen ReadableStream von NDJSON-Zeilen und yield das Feld `path` (dot-notation). */
 export async function* parseNdjson(
   body: ReadableStream<Uint8Array>,
   fieldPath: string,
+  signal?: AbortSignal,
 ): AsyncGenerator<string> {
   const reader = body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
   try {
     while (true) {
+      if (signal?.aborted) { await reader.cancel(); break; }
       const { done, value } = await reader.read();
       if (done) break;
       buffer += decoder.decode(value, { stream: true });
@@ -27,6 +58,7 @@ export async function* parseNdjson(
     }
     if (buffer.trim()) yield* emitField(buffer.trim(), fieldPath);
   } catch (e) {
+    if (signal?.aborted) return;
     throw new ProviderError("Stream unterbrochen", e);
   } finally {
     reader.releaseLock();
@@ -37,12 +69,14 @@ export async function* parseNdjson(
 export async function* parseSse(
   body: ReadableStream<Uint8Array>,
   fieldPath: string,
+  signal?: AbortSignal,
 ): AsyncGenerator<string> {
   const reader = body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
   try {
     while (true) {
+      if (signal?.aborted) { await reader.cancel(); break; }
       const { done, value } = await reader.read();
       if (done) break;
       buffer += decoder.decode(value, { stream: true });
@@ -57,6 +91,7 @@ export async function* parseSse(
       }
     }
   } catch (e) {
+    if (signal?.aborted) return;
     throw new ProviderError("Stream unterbrochen", e);
   } finally {
     reader.releaseLock();

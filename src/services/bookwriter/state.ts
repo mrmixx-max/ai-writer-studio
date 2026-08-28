@@ -98,8 +98,10 @@ export async function setPhaseStatus(
   const db = getDb();
   const now = Date.now();
 
-  const sets: string[] = ["status = ?", "updated_at = ?"];
-  const args: (string | number | null)[] = [status, now];
+  // Hinweis: bookwriter_phases hat keine updated_at-Spalte; der Zeitstempel
+  // wird auf dem zugehörigen Run aktualisiert (siehe zweites UPDATE unten).
+  const sets: string[] = ["status = ?"];
+  const args: (string | number | null)[] = [status];
 
   if (progress !== null) {
     sets.push("progress = ?");
@@ -159,11 +161,14 @@ export async function saveArtifact(
 
 /** Lädt ein Artefakt. */
 export function loadArtifact<T>(runId: string, artifactType: string): T | null {
+  // artifact_type ODER phase: Der Workflow speichert teils unter Typ-Namen
+  // ("concept", "outline", "chapters") und lädt teils unter Phasennamen
+  // ("konzept", "gliederung", "manuskript"). Beide Seiten müssen funktionieren.
   const res = getDb().exec(
     `SELECT content FROM bookwriter_artifacts
-     WHERE run_id = ? AND artifact_type = ?
+     WHERE run_id = ? AND (artifact_type = ? OR phase = ?)
      ORDER BY created_at DESC LIMIT 1`,
-    [runId, artifactType],
+    [runId, artifactType, artifactType],
   );
   if (res.length === 0 || res[0].values.length === 0) return null;
   try {

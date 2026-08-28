@@ -1,9 +1,11 @@
 // Generator-Panel: Filter-Steuerung + Ergebnisliste + Aktionen pro Prompt-Karte.
+import { useState } from "react";
 import { usePromptStore } from "@/store/promptStore";
 import { generatePrompts, pickOfflinePrompts } from "@/services/prompt/generate";
 import { savePrompt, setFavorite, listPrompts, deletePrompt, exportFavoritesMarkdown } from "@/services/prompt/store";
 import { useEditorStore } from "@/store/editorStore";
 import { DEFAULT_SETTINGS } from "@/types/config";
+import { PROMPT_TEMPLATES } from "@/services/ki/templates";
 import type { Genre, PromptType, Tone, TargetLength, GeneratedPrompt } from "@/services/prompt/types";
 import { PromptCard } from "./PromptCard";
 import "./prompt.css";
@@ -16,6 +18,20 @@ const LENGTHS: TargetLength[] = ["Kurzgeschichte", "Kapitel", "Roman-Idee", "10-
 export function PromptGenerator() {
   const s = usePromptStore();
   const editor = useEditorStore();
+  const [templateId, setTemplateId] = useState("");
+
+  /** Wendet eine Prompt-Vorlage auf die Filter an und generiert sofort. */
+  function applyTemplate(id: string) {
+    setTemplateId(id);
+    const t = PROMPT_TEMPLATES.find((x) => x.id === id);
+    if (!t) return;
+    s.set("genres", [t.genre]);
+    s.set("promptType", t.promptType);
+    s.set("tone", t.tone);
+    s.set("targetLength", t.targetLength);
+    // Seed-Idee als erster Ergebnisvorschlag (offline-Karte), damit sofort etwas sichtbar ist
+    s.set("results", [{ text: `${t.seed}\n\n(Richtlinie: ${t.guidance})`, genre: t.genre, type: t.promptType, hook: t.name }]);
+  }
 
   async function run() {
     s.set("isGenerating", true);
@@ -87,6 +103,16 @@ export function PromptGenerator() {
   return (
     <div className="prompt-panel">
       <h3>Prompt-Generator</h3>
+
+      {/* Vorlagen: kuratierte Genre-Templates setzen Filter + Start-Idee */}
+      <label>Vorlage
+        <select value={templateId} onChange={(e) => applyTemplate(e.target.value)}>
+          <option value="">— Keine Vorlage —</option>
+          {PROMPT_TEMPLATES.map((t) => (
+            <option key={t.id} value={t.id}>{t.name}</option>
+          ))}
+        </select>
+      </label>
 
       <label>Genre (Mehrfach)
         <select multiple value={s.genres} onChange={(e) => s.set("genres", Array.from(e.target.selectedOptions).map((o) => o.value) as Genre[])}>

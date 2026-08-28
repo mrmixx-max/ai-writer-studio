@@ -15,6 +15,9 @@ export interface KIRequest {
   context: string; // letzte ~2000 Zeichen des Dokuments
   style?: RewriteStyle; // nur bei umschreiben
   chatMessage?: string; // nur bei chat
+  slotId?: string; // Multi-Modell: ID des zu nutzenden Modell-Slots
+  history?: { role: "system" | "user" | "assistant"; content: string }[]; // Chatverlauf
+  memoryContext?: string; // Langzeit-Gedächtnis: relevante Erinnerungen + Projektwissen als Block
 }
 
 export interface KIResult {

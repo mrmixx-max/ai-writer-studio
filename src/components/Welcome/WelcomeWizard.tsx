@@ -11,10 +11,14 @@ import { useState } from "react";
 import { StepWelcome } from "./StepWelcome";
 import { StepProvider } from "./StepProvider";
 import { StepModel } from "./StepModel";
+import { StepTemplates } from "./StepTemplates";
 import { StepFinish } from "./StepFinish";
 import type { ProviderProbe } from "@/services/setup/probe";
-import { probeLocalProviders } from "@/services/setup/probe";
+import { probeLocalProviders, probeOpenRouter, probeNous } from "@/services/setup/probe";
 import { createSampleProject } from "@/services/setup/sampleProject";
+import { createProject } from "@/services/project";
+import { applyTemplates } from "@/services/templates";
+import type { TemplateSelection } from "@/services/templates";
 import { markSetupCompleted } from "@/services/setup/state";
 import { loadSettings, saveSettings } from "@/services/settings";
 import { seedDefaultPrompts } from "@/services/prompt/seed";
@@ -26,41 +30,75 @@ interface Props {
   onDone: (createdProjectId: string | null) => void;
 }
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
+
+/** true, wenn überhaupt eine Vorlage ausgewählt ist. */
+function hasTemplateSelection(s: TemplateSelection): boolean {
+  return Boolean(s.book || s.plot || s.characters?.length);
+}
 
 export function WelcomeWizard({ onDone }: Props) {
   const [step, setStep] = useState(0);
   const [provider, setProvider] = useState<ProviderId>("ollama");
   const [model, setModel] = useState("llama3.2");
   const [openaiKey, setOpenaiKey] = useState("");
+  const [openrouterKey, setOpenrouterKey] = useState("");
+  const [nousKey, setNousKey] = useState("");
   const [probes, setProbes] = useState<Record<string, ProviderProbe | undefined>>({});
   const [sample, setSample] = useState(true);
   const [demoPrompts, setDemoPrompts] = useState(true);
   const [theme, setTheme] = useState<"light" | "dark">("dark");
+  const [templates, setTemplates] = useState<TemplateSelection>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  /** Beim Betreten von Schritt 2 die lokalen Anbieter automatisch prüfen. */
+  /**
+   * Beim Betreten von Schritt 2 ALLE Anbieter automatisch prüfen — lokale
+   * parallel, OpenRouter (öffentliche Modellliste) ebenfalls. Jeder Anbieter
+   * liefert seinen Lifescheck-Status und die verfügbaren Modelle mit.
+   */
   async function enterProviderStep() {
     setStep(1);
-    const results = await probeLocalProviders();
+    const [local, openrouter] = await Promise.all([
+      probeLocalProviders(),
+      probeOpenRouter(),
+    ]);
+    // Nous Research nur mit vorhandenem Schlüssel automatisch prüfen —
+    // die Prüfung überträgt den Schlüssel an einen externen Dienst.
+    const current = loadSettings();
+    const nous = current.nousApiKey ? await probeNous(current.nousApiKey) : undefined;
     const map: Record<string, ProviderProbe> = {};
-    for (const r of results) map[r.provider] = r;
+    for (const r of [...local, openrouter]) map[r.provider] = r;
+    if (nous) map[nous.provider] = nous;
     setProbes((prev) => ({ ...prev, ...map }));
 
-    // Vorauswahl an der Realität ausrichten: Läuft nur LM Studio, dieses wählen.
-    const ollamaOk = map.ollama?.reachable && map.ollama.models.length > 0;
-    const lmOk = map.lmstudio?.reachable && map.lmstudio.models.length > 0;
-    if (!ollamaOk && lmOk) setProvider("lmstudio");
-
-    // Erstes gefundenes Modell übernehmen.
-    const first = (ollamaOk ? map.ollama : lmOk ? map.lmstudio : undefined)?.models[0];
-    if (first) setModel(first);
+    // Vorauswahl an der Realität ausrichten: Erster Anbieter mit Modellen.
+    // Lokale zuerst (Datenschutz), dann OpenRouter.
+    const withModels = [
+      map.ollama,
+      map.lmstudio,
+      map.gpt2api,
+      map.openrouter,
+      map.nous,
+    ].find((p) => p?.reachable && p.models.length > 0);
+    if (withModels) {
+      setProvider(withModels.provider as ProviderId);
+      setModel(withModels.models[0]);
+    }
   }
 
   function recordProbe(key: string, probe: ProviderProbe) {
     setProbes((prev) => ({ ...prev, [key]: probe }));
     if (probe.reachable && probe.models.length > 0 && key === provider) {
+      setModel(probe.models[0]);
+    }
+  }
+
+  /** Beim Anbieterwechsel: falls Modelle für den neuen Anbieter bekannt, übernehmen. */
+  function changeProvider(p: ProviderId) {
+    setProvider(p);
+    const probe = probes[p];
+    if (probe?.reachable && probe.models.length > 0 && !probe.models.includes(model)) {
       setModel(probe.models[0]);
     }
   }
@@ -80,6 +118,8 @@ export function WelcomeWizard({ onDone }: Props) {
         model: model.trim() || current.model,
         theme,
         openaiApiKey: provider === "openai" ? openaiKey.trim() : current.openaiApiKey,
+        openrouterApiKey: provider === "openrouter" ? openrouterKey.trim() : current.openrouterApiKey,
+        nousApiKey: provider === "nous" ? nousKey.trim() : current.nousApiKey,
       });
 
       document.documentElement.setAttribute("data-theme", theme);
@@ -88,8 +128,22 @@ export function WelcomeWizard({ onDone }: Props) {
       if (demoPrompts) {
         await seedDefaultPrompts();
       }
+
       if (sample) {
         projectId = await createSampleProject();
+      }
+
+      // Vorlagen: Anwenden auf das Beispielprojekt (falls angelegt),
+      // sonst ein eigenes Projekt aufmachen. Fehler werden gemeldet,
+      // brechen die Einrichtung aber nicht ab.
+      if (hasTemplateSelection(templates)) {
+        if (projectId) {
+          await applyTemplates(projectId, templates);
+        } else {
+          const tplProject = await createProject("Neues Projekt");
+          await applyTemplates(tplProject.id, templates);
+          projectId = tplProject.id;
+        }
       }
 
       markSetupCompleted();
@@ -125,9 +179,13 @@ export function WelcomeWizard({ onDone }: Props) {
             {step === 1 && (
               <StepProvider
                 provider={provider}
-                onProviderChange={setProvider}
+                onProviderChange={changeProvider}
                 openaiKey={openaiKey}
                 onOpenaiKeyChange={setOpenaiKey}
+                openrouterKey={openrouterKey}
+                onOpenrouterKeyChange={setOpenrouterKey}
+                nousKey={nousKey}
+                onNousKeyChange={setNousKey}
                 probes={probes}
                 onProbe={recordProbe}
               />
@@ -138,9 +196,16 @@ export function WelcomeWizard({ onDone }: Props) {
                 model={model}
                 onModelChange={setModel}
                 probe={activeProbe}
+                allProbes={probes}
               />
             )}
             {step === 3 && (
+              <StepTemplates
+                selection={templates}
+                onChange={setTemplates}
+              />
+            )}
+            {step === 4 && (
               <StepFinish
                 sample={sample}
                 onSampleChange={setSample}

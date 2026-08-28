@@ -8,7 +8,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import initSqlJs from "sql.js";
 import type { Database } from "sql.js";
-import { runMigrations, currentSchemaVersion } from "@/services/db/migrations";
+import { runMigrations, currentSchemaVersion, MIGRATIONS } from "@/services/db/migrations";
 
 let db: Database;
 
@@ -60,9 +60,10 @@ describe("Migration 003 — Idempotenz", () => {
     expect(new Set(second).size).toBe(second.length);
   });
 
-  it("protokolliert Schema-Version 8", () => {
+  it("protokolliert die höchste registrierte Schema-Version", () => {
     runMigrations(db);
-    expect(currentSchemaVersion(db)).toBe(8);
+    const highest = Math.max(...MIGRATIONS.map((m) => m.version));
+    expect(currentSchemaVersion(db)).toBe(highest);
   });
 });
 

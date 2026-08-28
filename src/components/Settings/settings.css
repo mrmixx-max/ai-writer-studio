@@ -80,3 +80,9 @@
   max-height: 140px;
   overflow-y: auto;
 }
+
+.settings-hint {
+  display: block;
+  font-size: 0.8em;
+  opacity: 0.75;
+}

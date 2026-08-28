@@ -14,6 +14,9 @@
 .PARAMETER KeepIntermediate
     Behaelt die ISCC-Logdatei nach erfolgreichem Lauf.
 
+.PARAMETER Sign
+    Signiert den fertigen Installer mit Authenticode (Code-Signing).
+
 .EXAMPLE
     .\scripts\create-installer.ps1
     npm run installer
@@ -22,7 +25,8 @@
 [CmdletBinding()]
 param(
     [string]$Version,
-    [switch]$KeepIntermediate
+    [switch]$KeepIntermediate,
+    [switch]$Sign
 )
 
 $ErrorActionPreference = 'Stop'
@@ -141,6 +145,12 @@ $hash = (Get-FileHash $installer.FullName -Algorithm SHA256).Hash
 $hashFile = "$($installer.FullName).sha256"
 "$hash  $($installer.Name)" | Set-Content -Path $hashFile -Encoding ASCII
 Write-Ok 'SHA256-Pruefsumme geschrieben'
+
+# Optional: Installer signieren (Authenticode).
+if ($Sign) {
+    & (Join-Path $ScriptDir 'sign-binary.ps1') -Path $installer.FullName
+    if ($LASTEXITCODE -ne 0) { throw 'Signierung des Installers fehlgeschlagen.' }
+}
 
 if (-not $KeepIntermediate -and (Test-Path $logFile)) {
     Remove-Item $logFile -Force

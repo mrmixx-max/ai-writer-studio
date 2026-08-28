@@ -8,10 +8,16 @@ import { LMStudioProvider } from "./lmstudio";
 import { OpenAIProvider } from "./openai";
 import { OpenRouterProvider } from "./openrouter";
 import { Gpt2ApiProvider } from "./gpt2api";
+import { NousProvider } from "./nous";
 import { OpenAICompatibleProvider } from "./openai-compatible";
+import { isCloudProvider, requireCloudAllowed } from "@/services/security/privacy";
 
 /** Erzeugt eine Provider-Instanz anhand der aktuellen Settings. */
 export function createProvider(settings: AppSettings): LLMProvider {
+  // Privatsphaere-Modus: Cloud-Provider werden hart blockiert (kein fetch).
+  if (isCloudProvider(settings.provider)) {
+    requireCloudAllowed(`LLM-Provider "${settings.provider}"`);
+  }
   switch (settings.provider) {
     case "ollama":
       return new OllamaProvider(settings.ollamaBaseUrl);
@@ -23,6 +29,8 @@ export function createProvider(settings: AppSettings): LLMProvider {
       return new OpenRouterProvider(settings.openrouterApiKey);
     case "gpt2api":
       return new Gpt2ApiProvider(settings.gpt2apiBaseUrl, settings.gpt2apiApiKey);
+    case "nous":
+      return new NousProvider(settings.nousApiKey, settings.nousBaseUrl);
     default:
       throw new Error(`Unbekannter Provider: ${settings.provider}`);
   }
@@ -50,6 +58,7 @@ export async function completeOnce(
   settings: AppSettings,
   userContent: string,
   history?: ChatMessage[],
+  signal?: AbortSignal,
 ): Promise<string> {
   const provider = createProvider(settings);
   const msgs = buildMessages(userContent, settings, history);
@@ -58,7 +67,7 @@ export async function completeOnce(
     model: settings.model,
     temperature: settings.temperature,
     maxTokens: settings.maxTokens,
-  })) {
+  }, signal)) {
     out += token;
   }
   return out;
@@ -71,5 +80,6 @@ export {
   OpenAIProvider,
   OpenRouterProvider,
   Gpt2ApiProvider,
+  NousProvider,
   OpenAICompatibleProvider,
 };

@@ -1,8 +1,13 @@
-// Stimmen-Labor: Stilprofile + Übersetzung + Split-View.
+// Stimmen-Labor: Stilprofile + Übersetzung + Split-View + Voice-Lab-Features.
 import { useState } from "react";
 import { createVoice, listVoices } from "@/services/voice";
 import { runKIAction } from "@/services/ki";
 import { DEFAULT_SETTINGS } from "@/types/config";
+import type { Chapter } from "@/types/project";
+import { AudioWaveformPlayer } from "./AudioWaveformPlayer";
+import { BatchTTS } from "./BatchTTS";
+import { TranscriptEditor } from "./TranscriptEditor";
+import { AudioNotes } from "./AudioNotes";
 
 const PRESET_VOICES = [
   { name: "nüchtern", prompt: "Schreibe den Text nüchtern, sachlich, ohne Emotion." },
@@ -14,12 +19,23 @@ const PRESET_VOICES = [
   { name: "sachlich-juristisch", prompt: "Schreibe den Text juristisch, mit Konditionalsätzen und Haftungsausschlüssen." },
 ];
 
-export function VoiceLab({ text }: { text: string }) {
+type VoiceLabTab = "voices" | "player" | "readaloud" | "transcripts" | "notes";
+
+export function VoiceLab({
+  text,
+  chapters = [],
+  chapterId = null,
+}: {
+  text: string;
+  chapters?: Chapter[];
+  chapterId?: string | null;
+}) {
   const [voices, setVoices] = useState(listVoices());
   const [voiceId, setVoiceId] = useState<string | null>(null);
   const [output, setOutput] = useState("");
   const [busy, setBusy] = useState(false);
   const [splitMode, setSplitMode] = useState<"translate" | "collide" | "contrast">("translate");
+  const [tab, setTab] = useState<VoiceLabTab>("voices");
 
   const selected = voices.find((v) => v.id === voiceId);
 
@@ -55,6 +71,40 @@ export function VoiceLab({ text }: { text: string }) {
 
   return (
     <div className="voice-lab">
+      <div className="voice-lab-tabs" role="tablist">
+        <button role="tab" onClick={() => setTab("voices")} className={tab === "voices" ? "active" : ""}>Stimmen</button>
+        <button role="tab" onClick={() => setTab("player")} className={tab === "player" ? "active" : ""}>Player</button>
+        <button role="tab" onClick={() => setTab("readaloud")} className={tab === "readaloud" ? "active" : ""}>Buch vorlesen</button>
+        <button role="tab" onClick={() => setTab("transcripts")} className={tab === "transcripts" ? "active" : ""}>Transkripte</button>
+        <button role="tab" onClick={() => setTab("notes")} className={tab === "notes" ? "active" : ""}>Memos</button>
+      </div>
+
+      {tab === "player" && (
+        <div className="voice-lab-panel">
+          <AudioWaveformPlayer src={null} label="Audio abspielen (Waveform)" />
+        </div>
+      )}
+      {tab === "readaloud" && (
+        <div className="voice-lab-panel">
+          <BatchTTS chapters={chapters} />
+        </div>
+      )}
+      {tab === "transcripts" && (
+        <div className="voice-lab-panel">
+          <TranscriptEditor chapterId={chapterId} />
+        </div>
+      )}
+      {tab === "notes" && (
+        <div className="voice-lab-panel">
+          {chapterId ? (
+            <AudioNotes chapterId={chapterId} />
+          ) : (
+            <p>(Kein Kapitel geöffnet — Memos sind kapitelgebunden.)</p>
+          )}
+        </div>
+      )}
+
+      {tab === "voices" && (<>
       <div className="voice-toolbar">
         <button onClick={() => setSplitMode("translate")} className={splitMode === "translate" ? "active" : ""}>Übersetzen</button>
         <button onClick={() => setSplitMode("collide")} className={splitMode === "collide" ? "active" : ""}>Kollidieren</button>
@@ -87,6 +137,7 @@ export function VoiceLab({ text }: { text: string }) {
           <pre>{output || "(noch keine Variante)"}</pre>
         </div>
       </div>
+      </>)}
     </div>
   );
 }

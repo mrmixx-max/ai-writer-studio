@@ -76,3 +76,55 @@ async function transcribeOpenAI(apiKey: string, blob: Blob): Promise<string> {
 export function stopRecording() {
   // Der MediaRecorder wird im Component gehalten → stop() von außen.
 }
+
+// --- Transcript-Editor: Lesen und Korrigieren ---
+
+export interface Transcription {
+  id: string;
+  chapterId: string | null;
+  text: string;
+  language: string | null;
+  model: string | null;
+  isEdited: boolean;
+  createdAt: number;
+  updatedAt: number | null;
+}
+
+/** Listet Transkripte auf, optional gefiltert auf ein Kapitel. */
+export function listTranscriptions(chapterId: string | null = null): Transcription[] {
+  const db = getDb();
+  const res = chapterId
+    ? db.exec(
+        "SELECT id, chapter_id, text, language, model, COALESCE(is_edited,0), created_at, updated_at FROM whisper_transcriptions WHERE chapter_id = ? ORDER BY created_at DESC",
+        [chapterId],
+      )
+    : db.exec(
+        "SELECT id, chapter_id, text, language, model, COALESCE(is_edited,0), created_at, updated_at FROM whisper_transcriptions ORDER BY created_at DESC",
+      );
+  if (!res.length) return [];
+  return res[0].values.map((r) => ({
+    id: r[0] as string,
+    chapterId: (r[1] as string) ?? null,
+    text: r[2] as string,
+    language: (r[3] as string) ?? null,
+    model: (r[4] as string) ?? null,
+    isEdited: !!(r[5] as number),
+    createdAt: r[6] as number,
+    updatedAt: (r[7] as number) ?? null,
+  }));
+}
+
+/** Überschreibt den Transkript-Text (manuelle Korrektur) und markiert ihn als editiert. */
+export async function updateTranscriptionText(id: string, text: string): Promise<void> {
+  getDb().run(
+    "UPDATE whisper_transcriptions SET text = ?, is_edited = 1, updated_at = ? WHERE id = ?",
+    [text, Date.now(), id],
+  );
+  await persist();
+}
+
+/** Löscht ein Transkript. */
+export async function deleteTranscription(id: string): Promise<void> {
+  getDb().run("DELETE FROM whisper_transcriptions WHERE id = ?", [id]);
+  await persist();
+}

@@ -5,7 +5,8 @@ export type ProviderId =
   | "lmstudio"
   | "openai"
   | "openrouter"
-  | "gpt2api";
+  | "gpt2api"
+  | "nous";
 
 export interface ChatMessage {
   role: "system" | "user" | "assistant";
@@ -29,12 +30,13 @@ export interface ProviderConfig {
 /**
  * Einheitliches Interface für alle LLM-Provider.
  * chat() streamt Token über einen AsyncGenerator – kein Blocking.
+ * signal erlaubt Abbruch einer laufenden Anfrage.
  */
 export interface LLMProvider {
   /** Liste verfügbarer Modell-IDs */
   listModels(): Promise<string[]>;
-  /** Streaming-Chat. Yield pro Token-Delta (String). */
-  chat(messages: ChatMessage[], options: ChatOptions): AsyncGenerator<string, void, unknown>;
+  /** Streaming-Chat. Yield pro Token-Delta (String). signal bricht den Stream ab. */
+  chat(messages: ChatMessage[], options: ChatOptions, signal?: AbortSignal): AsyncGenerator<string, void, unknown>;
   /** true wenn der Server erreichbar ist */
   healthCheck(): Promise<boolean>;
   /** Menschlesbarer Status für UI (deutsch) */

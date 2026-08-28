@@ -4,7 +4,10 @@
 
 import type { ChatMessage, ChatOptions, LLMProvider } from "@/types/llm";
 import { ProviderError } from "@/types/llm";
-import { assertOk, parseNdjson } from "./stream";
+import { assertOk, parseNdjson, fetchWithTimeout } from "./stream";
+
+const HEALTH_TIMEOUT = 5000;
+const FETCH_TIMEOUT = 30000;
 
 export class OllamaProvider implements LLMProvider {
   constructor(private readonly baseUrl: string) {}
@@ -15,7 +18,7 @@ export class OllamaProvider implements LLMProvider {
 
   async healthCheck(): Promise<boolean> {
     try {
-      const res = await fetch(`${this.baseUrl}/api/tags`, { method: "GET" });
+      const res = await fetchWithTimeout(`${this.baseUrl}/api/tags`, { method: "GET" }, HEALTH_TIMEOUT);
       return res.ok;
     } catch {
       return false;
@@ -24,7 +27,7 @@ export class OllamaProvider implements LLMProvider {
 
   async listModels(): Promise<string[]> {
     try {
-      const res = await fetch(`${this.baseUrl}/api/tags`);
+      const res = await fetchWithTimeout(`${this.baseUrl}/api/tags`, {}, FETCH_TIMEOUT);
       await assertOk(res, "Ollama listModels");
       const data = await res.json();
       // Ollama liefert { models: [{ name: "llama3.2" }, ...] }
@@ -41,6 +44,7 @@ export class OllamaProvider implements LLMProvider {
   async *chat(
     messages: ChatMessage[],
     options: ChatOptions,
+    signal?: AbortSignal,
   ): AsyncGenerator<string> {
     const payload = {
       model: options.model,
@@ -53,11 +57,11 @@ export class OllamaProvider implements LLMProvider {
     };
     let res: Response;
     try {
-      res = await fetch(`${this.baseUrl}/api/chat`, {
+      res = await fetchWithTimeout(`${this.baseUrl}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
-      });
+      }, FETCH_TIMEOUT);
     } catch (e) {
       throw new ProviderError(
         "Ollama nicht erreichbar. Server starten: `ollama serve` (Standard-Port 11434).",
@@ -66,6 +70,6 @@ export class OllamaProvider implements LLMProvider {
     }
     await assertOk(res, "Ollama chat");
     // Ollama streamt pro Zeile ein Objekt mit .message.content
-    yield* parseNdjson(res.body!, "message.content");
+    yield* parseNdjson(res.body!, "message.content", signal);
   }
 }

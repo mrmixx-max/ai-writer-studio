@@ -14,6 +14,9 @@ use std::io::Write;
 use std::path::PathBuf;
 use tauri::{Emitter, Manager};
 
+mod git;
+mod updater;
+
 /// Unterverzeichnisse, die beim Start unter %APPDATA%\AI Writer Studio angelegt werden.
 const USER_DIRS: [&str; 4] = ["user_data", "logs", "exports", "backups"];
 
@@ -133,11 +136,17 @@ fn main() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
             log_message,
             app_info,
             user_paths,
-            startup_file
+            startup_file,
+            updater::check_for_updates,
+            updater::download_and_install_update,
+            updater::relaunch_app,
+            git::git_version,
+            git::run_git
         ])
         .setup(|app| {
             let handle = app.handle().clone();

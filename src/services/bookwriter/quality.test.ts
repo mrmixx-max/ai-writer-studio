@@ -1,6 +1,9 @@
 // Tests: Qualitätsloop — reine Logik ohne LLM.
 
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+// setup.ts mockt sql.js global durch eine Fake-DB — diese Tests brauchen
+// das echte In-Memory-SQLite, daher nehmen wir das Original zurück.
+vi.mock("sql.js", async (importOriginal) => await importOriginal());
 import initSqlJs from "sql.js";
 import { runMigrations } from "@/services/db/migrations";
 import { createProject } from "@/services/project";

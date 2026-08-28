@@ -1,0 +1,101 @@
+/* Manuskript-Vergleich: Diff-View Styles */
+
+.compare-view {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid var(--border, #2a2a35);
+  border-radius: 8px;
+  padding: 10px;
+  background: var(--surface, #16161d);
+}
+
+.compare-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.compare-meta { font-size: 0.85rem; color: var(--text, #ddd); }
+.compare-meta .vtype { color: #8b5cf6; margin: 0 4px; }
+
+.compare-stats { display: flex; gap: 10px; font-size: 0.8rem; }
+.stat-added { color: #10b981; }
+.stat-deleted { color: #ef4444; }
+.stat-changed { color: #f59e0b; }
+
+.compare-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  max-height: 420px;
+  overflow: auto;
+}
+
+.compare-col {
+  border: 1px solid var(--border, #2a2a35);
+  border-radius: 6px;
+  overflow: hidden;
+  font-family: ui-monospace, "Cascadia Mono", monospace;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+.compare-col-title {
+  position: sticky;
+  top: 0;
+  background: var(--surface-raised, #1d1d27);
+  padding: 4px 8px;
+  font-weight: 600;
+  font-family: inherit;
+  border-bottom: 1px solid var(--border, #2a2a35);
+  z-index: 1;
+}
+
+.diff-row {
+  display: flex;
+  padding: 0 6px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.diff-no {
+  min-width: 3.5em;
+  color: var(--text-dim, #666);
+  text-align: right;
+  padding-right: 8px;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.diff-ghost { background: repeating-linear-gradient(45deg, transparent, transparent 6px, rgba(128,128,128,0.06) 6px, rgba(128,128,128,0.06) 12px); }
+.diff-del { background: rgba(239, 68, 68, 0.10); }
+.diff-del-target { background: rgba(239, 68, 68, 0.16); }
+.diff-add { background: rgba(16, 185, 129, 0.10); }
+.diff-add-target { background: rgba(16, 185, 129, 0.16); }
+.diff-changed { background: rgba(245, 158, 11, 0.10); }
+
+.seg-del { color: #ef4444; text-decoration: line-through; }
+.seg-del-inline { color: #f87171; }
+.seg-add { color: #10b981; }
+.seg-add-inline { color: #34d399; }
+.seg-chg { color: #f59e0b; }
+.seg-equal { color: var(--text, #ddd); }
+
+.compare-legend { display: flex; gap: 14px; font-size: 0.72rem; color: var(--text-dim, #888); }
+
+.compare-toolbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.compare-toolbar select {
+  background: var(--surface-raised, #1d1d27);
+  color: var(--text, #ddd);
+  border: 1px solid var(--border, #2a2a35);
+  border-radius: 4px;
+  padding: 3px 6px;
+}

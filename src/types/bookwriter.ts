@@ -220,4 +220,8 @@ export interface KdpMetadata {
   authorBio: string;
   seriesIdea: string | null;
   marketingNotes: string | null;
+  /** Cover-Bild als data-URL oder Pfad (für KDP-Upload). */
+  coverImage: string | null;
+  /** Listenpreis in USD (KDP-Pflichtfeld beim Upload, 0.99–200). */
+  priceUsd?: number | null;
 }

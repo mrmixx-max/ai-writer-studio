@@ -1,0 +1,146 @@
+/* AI Writing Assistant — Styles (folgt dem KI-Panel-Look) */
+.aiwa {
+  border-top: 1px solid var(--ki-border, #4442);
+  margin-top: 12px;
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.aiwa__title {
+  font-size: 0.85rem;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  opacity: 0.8;
+}
+.aiwa__tabs {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.aiwa__tab {
+  border: 1px solid var(--ki-border, #4443);
+  background: transparent;
+  color: inherit;
+  padding: 3px 8px;
+  font-size: 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.aiwa__tab.is-active {
+  background: var(--ki-accent, #6ea8fe);
+  color: #10131a;
+  border-color: transparent;
+}
+.aiwa__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.aiwa__input {
+  width: 100%;
+  background: var(--ki-bg, #1b1e26);
+  color: inherit;
+  border: 1px solid var(--ki-border, #4443);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font: inherit;
+  resize: vertical;
+}
+.aiwa__label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.78rem;
+  opacity: 0.9;
+}
+.aiwa__check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+}
+.aiwa__action {
+  align-self: flex-start;
+  border: none;
+  background: var(--ki-accent, #6ea8fe);
+  color: #10131a;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.aiwa__action:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.aiwa__suggestions,
+.aiwa__dialog {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.aiwa__suggestion {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.aiwa__insert {
+  flex: 1;
+  text-align: left;
+  background: var(--ki-bg, #1b1e26);
+  color: inherit;
+  border: 1px solid var(--ki-border, #4443);
+  border-radius: 6px;
+  padding: 5px 8px;
+  font: inherit;
+  font-size: 0.82rem;
+  cursor: pointer;
+  white-space: pre-wrap;
+}
+.aiwa__insert:hover {
+  border-color: var(--ki-accent, #6ea8fe);
+}
+.aiwa__kind {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  border: 1px solid var(--ki-border, #4443);
+  border-radius: 4px;
+  padding: 1px 4px;
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+.aiwa__kind--offline {
+  color: var(--ki-warn, #e0b25a);
+}
+.aiwa__result {
+  border: 1px solid var(--ki-border, #4443);
+  border-radius: 6px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.aiwa__text {
+  margin: 0;
+  font: inherit;
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+}
+.aiwa__stage {
+  opacity: 0.7;
+}
+.aiwa__hint {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  margin: 0;
+}
+.aiwa__error {
+  color: var(--ki-danger, #e06a6a);
+  font-size: 0.78rem;
+  margin: 0;
+}

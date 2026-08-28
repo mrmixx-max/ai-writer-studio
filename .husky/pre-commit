@@ -1,0 +1,3 @@
+# Pre-commit: lintstaged prüft nur die geänderten Dateien (schnell).
+# Vollständige Gates (typecheck, lint, Tests) laufen in CI — siehe .github/workflows/ci.yml.
+npx lint-staged

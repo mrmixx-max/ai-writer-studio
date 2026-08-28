@@ -1,0 +1,256 @@
+/* Print & Layout: Vorschau, PDF-Layout-Editor, Typografie, Buch-Layout. */
+
+.pl-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.pl-panel {
+  background: var(--bg-elev, #fff);
+  border: 1px solid var(--border, #ccc);
+  border-radius: 8px;
+  width: min(920px, 94vw);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.pl-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border, #ddd);
+}
+
+.pl-header h2 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.pl-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 8px 16px 0;
+  border-bottom: 1px solid var(--border, #ddd);
+}
+
+.pl-tabs button {
+  background: transparent;
+  border: 1px solid transparent;
+  border-bottom: none;
+  padding: 6px 12px;
+  border-radius: 6px 6px 0 0;
+  cursor: pointer;
+  color: var(--fg-dim, #666);
+}
+
+.pl-tabs button.active {
+  background: var(--bg, #fafafa);
+  border-color: var(--border, #ddd);
+  color: var(--fg, #111);
+}
+
+.pl-body {
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.pl-form-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.pl-form-row label {
+  min-width: 150px;
+  font-size: 13px;
+  color: var(--fg-dim, #555);
+}
+
+.pl-form-row input[type="number"],
+.pl-form-row input[type="text"],
+.pl-form-row select {
+  padding: 4px 8px;
+  border: 1px solid var(--border, #ccc);
+  border-radius: 4px;
+  background: var(--bg, #fff);
+  color: var(--fg, #111);
+  width: 90px;
+}
+
+.pl-form-row input[type="text"] { width: 200px; }
+
+.pl-section-title {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--fg-dim, #777);
+  margin: 14px 0 8px;
+}
+
+/* --- Seitenansicht (Print-Vorschau) --------------------------------------- */
+
+.pl-preview-area {
+  background: var(--bg-dim, #555);
+  border-radius: 6px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  overflow: auto;
+  max-height: 62vh;
+}
+
+.pl-page {
+  background: #fff;
+  color: #111;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  position: relative;
+  padding: 0;
+  overflow: hidden;
+}
+
+.pl-page-content {
+  position: absolute;
+  overflow: hidden;
+}
+
+.pl-page-content p { margin: 0 0 var(--pl-par-spacing, 4px); text-align: var(--pl-align, left); text-indent: var(--pl-indent, 0); }
+.pl-page-content h1 { margin: 6px 0 4px; }
+.pl-page-content h2 { margin: 5px 0 3px; }
+.pl-page-content h3 { margin: 4px 0 3px; }
+.pl-page-content blockquote { margin: 4px 12px; font-style: italic; color: #555; }
+.pl-page-content pre { background: #f4f4f4; padding: 3px 5px; font-size: 0.85em; }
+
+.pl-page-hf {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  font-size: 8px;
+  color: #888;
+  pointer-events: none;
+}
+
+.pl-page-hf.top { top: 4px; padding: 0 8px; }
+.pl-page-hf.bottom { bottom: 4px; padding: 0 8px; }
+
+.pl-page-num {
+  font-size: 10px;
+  color: #ddd;
+  text-align: center;
+}
+
+.pl-break-marker {
+  color: #d66;
+  font-size: 11px;
+}
+
+.pl-zoom-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 10px;
+  color: var(--fg-dim, #666);
+  font-size: 12px;
+}
+
+/* --- Buch-Layout ------------------------------------------------------------ */
+
+.pl-book-scene {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 20px;
+  background: var(--bg-dim, #555);
+  border-radius: 6px;
+  min-height: 300px;
+}
+
+.pl-book {
+  perspective: 900px;
+}
+
+.pl-book-cover {
+  background: linear-gradient(135deg, #35507a, #1f3050);
+  color: #fff;
+  border-radius: 3px 8px 8px 3px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 16px;
+  position: relative;
+}
+
+.pl-book-cover.hardcover {
+  border-radius: 2px 10px 10px 2px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5), inset 0 0 0 2px rgba(255, 255, 255, 0.08);
+}
+
+.pl-book-cover .pl-book-title {
+  font-weight: 700;
+  line-height: 1.2;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+.pl-book-cover .pl-book-author {
+  font-size: 0.8em;
+  opacity: 0.85;
+}
+
+.pl-book-spine {
+  background: #16233c;
+  color: #eee;
+  writing-mode: vertical-rl;
+  text-align: center;
+  font-size: 10px;
+  padding: 8px 2px;
+  border-radius: 3px 0 0 3px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.pl-book-wrap {
+  display: flex;
+  align-items: stretch;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+
+.pl-book-meta {
+  color: var(--fg-dim, #ccc);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.pl-book-meta strong { color: var(--fg, #eee); }
+
+/* --- Typografie-Vorschau ---------------------------------------------------- */
+
+.pl-type-sample {
+  border: 1px solid var(--border, #ddd);
+  border-radius: 6px;
+  padding: 14px;
+  margin-top: 12px;
+  background: var(--bg, #fff);
+}
+
+.pl-type-sample .sample-body {
+  text-align: var(--pl-align, left);
+  text-indent: var(--pl-indent, 0);
+  line-height: var(--pl-line-height, 1.5);
+}

@@ -189,10 +189,12 @@ the License.
 
 ---
 
+Copyright 2026 Erik Gieske
+
 Third-Party Components
 
 This software uses open-source libraries, including:
-  Tauri (MIT/Apache-2.0), React (MIT), TipTap (MIT),
+  Tauri (MIT/Apache-2.0), React (MIT), TipTap (MIT), epub.js (BSD-2-Clause),
   sql.js (MIT), docx (MIT), pdf-lib (MIT), JSZip (MIT/GPLv3), Zustand (MIT).
 
 The respective license texts are included in the packages of the dependencies.

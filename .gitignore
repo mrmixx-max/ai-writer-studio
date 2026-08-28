@@ -41,3 +41,11 @@ desktop.ini
 .idea/
 *.swp
 *~
+
+# --- Test-Artefakte -------------------------------------------------------
+coverage/
+playwright-report/
+test-results/
+coverage-run*.log
+e2e-run*.log
+playwright-install.log

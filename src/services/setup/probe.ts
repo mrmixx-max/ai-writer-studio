@@ -10,7 +10,7 @@ import type { AppSettings } from "@/types/config";
 /** Ergebnis einer Anbieterprüfung. */
 export interface ProviderProbe {
   /** Interner Schlüssel des Anbieters. */
-  provider: "ollama" | "lmstudio" | "openai";
+  provider: "ollama" | "lmstudio" | "openai" | "openrouter" | "gpt2api" | "nous";
   /** Anzeigename für die UI. */
   label: string;
   /** true, wenn der Anbieter antwortet. */
@@ -186,6 +186,137 @@ export async function probeOpenAi(apiKey: string): Promise<ProviderProbe> {
 }
 
 /**
+ * Prüft den lokalen gpt2api-Gateway (OpenAI-kompatible ChatGPT-Web-API).
+ * Akzeptiert Base-URLs mit und ohne /v1-Suffix — es wird nacheinander
+ * {base}/models und {base}/v1/models versucht.
+ */
+export async function probeGpt2api(baseUrl = "http://localhost:8080/v1"): Promise<ProviderProbe> {
+  const started = performance.now();
+  const base: ProviderProbe = {
+    provider: "gpt2api",
+    label: "GPT2API",
+    reachable: false,
+    models: [],
+    message: "",
+    latencyMs: null,
+  };
+
+  const trimmed = baseUrl.replace(/\/+$/, "");
+  const candidates = [`${trimmed}/models`];
+  if (!/\/v1$/.test(trimmed)) candidates.push(`${trimmed}/v1/models`);
+
+  try {
+    let res: Response | null = null;
+    for (const url of candidates) {
+      try {
+        const attempt = await fetchWithTimeout(url);
+        if (attempt.ok) {
+          res = attempt;
+          break;
+        }
+        // Merken für Statusmeldung, falls keiner der Endpunkte klappt.
+        res ??= attempt;
+      } catch {
+        // Nächsten Endpunkt versuchen.
+      }
+    }
+    if (!res) {
+      return {
+        ...base,
+        message:
+          `gpt2api ist unter ${baseUrl} nicht erreichbar. Läuft nicht? Starte den ` +
+          "gpt2api-Gateway unter http://localhost:8080 (Docker oder Binary). " +
+          "Die App funktioniert auch ohne — nur die KI-Funktionen ruhen dann.",
+      };
+    }
+    if (!res.ok) {
+      return {
+        ...base,
+        message: `gpt2api antwortet, meldet aber Status ${res.status}. Läuft dort ein anderer Dienst?`,
+      };
+    }
+    const data = (await res.json()) as { data?: Array<{ id: string }> };
+    const models = (data.data ?? []).map((m) => m.id);
+    const latencyMs = Math.round(performance.now() - started);
+
+    if (models.length === 0) {
+      return {
+        ...base,
+        reachable: true,
+        latencyMs,
+        message: "gpt2api läuft, meldet aber keine Modelle. Prüfe die Gateway-Konfiguration.",
+      };
+    }
+    return {
+      ...base,
+      reachable: true,
+      models,
+      latencyMs,
+      message: `gpt2api läuft. ${models.length} ${models.length === 1 ? "Modell" : "Modelle"} verfügbar.`,
+    };
+  } catch {
+    return {
+      ...base,
+      message:
+        `gpt2api ist unter ${baseUrl} nicht erreichbar. Läuft nicht? Starte den ` +
+        "gpt2api-Gateway unter http://localhost:8080. Die App funktioniert auch ohne — " +
+        "nur die KI-Funktionen ruhen dann.",
+    };
+  }
+}
+
+/**
+ * Prüft den Nous Research API-Schlüssel über GET /v1/models (Bearer-Key).
+ * Bewusst nur auf ausdrückliche Anforderung aufrufen: Die Prüfung überträgt
+ * den Schlüssel an einen externen Dienst.
+ */
+export async function probeNous(apiKey: string, baseUrl = "https://inference-api.nousresearch.com/v1"): Promise<ProviderProbe> {
+  const started = performance.now();
+  const base: ProviderProbe = {
+    provider: "nous",
+    label: "Nous Research",
+    reachable: false,
+    models: [],
+    message: "",
+    latencyMs: null,
+  };
+
+  if (!apiKey.trim()) {
+    return { ...base, message: "Kein API-Schlüssel eingetragen." };
+  }
+
+  try {
+    const res = await fetchWithTimeout(`${baseUrl.replace(/\/+$/, "")}/models`, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+    });
+    if (res.status === 401 || res.status === 403) {
+      return { ...base, message: "Der API-Schlüssel wurde abgelehnt. Bitte prüfen." };
+    }
+    if (!res.ok) {
+      return { ...base, message: `Nous Research meldet Status ${res.status}.` };
+    }
+    const data = (await res.json()) as { data?: Array<{ id: string }> };
+    const models = (data.data ?? []).map((m) => m.id).sort();
+    const latencyMs = Math.round(performance.now() - started);
+    if (models.length === 0) {
+      return { ...base, reachable: true, latencyMs, message: "Schlüssel gültig, aber keine Modelle verfügbar." };
+    }
+    return {
+      ...base,
+      reachable: true,
+      models,
+      latencyMs,
+      message: `Schlüssel gültig. ${models.length} ${models.length === 1 ? "Modell" : "Modelle"} verfügbar.`,
+    };
+  } catch {
+    return {
+      ...base,
+      message: "Nous Research ist nicht erreichbar. Besteht eine Internetverbindung?",
+    };
+  }
+}
+
+/**
  * Prüft beide lokalen Anbieter gleichzeitig.
  * OpenAI bleibt außen vor — dafür braucht es einen Schlüssel und eine
  * ausdrückliche Nutzerentscheidung.
@@ -194,5 +325,53 @@ export async function probeLocalProviders(settings?: Partial<AppSettings>): Prom
   return Promise.all([
     probeOllama(settings?.ollamaBaseUrl || undefined),
     probeLmStudio(settings?.lmstudioBaseUrl || undefined),
+    probeGpt2api(settings?.gpt2apiBaseUrl || undefined),
   ]);
+}
+
+/**
+ * Lädt die öffentliche OpenRouter-Modellliste (kein API-Schlüssel nötig).
+ * Die Liste ist groß — sie wird auf free- und verbreitete Modelle
+ * gekürzt und alphabetisch sortiert.
+ */
+export async function probeOpenRouter(): Promise<ProviderProbe> {
+  const started = performance.now();
+  const base: ProviderProbe = {
+    provider: "openrouter",
+    label: "OpenRouter",
+    reachable: false,
+    models: [],
+    message: "",
+    latencyMs: null,
+  };
+
+  try {
+    const res = await fetchWithTimeout("https://openrouter.ai/api/v1/models");
+    if (!res.ok) {
+      return { ...base, message: `OpenRouter meldet Status ${res.status}.` };
+    }
+    const data = (await res.json()) as { data?: Array<{ id: string }> };
+    const all = (data.data ?? []).map((m) => m.id);
+    // Kürzen: Free-Modelle zuerst, dann verbreitete Familien — sonst
+    // hätte das Auswahl-Menü mehrere hundert Einträge.
+    const free = all.filter((id) => id.endsWith(":free"));
+    const curated = all.filter(
+      (id) =>
+        !id.endsWith(":free") &&
+        /^(openai|anthropic|google|meta-llama|mistralai|deepseek|z-ai|qwen)\//.test(id),
+    );
+    const models = [...free, ...curated].sort();
+    return {
+      ...base,
+      reachable: true,
+      models,
+      latencyMs: Math.round(performance.now() - started),
+      message: `OpenRouter erreichbar. ${models.length} Modelle angezeigt (${all.length} insgesamt).`,
+    };
+  } catch {
+    return {
+      ...base,
+      message: "OpenRouter ist nicht erreichbar. Besteht eine Internetverbindung?",
+    };
+  }
 }

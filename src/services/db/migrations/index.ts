@@ -8,6 +8,15 @@ import { migration005 } from "./005_bookwriter_created_at";
 import { migration006 } from "./006_bookwriter_documents";
 import { migration007 } from "./007_characters";
 import { migration008 } from "./008_timeline";
+import { migration009 } from "./009_performance_indexes";
+import { migration010 } from "./010_voice_lab";
+import { migration011 } from "./011_relationships";
+import { migration012 } from "./012_ki_features";
+import { migration013 } from "./013_worldbuilding";
+import { migration014 } from "./014_collaboration";
+import { migration015 } from "./015_research";
+import { migration016 } from "./016_performance_indexes";
+import { migration017 } from "./017_ki_memory";
 
 export interface Migration {
   version: number;
@@ -24,6 +33,15 @@ export const MIGRATIONS: Migration[] = [
   { version: 6, name: "bookwriter_documents", up: migration006 },
   { version: 7, name: "characters", up: migration007 },
   { version: 8, name: "timeline_events", up: migration008 },
+  { version: 9, name: "performance_indexes", up: migration009 },
+  { version: 10, name: "voice_lab", up: migration010 },
+  { version: 11, name: "character_relationships", up: migration011 },
+  { version: 12, name: "ki_features", up: migration012 },
+  { version: 13, name: "worldbuilding", up: migration013 },
+  { version: 14, name: "collaboration", up: migration014 },
+  { version: 15, name: "research", up: migration015 },
+  { version: 16, name: "performance_indexes_2", up: migration016 },
+  { version: 17, name: "ki_memory", up: migration017 },
 ];
 
 /**

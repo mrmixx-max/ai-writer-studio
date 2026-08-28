@@ -21,8 +21,22 @@
 .PARAMETER Version
     Ueberschreibt die Version aus release.config.psd1.
 
+.PARAMETER Sign
+    Signiert EXE und Installer mit Authenticode (Code-Signing, siehe
+    sign-binary.ps1). Ohne konfiguriertes Zertifikat wird mit Warnung
+    ungesignat weitergearbeitet.
+
+.PARAMETER Portable
+    Erstellt zusaetzlich die portable ZIP-Version (create-portable.ps1).
+
+.PARAMETER UpdateArtifacts
+    Baut zusaetzlich die signierten Updater-Artefakte (.nsis.zip + .sig)
+    und erzeugt daraus den Update-Feed latest.json. Erfordert den
+    Tauri-Signaturschluessel unter "$HOME\<TauriSigningKey aus der Config>".
+
 .EXAMPLE
     .\scripts\build-windows.ps1 -CreateInstaller
+    .\scripts\build-windows.ps1 -CreateInstaller -Sign -Portable -UpdateArtifacts
 #>
 
 [CmdletBinding()]
@@ -30,7 +44,10 @@ param(
     [switch]$SkipTests,
     [switch]$SkipIcons,
     [switch]$CreateInstaller,
-    [string]$Version
+    [string]$Version,
+    [switch]$Sign,
+    [switch]$Portable,
+    [switch]$UpdateArtifacts
 )
 
 $ErrorActionPreference = 'Stop'
@@ -223,10 +240,57 @@ Write-Ok 'EXE nach release\ kopiert'
 # ---------------------------------------------------------------------------
 Write-Step 'Installer erstellen'
 if ($CreateInstaller) {
-    & (Join-Path $ScriptDir 'create-installer.ps1') -Version $Cfg.AppVersion
+    $installerArgs = @('-Version', $Cfg.AppVersion)
+    if ($Sign) { $installerArgs += '-Sign' }
+    & (Join-Path $ScriptDir 'create-installer.ps1') @installerArgs
     if ($LASTEXITCODE -ne 0) { throw 'Installer-Erstellung fehlgeschlagen.' }
 } else {
     Write-Info 'Uebersprungen. Mit -CreateInstaller aktivieren.'
+}
+
+# ---------------------------------------------------------------------------
+#  8. EXE signieren
+# ---------------------------------------------------------------------------
+if ($Sign) {
+    Write-Step 'EXE signieren (Authenticode)'
+    & (Join-Path $ScriptDir 'sign-binary.ps1') -Path $ExePath
+    if ($LASTEXITCODE -ne 0) { throw 'Code-Signierung fehlgeschlagen.' }
+}
+
+# ---------------------------------------------------------------------------
+#  9. Portable Version
+# ---------------------------------------------------------------------------
+if ($Portable) {
+    Write-Step 'Portable Version erstellen'
+    $portableArgs = @('-Version', $Cfg.AppVersion)
+    if ($Sign) { $portableArgs += '-Sign' }
+    & (Join-Path $ScriptDir 'create-portable.ps1') @portableArgs
+    if ($LASTEXITCODE -ne 0) { throw 'Portable-Version-Erstellung fehlgeschlagen.' }
+}
+
+# ---------------------------------------------------------------------------
+# 10. Update-Artefakte (Auto-Update-Feed)
+# ---------------------------------------------------------------------------
+if ($UpdateArtifacts) {
+    Write-Step 'Updater-Artefakte und Update-Feed (latest.json)'
+
+    # Signaturschluessel fuer Tauri bereitstellen.
+    $keyPath = Join-Path $env:USERPROFILE $Cfg.TauriSigningKey
+    if (-not (Test-Path $keyPath)) {
+        throw "Tauri-Signaturschluessel nicht gefunden: $keyPath`nErzeugen mit:  npx tauri signer generate -w `"$keyPath`""
+    }
+    $env:TAURI_SIGNING_PRIVATE_KEY_PATH = $keyPath
+    if (-not $env:TAURI_SIGNING_PRIVATE_KEY_PASSWORD) {
+        $env:TAURI_SIGNING_PRIVATE_KEY_PASSWORD = ''
+    }
+    Write-Ok "Signaturschluessel: $keyPath"
+
+    # NSIS-Bundle erzeugt das signierte .nsis.zip fuer den Updater
+    # (--no-build: Frontend/Rust wurden bereits in Schritt 6 gebaut).
+    Invoke-Checked -Exe 'npm' -Arguments @('run','tauri','--','build','--bundles','nsis','--no-build') -What 'Tauri-NSIS-Bundle'
+
+    & (Join-Path $ScriptDir 'generate-update-manifest.ps1') -Version $Cfg.AppVersion
+    if ($LASTEXITCODE -ne 0) { throw 'Update-Feed-Erzeugung fehlgeschlagen.' }
 }
 
 # ---------------------------------------------------------------------------

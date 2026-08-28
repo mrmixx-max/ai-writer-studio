@@ -10,6 +10,7 @@ import {
   listSnapshots,
   deleteSnapshot,
   diffSnapshots,
+  saveDiff,
   restoreSnapshot,
   previewRestore,
 } from "@/services/snapshot";
@@ -39,7 +40,8 @@ const KIND_LABELS: Record<string, string> = {
 type Notice = { text: string; kind: "ok" | "warn" | "err" } | null;
 
 export function SnapshotPanel({ projectId }: Props) {
-  const proj = useProjectStore();
+  const projects = useProjectStore((s) => s.projects);
+  const refresh = useProjectStore((s) => s.refresh);
 
   const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
   const [selected, setSelected] = useState<string[]>([]);
@@ -69,7 +71,7 @@ export function SnapshotPanel({ projectId }: Props) {
     setNotice(null);
   }, [projectId, reload]);
 
-  const projectName = proj.projects.find((p) => p.id === projectId)?.name ?? "Projekt";
+  const projectName = projects.find((p) => p.id === projectId)?.name ?? "Projekt";
 
   async function create() {
     if (!projectId) return;
@@ -112,7 +114,10 @@ export function SnapshotPanel({ projectId }: Props) {
     const bi = snapshots.findIndex((s) => s.id === b);
     const from = ai > bi ? a : b;
     const to = ai > bi ? b : a;
-    setDiff(diffSnapshots(from, to));
+    const result = diffSnapshots(from, to);
+    setDiff(result);
+    // Diff in DB speichern für späteren Abruf
+    void saveDiff(result);
   }
 
   async function remove(snap: Snapshot) {
@@ -133,7 +138,7 @@ export function SnapshotPanel({ projectId }: Props) {
     setBusy(true);
     try {
       const r = await restoreSnapshot(confirmRestore.id, projectName, { deleteExtra });
-      proj.refresh();
+      refresh();
       reload();
       setConfirmRestore(null);
       setDeleteExtra(false);

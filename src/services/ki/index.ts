@@ -3,6 +3,7 @@
 
 import type { AppSettings } from "@/types/config";
 import { createProvider } from "@/services/llm";
+import { createSlotProvider, findSlot } from "@/services/llm/multi";
 import { OFFLINE_PROMPTS } from "@/services/prompt/offlinePrompts";
 import type { KIRequest, KIResult } from "./types";
 
@@ -35,7 +36,12 @@ export async function runKIAction(
   req: KIRequest,
   onToken: (t: string) => void,
 ): Promise<KIResult> {
-  const provider = createProvider(settings);
+  // Multi-Modell: wenn ein Slot mit slotId existiert, diesen Provider + sein Modell nutzen
+  const slot = req.slotId && settings.kiModelSlots?.length
+    ? findSlot(settings.kiModelSlots, req.slotId)
+    : undefined;
+  const provider = slot ? createSlotProvider(settings, slot) : createProvider(settings);
+  const activeModel = slot?.model ?? settings.model;
   const healthy = await provider.healthCheck().catch(() => false);
   if (!healthy) {
     // Offline-Fallback: generischen Hinweistext + zufälligen Prompt als Inspiration
@@ -46,15 +52,20 @@ export async function runKIAction(
   }
 
   const userContent = ACTION_PROMPTS[req.action](req);
+  // Langzeit-Gedächtnis: relevante Erinnerungen dem Prompt voranstellen
+  const withMemory = req.memoryContext
+    ? `${req.memoryContext}\n\n${userContent}`
+    : userContent;
   const messages = [
     { role: "system" as const, content: SYSTEM_PROMPT },
-    { role: "user" as const, content: userContent },
+    ...(req.history ?? []),
+    { role: "user" as const, content: withMemory },
   ];
 
   let raw = "";
   try {
     for await (const token of provider.chat(messages, {
-      model: settings.model,
+      model: activeModel,
       temperature: req.action === "korrektur" || req.action === "zusammenfassen" ? 0.3 : 0.8,
       maxTokens: settings.maxTokens,
     })) {

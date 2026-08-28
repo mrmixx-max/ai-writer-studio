@@ -8,6 +8,8 @@ interface Props {
   model: string;
   onModelChange: (m: string) => void;
   probe: ProviderProbe | undefined;
+  /** Probes ALLER Anbieter — die Modellliste kombiniert Ollama + LM Studio. */
+  allProbes?: Record<string, ProviderProbe | undefined>;
 }
 
 /** Vorschläge, wenn keine Modellliste vorliegt. */
@@ -15,11 +17,35 @@ const FALLBACK: Record<string, string[]> = {
   ollama: ["llama3.2", "mistral", "qwen2.5", "gemma2"],
   lmstudio: ["local-model"],
   openai: ["gpt-4o-mini", "gpt-4o"],
+  openrouter: ["z-ai/glm-4.5-air:free", "deepseek/deepseek-chat-v3.1:free", "openai/gpt-4o-mini"],
+  nous: ["Hermes-4.5-405B", "Hermes-4-405B", "Hermes-4-70B", "Hermes-3-Llama-3.1-405B"],
 };
 
-export function StepModel({ provider, model, onModelChange, probe }: Props) {
-  const detected = probe?.models ?? [];
+/**
+ * Offline-Modus: Kein Anbieter erreichbar. Einzige Auswahl ist llama3.2 —
+ * der Standardname, den der Nutzer nach der Ollama-Installation zur Verfügung
+ * hat, sobald er „ollama serve" startet. Die App funktioniert so oder ohne KI.
+ */
+const OFFLINE_MODEL = "llama3.2";
+
+export function StepModel({ provider, model, onModelChange, probe, allProbes }: Props) {
+  // Kombinierte Modellliste ALLER erreichbaren Anbieter (Ollama, LM Studio,
+  // OpenRouter), ohne Duplikate, je Modell mit Herkunftslabel für die Anzeige.
+  const localEntries: Array<{ id: string; source: string }> = [];
+  for (const p of Object.values(allProbes ?? {})) {
+    if (p?.reachable) {
+      for (const m of p.models) {
+        if (!localEntries.some((e) => e.id === m)) {
+          localEntries.push({ id: m, source: p.label });
+        }
+      }
+    }
+  }
+  const detected = localEntries.length > 0 ? localEntries : (probe?.models ?? []).map((m) => ({ id: m, source: probe?.label ?? "" }));
   const hasDetected = detected.length > 0;
+  // Offline: keine Modellliste UND kein lokaler Anbieter erreichbar.
+  const offline = !hasDetected && probe != null && !probe.reachable;
+  const currentOk = detected.some((e) => e.id === model);
 
   return (
     <>
@@ -28,7 +54,9 @@ export function StepModel({ provider, model, onModelChange, probe }: Props) {
       <p className="welcome-step-intro">
         {hasDetected
           ? "Diese Modelle wurden gefunden. Du kannst später je Aufgabe ein anderes wählen."
-          : "Es wurde keine Modellliste gefunden. Trage den Namen ein, den du verwenden möchtest — er muss beim Anbieter vorhanden sein."}
+          : offline
+            ? "Kein KI-Anbieter ist gerade erreichbar. Die App arbeitet offline — als Standardmodell ist llama3.2 hinterlegt. Sobald du später Ollama startest („ollama serve“), steht es bereit."
+            : "Es wurde keine Modellliste gefunden. Trage den Namen ein, den du verwenden möchtest — er muss beim Anbieter vorhanden sein."}
       </p>
 
       <div className="welcome-field">
@@ -36,14 +64,24 @@ export function StepModel({ provider, model, onModelChange, probe }: Props) {
         {hasDetected ? (
           <select
             id="model-select"
-            value={detected.includes(model) ? model : detected[0]}
+            value={currentOk ? model : detected[0].id}
             onChange={(e) => onModelChange(e.target.value)}
           >
-            {detected.map((m) => (
-              <option key={m} value={m}>
-                {m}
+            {detected.map((e) => (
+              <option key={e.id} value={e.id}>
+                {e.source ? `${e.id}  ·  ${e.source}` : e.id}
               </option>
             ))}
+          </select>
+        ) : offline ? (
+          <select
+            id="model-select"
+            value={model.trim() || OFFLINE_MODEL}
+            onChange={(e) => onModelChange(e.target.value)}
+          >
+            <option value={model.trim() || OFFLINE_MODEL}>
+              {model.trim() || OFFLINE_MODEL} (offline — Anbieter nicht erreichbar)
+            </option>
           </select>
         ) : (
           <input
@@ -55,7 +93,7 @@ export function StepModel({ provider, model, onModelChange, probe }: Props) {
             spellCheck={false}
           />
         )}
-        {!hasDetected && (
+        {!hasDetected && !offline && (
           <div className="welcome-hint">
             Gängige Namen für {provider}: {(FALLBACK[provider] ?? []).join(", ")}
           </div>

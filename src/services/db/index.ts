@@ -13,7 +13,7 @@
 // window.__TAURI__.fs ist deshalb immer undefined, und die App würde still auf
 // In-Memory zurückfallen und bei jedem Beenden alle Projekte verlieren.
 
-import initSqlJs, { Database, SqlJsStatic } from "sql.js";
+import initSqlJs, { Database, SqlJsStatic, Statement } from "sql.js";
 // Vite löst dieses Import auf eine gehashte Asset-URL auf und kopiert die Datei
 // ins dist-Verzeichnis. Das ist zuverlässiger als ein handgeschriebener Pfad:
 // im Tauri-Release liegt das Frontend hinter dem tauri://-Protokoll, wo ein
@@ -21,6 +21,9 @@ import initSqlJs, { Database, SqlJsStatic } from "sql.js";
 // die index.html liefert (Fehler: "expected magic word ... found 3c 21 44 4f").
 import wasmUrl from "sql.js/dist/sql-wasm.wasm?url";
 import { runMigrations, currentSchemaVersion } from "./migrations";
+import { loadWithRecovery, backupBeforeCritical } from "@/services/resilience/crashRecovery";
+
+export { backupBeforeCritical };
 
 declare const window: any;
 
@@ -124,11 +127,27 @@ export async function initDb(): Promise<Database> {
     try {
       dbPath = await resolveDbPath();
       await logToFile("INFO", `DB-Pfad: ${dbPath}`);
-      const exists = await fsMod!.exists(dbPath);
-      if (exists) {
-        const bytes = await fsMod!.readFile(dbPath);
-        db = new SQL.Database(new Uint8Array(bytes));
-        await logToFile("INFO", `Bestehende DB geladen (${bytes.length} Bytes)`);
+      // Crash-Recovery: primäre Datei, bei Corruption .bak, dann jüngster
+      // Snapshot. loadWithRecovery validiert jede Kandidatin per
+      // PRAGMA integrity_check, bevor sie akzeptiert wird.
+      const recovery = await loadWithRecovery(SQL);
+      if (recovery.bytes) {
+        db = new SQL.Database(recovery.bytes);
+        for (const line of recovery.trail) await logToFile("INFO", `DB-Recovery: ${line}`);
+        await logToFile("INFO", `Bestehende DB geladen, Quelle=${recovery.source}`);
+      } else if (await fsMod!.exists(dbPath)) {
+        // Alle Kandidaten corrupt/lesbar-fehlerhaft: neu anlegen, aber die
+        // defekte Datei für die Diagnose umbenennen statt überschreiben.
+        try {
+          await fsMod!.copyFile(dbPath, `${dbPath}.corrupt-${Date.now()}`);
+          await logToFile(
+            "ERROR",
+            "DB corrupt — defekte Datei gesichert, leere DB wird angelegt",
+          );
+        } catch {
+          await logToFile("ERROR", "DB corrupt — Sicherung der defekten Datei fehlgeschlagen");
+        }
+        db = new SQL.Database();
       } else {
         db = new SQL.Database();
         await logToFile("INFO", "Neue DB angelegt");
@@ -150,6 +169,9 @@ export async function initDb(): Promise<Database> {
 
   (globalThis as any).__aws_db = db;
   db.run("PRAGMA foreign_keys = ON;");
+  // Auto-Backup vor Migrationen (kritische Operation): wenn eine Migration
+  // schiefläuft, bleibt der Stand davor als app.db.snapshot-* erhalten.
+  if (persistent) await backupBeforeCritical("migration");
   runMigrations(db);
   if (persistent) await persistNow();
   await logToFile("INFO", `initDb() fertig, persistent=${persistent}`);
@@ -178,7 +200,26 @@ export async function persist(): Promise<void> {
 export async function persistNow(): Promise<void> {
   if (!persistent || !db || !dbPath || !fsMod) return;
   try {
-    await fsMod.writeFile(dbPath, db.export());
+    const data = db.export();
+    const tmpPath = `${dbPath}.tmp`;
+    // 1. Schreibe temporär
+    await fsMod.writeFile(tmpPath, data);
+    // 2. Backup der vorherigen Version anlegen (falls vorhanden)
+    try {
+      if (await fsMod.exists(dbPath)) {
+        await fsMod.copyFile(dbPath, `${dbPath}.bak`);
+      }
+    } catch {
+      // Backup darf Schreibvorgang nicht blockieren
+    }
+    // 3. Temp nach Ziel kopieren (plugin-fs hat kein renameFile)
+    await fsMod.copyFile(tmpPath, dbPath);
+    // 4. Temp löschen
+    try {
+      await fsMod.remove(tmpPath);
+    } catch {
+      // Temp-Löschung kann später nachgeholt werden
+    }
   } catch (e) {
     await logToFile(
       "ERROR",
@@ -221,3 +262,96 @@ export function migrate(d: Database): void {
 }
 
 export { currentSchemaVersion };
+
+// ---------------------------------------------------------------------------
+// Prepared-Statement-Cache
+//
+// sql.js kompiliert jedes db.run()/exec() mit SQL-String neu. Häufig wiederholte
+// Abfragen (Kapitel lesen, Fragmente speichern …) profitieren erheblich, wenn
+// das Statement nur einmal vorbereitet und mit neuen Parametern wiederverwendet
+// wird. Der Cache lebt pro Datenbank-Instanz und wird bei initDb() geleert.
+// ---------------------------------------------------------------------------
+
+const stmtCache = new WeakMap<Database, Map<string, Statement>>();
+
+/**
+ * Liefert ein gecachtes Prepared Statement für dieselbe Datenbank.
+ * Das Statement muss anschließend mit `.run(params)` oder `.getAsObject(params)`
+ * benutzt und per `.reset()`/`.free()` zurückgesetzt werden — `runPrepared`
+ * kapselt das bereits.
+ */
+export function getPrepared(d: Database, sql: string): Statement {
+  let cache = stmtCache.get(d);
+  if (!cache) {
+    cache = new Map();
+    stmtCache.set(d, cache);
+  }
+  let stmt = cache.get(sql);
+  if (!stmt) {
+    stmt = d.prepare(sql);
+    cache.set(sql, stmt);
+  }
+  return stmt;
+}
+
+/**
+ * Führt ein SQL-Statement mit Parametern über den Statement-Cache aus.
+ * Equivalent zu d.run(sql, params), aber ohne wiederholtes Kompilieren.
+ */
+export function runPrepared(d: Database, sql: string, params: unknown[] = []): void {
+  const stmt = getPrepared(d, sql);
+  stmt.run(params as never);
+}
+
+/** Liest alle Zeilen eines SELECTs über den Statement-Cache als Objekte. */
+export function queryAll<T = Record<string, unknown>>(
+  d: Database,
+  sql: string,
+  params: unknown[] = [],
+): T[] {
+  const stmt = getPrepared(d, sql);
+  try {
+    stmt.bind(params as never);
+    const rows: T[] = [];
+    while (stmt.step()) rows.push(stmt.getAsObject() as T);
+    return rows;
+  } finally {
+    stmt.reset();
+  }
+}
+
+/** Liest die erste Zeile eines SELECTs (oder null) über den Statement-Cache. */
+export function queryOne<T = Record<string, unknown>>(
+  d: Database,
+  sql: string,
+  params: unknown[] = [],
+): T | null {
+  const rows = queryAll<T>(d, sql, params);
+  return rows.length ? rows[0] : null;
+}
+
+// ---------------------------------------------------------------------------
+// Serialisierte Schreiboperationen ("Connection Pooling" für sql.js)
+//
+// sql.js hat genau EINE Verbindung (die In-Memory-DB). Ein klassischer Pool
+// ist nicht möglich; das Ziel — keine überlappenden Schreibvorgänge, keine
+// Race-Conditions zwischen persistNow()-Exporten — wird stattdessen durch
+// eine serielle Aufgabenwarteschlange erreicht: Alle Schreiboperationen laufen
+// nacheinander, niemals parallel.
+// ---------------------------------------------------------------------------
+
+let writeChain: Promise<void> = Promise.resolve();
+
+/**
+ * Führt eine Schreiboperation serialisiert aus. Mehrere gleichzeitig
+ * aufgerufene Tasks laufen strikt nacheinander; ein Fehler bricht die
+ * Kette nicht (der nächste Task läuft weiter).
+ */
+export function enqueueWrite<T>(task: () => Promise<T> | T): Promise<T> {
+  const result = writeChain.then(task);
+  writeChain = result.then(
+    () => undefined,
+    () => undefined,
+  );
+  return result;
+}

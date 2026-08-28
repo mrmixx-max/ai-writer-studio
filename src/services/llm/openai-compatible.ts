@@ -6,7 +6,10 @@
 
 import type { ChatMessage, ChatOptions, LLMProvider } from "@/types/llm";
 import { ProviderError } from "@/types/llm";
-import { assertOk, parseSse } from "./stream";
+import { assertOk, parseSse, fetchWithTimeout } from "./stream";
+
+const HEALTH_TIMEOUT = 5000;
+const FETCH_TIMEOUT = 30000;
 
 export class OpenAICompatibleProvider implements LLMProvider {
   /**
@@ -36,10 +39,10 @@ export class OpenAICompatibleProvider implements LLMProvider {
 
   async healthCheck(): Promise<boolean> {
     try {
-      const res = await fetch(`${this.baseUrl}/models`, {
+      const res = await fetchWithTimeout(`${this.baseUrl}/models`, {
         method: "GET",
         headers: this.headers(),
-      });
+      }, HEALTH_TIMEOUT);
       return res.ok;
     } catch {
       return false;
@@ -48,9 +51,9 @@ export class OpenAICompatibleProvider implements LLMProvider {
 
   async listModels(): Promise<string[]> {
     try {
-      const res = await fetch(`${this.baseUrl}/models`, {
+      const res = await fetchWithTimeout(`${this.baseUrl}/models`, {
         headers: this.headers(),
-      });
+      }, FETCH_TIMEOUT);
       await assertOk(res, `${this.label} listModels`);
       const data = await res.json();
       return (data.data ?? []).map((m: any) => m.id as string);
@@ -63,6 +66,7 @@ export class OpenAICompatibleProvider implements LLMProvider {
   async *chat(
     messages: ChatMessage[],
     options: ChatOptions,
+    signal?: AbortSignal,
   ): AsyncGenerator<string> {
     const payload = {
       model: options.model,
@@ -73,16 +77,16 @@ export class OpenAICompatibleProvider implements LLMProvider {
     };
     let res: Response;
     try {
-      res = await fetch(`${this.baseUrl}/chat/completions`, {
+      res = await fetchWithTimeout(`${this.baseUrl}/chat/completions`, {
         method: "POST",
         headers: this.headers(),
         body: JSON.stringify(payload),
-      });
+      }, FETCH_TIMEOUT);
     } catch (e) {
       throw new ProviderError(`${this.label} nicht erreichbar. Endpoint prüfen.`, e);
     }
     await assertOk(res, `${this.label} chat`);
     // OpenAI-Format: choices[0].delta.content
-    yield* parseSse(res.body!, "choices.0.delta.content");
+    yield* parseSse(res.body!, "choices.0.delta.content", signal);
   }
 }

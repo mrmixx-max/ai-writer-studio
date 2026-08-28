@@ -1,10 +1,25 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
+import { visualizer } from "rollup-plugin-visualizer";
 
 // Tauri erwartet den Dev-Server auf localhost:1420 (siehe tauri.conf.json)
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    // Bundle-Analyse: `ANALYZE=1 npm run build` erzeugt stats.html
+    // (Treemap der Chunk-Größen) im Projektroot.
+    ...(process.env.ANALYZE
+      ? [
+          visualizer({
+            filename: "stats.html",
+            template: "treemap",
+            gzipSize: true,
+            brotliSize: true,
+          }),
+        ]
+      : []),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -37,6 +52,9 @@ export default defineConfig({
           tiptap: ["@tiptap/react", "@tiptap/starter-kit", "@tiptap/core"],
           export: ["docx", "pdf-lib", "jszip"],
           sqlite: ["sql.js"],
+          state: ["zustand"],
+          // epubjs ist groß und nur im EPUB-Export nötig — eigener Chunk.
+          epub: ["epubjs"],
         },
       },
     },

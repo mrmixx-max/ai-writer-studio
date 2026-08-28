@@ -392,23 +392,81 @@ Verfügbare Aufgaben: `desktopicon`, `assocproj`, `assocchap`.
 ## Tests
 
 ```bash
-npm run test              # alle Tests
+npm run test              # alle Unit-/Integrationstests
+npm run test:coverage     # Tests + Coverage-Report (Gates: services ≥ 80 %, components ≥ 60 %)
 npm run test:watch
 npx vitest run src/services/knowledge     # ein Bereich
+npm run e2e               # Playwright-E2E (startet den Vite-Dev-Server selbst)
+npm run e2e:ui            # Playwright im UI-Modus
 ```
 
-**Stand: 130 Tests in 11 Dateien.**
+### Testpyramide
+
+| Ebene | Tool | Umfang |
+|---|---|---|
+| Unit/Integration | Vitest (Node/Happy-DOM, In-Memory-DB) | Services, Konflikt-/Sync-Logik, Parsing, i18n |
+| E2E | Playwright (Chromium) | App-Start, Projekt anlegen, Kapitel schreiben, Export-Flow |
+| Desktop-Smoke | manuell / `scripts/` | echte Tauri-DB, Installer, KI-Anbieter |
+
+### Coverage-Schwellen
+
+`npm run test:coverage` scheitert, wenn die Schwellen in `vitest.config.ts`
+unterschritten werden — so rutscht kein ungetesteter Code unbemerkt ins Repo:
+
+- **`src/services/**` ≥ 80 %** ist das **Ziel** (Statements, Functions, Lines;
+  Branches ≥ 75 %) — hier liegt die Geschäftslogik: DB, Sync, Security, Git,
+  Export, Preflight. Aktueller Stand: ~60 %.
+- **`src/components/**` ≥ 60 %** ist das Ziel für die UI; aktuell existieren
+  erst wenige Komponententests.
+- Damit die Gates von heute an durchsetzen, was messbar ist, sind die
+  Schwellen als **Ratchet** konfiguriert: knapp über dem aktuell gemessenen
+  Stand. Jede Verbesserung wird zum neuen Minimum — Verschlechterung scheitert.
+  Beim Aufholen der Ziele einfach die Werte in `vitest.config.ts` anheben.
+- Der HTML-Report liegt nach dem Lauf unter `coverage/index.html`.
+
+### E2E-Tests (Playwright)
+
+Die E2E-Suite (`e2e/*.spec.ts`) läuft gegen den Vite-Dev-Server (Port 1420),
+nicht gegen die Tauri-EXE: Im Browser fällt die App bewusst auf die
+In-Memory-Datenbank zurück (siehe `src/services/db/index.ts`), sodass App-Start,
+Projekterstellung und Export-UI ohne Rust-Backend testbar sind. Die
+Konfiguration steht in `playwright.config.ts`; der Chromium-Browser wird mit
+`npx playwright install chromium` installiert. Der eigentliche
+Datei-Speichern-Dialog läuft über das Tauri-Dialog-Plugin und gehört in den
+manuellen Desktop-Smoke-Test.
 
 | Datei | Prüft |
 |---|---|
-| `db/migrations/migrations.test.ts` | 27 Tabellen, Idempotenz, Schema-Version |
-| `knowledge/chunking.test.ts` | Chunking, Satzgrenzen, Abkürzungen, kein Inhaltsverlust |
-| `knowledge/lexical.test.ts` | BM25, exakte Suche, Rangfusion |
-| `knowledge/integration.test.ts` | Indexierung und Suche **ohne Modell** |
-| `Knowledge/knowledge-flow.test.ts` | Kette Einlesen → Indexieren → Suchen → Fragen |
-| `Sidebar/navigation.test.ts` | Erreichbarkeit aller Modi (Regressionsschutz) |
-| `setup/probe.test.ts` | Anbieterprüfung gegen echte HTTP-Server |
-| `setup/setup.test.ts` | Assistentenstatus, Beispielprojekt, Dublettenschutz |
+| `e2e/app-start.spec.ts` | App bootet, Sidebar sichtbar, kein ErrorBoundary-Fallback, `lang=de` |
+| `e2e/project.spec.ts` | Erststart-Assistent, Projekt per „+ Projekt" anlegen |
+| `e2e/chapter.spec.ts` | TipTap-Editor nimmt Text an, Wortzahl reagiert |
+| `e2e/export.spec.ts` | Export-Menü, Formatauswahl, Bereichsauswahl (Kapitel/Projekt) |
+
+### CI/CD
+
+`.github/workflows/ci.yml` läuft bei jedem Push auf `main` und bei Pull
+Requests, in zwei Jobs:
+
+1. **quality** — `npm run typecheck` → `lint` → `test:coverage` (mit
+   Coverage-Gates) → `npm run build`. Der Coverage-Report wird als Artefakt
+   hochgeladen.
+2. **e2e** — Playwright mit installiertem Chromium gegen den Vite-Dev-Server.
+
+### Pre-commit Hooks (Husky + lint-staged)
+
+Beim Commit werden geänderte `.ts`/`.tsx`-Dateien automatisch mit ESLint
+geprüft und gefixt (`.husky/pre-commit`). Die vollständigen Gates (Typecheck,
+gesamte Test-Suite) laufen in CI, damit Commits schnell bleiben.
+
+### Feature-Tests (Auswahl)
+
+| Datei | Prüft |
+|---|---|
+| `security/security.test.ts` | AES-256-GCM-Roundtrip, PIN-Auth, Privacy-Gate, Backup-Container |
+| `cloud/cloud.test.ts` | Konflikt-Merge, Offline-Queue, SyncService gegen Fake-Provider |
+| `git/branches.test.ts` | Entwurf→Endversion-Workflow gegen Fake-Git-Runner |
+| `git/conflicts.test.ts` / `git/diff.test.ts` | Merge-Konflikte, Diff |
+| `i18n/i18n.test.ts` | Locale-Parität de/en/fr/es (kein Schlüssel fehlt, nichts leer), Spracherkennung |
 
 ### Prüfung gegen die echte Desktop-Datenbank
 

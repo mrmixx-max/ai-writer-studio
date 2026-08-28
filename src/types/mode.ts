@@ -6,6 +6,8 @@ export type EditorMode =
   | "diagnostics"
   | "preflight"
   | "snapshots"
+  | "kdp"
+  | "publishing"
   | "fragments"
   | "voices"
   | "map"
@@ -16,4 +18,8 @@ export type EditorMode =
   | "imagegen"
   | "covergen"
   | "blurbgen"
-  | "scientificwriting";
+  | "scientificwriting"
+  | "timeline"
+  | "characters"
+  | "worldbuilding"
+  | "research";

@@ -38,7 +38,7 @@ import type {
 } from "@/types/bookwriter";
 
 /** Ein Kapitel mit seinem Inhalt. */
-interface ChapterData {
+export interface ChapterData {
   id: string;
   title: string;
   content: string;
@@ -84,9 +84,12 @@ export async function runBookwriter(
   runId: string,
   projectName: string,
   onProgress?: (phase: BookwriterPhase, progress: number, label: string) => void,
+  signal?: AbortSignal,
 ): Promise<void> {
-  const run = loadActiveRun(runId);
-  if (!run) throw new Error("Kein aktiver Lauf gefunden.");
+  const run = loadRun(runId);
+  if (!run || (run.status !== "active" && run.status !== "paused")) {
+    throw new Error("Kein aktiver Lauf gefunden.");
+  }
 
   const settings = loadSettings();
   const briefing = loadArtifact<BookBriefing>(runId, "briefing");
@@ -100,6 +103,8 @@ export async function runBookwriter(
   const startIdx = phases.indexOf(run.currentPhase);
 
   for (let i = startIdx; i < phases.length; i++) {
+    if (signal?.aborted) return;
+
     const phase = phases[i];
 
     const current = loadActiveRun(run.projectId);
@@ -120,43 +125,43 @@ export async function runBookwriter(
         case "konzept":
           await generateKonzept(runId, briefing, settings, (p, label) => {
             onProgress?.(phase, p, label);
-          });
+          }, signal);
           break;
 
         case "gliederung":
           await generateGliederung(runId, briefing, settings, (p, label) => {
             onProgress?.(phase, p, label);
-          });
+          }, signal);
           break;
 
         case "manuskript":
-          await generateManuskript(runId, briefing, settings, (p, label) => {
+          await generateManuskript(runId, run.projectId, briefing, settings, (p, label) => {
             onProgress?.(phase, p, label);
-          });
+          }, signal);
           break;
 
         case "qualitaet":
           await runQualitaet((p, label) => {
             onProgress?.(phase, p, label);
-          });
+          }, signal);
           break;
 
         case "ueberarbeitung":
           await runUeberarbeitung((p, label) => {
             onProgress?.(phase, p, label);
-          });
+          }, signal);
           break;
 
         case "metadaten":
           await generateMetadaten(runId, briefing, settings, (p, label) => {
             onProgress?.(phase, p, label);
-          });
+          }, signal);
           break;
 
         case "export":
           await runExport(runId, projectName, (p, label) => {
             onProgress?.(phase, p, label);
-          });
+          }, signal);
           break;
       }
 
@@ -167,6 +172,7 @@ export async function runBookwriter(
         return;
       }
     } catch (e) {
+      if (signal?.aborted) return;
       const msg = (e as Error)?.message ?? String(e);
       await setPhaseStatus(runId, phase, "error", null, msg);
       throw e;
@@ -182,6 +188,7 @@ async function generateKonzept(
   briefing: BookBriefing,
   settings: ReturnType<typeof loadSettings>,
   onProgress: (progress: number, label: string) => void,
+  signal?: AbortSignal,
 ): Promise<void> {
   const system = systemForGenre(briefing.genre, briefing.tone, briefing.language);
 
@@ -190,6 +197,7 @@ async function generateKonzept(
     settings,
     promptTitles(briefing),
     [{ role: "system", content: system }],
+    signal,
   );
   const titles = titlesRaw.split("\n").map((t) => t.trim()).filter(Boolean).slice(0, 10);
 
@@ -198,6 +206,7 @@ async function generateKonzept(
     settings,
     promptSubtitles(titles[0] ?? "", briefing),
     [{ role: "system", content: system }],
+    signal,
   );
   const subtitles = subtitlesRaw.split("\n").map((t) => t.trim()).filter(Boolean).slice(0, 10);
 
@@ -206,6 +215,7 @@ async function generateKonzept(
     settings,
     promptPositioning(briefing),
     [{ role: "system", content: system }],
+    signal,
   );
   const positions = positionsRaw.split("\n").map((t) => t.trim()).filter(Boolean).slice(0, 5);
 
@@ -214,6 +224,7 @@ async function generateKonzept(
     settings,
     promptBlurb(titles[0] ?? "", subtitles[0] ?? "", briefing, 0),
     [{ role: "system", content: system }],
+    signal,
   );
 
   onProgress(0.9, "Artefakte werden gespeichert…");
@@ -237,6 +248,7 @@ async function generateGliederung(
   briefing: BookBriefing,
   settings: ReturnType<typeof loadSettings>,
   onProgress: (progress: number, label: string) => void,
+  signal?: AbortSignal,
 ): Promise<void> {
   const system = systemForGenre(briefing.genre, briefing.tone, briefing.language);
 
@@ -245,6 +257,7 @@ async function generateGliederung(
     settings,
     promptOutline(briefing),
     [{ role: "system", content: system }],
+    signal,
   );
 
   const parsed = parseJson<BookOutline["chapters"]>(raw);
@@ -264,9 +277,11 @@ async function generateGliederung(
 /** Generiert das Manuskript kapitelweise. */
 async function generateManuskript(
   runId: string,
+  projectId: string,
   briefing: BookBriefing,
   settings: ReturnType<typeof loadSettings>,
   onProgress: (progress: number, label: string) => void,
+  signal?: AbortSignal,
 ): Promise<void> {
   const outline = loadArtifact<BookOutline>(runId, "gliederung");
   if (!outline) throw new Error("Keine Gliederung gefunden.");
@@ -276,6 +291,8 @@ async function generateManuskript(
   const chapters: ChapterData[] = [];
 
   for (let i = 0; i < outline.chapters.length; i++) {
+    if (signal?.aborted) return;
+
     const ch = outline.chapters[i];
     onProgress(i / outline.chapters.length, `Kapitel ${i + 1} wird geschrieben…`);
 
@@ -286,9 +303,10 @@ async function generateManuskript(
         researchNotes: [],
       }),
       [{ role: "system", content: system }],
+      signal,
     );
 
-    const created = await createChapter(runId, ch.title, JSON.stringify({
+    const created = await createChapter(projectId, ch.title, JSON.stringify({
       type: "doc",
       content: [{ type: "paragraph", content: [{ type: "text", text: content }] }],
     }));
@@ -304,6 +322,7 @@ async function generateManuskript(
       settings,
       promptSummarizeChapter(ch.title, content),
       [{ role: "system", content: system }],
+      signal,
     );
     summaries.push(summary.trim());
   }
@@ -315,8 +334,10 @@ async function generateManuskript(
 /** Qualitätsloop. */
 async function runQualitaet(
   onProgress: (progress: number, label: string) => void,
+  signal?: AbortSignal,
 ): Promise<void> {
   onProgress(0.3, "Manuskriptprüfung wird ausgeführt…");
+  if (signal?.aborted) return;
   // TODO: runDiagnostics aufrufen und Ergebnisse speichern.
   onProgress(1, "Qualitätsloop fertig.");
 }
@@ -324,8 +345,10 @@ async function runQualitaet(
 /** Buch-Level-Überarbeitung. */
 async function runUeberarbeitung(
   onProgress: (progress: number, label: string) => void,
+  signal?: AbortSignal,
 ): Promise<void> {
   onProgress(0.5, "Gesamtkonsistenz wird geprüft…");
+  if (signal?.aborted) return;
   // TODO: Buch-Level-Checks.
   onProgress(1, "Überarbeitung fertig.");
 }
@@ -336,6 +359,7 @@ async function generateMetadaten(
   briefing: BookBriefing,
   settings: ReturnType<typeof loadSettings>,
   onProgress: (progress: number, label: string) => void,
+  signal?: AbortSignal,
 ): Promise<void> {
   const system = systemForGenre(briefing.genre, briefing.tone, briefing.language);
 
@@ -344,16 +368,19 @@ async function generateMetadaten(
     settings,
     promptKeywords("", briefing),
     [{ role: "system", content: system }],
+    signal,
   );
   const keywords = keywordsRaw.split("\n").map((k) => k.trim()).filter(Boolean).slice(0, 7);
 
   onProgress(0.6, "Klappentexte werden generiert…");
   const blurbs: string[] = [];
   for (let i = 0; i < 3; i++) {
+    if (signal?.aborted) return;
     const blurb = await completeOnce(
       settings,
       promptBlurb("", "", briefing, i),
       [{ role: "system", content: system }],
+      signal,
     );
     blurbs.push(blurb.trim());
   }
@@ -369,6 +396,7 @@ async function generateMetadaten(
     authorBio: "",
     seriesIdea: null,
     marketingNotes: null,
+    coverImage: null,
   };
   await saveArtifact(runId, "metadaten", "metadata", metadata);
   onProgress(1, "Metadaten fertig.");
@@ -379,14 +407,59 @@ async function runExport(
   runId: string,
   projectName: string,
   onProgress: (progress: number, label: string) => void,
+  signal?: AbortSignal,
 ): Promise<void> {
-  onProgress(0.3, "Snapshot wird angelegt…");
+  onProgress(0.1, "Snapshot wird angelegt…");
   const run = loadRun(runId);
-  if (run) {
-    await createSnapshot(run.projectId, projectName, "Vor Export", null, "before-export");
+  if (!run) throw new Error("Lauf nicht gefunden.");
+
+  await createSnapshot(run.projectId, projectName, "Vor Export", null, "before-export");
+  if (signal?.aborted) return;
+
+  // --- Metadaten laden ---
+  onProgress(0.2, "Metadaten werden geladen…");
+  const metadata = loadArtifact<KdpMetadata>(runId, "metadaten");
+  if (!metadata) throw new Error("Keine KDP-Metadaten gefunden. Bitte zuerst Metadaten-Phase ausführen.");
+
+  // --- Kapitel laden ---
+  const chapters = loadArtifact<ChapterData[]>(runId, "manuskript");
+  if (!chapters || chapters.length === 0) {
+    throw new Error("Keine Kapitel gefunden. Bitte zuerst Manuskript-Phase ausführen.");
   }
 
-  onProgress(0.6, "Preflight wird ausgeführt…");
-  // TODO: runPreflight aufrufen.
-  onProgress(1, "Exportbereitschaft geprüft.");
+  // --- Preflight ---
+  onProgress(0.3, "Preflight wird ausgeführt…");
+  const { runExportPreflight } = await import("@/services/preflight/runner");
+  const formats: Array<"docx" | "pdf" | "epub"> = ["docx", "pdf", "epub"];
+
+  for (const format of formats) {
+    if (signal?.aborted) return;
+    try {
+      await runExportPreflight(run.projectId, projectName, format);
+    } catch {
+      // Preflight-Fehler nicht blockieren — Export geht trotzdem.
+    }
+  }
+
+  // --- Cover in Metadaten einfügen ---
+  onProgress(0.5, "Cover wird übernommen…");
+  const coverImage = loadArtifact<string>(runId, "cover");
+  if (coverImage) {
+    metadata.coverImage = coverImage;
+    await saveArtifact(runId, "metadaten", "metadata", metadata);
+  }
+
+  // --- KDP-Paket erstellen ---
+  onProgress(0.6, "KDP-Export-Paket wird erstellt…");
+  const { downloadKdpPackage } = await import("@/services/kdp/packaging");
+  const result = await downloadKdpPackage(
+    chapters,
+    metadata,
+    projectName,
+    metadata.authorBio.split(" ")[0] || "Autor",
+    (p, label) => onProgress(0.6 + p * 0.35, label),
+  );
+
+  if (signal?.aborted) return;
+  onProgress(1, `Export fertig: ${result.files.length} Dateien im Ordner "${result.folderName}".`);
 }

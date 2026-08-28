@@ -18,6 +18,38 @@ export const OVERLAP_TOKENS = 40;
 /** Chunks unterhalb dieser Größe werden mit dem Nachbarn verschmolzen. */
 export const MIN_TOKENS = 24;
 
+/**
+ * Adaptive Zielgröße basierend auf der Satzdichte des Textes.
+ *
+ * Texte mit vielen kurzen Sätzen (z. B. Action-Szenen) bekommen kleinere Chunks,
+ * damit jedes Retrieval-Ergebnis eine kompakte Sinneinheit abbildet.
+ * Texte mit langen, verschachtelätzen Sätzen (z. B. philosophische Passagen)
+ * bekommen größere Chunks, damit der Zusammenhang nicht zerrissen wird.
+ *
+ * @param text  Der vollständige Text des Blocks
+ * @returns     Zielgröße in Tokens (zwischen TARGET_TOKENS/2 und TARGET_TOKENS*1.5)
+ */
+export function adaptiveTargetTokens(text: string): number {
+  if (!text || text.length < 50) return TARGET_TOKENS;
+
+  // Satz-Extraktion zur Dichte-Analyse
+  const sentences = splitSentences(text);
+  if (sentences.length < 3) return TARGET_TOKENS;
+
+  // Durchschnittliche Satzlänge in Zeichen
+  const avgLen = text.length / sentences.length;
+
+  // Kurze Sätze (< 40 Zeichen) → kleinere Chunks für präzisere Treffer
+  // Lange Sätze (> 120 Zeichen) → größere Chunks für Zusammenhang
+  if (avgLen < 40) {
+    return Math.round(TARGET_TOKENS * 0.7); // ~224 Tokens — kompakt
+  }
+  if (avgLen > 120) {
+    return Math.round(TARGET_TOKENS * 1.3); // ~416 Tokens — Kontext-erhaltend
+  }
+  return TARGET_TOKENS;
+}
+
 export interface StructuredBlock {
   /** Überschriften-Pfad, z. B. "Kapitel 3 › Der Brief". Leer bei Text ohne Überschrift. */
   headingPath: string;
@@ -66,7 +98,7 @@ export function splitSentences(text: string): string[] {
   guarded = guarded.replace(/(\d)\.(\s)/g, `$1${DOT}$2`);
 
   const parts = guarded
-    .split(/(?<=[.!?…])["»«"']?\s+/)
+    .split(/(?<=[.!?…])[»«"']?\s+/)
     .map((s) => s.split(DOT).join(".").trim())
     .filter(Boolean);
 
@@ -188,6 +220,13 @@ export function blocksFromPlainText(text: string, rootLabel?: string): Structure
 
 /**
  * Baut aus strukturierten Blöcken die endgültigen Chunks.
+ *
+ * Optimierte Heuristik:
+ *   - Adaptive Zielgröße basierend auf Satzdichte (adaptiveTargetTokens)
+ *   - Satz-Analyse: Chunks enden immer an Satzgrenzen
+ *   - Absatz-Analyse: Absätze werden nur gesplittet, wenn sie MAX_TOKENS überschreiten
+ *   - Verschmelzung winziger Chunks mit gleichem Heading-Pfad
+ *
  * Garantien:
  *   - kein Chunk überschreitet MAX_TOKENS
  *   - Sätze werden nie zerschnitten
@@ -199,6 +238,10 @@ export function chunkBlocks(blocks: StructuredBlock[]): Chunk[] {
   let index = 0;
 
   for (const block of blocks) {
+    // Adaptive Zielgröße für diesen Block berechnen
+    const blockText = block.paragraphs.join("\n\n");
+    const target = adaptiveTargetTokens(blockText);
+
     const units = expandToUnits(block.paragraphs);
     let buf: string[] = [];
     let bufTokens = 0;
@@ -224,10 +267,17 @@ export function chunkBlocks(blocks: StructuredBlock[]): Chunk[] {
 
     for (const unit of units) {
       const t = estimateTokens(unit);
-      if (bufTokens + t > MAX_TOKENS && buf.length) push();
+      // Puffer enthält echten Inhalt → abschließen, bevor das Limit gerissen wird
+      if (bufTokens + t > MAX_TOKENS && buf.length > overlapUnits) push();
+      // Puffer besteht nur aus Overlap → Overlap verwerfen statt Limit zu verletzen
+      if (bufTokens + t > MAX_TOKENS && buf.length) {
+        buf = [];
+        bufTokens = 0;
+        overlapUnits = 0;
+      }
       buf.push(unit);
       bufTokens += t;
-      if (bufTokens >= TARGET_TOKENS) push();
+      if (bufTokens >= target) push();
     }
 
     // Restpuffer: nur behalten, wenn er echten Inhalt jenseits des Overlaps enthält.
@@ -249,29 +299,53 @@ export function chunkBlocks(blocks: StructuredBlock[]): Chunk[] {
   return mergeTinyChunks(out);
 }
 
-/** Zerlegt Absätze, die allein schon MAX_TOKENS überschreiten, an Satzgrenzen. */
+/** Zerlegt Absätze, die allein schon das Limit (inkl. Overlap-Kopfroom) überschreiten, an Satzgrenzen. */
 function expandToUnits(paragraphs: string[]): string[] {
+  // Kopfroom für den Overlap, der dem Chunk vorangestellt wird — so bleibt
+  // auch nach dem Zusammenführen mit dem Overlap die MAX_TOKENS-Garantie intact.
+  const LIMIT = MAX_TOKENS - OVERLAP_TOKENS;
   const units: string[] = [];
   for (const p of paragraphs) {
-    if (estimateTokens(p) <= MAX_TOKENS) {
+    if (estimateTokens(p) <= LIMIT) {
       units.push(p);
       continue;
     }
     let buf: string[] = [];
     let tokens = 0;
     for (const s of splitSentences(p)) {
-      const t = estimateTokens(s);
-      if (tokens + t > MAX_TOKENS && buf.length) {
-        units.push(buf.join(" "));
-        buf = [];
-        tokens = 0;
+      // Pathologischer Fall: ein einzelner Satz übersteigt das Limit → harte Wortgrenzen-Splits
+      for (const piece of splitOversizedSentence(s, LIMIT)) {
+        const t = estimateTokens(piece);
+        if (tokens + t > LIMIT && buf.length) {
+          units.push(buf.join(" "));
+          buf = [];
+          tokens = 0;
+        }
+        buf.push(piece);
+        tokens += t;
       }
-      buf.push(s);
-      tokens += t;
     }
     if (buf.length) units.push(buf.join(" "));
   }
   return units;
+}
+
+/** Harte Splits eines überlangen Satzes an Wortgrenzen, damit nie ein Einzelstück das Limit reißt. */
+function splitOversizedSentence(sentence: string, limitTokens: number): string[] {
+  if (estimateTokens(sentence) <= limitTokens) return [sentence];
+  const limitChars = Math.max(10, Math.floor(limitTokens * 3.4));
+  const out: string[] = [];
+  let buf = "";
+  for (const w of sentence.split(/\s+/)) {
+    if (buf && buf.length + w.length + 1 > limitChars) {
+      out.push(buf);
+      buf = w;
+    } else {
+      buf = buf ? `${buf} ${w}` : w;
+    }
+  }
+  if (buf) out.push(buf);
+  return out;
 }
 
 /** Liefert das Textende mit ungefähr `tokens` Tokens, an Satzgrenze ausgerichtet. */
