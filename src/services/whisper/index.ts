@@ -7,6 +7,8 @@ import { getDb, persist } from "@/services/db";
 const WHISPER_API = "https://api.openai.com/v1/audio/transcriptions";
 
 /** Nimmt Audio auf und gibt Transkript zurück. */
+let activeRecorder: { recorder: MediaRecorder; stream: MediaStream } | null = null;
+
 export async function recordAndTranscribe(
   settings: AppSettings,
   chapterId: string | null,
@@ -16,6 +18,7 @@ export async function recordAndTranscribe(
 
   const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
   const recorder = new MediaRecorder(stream);
+  activeRecorder = { recorder, stream };
   const chunks: Blob[] = [];
 
   return new Promise<string>((resolve, reject) => {
@@ -39,6 +42,7 @@ export async function recordAndTranscribe(
         reject(e);
       } finally {
         stream.getTracks().forEach((t) => t.stop());
+        activeRecorder = null;
       }
     };
     recorder.start();
@@ -73,8 +77,11 @@ async function transcribeOpenAI(apiKey: string, blob: Blob): Promise<string> {
 }
 
 /** Stoppt Aufnahme (wird von UI aufgerufen). */
-export function stopRecording() {
-  // Der MediaRecorder wird im Component gehalten → stop() von außen.
+export function stopRecording(): void {
+  if (activeRecorder) {
+    activeRecorder.recorder.stop();
+    activeRecorder.stream.getTracks().forEach((t) => t.stop());
+  }
 }
 
 // --- Transcript-Editor: Lesen und Korrigieren ---
