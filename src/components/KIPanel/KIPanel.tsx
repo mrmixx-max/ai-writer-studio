@@ -12,7 +12,7 @@ import {
   toLLMHistory,
   type StoredChatMessage,
 } from "@/services/ki/history";
-import { checkSlotHealth, type KIModelSlot } from "@/services/llm/multi";
+import type { KIModelSlot } from "@/services/llm/multi";
 import { labelFor } from "@/services/llm/modelRegistry";
 import { ModelPicker } from "@/components/KIPanel/ModelPicker";
 import { useActiveModel } from "@/components/KIPanel/useActiveModel";
@@ -68,8 +68,7 @@ export function KIPanel() {
   const { settings, selectModel } = useActiveModel();
   // Multi-Modell
   const slots: KIModelSlot[] = settings.kiModelSlots ?? [];
-  const [slotId, setSlotId] = useState<string>(slots[0]?.id ?? "main");
-  const [slotHealth, setSlotHealth] = useState<Record<string, boolean>>({});
+  const activeSlotId: string = slots[0]?.id ?? "main";
   // Analysen
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   // KI-Gedächtnis (Langzeit)
@@ -127,11 +126,6 @@ export function KIPanel() {
     }
   }
 
-  // Modell-Slots auf Erreichbarkeit prüfen
-  useEffect(() => {
-    if (slots.length) checkSlotHealth(settings, slots).then(setSlotHealth);
-  }, [settings]);
-
   // Modellwechsel aus dem Header: über den zentralen Hook (persistiert + Sync-Event).
 
   // Strg+Shift+M: Fokus auf die Modell-Auswahl im KI-Panel.
@@ -178,7 +172,7 @@ export function KIPanel() {
     await saveMsg("user", action === "chat" ? chatInput : `[${action}] ${selection.slice(0, 200) || ctx.slice(-200)}`);
     const res = await runKIAction(
       settings,
-      { action, selection, context: ctx, style, chatMessage: chatInput, slotId, history: llmHistory, memoryContext: memoryBlock || undefined },
+      { action, selection, context: ctx, style, chatMessage: chatInput, slotId: activeSlotId, history: llmHistory, memoryContext: memoryBlock || undefined },
       (t) => setStreaming((s) => s + t),
     );
     setOutput(res.text);
@@ -194,7 +188,7 @@ export function KIPanel() {
 
   async function saveMsg(role: "user" | "assistant", content: string) {
     if (!content.trim()) return;
-    const slot = slots.find((s) => s.id === slotId);
+    const slot = slots.find((s) => s.id === activeSlotId);
     const msg = await saveChatMessage(sessionId, role, content, {
       chapterId: chapterId ?? null,
       provider: slot?.provider ?? null,
@@ -273,20 +267,6 @@ export function KIPanel() {
       <ModelPicker settings={settings} onSelect={selectModel} toggleId="ki-model-picker-toggle" />
 
       {offline && <span className="offline-badge">Offline-Modus</span>}
-
-      {/* Multi-Modell: Slot-Auswahl mit Health-Anzeige */}
-      {slots.length > 0 && (
-        <label className="ki-model-select">
-          Modell:
-          <select value={slotId} onChange={(e) => setSlotId(e.target.value)}>
-            {slots.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.label} ({s.model}){slotHealth[s.id] === false ? " — offline" : ""}
-              </option>
-            ))}
-          </select>
-        </label>
-      )}
 
       <div className="ki-actions">
         {ACTIONS.map((a) => (
