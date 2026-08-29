@@ -309,16 +309,6 @@ export function SettingsPanel() {
         <span className="settings-hint">Grundanweisung an das Modell, z. B. Ton und Rolle festlegen.</span>
       </label>
 
-      <h4>Whisper (Speech-to-Text)</h4>
-      <label>whisper.cpp-Binary
-        <input value={s.whisperBinaryPath ?? ""} onChange={(e) => update("whisperBinaryPath", e.target.value)} placeholder="z.B. C:\whisper\whisper-cpp.exe" />
-        <span className="settings-hint">Pfad zur whisper.cpp-Executable (z.B. whisper-cli.exe). Leer lassen für OpenAI Whisper API.</span>
-      </label>
-      <label>Whisper-Modell (GGUF)
-        <input value={s.whisperModelPath ?? ""} onChange={(e) => update("whisperModelPath", e.target.value)} placeholder="z.B. C:\whisper\ggml-base.bin" />
-        <span className="settings-hint">Pfad zur GGUF-Modelldatei (z.B. ggml-base.bin, ggml-medium.bin). Empfohlen: base oder small für Geschwindigkeit.</span>
-      </label>
-
       <label>{t("settings.theme")}
         <select value={s.theme} onChange={(e) => update("theme", e.target.value as "light" | "dark")}>
           <option value="dark">{t("settings.theme.dark")}</option>

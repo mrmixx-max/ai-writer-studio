@@ -1,52 +1,68 @@
-// WhisperButton: Mikrofon-Button für Speech-to-Text.
-import { useState } from "react";
-import { recordAndTranscribe, stopRecording } from "@/services/whisper";
-import { DEFAULT_SETTINGS } from "@/types/config";
+// WhisperButton: Spracheingabe via Web Speech API (kein Download, kein Modell).
+import { useState, useRef } from "react";
 
 interface Props {
   onResult: (text: string) => void;
   chapterId: string | null;
 }
 
-export function WhisperButton({ onResult, chapterId }: Props) {
+export function WhisperButton({ onResult }: Props) {
   const [recording, setRecording] = useState(false);
   const [status, setStatus] = useState("");
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
-  async function start() {
-    setRecording(true);
-    setStatus("Aufnahme läuft…");
-    try {
-      const text = await recordAndTranscribe(DEFAULT_SETTINGS, chapterId, setStatus);
-      onResult(text);
-    } catch (e) {
-      setStatus(`Fehler: ${(e as Error).message}`);
-    } finally {
-      setRecording(false);
+  function start() {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setStatus("Spracherkennung nicht unterstützt");
       setTimeout(() => setStatus(""), 3000);
+      return;
     }
+
+    const recognition = new SpeechRecognition();
+    recognitionRef.current = recognition;
+    recognition.lang = "de-DE";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => {
+      setRecording(true);
+      setStatus("Aufnahme läuft…");
+    };
+
+    recognition.onresult = (event: any) => {
+      const text = event.results[0][0].transcript;
+      onResult(text);
+      setStatus("Transkribiert");
+      setTimeout(() => setStatus(""), 2000);
+    };
+
+    recognition.onerror = (event: any) => {
+      setStatus(`Fehler: ${event.error}`);
+      setTimeout(() => setStatus(""), 3000);
+    };
+
+    recognition.onend = () => {
+      setRecording(false);
+      recognitionRef.current = null;
+    };
+
+    recognition.start();
   }
 
   function stop() {
-    stopRecording();
+    recognitionRef.current?.stop();
     setRecording(false);
   }
 
   return (
     <div className="whisper-btn">
       {!recording ? (
-        <button
-          onClick={start}
-          className=""
-          title="Sprachaufnahme starten (Whisper)"
-        >
+        <button onClick={start} title="Spracheingabe starten">
           🎤 Sprechen
         </button>
       ) : (
-        <button
-          onClick={stop}
-          className="rec"
-          title="Aufnahme stoppen"
-        >
+        <button onClick={stop} className="rec" title="Aufnahme stoppen">
           ⏹ Stop
         </button>
       )}
