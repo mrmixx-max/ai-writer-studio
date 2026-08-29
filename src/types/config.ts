@@ -19,7 +19,9 @@ export interface AppSettings {
   gpt2apiApiKey: string;
   nousApiKey: string;
   nousBaseUrl: string;
-  // Bildgenerierung
+  // Whisper (Speech-to-Text)
+  whisperBinaryPath?: string;
+  whisperModelPath?: string;
   imageProvider: "openai-dalle" | "openrouter-flux" | "sd-webui" | "none";
   sdWebuiUrl: string;
   sdWebuiUsername: string;

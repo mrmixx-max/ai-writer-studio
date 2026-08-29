@@ -15,6 +15,7 @@ use std::path::PathBuf;
 use tauri::{Emitter, Manager};
 
 mod git;
+mod whisper;
 mod updater;
 
 /// Unterverzeichnisse, die beim Start unter %APPDATA%\AI Writer Studio angelegt werden.
@@ -146,7 +147,8 @@ fn main() {
             updater::download_and_install_update,
             updater::relaunch_app,
             git::git_version,
-            git::run_git
+            git::run_git,
+            whisper::run_whisper
         ])
         .setup(|app| {
             let handle = app.handle().clone();
