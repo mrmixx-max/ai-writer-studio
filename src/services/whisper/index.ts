@@ -69,7 +69,7 @@ async function transcribeLocal(settings: AppSettings, blob: Blob): Promise<strin
   // Dynamische Tauri-Imports (wie in db/index.ts)
   const { invoke } = await import("@tauri-apps/api/core");
   const { tempDir } = await import("@tauri-apps/api/path");
-  const { writeFile, removeFile } = await import("@tauri-apps/plugin-fs");
+  const { writeFile, remove } = await import("@tauri-apps/plugin-fs");
 
   // Konvertiere WebM → WAV (16kHz, mono) für whisper.cpp
   const wavBlob = await convertToWav(blob);
@@ -87,7 +87,7 @@ async function transcribeLocal(settings: AppSettings, blob: Blob): Promise<strin
     });
     return result;
   } finally {
-    await removeFile(audioPath);
+    await remove(audioPath);
   }
 }
 
