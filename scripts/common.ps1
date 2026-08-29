@@ -53,6 +53,7 @@ function Find-Iscc {
         $candidates += "C:\InnoSetup$ver\ISCC.exe"
         $candidates += "C:\InnoSetup${ver}1\ISCC.exe"
         $candidates += "C:\Program Files (x86)\Inno Setup $ver\ISCC.exe"
+        $candidates += "$env:LOCALAPPDATA\Programs\Inno Setup $ver\ISCC.exe"
     }
 
     foreach ($c in $candidates) {

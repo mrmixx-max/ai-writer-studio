@@ -13,14 +13,13 @@ tauri-build = { version = "2", features = [] }
 # `path` ist Teil des tauri-Core-Crates — es gibt kein separates tauri-plugin-path.
 # Kein `protocol-asset`: die App lädt keine Dateien über asset:-URLs, und das
 # Feature verlangt einen korrespondierenden assetProtocol-Block in tauri.conf.json.
-tauri = { version = "2", features = [] }
-tauri-plugin-dialog = "2"
-tauri-plugin-fs = "2"
-tauri-plugin-process = "2"
-tauri-plugin-shell = "2"
-tauri-plugin-single-instance = "2"
-# Auto-Update: signierter Update-Feed, Signaturpruefung, In-Place-Installation.
-tauri-plugin-updater = "2"
+tauri = { version = "2.2.0", features = [] }
+tauri-plugin-dialog = "2.2.0"
+tauri-plugin-fs = "2.2.0"
+tauri-plugin-process = "2.2.0"
+tauri-plugin-shell = "2.2.0"
+tauri-plugin-updater = "2.2.0"
+tao = "0.37.0"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 chrono = "0.4"
