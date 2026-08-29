@@ -504,3 +504,55 @@
   cursor: pointer;
   font-size: 0.78rem;
 }
+
+/* ===== TTS PANEL ===== */
+.tts-panel {
+  padding: 12px;
+  color: var(--text, #eee);
+  font-size: 0.85rem;
+}
+.tts-panel h3 {
+  margin: 0 0 10px;
+  font-size: 1rem;
+}
+.tts-panel textarea {
+  width: 100%;
+  min-height: 120px;
+  background: var(--input-bg, #1a1a1a);
+  color: var(--text, #eee);
+  border: 1px solid var(--border, #333);
+  border-radius: 4px;
+  padding: 8px;
+  font-size: 0.85rem;
+  resize: vertical;
+}
+.tts-controls {
+  display: flex;
+  gap: 6px;
+  margin: 8px 0;
+}
+.tts-controls button {
+  flex: 1;
+  padding: 6px 10px;
+  background: var(--accent, #ffa028);
+  color: #000;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+.tts-controls button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.tts-panel label {
+  display: block;
+  margin-top: 8px;
+  font-size: 0.8rem;
+}
+.tts-panel select,
+.tts-panel input[type="range"] {
+  width: 100%;
+  margin-top: 4px;
+}
