@@ -18,7 +18,6 @@ import { ModelPicker } from "@/components/KIPanel/ModelPicker";
 import { useActiveModel } from "@/components/KIPanel/useActiveModel";
 import { useEditorStore } from "@/store/editorStore";
 import { useProjectStore } from "@/store/projectStore";
-import { WhisperButton } from "@/components/Whisper/WhisperButton";
 import type { KIAction, RewriteStyle } from "@/services/ki/types";
 import {
   listMemory,
@@ -38,7 +37,6 @@ import {
   type MemoryStats,
 } from "@/services/ki/memory";
 import { AIWritingAssistant } from "@/components/KIPanel/AIWritingAssistant/AIWritingAssistant";
-import "@/components/Whisper/whisper.css";
 
 const ACTIONS: { id: KIAction; label: string }[] = [
   { id: "weiterschreiben", label: "Weiterschreiben" },
@@ -303,10 +301,6 @@ export function KIPanel() {
         </button>
       </div>
 
-      <WhisperButton
-        chapterId={chapterId}
-        onResult={(text) => setChatInput((v) => (v ? v + "\n" + text : text))}
-      />
 
       {/* KI-Analysen: offline, ohne Provider */}
       <button className="ki-analyze" onClick={runAnalysis} disabled={busy}>
