@@ -119,6 +119,10 @@ fn startup_file() -> Option<String> {
 }
 
 fn main() {
+    // Software-Rendering erzwingen (fixt tao-0.35.x Event-Loop-Crash auf Windows)
+    #[cfg(windows)]
+    std::env::set_var("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS", "--disable-gpu");
+
     tauri::Builder::default()
         // Single-Instance: ein zweiter Start bringt das vorhandene Fenster nach vorn
         // und übergibt eventuelle Datei-Argumente per Event an das Frontend.
