@@ -1,89 +1,42 @@
-// WhisperButton: Spracheingabe via Web Speech API (kein Download, kein Modell).
-
-import { useState, useRef } from "react";
-
-// Minimale Typdefinition für Web Speech API
-interface SpeechRecognition extends EventTarget {
-  lang: string;
-  interimResults: boolean;
-  maxAlternatives: number;
-  onstart: ((this: SpeechRecognition, ev: Event) => any) | null;
-  onresult: ((this: SpeechRecognition, ev: any) => any) | null;
-  onerror: ((this: SpeechRecognition, ev: Event & { error: string }) => any) | null;
-  onend: ((this: SpeechRecognition, ev: Event) => any) | null;
-  start(): void;
-  stop(): void;
-  abort(): void;
-}
-declare const SpeechRecognition: {
-  new (): SpeechRecognition;
-};
+// WhisperButton: Mikrofon-Button für Speech-to-Text.
+import { useState } from "react";
+import { recordAndTranscribe } from "@/services/whisper";
+import { DEFAULT_SETTINGS } from "@/types/config";
 
 interface Props {
   onResult: (text: string) => void;
   chapterId: string | null;
 }
 
-export function WhisperButton({ onResult }: Props) {
+export function WhisperButton({ onResult, chapterId }: Props) {
   const [recording, setRecording] = useState(false);
   const [status, setStatus] = useState("");
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
-  function start() {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      setStatus("Spracherkennung nicht unterstützt");
-      setTimeout(() => setStatus(""), 3000);
-      return;
-    }
-
-    const recognition = new SpeechRecognition();
-    recognitionRef.current = recognition;
-    recognition.lang = "de-DE";
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-
-    recognition.onstart = () => {
-      setRecording(true);
-      setStatus("Aufnahme läuft…");
-    };
-
-    recognition.onresult = (event: any) => {
-      const text = event.results[0][0].transcript;
+  async function toggle() {
+    if (recording) return; // Stop handled by recorder timeout or unmount
+    setRecording(true);
+    setStatus("Aufnahme läuft…");
+    try {
+      const text = await recordAndTranscribe(DEFAULT_SETTINGS, chapterId, setStatus);
       onResult(text);
-      setStatus("Transkribiert");
-      setTimeout(() => setStatus(""), 2000);
-    };
-
-    recognition.onerror = (event: any) => {
-      setStatus(`Fehler: ${event.error}`);
-      setTimeout(() => setStatus(""), 3000);
-    };
-
-    recognition.onend = () => {
+    } catch (e) {
+      setStatus(`Fehler: ${(e as Error).message}`);
+    } finally {
       setRecording(false);
-      recognitionRef.current = null;
-    };
-
-    recognition.start();
-  }
-
-  function stop() {
-    recognitionRef.current?.stop();
-    setRecording(false);
+      setTimeout(() => setStatus(""), 3000);
+    }
   }
 
   return (
     <div className="whisper-btn">
-      {!recording ? (
-        <button onClick={start} title="Spracheingabe starten">
-          🎤 Sprechen
-        </button>
-      ) : (
-        <button onClick={stop} className="rec" title="Aufnahme stoppen">
-          ⏹ Stop
-        </button>
-      )}
+      <button
+        onClick={toggle}
+        disabled={recording}
+        className={recording ? "rec" : ""}
+        title="Sprachaufnahme (Whisper)"
+      >
+        {recording ? "⏺ Aufnahme läuft…" : "🎤 Sprechen"}
+      </button>
       {status && <span className="whisper-status">{status}</span>}
     </div>
   );

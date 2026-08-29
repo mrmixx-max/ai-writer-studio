@@ -15,7 +15,6 @@ use std::path::PathBuf;
 use tauri::{Emitter, Manager};
 
 mod git;
-mod whisper;
 mod updater;
 
 /// Unterverzeichnisse, die beim Start unter %APPDATA%\AI Writer Studio angelegt werden.
@@ -121,6 +120,18 @@ fn startup_file() -> Option<String> {
 
 fn main() {
     tauri::Builder::default()
+        // Single-Instance: ein zweiter Start bringt das vorhandene Fenster nach vorn
+        // und übergibt eventuelle Datei-Argumente per Event an das Frontend.
+        .plugin(tauri_plugin_single_instance::init(|app, argv, _cwd| {
+            if let Some(win) = app.get_webview_window("main") {
+                let _ = win.unminimize();
+                let _ = win.set_focus();
+            }
+            let files = file_args(&argv);
+            if !files.is_empty() {
+                let _ = app.emit("open-file", files);
+            }
+        }))
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_process::init())
@@ -135,20 +146,12 @@ fn main() {
             updater::download_and_install_update,
             updater::relaunch_app,
             git::git_version,
-            git::run_git,
-            whisper::run_whisper
+            git::run_git
         ])
         .setup(|app| {
             let handle = app.handle().clone();
             ensure_user_dirs(&handle);
             write_log(&handle, "INFO", "AI Writer Studio gestartet");
-
-            // Fenster explizit anzeigen und fokussieren
-            if let Some(win) = app.get_webview_window("main") {
-                let _ = win.show();
-                let _ = win.set_focus();
-                let _ = win.unminimize();
-            }
 
             // Panics ins lokale Log schreiben, statt sie stumm zu verlieren.
             let panic_handle = handle.clone();

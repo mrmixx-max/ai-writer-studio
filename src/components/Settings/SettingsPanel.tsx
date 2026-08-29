@@ -208,7 +208,6 @@ export function SettingsPanel() {
       "provider", "model", "temperature", "maxTokens", "systemPrompt", "theme", "language", "highContrast",
       "ollamaBaseUrl", "lmstudioBaseUrl", "openaiApiKey", "openrouterApiKey",
       "gpt2apiBaseUrl", "gpt2apiApiKey", "nousBaseUrl", "nousApiKey",
-      "whisperBinaryPath", "whisperModelPath",
     ] as (keyof AppSettings)[];
     return keys.some((k) => s[k] !== initial[k]);
   }, [s, initial]);
