@@ -18,6 +18,7 @@ import { ModelPicker } from "@/components/KIPanel/ModelPicker";
 import { useActiveModel } from "@/components/KIPanel/useActiveModel";
 import { useEditorStore } from "@/store/editorStore";
 import { useProjectStore } from "@/store/projectStore";
+import { WhisperButton } from "@/components/Whisper/WhisperButton";
 import type { KIAction, RewriteStyle } from "@/services/ki/types";
 import {
   listMemory,
@@ -300,6 +301,14 @@ export function KIPanel() {
           Senden
         </button>
       </div>
+
+      {/* Spracheingabe via Whisper */}
+      <WhisperButton
+        onResult={(text) => {
+          setChatInput((prev) => (prev ? prev + " " + text : text));
+        }}
+        chapterId={chapterId}
+      />
 
 
       {/* KI-Analysen: offline, ohne Provider */}
