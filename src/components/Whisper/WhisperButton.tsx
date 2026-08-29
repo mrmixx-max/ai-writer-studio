@@ -1,5 +1,23 @@
 // WhisperButton: Spracheingabe via Web Speech API (kein Download, kein Modell).
+
 import { useState, useRef } from "react";
+
+// Minimale Typdefinition für Web Speech API
+interface SpeechRecognition extends EventTarget {
+  lang: string;
+  interimResults: boolean;
+  maxAlternatives: number;
+  onstart: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onresult: ((this: SpeechRecognition, ev: any) => any) | null;
+  onerror: ((this: SpeechRecognition, ev: Event & { error: string }) => any) | null;
+  onend: ((this: SpeechRecognition, ev: Event) => any) | null;
+  start(): void;
+  stop(): void;
+  abort(): void;
+}
+declare const SpeechRecognition: {
+  new (): SpeechRecognition;
+};
 
 interface Props {
   onResult: (text: string) => void;

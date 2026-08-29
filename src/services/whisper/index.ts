@@ -1,6 +1,38 @@
 // Whisper-STT: Speech-to-Text via Web Speech API (kein Download, kein Modell).
 // Nutzt die browserinterne Spracherkennung (Chrome/Edge: de-DE, en-US etc.).
 
+// Minimale Typdefinition für Web Speech API (nicht in lib.dom.d.ts)
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+}
+interface SpeechRecognitionResultList {
+  [index: number]: SpeechRecognitionResult;
+  length: number;
+}
+interface SpeechRecognitionResult {
+  [index: number]: SpeechRecognitionAlternative;
+  length: number;
+}
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+interface SpeechRecognition extends EventTarget {
+  lang: string;
+  interimResults: boolean;
+  maxAlternatives: number;
+  onstart: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onresult: ((this: SpeechRecognition, ev: SpeechRecognitionEvent) => any) | null;
+  onerror: ((this: SpeechRecognition, ev: Event & { error: string }) => any) | null;
+  onend: ((this: SpeechRecognition, ev: Event) => any) | null;
+  start(): void;
+  stop(): void;
+  abort(): void;
+}
+declare const SpeechRecognition: {
+  new (): SpeechRecognition;
+};
+
 let activeRecognition: SpeechRecognition | null = null;
 
 /** Startet Spracherkript und gibt Transkript zurück. */
