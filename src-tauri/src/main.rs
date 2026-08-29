@@ -143,6 +143,13 @@ fn main() {
             ensure_user_dirs(&handle);
             write_log(&handle, "INFO", "AI Writer Studio gestartet");
 
+            // Fenster explizit anzeigen und fokussieren
+            if let Some(win) = app.get_webview_window("main") {
+                let _ = win.show();
+                let _ = win.set_focus();
+                let _ = win.unminimize();
+            }
+
             // Panics ins lokale Log schreiben, statt sie stumm zu verlieren.
             let panic_handle = handle.clone();
             std::panic::set_hook(Box::new(move |info| {

@@ -26,7 +26,7 @@
         "transparent": false,
         "theme": null,
         "titleBarStyle": "Visible",
-        "visible": false,
+        "visible": true,
         "dragDropEnabled": true
       }
     ],
