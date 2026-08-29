@@ -271,17 +271,16 @@ describe("KIPanel ↔ Editor Integration: insertIntoDoc-Fluss", () => {
 
     await user.click(screen.getByRole("button", { name: "In Dokument einfügen" }));
 
-    // 1) Store: Absatz angehängt, Trigger +1, pendingInserts Queue gefüllt
+    // 1) Store: Absatz angehängt, Trigger +1, pendingInserts wird vom Editor konsumiert
     const s = useEditorStore.getState();
     expect(s.insertTrigger).toBe(1);
-    expect(s.pendingInserts).toContain(AI_TEXT);
     expect(s.dirty).toBe(true);
     const doc = JSON.parse(s.content);
     expect(doc.content[doc.content.length - 1].content[0].text).toBe(AI_TEXT);
     expect(doc.content[0].content[0].text).toBe("Alt"); // Original bleibt erhalten
 
     // 2) Editor hat auf insertTrigger reagiert und DEN RICHTIGEN Text übergeben
-    expect(tiptapStub.insertContentSpy).not.toHaveBeenCalled();
+    expect(tiptapStub.insertContentSpy).toHaveBeenCalledWith(AI_TEXT);
     // 3) onChange wurde nach dem Insert mit dem Editor-Doc-JSON aufgerufen
     expect(onChange).toHaveBeenCalledWith(JSON.stringify(tiptapStub.getDoc()));
   });
