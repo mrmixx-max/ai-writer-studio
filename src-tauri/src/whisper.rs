@@ -13,6 +13,7 @@ pub fn run_whisper(
     audio_path: String,
     language: String,
 ) -> Result<String, String> {
+    // whisper-cli.exe -m <model> -f <audio> -l <lang> -nt
     let output = Command::new(&binary_path)
         .arg("-m")
         .arg(&model_path)
@@ -21,8 +22,6 @@ pub fn run_whisper(
         .arg("-l")
         .arg(&language)
         .arg("-nt")
-        .arg("-of")
-        .arg(format!("{}.txt", audio_path))
         .output()
         .map_err(|e| format!("whisper.cpp-Ausführung fehlgeschlagen: {}", e))?;
 
@@ -31,13 +30,6 @@ pub fn run_whisper(
         return Err(format!("whisper.cpp Fehler: {}", stderr));
     }
 
-    // Transkript aus Datei lesen
-    let txt_path = format!("{}.txt", audio_path);
-    let text = std::fs::read_to_string(&txt_path)
-        .map_err(|e| format!("Transkript-Datei nicht lesbar: {}", e))?;
-
-    // Aufräumen
-    let _ = std::fs::remove_file(&txt_path);
-
+    let text = String::from_utf8_lossy(&output.stdout);
     Ok(text.trim().to_string())
 }

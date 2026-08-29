@@ -312,7 +312,7 @@ export function SettingsPanel() {
       <h4>Whisper (Speech-to-Text)</h4>
       <label>whisper.cpp-Binary
         <input value={s.whisperBinaryPath ?? ""} onChange={(e) => update("whisperBinaryPath", e.target.value)} placeholder="z.B. C:\whisper\whisper-cpp.exe" />
-        <span className="settings-hint">Pfad zur whisper.cpp-Executable (z.B. whisper-cpp.exe). Leer lassen für OpenAI Whisper API.</span>
+        <span className="settings-hint">Pfad zur whisper.cpp-Executable (z.B. whisper-cli.exe). Leer lassen für OpenAI Whisper API.</span>
       </label>
       <label>Whisper-Modell (GGUF)
         <input value={s.whisperModelPath ?? ""} onChange={(e) => update("whisperModelPath", e.target.value)} placeholder="z.B. C:\whisper\ggml-base.bin" />
