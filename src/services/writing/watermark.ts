@@ -232,7 +232,7 @@ export function analyzeText(text: string): WatermarkReport {
       typeTokenRatio: calculateTypeTokenRatio(tokens, counts),
       zipfCoefficient: 0,
       hapaxRatio: calculateHapaxRatio(tokens, counts),
-      aiScore: calcAiScore({
+      aiScore: Math.min(calcAiScore({
         burstiness,
         wordEntropy,
         sentenceEntropy,
@@ -241,7 +241,7 @@ export function analyzeText(text: string): WatermarkReport {
         typeTokenRatio: calculateTypeTokenRatio(tokens, counts),
         hapaxRatio: calculateHapaxRatio(tokens, counts),
         zipfCoefficient: 0,
-      }),
+      }), 100),
       details: {
         tokenCount,
         sentenceCount: sentences.length,
