@@ -4,7 +4,6 @@
 
 import { useState } from "react";
 import { useActiveModel, useModelStatus } from "./useActiveModel";
-import { ModelPicker } from "./ModelPicker";
 import { labelFor } from "@/services/llm/modelRegistry";
 
 const LEVEL_LABEL: Record<string, string> = {
@@ -99,7 +98,7 @@ export function ModelStatusBar({ intervalMs = 30_000 }: { intervalMs?: number })
       title={LEVEL_LABEL[status.level]}
     >
       <span className={`model-status-dot model-status-dot-${status.level}`} aria-hidden="true" />
-      <ModelPicker settings={settings} onSelect={selectModel} variant="badge" />
+      <span className="model-status-label">{labelFor(settings.provider)}</span>
     </div>
   );
 }
