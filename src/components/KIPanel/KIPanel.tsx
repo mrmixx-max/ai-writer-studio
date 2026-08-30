@@ -12,7 +12,7 @@ import {
   toLLMHistory,
   type StoredChatMessage,
 } from "@/services/ki/history";
-import { checkSlotHealth, type KIModelSlot } from "@/services/llm/multi";
+import type { KIModelSlot } from "@/services/llm/multi";
 import { labelFor } from "@/services/llm/modelRegistry";
 import { ModelPicker } from "@/components/KIPanel/ModelPicker";
 import { useActiveModel } from "@/components/KIPanel/useActiveModel";
@@ -68,8 +68,7 @@ export function KIPanel() {
   const { settings, selectModel } = useActiveModel();
   // Multi-Modell
   const slots: KIModelSlot[] = settings.kiModelSlots ?? [];
-  const [slotId, setSlotId] = useState<string>(slots[0]?.id ?? "main");
-  const [slotHealth, setSlotHealth] = useState<Record<string, boolean>>({});
+  const slotId = slots[0]?.id ?? "main";
   // Analysen
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   // KI-Gedächtnis (Langzeit)
@@ -126,11 +125,6 @@ export function KIPanel() {
       // DB nicht initialisiert (z. B. Tests) — Lernen überspringen
     }
   }
-
-  // Modell-Slots auf Erreichbarkeit prüfen
-  useEffect(() => {
-    if (slots.length) checkSlotHealth(settings, slots).then(setSlotHealth);
-  }, [settings]);
 
   // Modellwechsel aus dem Header: über den zentralen Hook (persistiert + Sync-Event).
 
@@ -274,19 +268,7 @@ export function KIPanel() {
 
       {offline && <span className="offline-badge">Offline-Modus</span>}
 
-      {/* Multi-Modell: Slot-Auswahl mit Health-Anzeige */}
-      {slots.length > 0 && (
-        <label className="ki-model-select">
-          Modell:
-          <select value={slotId} onChange={(e) => setSlotId(e.target.value)}>
-            {slots.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.label} ({s.model}){slotHealth[s.id] === false ? " — offline" : ""}
-              </option>
-            ))}
-          </select>
-        </label>
-      )}
+      {/* Modell-Dropdown entfernt — redundant mit ModelPicker */}
 
       <div className="ki-actions">
         {ACTIONS.map((a) => (
