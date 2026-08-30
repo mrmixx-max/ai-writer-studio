@@ -60,6 +60,12 @@
   line-height: 1.6;
   font-size: 16px;
   min-height: 100%;
+  user-select: text;
+  -webkit-user-select: text;
+}
+.tiptap-editor * {
+  user-select: text;
+  -webkit-user-select: text;
 }
 .tiptap-editor p {
   margin: 0 0 12px;

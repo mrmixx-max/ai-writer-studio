@@ -93,9 +93,8 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
     },
     editorProps: {
       handleDOMEvents: {
-        contextmenu: (_view, event) => {
-          // Native Kontextmenü (Kopieren/Einfügen) erlauben
-          event.stopPropagation();
+        contextmenu: () => {
+          // Native Kontextmenü (Kopieren/Einfügen) erlauben — nichts blockieren
           return false;
         },
       },
