@@ -1,6 +1,6 @@
 // WhisperButton: Mikrofon-Button für Speech-to-Text.
 import { useState } from "react";
-import { recordAndTranscribe } from "@/services/whisper";
+import { recordAndTranscribe, stopRecording } from "@/services/whisper";
 import { DEFAULT_SETTINGS } from "@/types/config";
 
 interface Props {
@@ -12,8 +12,7 @@ export function WhisperButton({ onResult, chapterId }: Props) {
   const [recording, setRecording] = useState(false);
   const [status, setStatus] = useState("");
 
-  async function toggle() {
-    if (recording) return; // Stop handled by recorder timeout or unmount
+  async function start() {
     setRecording(true);
     setStatus("Aufnahme läuft…");
     try {
@@ -27,16 +26,30 @@ export function WhisperButton({ onResult, chapterId }: Props) {
     }
   }
 
+  function stop() {
+    stopRecording();
+    setRecording(false);
+  }
+
   return (
     <div className="whisper-btn">
-      <button
-        onClick={toggle}
-        disabled={recording}
-        className={recording ? "rec" : ""}
-        title="Sprachaufnahme (Whisper)"
-      >
-        {recording ? "⏺ Aufnahme läuft…" : "🎤 Sprechen"}
-      </button>
+      {!recording ? (
+        <button
+          onClick={start}
+          className=""
+          title="Sprachaufnahme starten (Whisper)"
+        >
+          🎤 Sprechen
+        </button>
+      ) : (
+        <button
+          onClick={stop}
+          className="rec"
+          title="Aufnahme stoppen"
+        >
+          ⏹ Stop
+        </button>
+      )}
       {status && <span className="whisper-status">{status}</span>}
     </div>
   );

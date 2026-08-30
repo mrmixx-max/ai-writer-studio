@@ -24,4 +24,5 @@ export type EditorMode =
   | "worldbuilding"
   | "research"
   | "investigate"
-  | "watermark";
+  | "watermark"
+  | "tts";

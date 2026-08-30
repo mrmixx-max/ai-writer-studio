@@ -71,6 +71,9 @@ const InvestigatePanel = lazy(() =>
 const WatermarkPanel = lazy(() =>
   import("@/components/Writing/WatermarkPanel").then((m) => ({ default: m.WatermarkPanel }))
 );
+const TTSPanel = lazy(() =>
+  import("@/components/Writing/TTSPanel").then((m) => ({ default: m.TTSPanel }))
+);
 const ResearchPanel = lazy(() =>
   import("@/components/Research/ResearchPanel").then((m) => ({ default: m.ResearchPanel }))
 );
@@ -108,6 +111,7 @@ const MODES: { id: EditorMode; label: string; icon: string }[] = [
   { id: "research", label: "Recherche", icon: "🔎" },
   { id: "investigate", label: "Investigativ", icon: "🕵️" },
   { id: "watermark", label: "Waschen", icon: "💧" },
+  { id: "tts", label: "Vorlesen", icon: "🔊" },
 ];
 
 export function Sidebar() {
@@ -186,7 +190,7 @@ export function Sidebar() {
 
   if (inSpecialMode) {
     return (
-      <aside id="app-sidebar" tabIndex={-1} aria-label="Projektliste" className={`sidebar${mode === "knowledge" || mode === "research" || mode === "diagnostics" || mode === "preflight" || mode === "snapshots" || mode === "kdp" || mode === "publishing" || mode === "investigate" || mode === "watermark" ? " wide" : ""}`}>
+      <aside id="app-sidebar" tabIndex={-1} aria-label="Projektliste" className={`sidebar${mode === "knowledge" || mode === "research" || mode === "diagnostics" || mode === "preflight" || mode === "snapshots" || mode === "kdp" || mode === "publishing" || mode === "investigate" || mode === "watermark" || mode === "tts" ? " wide" : ""}`}>
         {switcher}
         <div className="sidebar-content">
           <ModePanel mode={mode} projectId={activeProjectId} chapterId={activeChapterId} />
@@ -341,6 +345,7 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
       case "worldbuilding": return <WorldbuildingPanel projectId={projectId} />;
       case "investigate": return <InvestigatePanel />;
       case "watermark": return <WatermarkPanel />;
+      case "tts": return <TTSPanel />;
       default: return null;
     }
   })();
