@@ -1,0 +1,159 @@
+// BookWriterPanel: vollautomatische Buchgenerierung.
+import { useState, useRef, useCallback } from "react";
+import { generateBook, type BookOutline, type BookChapter } from "@/services/writing/bookwriter";
+import { useActiveModel } from "@/components/KIPanel/useActiveModel";
+
+export function BookWriterPanel() {
+  const { settings } = useActiveModel();
+  const [topic, setTopic] = useState("");
+  const [genre, setGenre] = useState("Sachbuch");
+  const [targetAudience, setTargetAudience] = useState("Erwachsene");
+  const [chapterCount, setChapterCount] = useState(10);
+  const [language, setLanguage] = useState("Deutsch");
+  const [outline, setOutline] = useState<BookOutline | null>(null);
+  const [chapters, setChapters] = useState<BookChapter[]>([]);
+  const [currentChapter, setCurrentChapter] = useState(0);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  const handleGenerate = useCallback(async () => {
+    if (!topic.trim()) return;
+    setIsGenerating(true);
+    setError(null);
+    setOutline(null);
+    setChapters([]);
+    setCurrentChapter(0);
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+
+    try {
+      const result = await generateBook(
+        {
+          topic: topic.trim(),
+          genre,
+          targetAudience,
+          chapterCount,
+          model: settings.model,
+          baseUrl: settings.ollamaBaseUrl || "http://127.0.0.1:11434",
+          language,
+        },
+        (current, total, chapter) => {
+          setCurrentChapter(current);
+          if (chapter) setChapters((prev) => [...prev, chapter]);
+        },
+        ctrl.signal,
+      );
+      setOutline(result.outline);
+    } catch (e: unknown) {
+      if (e instanceof Error && e.name !== "AbortError") {
+        setError(e.message);
+      }
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [topic, genre, targetAudience, chapterCount, language, settings]);
+
+  const handleStop = useCallback(() => {
+    abortRef.current?.abort();
+    setIsGenerating(false);
+  }, []);
+
+  const fullText = outline
+    ? `# ${outline.title}\n\n${chapters.map((c) => `## Kapitel ${c.number}: ${c.title}\n\n${c.content}`).join("\n\n---\n\n")}`
+    : "";
+
+  return (
+    <div className="bookwriter-panel">
+      <h3>📖 Automatischer Buchautor</h3>
+
+      <div className="bw-fields">
+        <label>
+          Thema:
+          <input value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="z.B. KI im Alltag" />
+        </label>
+        <label>
+          Genre:
+          <select value={genre} onChange={(e) => setGenre(e.target.value)}>
+            <option>Sachbuch</option>
+            <option>Roman</option>
+            <option>Thriller</option>
+            <option>Fantasy</option>
+            <option>Selbsthilfe</option>
+            <option>Business</option>
+            <option>Science-Fiction</option>
+          </select>
+        </label>
+        <label>
+          Zielgruppe:
+          <input value={targetAudience} onChange={(e) => setTargetAudience(e.target.value)} />
+        </label>
+        <label>
+          Kapitel:
+          <input type="number" min={3} max={50} value={chapterCount} onChange={(e) => setChapterCount(Number(e.target.value))} />
+        </label>
+        <label>
+          Sprache:
+          <select value={language} onChange={(e) => setLanguage(e.target.value)}>
+            <option>Deutsch</option>
+            <option>Englisch</option>
+          </select>
+        </label>
+      </div>
+
+      <div className="bw-actions">
+        {!isGenerating ? (
+          <button onClick={handleGenerate} disabled={!topic.trim()} className="bw-start">
+            📝 Buch generieren
+          </button>
+        ) : (
+          <button onClick={handleStop} className="bw-stop">
+            ⏹ Stoppen
+          </button>
+        )}
+      </div>
+
+      {isGenerating && (
+        <div className="bw-progress">
+          <div className="bw-progress-bar">
+            <div className="bw-progress-fill" style={{ width: `${(currentChapter / chapterCount) * 100}%` }} />
+          </div>
+          <span className="bw-progress-text">Kapitel {currentChapter} / {chapterCount}</span>
+        </div>
+      )}
+
+      {error && <div className="bw-error">Fehler: {error}</div>}
+
+      {outline && (
+        <div className="bw-result">
+          <h4>{outline.title}</h4>
+          <p className="bw-meta">{outline.genre} · {outline.targetAudience} · {chapters.length} Kapitel</p>
+          <div className="bw-chapters">
+            {chapters.map((c) => (
+              <details key={c.number} className="bw-chapter">
+                <summary>Kapitel {c.number}: {c.title}</summary>
+                <p>{c.content}</p>
+              </details>
+            ))}
+          </div>
+          {fullText && (
+            <button
+              onClick={() => {
+                const blob = new Blob([fullText], { type: "text/markdown" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `${outline.title.replace(/[^a-zA-Z0-9]/g, "_")}.md`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+              className="bw-export"
+            >
+              📥 Als Markdown exportieren
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
