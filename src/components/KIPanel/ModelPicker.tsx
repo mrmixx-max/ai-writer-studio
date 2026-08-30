@@ -116,7 +116,7 @@ export function ModelPicker({ settings, onSelect, variant = "default", toggleId 
                 ⚡{" "}
               </span>
             ) : null}
-            {labelFor(settings.provider)} · {settings.model.split("/").pop()?.split(":")[0] ?? settings.model}
+            {labelFor(settings.provider)} · {settings.model}
             {activeOffline ? " (offline)" : ""}
           </span>
           <span className="ki-model-picker-caret" aria-hidden="true">

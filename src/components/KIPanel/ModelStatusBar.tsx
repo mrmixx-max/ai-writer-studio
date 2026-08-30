@@ -3,8 +3,8 @@
 // 30 s via modelRegistry. Offline (lokal): Edit-Feld + Starten-CTA statt roter Warnung.
 
 import { useState } from "react";
-import { ModelPicker } from "./ModelPicker";
 import { useActiveModel, useModelStatus } from "./useActiveModel";
+import { ModelPicker } from "./ModelPicker";
 import { labelFor } from "@/services/llm/modelRegistry";
 
 const LEVEL_LABEL: Record<string, string> = {

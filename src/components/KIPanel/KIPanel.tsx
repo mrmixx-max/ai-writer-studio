@@ -14,6 +14,7 @@ import {
 } from "@/services/ki/history";
 import type { KIModelSlot } from "@/services/llm/multi";
 import { labelFor } from "@/services/llm/modelRegistry";
+import { ModelPicker } from "@/components/KIPanel/ModelPicker";
 import { useActiveModel } from "@/components/KIPanel/useActiveModel";
 import { useEditorStore } from "@/store/editorStore";
 import { useProjectStore } from "@/store/projectStore";
@@ -64,7 +65,7 @@ export function KIPanel() {
   const [showHistory, setShowHistory] = useState(true);
   // Aktive Einstellungen: zentraler Hook (geteilt mit Editor-Badge + Statusbar).
   // Modellwechsel im Header greifen sofort und sind überall synchron sichtbar.
-  const { settings } = useActiveModel();
+  const { settings, selectModel } = useActiveModel();
   // Multi-Modell
   const slots: KIModelSlot[] = settings.kiModelSlots ?? [];
   const slotId = slots[0]?.id ?? "main";
@@ -262,7 +263,8 @@ export function KIPanel() {
     <aside id="app-ai-panel" tabIndex={-1} aria-label="KI-Assistent" className="ki-panel">
       <h3>KI-Assistent</h3>
 
-      {/* ModelPicker entfernt — wird nur noch in Editor-Toolbar und ModelStatusBar gerendert */}
+      {/* Jederzeitige Modell-Auswahl (Header): aktives Modell, Wechsel ohne Neustart */}
+      <ModelPicker settings={settings} onSelect={selectModel} toggleId="ki-model-picker-toggle" />
 
       {offline && <span className="offline-badge">Offline-Modus</span>}
 
