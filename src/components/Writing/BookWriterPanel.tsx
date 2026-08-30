@@ -74,7 +74,7 @@ export function BookWriterPanel() {
         setLiveText((prev) => prev + `✅ Kapitel ${i} fertig (${chapter.content.length} Zeichen)\n\n`);
       }
 
-      setLiveText((prev) + "🎉 Buch fertig!");
+      setLiveText((prev) => prev + "🎉 Buch fertig!");
     } catch (e: unknown) {
       if (e instanceof Error && e.name !== "AbortError") {
         setError(e.message);
