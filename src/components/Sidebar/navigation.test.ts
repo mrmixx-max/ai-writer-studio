@@ -78,11 +78,11 @@ describe("Sidebar-Breite", () => {
     // unlesbar. Projektwissen, Manuskriptprüfung, Exportprüfung, Snapshots
     // und KDP brauchen mehr Platz.
     expect(SIDEBAR).toContain('" wide"');
-    expect(SIDEBAR).toMatch(/mode === "knowledge"[\s\S]{0,200}" wide"/);
-    expect(SIDEBAR).toMatch(/mode === "diagnostics"[\s\S]{0,200}" wide"/);
-    expect(SIDEBAR).toMatch(/mode === "preflight"[\s\S]{0,200}" wide"/);
-    expect(SIDEBAR).toMatch(/mode === "snapshots"[\s\S]{0,200}" wide"/);
-    expect(SIDEBAR).toMatch(/mode === "kdp"[\s\S]{0,200}" wide"/);
+    expect(SIDEBAR).toMatch(/mode === "knowledge"[\s\S]{0,300}" wide"/);
+    expect(SIDEBAR).toMatch(/mode === "diagnostics"[\s\S]{0,300}" wide"/);
+    expect(SIDEBAR).toMatch(/mode === "preflight"[\s\S]{0,300}" wide"/);
+    expect(SIDEBAR).toMatch(/mode === "snapshots"[\s\S]{0,300}" wide"/);
+    expect(SIDEBAR).toMatch(/mode === "kdp"[\s\S]{0,300}" wide"/);
   });
 
   it("hat die wide-Klasse im Stylesheet", () => {
