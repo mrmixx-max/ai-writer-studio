@@ -53,7 +53,7 @@ export class OpenAICompatibleProvider implements LLMProvider {
     try {
       const res = await fetchWithTimeout(`${this.baseUrl}/models`, {
         headers: this.headers(),
-      }, options.timeoutMs ?? FETCH_TIMEOUT);
+      }, FETCH_TIMEOUT);
       await assertOk(res, `${this.label} listModels`);
       const data = await res.json();
       return (data.data ?? []).map((m: any) => m.id as string);
