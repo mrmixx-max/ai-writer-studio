@@ -18,6 +18,7 @@ export interface ChatOptions {
   temperature?: number;
   maxTokens?: number;
   systemPrompt?: string;
+  timeoutMs?: number;
 }
 
 export interface ProviderConfig {

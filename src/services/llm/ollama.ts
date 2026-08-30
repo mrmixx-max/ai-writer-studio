@@ -61,7 +61,7 @@ export class OllamaProvider implements LLMProvider {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
-      }, FETCH_TIMEOUT);
+      }, options.timeoutMs ?? FETCH_TIMEOUT);
     } catch (e) {
       throw new ProviderError(
         "Ollama nicht erreichbar. Server starten: `ollama serve` (Standard-Port 11434).",
