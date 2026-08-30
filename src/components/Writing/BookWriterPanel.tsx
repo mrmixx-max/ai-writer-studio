@@ -38,7 +38,7 @@ export function BookWriterPanel() {
           baseUrl: settings.ollamaBaseUrl || "http://127.0.0.1:11434",
           language,
         },
-        (current, total, chapter) => {
+        (current, _total, chapter) => {
           setCurrentChapter(current);
           if (chapter) setChapters((prev) => [...prev, chapter]);
         },

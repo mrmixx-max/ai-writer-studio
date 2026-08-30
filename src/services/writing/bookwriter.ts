@@ -1,5 +1,5 @@
 // AutoBookWriter: vollautomatische Buchgenerierung via Ollama.
-import { OllamaProvider } from "./ollama";
+import { OllamaProvider } from "@/services/llm/ollama";
 
 export interface BookOutline {
   title: string;
