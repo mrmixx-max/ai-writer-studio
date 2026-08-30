@@ -92,12 +92,6 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
       }, 300);
     },
     editorProps: {
-      handleDOMEvents: {
-        contextmenu: () => {
-          // Native Kontextmenü (Kopieren/Einfügen) erlauben — nichts blockieren
-          return false;
-        },
-      },
       attributes: {
         class: "tiptap-editor",
         spellcheck: "true",
@@ -196,6 +190,16 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
           @Tag
         </button>
         <span className="editor-toolbar-spacer" />
+        <button
+          onClick={() => {
+            const selection = window.getSelection();
+            const text = selection?.toString() || "";
+            if (text) navigator.clipboard.writeText(text);
+          }}
+          title="Markierten Text kopieren (Ctrl+C)"
+        >
+          📋
+        </button>
         <button
           onClick={() => {
             const blob = new Blob([editor.getHTML()], { type: "text/html" });
