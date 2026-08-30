@@ -1,6 +1,19 @@
 // AutoBookWriter: vollautomatische Buchgenerierung via Ollama. Keine DB-Persistenz.
 import { OllamaProvider } from "@/services/llm/ollama";
 
+/** Extrahiert das erste gültige JSON-Objekt aus einem String (robust gegen nachgestellten Text). */
+function extractJson(text: string): string | null {
+  const start = text.indexOf("{");
+  if (start === -1) return null;
+  let depth = 0;
+  for (let i = start; i < text.length; i++) {
+    if (text[i] === "{") depth++;
+    else if (text[i] === "}") depth--;
+    if (depth === 0) return text.slice(start, i + 1);
+  }
+  return null;
+}
+
 export interface BookOutline {
   title: string;
   genre: string;
@@ -49,9 +62,10 @@ Antwitte NUR als JSON-Objekt:
   }
 
   const raw = chunks.join("");
-  const match = raw.match(/\{[\s\S]*\}/);
-  if (!match) throw new Error("Keine gültige Gliederung erhalten");
-  return JSON.parse(match[0]) as BookOutline;
+  // Extrahiere JSON: finde ersten { und zähle Klammern bis zum Match
+  const json = extractJson(raw);
+  if (!json) throw new Error("Keine gültige Gliederung erhalten: " + raw.slice(0, 200));
+  return JSON.parse(json) as BookOutline;
 }
 
 export async function generateChapter(
