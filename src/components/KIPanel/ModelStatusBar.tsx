@@ -3,6 +3,7 @@
 // 30 s via modelRegistry. Offline (lokal): Edit-Feld + Starten-CTA statt roter Warnung.
 
 import { useState } from "react";
+import { ModelPicker } from "./ModelPicker";
 import { useActiveModel, useModelStatus } from "./useActiveModel";
 import { labelFor } from "@/services/llm/modelRegistry";
 
@@ -98,7 +99,7 @@ export function ModelStatusBar({ intervalMs = 30_000 }: { intervalMs?: number })
       title={LEVEL_LABEL[status.level]}
     >
       <span className={`model-status-dot model-status-dot-${status.level}`} aria-hidden="true" />
-      <span className="model-status-label">{labelFor(settings.provider)}</span>
+      <ModelPicker settings={settings} onSelect={selectModel} variant="badge" />
     </div>
   );
 }
