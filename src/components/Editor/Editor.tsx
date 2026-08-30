@@ -23,8 +23,6 @@ import {
 } from "./extensions";
 import "./editor.css";
 import { GitPanel } from "./GitPanel";
-import { ModelPicker } from "@/components/KIPanel/ModelPicker";
-import { useActiveModel } from "@/components/KIPanel/useActiveModel";
 
 interface EditorProps {
   /** Wird bei jeder Änderung (debounced via Autosave) aufgerufen. */
@@ -53,9 +51,7 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
   const [editorInstance, setEditorInstance] = useState<TipTapEditor | null>(null);
   const [trackChangesEnabled, setTrackChangesEnabled] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
-  // Dezentes Modell-Badge in der Editor-Kopfzeile: aktives Modell, Klick öffnet
-  // dasselbe ModelPicker-Popover wie im KI-Panel (keine Duplikation der Auswahl).
-  const { settings, selectModel } = useActiveModel();
+  // Aktives Modell für Modellwechsel (geteilt mit KI-Panel + Statusbar).
 
   const editor = useEditor({
     extensions: [
@@ -242,7 +238,7 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
         >
           🖨️
         </button>
-        <ModelPicker settings={settings} onSelect={selectModel} variant="badge" />
+        {/* ModelPicker entfernt — wird nur noch in ModelStatusBar gerendert */}
       </div>
       <div className="editor-body">
         <EditorContent editor={editor} className="editor-content" />
