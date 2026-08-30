@@ -13,6 +13,8 @@ import { Sidebar } from "@/components/Sidebar/Sidebar";
 import { Editor } from "@/components/Editor/Editor";
 import { WordCountBar } from "@/components/Editor/WordCountBar";
 import { KIPanel } from "@/components/KIPanel/KIPanel";
+import { ModelPicker } from "@/components/KIPanel/ModelPicker";
+import { useActiveModel } from "@/components/KIPanel/useActiveModel";
 import { ExportBar } from "@/components/Export/ExportBar";
 
 // Dialoge/Panel-Modals nur bei Bedarf laden — sie sind initial nicht sichtbar
@@ -103,6 +105,7 @@ function AppInner() {
   const refresh = useProjectStore((s) => s.refresh);
   const openProject = useProjectStore((s) => s.openProject);
   const projects = useProjectStore((s) => s.projects);
+  const { settings, selectModel } = useActiveModel();
 
   const [phase, setPhase] = useState<Phase>("loading");
   const [loadNote, setLoadNote] = useState("Manuskriptverwaltung wird geladen…");
@@ -245,6 +248,7 @@ function AppInner() {
               <button onClick={toggleFocusMode} aria-label={focusMode ? t("header.focus.on") : t("header.focus.off")}>
                 {focusMode ? t("header.focus.on") : t("header.focus.off")}
               </button>
+              <ModelPicker settings={settings} onSelect={selectModel} variant="badge" />
               <button
                 onClick={() => setShowAbout(true)}
                 title={`${t("header.about")} (F1)`}
