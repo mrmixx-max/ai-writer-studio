@@ -100,9 +100,11 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
     },
   });
 
-  // Auswahl-Modus: Editor auf nicht-bereitstellbar setzen → native Maus-Auswahl funktioniert
+  // Auswahl-Modus: Editor auf nicht-bearbeitbar setzen → native Maus-Auswahl funktioniert
   useEffect(() => {
-    if (editor) editor.setEditable(!selectionMode);
+    if (editor && "editable" in editor) {
+      editor.setOptions({ editable: !selectionMode });
+    }
   }, [editor, selectionMode]);
 
   // Editor-Instanz für das Outline-Panel speichern
