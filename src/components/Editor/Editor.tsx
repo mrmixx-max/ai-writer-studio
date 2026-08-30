@@ -92,6 +92,11 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
       }, 300);
     },
     editorProps: {
+      handleContextMenu: (_view, _pos, event) => {
+        // Native Kontextmenü (Kopieren/Einfügen) erlauben
+        event.stopPropagation();
+        return false;
+      },
       attributes: {
         class: "tiptap-editor",
         spellcheck: "true",
