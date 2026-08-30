@@ -52,6 +52,7 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
   const countTimerRef = useRef<number | null>(null);
   const [editorInstance, setEditorInstance] = useState<TipTapEditor | null>(null);
   const [trackChangesEnabled, setTrackChangesEnabled] = useState(false);
+  const [selectionMode, setSelectionMode] = useState(false);
   // Dezentes Modell-Badge in der Editor-Kopfzeile: aktives Modell, Klick öffnet
   // dasselbe ModelPicker-Popover wie im KI-Panel (keine Duplikation der Auswahl).
   const { settings, selectModel } = useActiveModel();
@@ -98,6 +99,11 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
       },
     },
   });
+
+  // Auswahl-Modus: Editor auf nicht-bereitstellbar setzen → native Maus-Auswahl funktioniert
+  useEffect(() => {
+    if (editor) editor.setEditable(!selectionMode);
+  }, [editor, selectionMode]);
 
   // Editor-Instanz für das Outline-Panel speichern
   useEffect(() => {
@@ -188,6 +194,13 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
           title="Charakter-Tags erkennen (@Name)"
         >
           @Tag
+        </button>
+        <button
+          onClick={() => setSelectionMode(!selectionMode)}
+          className={selectionMode ? "active" : ""}
+          title="Auswahl-Modus: Text mit Maus markieren (Rechtsklick → Kopieren)"
+        >
+          {selectionMode ? "✏️" : "👆"}
         </button>
         <span className="editor-toolbar-spacer" />
         <button
