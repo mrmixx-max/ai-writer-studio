@@ -190,6 +190,33 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
           @Tag
         </button>
         <span className="editor-toolbar-spacer" />
+        <button
+          onClick={() => {
+            const blob = new Blob([editor.getHTML()], { type: "text/html" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = "dokument.html";
+            a.click();
+            URL.revokeObjectURL(url);
+          }}
+          title="Speichern als HTML"
+        >
+          💾
+        </button>
+        <button
+          onClick={() => {
+            const printWindow = window.open("", "_blank");
+            if (printWindow) {
+              printWindow.document.write(`<!DOCTYPE html><html><head><title>Drucken</title><style>body{font-family:serif;padding:2cm;line-height:1.6;} h1,h2,h3{margin-top:1em;} blockquote{border-left:3px solid #ccc;padding-left:1em;color:#555;}</style></head><body>${editor.getHTML()}</body></html>`);
+              printWindow.document.close();
+              printWindow.print();
+            }
+          }}
+          title="Drucken"
+        >
+          🖨️
+        </button>
         <ModelPicker settings={settings} onSelect={selectModel} variant="badge" />
       </div>
       <div className="editor-body">
