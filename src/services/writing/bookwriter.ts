@@ -42,7 +42,7 @@ Antwitte NUR als JSON-Objekt:
   const chunks: string[] = [];
   for await (const chunk of provider.chat(
     [{ role: "user", content: prompt }],
-    { model: config.model, maxTokens: 4096, temperature: 0.8 },
+    { model: config.model, maxTokens: 4096, temperature: 0.8, timeoutMs: 120000 },
     signal,
   )) {
     chunks.push(chunk);
@@ -84,7 +84,7 @@ Schreibe nur den Kapiteltext (min. 1000 Wörter). Keine Überschriften.`;
   const chunks: string[] = [];
   for await (const chunk of provider.chat(
     [{ role: "user", content: prompt }],
-    { model: config.model, maxTokens: 8192, temperature: 0.7 },
+    { model: config.model, maxTokens: 8192, temperature: 0.7, timeoutMs: 180000 },
     signal,
   )) {
     chunks.push(chunk);
