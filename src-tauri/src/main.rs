@@ -142,10 +142,22 @@ fn main() {
         ])
         .setup(|app| {
             let handle = app.handle().clone();
+            write_log(&handle, "DEBUG", "setup() beginnt");
             ensure_user_dirs(&handle);
+            write_log(&handle, "DEBUG", "ensure_user_dirs() OK");
             write_log(&handle, "INFO", "AI Writer Studio gestartet");
 
-            // Panics ins lokale Log schreiben, statt sie stumm zu verlieren.
+            // Fenster explizit anzeigen
+            if let Some(win) = app.get_webview_window("main") {
+                write_log(&handle, "DEBUG", "Fenster gefunden, zeige an...");
+                let _ = win.show();
+                let _ = win.set_focus();
+                write_log(&handle, "DEBUG", "Fenster angezeigt");
+            } else {
+                write_log(&handle, "WARN", "Kein Fenster 'main' gefunden");
+            }
+
+            // Panics ins lokale Log schreiben
             let panic_handle = handle.clone();
             std::panic::set_hook(Box::new(move |info| {
                 write_log(&panic_handle, "PANIC", &format!("{info}"));

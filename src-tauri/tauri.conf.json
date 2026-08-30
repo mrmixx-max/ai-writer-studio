@@ -80,11 +80,7 @@
     "createUpdaterArtifacts": true
   },
   "plugins": {
-    "dialog": {
-      "confirm": true,
-      "message": true,
-      "ask": true
-    },
+    "dialog": null,
     "fs": {
       "requireLiteralLeadingDot": false
     },
