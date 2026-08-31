@@ -554,3 +554,46 @@
 .md-preview pre, .md-preview-split pre { background: #0d0d0d; padding: 12px; border-radius: 4px; overflow-x: auto; font-size: 0.75rem; }
 .md-preview code, .md-preview-split code { background: #0d0d0d; padding: 2px 6px; border-radius: 3px; font-family: monospace; font-size: 0.75rem; }
 .md-preview hr, .md-preview-split hr { border: none; border-top: 1px solid #333; margin: 16px 0; }
+
+/* ===== PLUGIN PANELS ===== */
+.plugin-panel { padding: 12px; color: #eee; font-size: 0.85rem; overflow-y: auto; height: 100%; }
+.plugin-panel h3 { margin: 0 0 12px; font-size: 1rem; }
+
+/* Word Stats */
+.ws-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.ws-stat { background: #1a1a1a; border: 1px solid #333; border-radius: 6px; padding: 8px; text-align: center; }
+.ws-num { display: block; font-size: 1.2rem; font-weight: 700; color: #a5f3fc; }
+.ws-label { font-size: 0.65rem; color: #999; }
+.ws-richness { margin-bottom: 12px; }
+.ws-richness label { font-size: 0.7rem; color: #999; }
+.ws-bar { height: 6px; background: #333; border-radius: 3px; overflow: hidden; margin: 4px 0; }
+.ws-bar-fill { height: 100%; background: linear-gradient(90deg, #4f46e5, #06b6d4); }
+.ws-pct { font-size: 0.7rem; color: #999; }
+.ws-topwords ul { list-style: none; padding: 0; margin: 8px 0 0; max-height: 200px; overflow-y: auto; }
+.ws-topwords li { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #222; }
+.ws-word { color: #a5f3fc; }
+.ws-count { color: #999; font-size: 0.7rem; }
+.ws-input { width: 100%; min-height: 80px; background: #0d0d0d; border: 1px solid #333; color: #eee; padding: 8px; border-radius: 4px; font-size: 0.75rem; resize: vertical; margin: 8px 0; }
+.ws-btn { background: #4f46e5; color: white; border: none; padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; width: 100%; }
+
+/* Ideas */
+.idea-prompt { background: #1a1a1a; border: 1px solid #333; border-radius: 6px; padding: 12px; margin-bottom: 12px; }
+.idea-prompt p { margin: 0 0 8px; font-style: italic; color: #a5f3fc; }
+.idea-refresh { background: #333; border: none; color: #ccc; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; }
+.idea-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 12px; }
+.idea-buttons button { background: #1a1a1a; border: 1px solid #333; color: #ccc; padding: 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; }
+.idea-buttons button:hover { border-color: #4f46e5; color: #fff; }
+.idea-list { display: flex; flex-direction: column; gap: 8px; }
+.idea-card { background: #1a1a1a; border: 1px solid #333; border-radius: 6px; padding: 10px; }
+.idea-card strong { color: #a5f3fc; display: block; margin-bottom: 4px; }
+.idea-card p { margin: 0; font-size: 0.75rem; color: #ccc; }
+
+/* Consistency */
+.consistency-issues { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+.issue { background: #1a1a1a; border: 1px solid #333; border-radius: 6px; padding: 10px; }
+.issue-contradiction { border-left: 3px solid #ef4444; }
+.issue-missing { border-left: 3px solid #f59e0b; }
+.issue strong { display: block; margin-bottom: 4px; }
+.issue p { margin: 0; font-size: 0.75rem; }
+.issue small { color: #666; font-size: 0.65rem; }
+.consistency-ok { color: #10b981; margin-top: 12px; }

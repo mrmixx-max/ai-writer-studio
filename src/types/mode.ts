@@ -27,4 +27,7 @@ export type EditorMode =
   | "watermark"
   | "tts"
   | "bookwriter"
-  | "markdown";
+  | "markdown"
+  | "wordstats"
+  | "ideas"
+  | "consistency";
