@@ -6,6 +6,7 @@ import Placeholder from "@tiptap/extension-placeholder";
 import { useEffect, useRef, useCallback, useState } from "react";
 import { useEditorStore } from "@/store/editorStore";
 import { tiptapToText, countWords, countChars } from "@/services/editor/count";
+import { markdownToHtml } from "@/services/editor/markdown";
 import {
   CommentMark,
   TcInsertMark,
@@ -107,12 +108,13 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
     }
   }, [editor, selectionMode]);
 
-  // BookWriter: Buch in Editor einfügen
+  // BookWriter: Buch in Editor einfügen (Markdown → HTML konvertieren)
   useEffect(() => {
     const handler = (e: Event) => {
       const { text } = (e as CustomEvent).detail;
       if (editor && text) {
-        editor.commands.setContent(text);
+        const html = markdownToHtml(text);
+        editor.commands.setContent(html, true);
       }
     };
     window.addEventListener("bookwriter:insert", handler);
@@ -201,6 +203,19 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
         </button>
         <button onClick={() => editor.chain().focus().toggleBlockquote().run()} className={editor.isActive("blockquote") ? "active" : ""}>
           ❝ Zitat
+        </button>
+        <button onClick={() => editor.chain().focus().setHorizontalRule().run()} title="Trennlinie">
+          ―
+        </button>
+        <button onClick={() => editor.chain().focus().setHardBreak().run()} title="Zeilenumbruch (Shift+Enter)">
+          ↵
+        </button>
+        <span className="toolbar-divider" />
+        <button onClick={() => editor.chain().focus().undo().run()} title="Rückgängig (Ctrl+Z)">
+          ↩
+        </button>
+        <button onClick={() => editor.chain().focus().redo().run()} title="Wiederholen (Ctrl+Y)">
+          ↪
         </button>
         <span className="toolbar-divider" />
         <button
