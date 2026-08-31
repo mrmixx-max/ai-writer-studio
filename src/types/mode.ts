@@ -26,4 +26,5 @@ export type EditorMode =
   | "investigate"
   | "watermark"
   | "tts"
-  | "bookwriter";
+  | "bookwriter"
+  | "markdown";

@@ -77,6 +77,9 @@ const TTSPanel = lazy(() =>
 const BookWriterPanel = lazy(() =>
   import("@/components/Writing/BookWriterPanel").then((m) => ({ default: m.BookWriterPanel }))
 );
+const MarkdownViewerPanel = lazy(() =>
+  import("@/components/Writing/MarkdownViewerPanel").then((m) => ({ default: m.MarkdownViewerPanel }))
+);
 const ResearchPanel = lazy(() =>
   import("@/components/Research/ResearchPanel").then((m) => ({ default: m.ResearchPanel }))
 );
@@ -116,6 +119,7 @@ const MODES: { id: EditorMode; label: string; icon: string }[] = [
   { id: "watermark", label: "Waschen", icon: "💧" },
   { id: "tts", label: "Vorlesen", icon: "🔊" },
   { id: "bookwriter", label: "Buch schreiben", icon: "📖" },
+  { id: "markdown", label: "Markdown", icon: "📝" },
 ];
 
 export function Sidebar() {
@@ -194,7 +198,7 @@ export function Sidebar() {
 
   if (inSpecialMode) {
     return (
-      <aside id="app-sidebar" tabIndex={-1} aria-label="Projektliste" className={`sidebar${mode === "knowledge" || mode === "research" || mode === "diagnostics" || mode === "preflight" || mode === "snapshots" || mode === "kdp" || mode === "publishing" || mode === "investigate" || mode === "watermark" || mode === "tts" || mode === "bookwriter" ? " wide" : ""}`}>
+      <aside id="app-sidebar" tabIndex={-1} aria-label="Projektliste" className={`sidebar${mode === "knowledge" || mode === "research" || mode === "diagnostics" || mode === "preflight" || mode === "snapshots" || mode === "kdp" || mode === "publishing" || mode === "investigate" || mode === "watermark" || mode === "tts" || mode === "bookwriter" || mode === "markdown" ? " wide" : ""}`}>
         {switcher}
         <div className="sidebar-content">
           <ModePanel mode={mode} projectId={activeProjectId} chapterId={activeChapterId} />
@@ -351,6 +355,7 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
       case "watermark": return <WatermarkPanel />;
       case "tts": return <TTSPanel />;
       case "bookwriter": return <BookWriterPanel />;
+      case "markdown": return <MarkdownViewerPanel />;
       default: return null;
     }
   })();
