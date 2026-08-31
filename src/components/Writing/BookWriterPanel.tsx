@@ -159,20 +159,36 @@ export function BookWriterPanel() {
             ))}
           </div>
           {fullText && (
-            <button
-              onClick={() => {
-                const blob = new Blob([fullText], { type: "text/markdown" });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = `${outline.title.replace(/[^a-zA-Z0-9]/g, "_")}.md`;
-                a.click();
-                URL.revokeObjectURL(url);
-              }}
-              className="bw-export"
-            >
-              📥 Als Markdown exportieren
-            </button>
+            <>
+              <button
+                onClick={() => {
+                  // Buch in den Haupt-Editor einfügen
+                  const evt = new CustomEvent("bookwriter:insert", {
+                    detail: { text: fullText, title: outline.title },
+                  });
+                  window.dispatchEvent(evt);
+                }}
+                className="bw-export"
+                style={{ background: "#4f46e5", marginRight: "8px" }}
+              >
+                📝 In Editor einfügen
+              </button>
+              <button
+                onClick={() => {
+                  // Markdown Download via Tauri FS
+                  const filename = `${outline.title.replace(/[^a-zA-Z0-9]/g, "_")}.md`;
+                  // Fallback: Text in neuem Tab anzeigen
+                  const w = window.open("", "_blank");
+                  if (w) {
+                    w.document.write(`<pre style="white-space:pre-wrap;font-family:monospace;padding:20px">${fullText.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>`);
+                    w.document.title = filename;
+                  }
+                }}
+                className="bw-export"
+              >
+                📥 Als Markdown anzeigen
+              </button>
+            </>
           )}
         </div>
       )}

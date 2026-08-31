@@ -107,6 +107,18 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
     }
   }, [editor, selectionMode]);
 
+  // BookWriter: Buch in Editor einfügen
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { text } = (e as CustomEvent).detail;
+      if (editor && text) {
+        editor.commands.setContent(text);
+      }
+    };
+    window.addEventListener("bookwriter:insert", handler);
+    return () => window.removeEventListener("bookwriter:insert", handler);
+  }, [editor]);
+
   // Editor-Instanz für das Outline-Panel speichern
   useEffect(() => {
     if (editor) setEditorInstance(editor);
