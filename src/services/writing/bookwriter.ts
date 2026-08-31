@@ -93,7 +93,7 @@ Genre: ${outline.genre} | Zielgruppe: ${outline.targetAudience} | Sprache: ${con
 Gliederung: ${contextChapters}
 Kapitel-${chapterNumber}-Details: ${chapter.summary}${prevCtx}
 
-Schreibe nur den Kapiteltext (min. 1000 Wörter). Keine Überschriften.`;
+Schreibe nur den Kapiteltext (min. 1000 Wörter). Keine Überschriften. WICHTIG: Nutze Absätze — füge zwischen Textblöcken eine Leerzeile ein (doppelter Zeilenumbruch).`;
 
   const chunks: string[] = [];
   for await (const chunk of provider.chat(

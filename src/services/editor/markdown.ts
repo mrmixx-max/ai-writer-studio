@@ -1,46 +1,44 @@
 // Markdown → HTML Konvertierung für den Editor.
 export function markdownToHtml(md: string): string {
-  const lines = md.split("\n");
+  // Normalize: \n\n → Paragraph break, single \n → space (unless special)
+  const blocks = md.split(/\n\s*\n/);
   const html: string[] = [];
-  let inParagraph = false;
 
-  for (const line of lines) {
+  for (const block of blocks) {
+    const trimmed = block.trim();
+    if (!trimmed) continue;
+
     // Überschriften
-    if (line.startsWith("### ")) {
-      if (inParagraph) { html.push("</p>"); inParagraph = false; }
-      html.push(`<h3>${escapeHtml(line.slice(4))}</h3>`);
-    } else if (line.startsWith("## ")) {
-      if (inParagraph) { html.push("</p>"); inParagraph = false; }
-      html.push(`<h2>${escapeHtml(line.slice(3))}</h2>`);
-    } else if (line.startsWith("# ")) {
-      if (inParagraph) { html.push("</p>"); inParagraph = false; }
-      html.push(`<h1>${escapeHtml(line.slice(2))}</h1>`);
-    } else if (line.trim() === "") {
-      if (inParagraph) { html.push("</p>"); inParagraph = false; }
-    } else if (line.startsWith("---")) {
-      if (inParagraph) { html.push("</p>"); inParagraph = false; }
+    if (trimmed.startsWith("### ")) {
+      html.push(`<h3>${inlineFormat(trimmed.slice(4))}</h3>`);
+    } else if (trimmed.startsWith("## ")) {
+      html.push(`<h2>${inlineFormat(trimmed.slice(3))}</h2>`);
+    } else if (trimmed.startsWith("# ")) {
+      html.push(`<h1>${inlineFormat(trimmed.slice(2))}</h1>`);
+    } else if (trimmed.startsWith("---")) {
       html.push("<hr/>");
-    } else if (line.startsWith("> ")) {
-      if (inParagraph) { html.push("</p>"); inParagraph = false; }
-      html.push(`<blockquote><p>${escapeHtml(line.slice(2))}</p></blockquote>`);
-    } else if (line.startsWith("- ") || line.startsWith("* ")) {
-      if (inParagraph) { html.push("</p>"); inParagraph = false; }
-      html.push(`<ul><li>${escapeHtml(line.slice(2))}</li></ul>`);
+    } else if (trimmed.startsWith("> ")) {
+      html.push(`<blockquote><p>${inlineFormat(trimmed.slice(2))}</p></blockquote>`);
+    } else if (trimmed.startsWith("- ") || trimmed.startsWith("* ")) {
+      const items = trimmed.split("\n").map((l) => `<li>${inlineFormat(l.replace(/^[-*]\s/, ""))}</li>`);
+      html.push(`<ul>${items.join("")}</ul>`);
     } else {
-      // Absatz
-      if (!inParagraph) { html.push("<p>"); inParagraph = true; }
-      html.push(escapeHtml(line) + " ");
+      // Absatz (ersetze Zeilenumbrüche durch Leerzeichen)
+      html.push(`<p>${inlineFormat(trimmed.replace(/\n+/g, " "))}</p>`);
     }
   }
-  if (inParagraph) html.push("</p>");
   return html.join("\n");
+}
+
+function inlineFormat(text: string): string {
+  return escapeHtml(text)
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.+?)\*/g, "<em>$1</em>");
 }
 
 function escapeHtml(text: string): string {
   return text
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*(.+?)\*/g, "<em>$1</em>");
+    .replace(/>/g, "&gt;");
 }
