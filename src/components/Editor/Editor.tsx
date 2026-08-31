@@ -186,13 +186,45 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
         <button onClick={() => editor.chain().focus().toggleItalic().run()} className={editor.isActive("italic") ? "active" : ""}>
           <i>I</i>
         </button>
-        <button onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} className={editor.isActive("heading", { level: 1 }) ? "active" : ""}>
+        <button onClick={() => {
+          const { from, empty } = editor.state.selection;
+          if (empty) {
+            // Keine Markierung: nur aktuelle Zeile als Heading
+            const $pos = editor.state.doc.resolve(from);
+            const start = $pos.start($pos.depth);
+            const end = $pos.end($pos.depth);
+            editor.chain().focus().setTextSelection({ start, end }).toggleHeading({ level: 1 }).run();
+          } else {
+            // Markierung: nur markierten Text
+            editor.chain().focus().toggleHeading({ level: 1 }).run();
+          }
+        }} className={editor.isActive("heading", { level: 1 }) ? "active" : ""}>
           H1
         </button>
-        <button onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className={editor.isActive("heading", { level: 2 }) ? "active" : ""}>
+        <button onClick={() => {
+          const { from, empty } = editor.state.selection;
+          if (empty) {
+            const $pos = editor.state.doc.resolve(from);
+            const start = $pos.start($pos.depth);
+            const end = $pos.end($pos.depth);
+            editor.chain().focus().setTextSelection({ start, end }).toggleHeading({ level: 2 }).run();
+          } else {
+            editor.chain().focus().toggleHeading({ level: 2 }).run();
+          }
+        }} className={editor.isActive("heading", { level: 2 }) ? "active" : ""}>
           H2
         </button>
-        <button onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} className={editor.isActive("heading", { level: 3 }) ? "active" : ""}>
+        <button onClick={() => {
+          const { from, empty } = editor.state.selection;
+          if (empty) {
+            const $pos = editor.state.doc.resolve(from);
+            const start = $pos.start($pos.depth);
+            const end = $pos.end($pos.depth);
+            editor.chain().focus().setTextSelection({ start, end }).toggleHeading({ level: 3 }).run();
+          } else {
+            editor.chain().focus().toggleHeading({ level: 3 }).run();
+          }
+        }} className={editor.isActive("heading", { level: 3 }) ? "active" : ""}>
           H3
         </button>
         <button onClick={() => editor.chain().focus().toggleBulletList().run()} className={editor.isActive("bulletList") ? "active" : ""}>
