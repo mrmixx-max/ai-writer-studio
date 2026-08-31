@@ -2,9 +2,13 @@
 import { useState, useRef, useCallback } from "react";
 import { generateOutline, generateChapter, type BookOutline, type BookChapter } from "@/services/writing/bookwriter";
 import { useActiveModel } from "@/components/KIPanel/useActiveModel";
+import { useProjectStore } from "@/store/projectStore";
+import { markdownToTipTap } from "@/services/editor/markdown";
 
 export function BookWriterPanel() {
   const { settings } = useActiveModel();
+  const newChapter = useProjectStore((s) => s.newChapter);
+  const activeProjectId = useProjectStore((s) => s.activeProjectId);
   const [topic, setTopic] = useState("");
   const [genre, setGenre] = useState("Sachbuch");
   const [targetAudience, setTargetAudience] = useState("Erwachsene");
@@ -158,26 +162,30 @@ export function BookWriterPanel() {
               </details>
             ))}
           </div>
-          {fullText && (
+          {outline && chapters.length > 0 && (
             <>
               <button
                 onClick={() => {
-                  // Buch in den Haupt-Editor einfügen
-                  const evt = new CustomEvent("bookwriter:insert", {
-                    detail: { text: fullText, title: outline.title },
-                  });
-                  window.dispatchEvent(evt);
+                  if (!activeProjectId) {
+                    alert("Bitte erst ein Projekt öffnen/anlegen!");
+                    return;
+                  }
+                  // Kapitel mit Content anlegen
+                  for (const ch of chapters) {
+                    const md = `## Kapitel ${ch.number}: ${ch.title}\n\n${ch.content}`;
+                    const tipTapJson = markdownToTipTap(md);
+                    newChapter(`Kapitel ${ch.number}: ${ch.title}`, tipTapJson);
+                  }
+                  setLiveText((prev) => prev + `\n📚 ${chapters.length} Kapitel mit Content angelegt!`);
                 }}
                 className="bw-export"
                 style={{ background: "#4f46e5", marginRight: "8px" }}
               >
-                📝 In Editor einfügen
+                📚 Kapitel anlegen ({chapters.length})
               </button>
               <button
                 onClick={() => {
-                  // Markdown Download via Tauri FS
                   const filename = `${outline.title.replace(/[^a-zA-Z0-9]/g, "_")}.md`;
-                  // Fallback: Text in neuem Tab anzeigen
                   const w = window.open("", "_blank");
                   if (w) {
                     w.document.write(`<pre style="white-space:pre-wrap;font-family:monospace;padding:20px">${fullText.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</pre>`);

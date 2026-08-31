@@ -40,10 +40,10 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     // async persist im Hintergrund; State sofort aktualisieren
     Promise.resolve(p).then((proj) => set({ projects: listProjects(), activeProjectId: proj.id, chapters: [] }));
   },
-  newChapter: (title) => {
+  newChapter: (title, content) => {
     const pid = get().activeProjectId;
     if (!pid) return;
-    const c = createChapter(pid, title);
+    const c = createChapter(pid, title, content);
     Promise.resolve(c).then((chap) => set({ chapters: listChapters(pid), activeChapterId: chap.id, activeContent: chap.content }));
   },
   setActiveContent: (c) => set({ activeContent: c }),
