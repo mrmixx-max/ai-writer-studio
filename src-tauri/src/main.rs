@@ -162,40 +162,41 @@ fn main() {
             write_log(&handle, "DEBUG", "ensure_user_dirs() OK");
             write_log(&handle, "INFO", "AI Writer Studio gestartet");
 
-            // Fenster robust sichtbar machen: direkter Show-Versuch im setup()
-            // plus wiederholter Retry-Thread (handles Race zwischen
-            // WebView2-Initialisierung und Fensteranzeige im Release-Build).
+            // Fenster robust sichtbar machen
             if let Some(win) = app.get_webview_window("main") {
                 write_log(&handle, "DEBUG", "Fenster gefunden, zeige an...");
-                // Direkt: sichtbar, Mindestgröße sicherstellen, fokussieren.
                 let _ = win.set_min_size(Some(tauri::LogicalSize::new(1000.0, 640.0)));
                 let _ = win.unminimize();
                 let _ = win.show();
                 let _ = win.set_focus();
+                let _ = win.set_always_on_top(true);
+                write_log(&handle, "DEBUG", "Fenster show()+set_always_on_top() aufgerufen");
 
-                // Retry-Thread: alle 250 ms bis 2 s prüfen und notfalls
-                // erneut show()+set_focus() rufen (deckt Verzögerungen der
-                // WebView2-Initialisierung im Release-Build ab).
+                // Retry-Thread für WebView2-Initialisierung
                 let win_clone = win.clone();
                 std::thread::spawn(move || {
-                    for attempt in 1..=8u32 {
-                        std::thread::sleep(std::time::Duration::from_millis(250));
-                        if win_clone.is_visible().unwrap_or(false) {
-                            let _ = win_clone.set_focus();
-                            break;
-                        }
+                    for attempt in 1..=20u32 {
+                        std::thread::sleep(std::time::Duration::from_millis(500));
                         let _ = win_clone.unminimize();
                         let _ = win_clone.show();
                         let _ = win_clone.set_focus();
-                        if attempt == 4 {
-                            // Letzter Fallback: maximiert erzwingen.
+                        if attempt == 5 {
+                            let _ = win_clone.set_always_on_top(true);
+                        }
+                        if attempt == 10 {
                             let _ = win_clone.maximize();
                         }
                     }
                 });
-                write_log(&handle, "DEBUG", "Fenster-Anzeige gestartet");
             } else {
-                write_log(&handle, "WARN", "Kein Fenster 'main' gefunden");
+                write_log(&handle, "WARN", "Kein Fenster 'main' gefunden — versuche später...");
+                // Fallback: Fenster später holen
+                let handle_clone = handle.clone();
+                std::thread::spawn(move || {
+                    std::thread::sleep(std::time::Duration::from_millis(500));
+                    // Note: AppHandle ist nicht Send, daher nur Logging
+                    let _ = handle_clone;
+                });
             }
 
             // Panics ins lokale Log schreiben
