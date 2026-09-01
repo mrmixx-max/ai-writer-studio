@@ -7,7 +7,7 @@
 // baut aus den Kapiteln ein valides Paket inkl. Copyright-/Titelseite und liefert
 // eine Checkliste je Plattform.
 
-import JSZip from "jszip";
+// jszip wird lazy geladen — siehe Kommentar in services/export/index.ts.
 import { listChapters, getChapter } from "@/services/project";
 import type { Project } from "@/types/project";
 import { toBlocks, toDocx, toEpub, type Block } from "@/services/export";
@@ -161,6 +161,7 @@ export async function buildAllPublishPackages(
  * Nützlich, um alle Plattform-Artefakte in einem Rutsch abzulegen.
  */
 export async function downloadPublishBundle(packages: PublishPackage[]): Promise<void> {
+  const JSZip = (await import("jszip")).default;
   const zip = new JSZip();
   for (const pkg of packages) {
     const buf = await pkg.blob.arrayBuffer();

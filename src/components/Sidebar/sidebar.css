@@ -128,3 +128,28 @@
   font-size: 11px;
   padding: 0 3px;
 }
+
+/* node-actions sind per Hover sichtbar — auch bei Tastaturfokus zeigen. */
+.node:focus-within .node-actions,
+.node-actions:focus-within {
+  opacity: 1;
+}
+
+/* Zeilen sind per Tastatur erreichbar (tabIndex in Sidebar.tsx). */
+.node[role="button"]:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+}
+
+/*
+  Responsive: Bei schmalen Fenstern (z.B. 1280x720 mit breitem KI-Panel)
+  gibt die Sidebar Platz frei, statt den Editor unter Mindestbreite zu drücken.
+*/
+@media (max-width: 1100px) {
+  .sidebar { width: 260px; min-width: 260px; }
+  .sidebar.wide { width: 340px; min-width: 340px; }
+}
+@media (min-width: 2400px) {
+  /* 4K: Fließtext in der Sidebar nicht winzig wirken lassen. */
+  .sidebar { width: 380px; min-width: 380px; font-size: 15px; }
+}

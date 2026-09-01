@@ -201,6 +201,8 @@ export function Sidebar() {
         <button
           key={m.id}
           title={m.label}
+          aria-label={m.label}
+          aria-pressed={mode === m.id}
           className={mode === m.id ? "active" : ""}
           onClick={() => {
             setMode(m.id);
@@ -302,11 +304,20 @@ const ChapterRow = memo(function ChapterRow({
 }) {
   return (
     <li className={active ? "active" : ""}>
-      <div className="node" onClick={() => actions.onOpenChapter(chapter.id)}>
+      <div
+        className="node"
+        role="button"
+        tabIndex={0}
+        aria-label={`Kapitel öffnen: ${chapter.title}`}
+        onClick={() => actions.onOpenChapter(chapter.id)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); actions.onOpenChapter(chapter.id); }
+        }}
+      >
         📄 {chapter.title}
         <span className="node-actions">
-          <button onClick={(e) => { e.stopPropagation(); actions.onRenameChapter(projectId, chapter.id, chapter.title); }}>✎</button>
-          <button onClick={(e) => { e.stopPropagation(); actions.onDeleteChapter(projectId, chapter.id); }}>🗑</button>
+          <button aria-label={`Kapitel "${chapter.title}" umbenennen`} onClick={(e) => { e.stopPropagation(); actions.onRenameChapter(projectId, chapter.id, chapter.title); }}>✎</button>
+          <button aria-label={`Kapitel "${chapter.title}" löschen`} onClick={(e) => { e.stopPropagation(); actions.onDeleteChapter(projectId, chapter.id); }}>🗑</button>
         </span>
       </div>
     </li>
@@ -324,11 +335,20 @@ const ProjectRow = memo(function ProjectRow({
 }) {
   return (
     <li className={active ? "active" : ""}>
-      <div className="node" onClick={() => actions.onOpenProject(project.id)}>
+      <div
+        className="node"
+        role="button"
+        tabIndex={0}
+        aria-label={`Projekt öffnen: ${project.name}`}
+        onClick={() => actions.onOpenProject(project.id)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); actions.onOpenProject(project.id); }
+        }}
+      >
         📁 {project.name}
         <span className="node-actions">
-          <button onClick={(e) => { e.stopPropagation(); actions.onRenameProject(project.id, project.name); }}>✎</button>
-          <button onClick={(e) => { e.stopPropagation(); actions.onDeleteProject(project.id); }}>🗑</button>
+          <button aria-label={`Projekt "${project.name}" umbenennen`} onClick={(e) => { e.stopPropagation(); actions.onRenameProject(project.id, project.name); }}>✎</button>
+          <button aria-label={`Projekt "${project.name}" löschen`} onClick={(e) => { e.stopPropagation(); actions.onDeleteProject(project.id); }}>🗑</button>
         </span>
       </div>
       {active && (

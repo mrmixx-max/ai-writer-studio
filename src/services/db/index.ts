@@ -111,9 +111,20 @@ async function resolveDbPath(): Promise<string> {
 export async function initDb(): Promise<Database> {
   if (db && SQL) return db;
   await logToFile("INFO", "initDb() gestartet");
-  SQL = await initSqlJs({
-    locateFile: () => wasmUrl,
-  });
+  // Timeout-Race: Wenn das WASM (selten, aber beobachtet) hängt oder der
+  // WebView-Compiler extrem langsam ist, bleibt der Splash sonst für immer
+  // stehen. Nach 30 s brechen wir ab — App.tsx zeigt dann die dbError-Meldung,
+  // statt den Nutzer mit einem eingefrorenen Splash allein zu lassen.
+  const WASM_TIMEOUT_MS = 30_000;
+  SQL = await Promise.race([
+    initSqlJs({ locateFile: () => wasmUrl }),
+    new Promise<never>((_, reject) =>
+      setTimeout(
+        () => reject(new Error(`sql.js WASM-Init nach ${WASM_TIMEOUT_MS / 1000}s abgebrochen (Timeout)`)),
+        WASM_TIMEOUT_MS,
+      ),
+    ),
+  ]);
 
   const tauriDetected = hasTauri();
   const modulesLoaded = tauriDetected ? await loadTauriModules() : false;

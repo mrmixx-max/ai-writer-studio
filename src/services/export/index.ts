@@ -1,8 +1,5 @@
 // Export-Service: DOCX, MD, TXT, PDF, EPUB aus TipTap-JSON.
 // KDP-Ready: vollständige EPUBs mit CSS, PDF mit Seitenzahlen, DOCX mit Styles.
-import { Document, Packer, Paragraph, HeadingLevel, TextRun, AlignmentType, convertInchesToTwip } from "docx";
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
-import JSZip from "jszip";
 import { listChapters, getChapter } from "@/services/project";
 import { buildCommentAppendix } from "@/services/collaboration/sharing";
 import type { Project } from "@/types/project";
@@ -75,7 +72,11 @@ function textOf(node: any): string {
 // --- DOCX ------------------------------------------------------------------
 
 async function toDocx(blocks: Block[], title: string): Promise<Blob> {
-  const children: Paragraph[] = [
+  const {
+    Document, Packer, Paragraph, HeadingLevel, TextRun,
+    AlignmentType, convertInchesToTwip,
+  } = await import("docx");
+  const children = [
     new Paragraph({
       text: title,
       heading: HeadingLevel.TITLE,
@@ -165,16 +166,17 @@ export interface PdfLayoutOptions {
   hfFontSizePt?: number;
 }
 
-const PDF_FONTS: Record<
-  NonNullable<PdfLayoutOptions["fontFamily"]>,
-  { regular: StandardFonts; bold: StandardFonts; mono: StandardFonts }
-> = {
-  serif: { regular: StandardFonts.TimesRoman, bold: StandardFonts.TimesRomanBold, mono: StandardFonts.Courier },
-  sans: { regular: StandardFonts.Helvetica, bold: StandardFonts.HelveticaBold, mono: StandardFonts.Courier },
-  mono: { regular: StandardFonts.Courier, bold: StandardFonts.CourierBold, mono: StandardFonts.Courier },
-};
-
 async function toPdf(blocks: Block[], title: string, options: PdfLayoutOptions = {}): Promise<Blob> {
+  const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
+  const PDF_FONTS: Record<
+    NonNullable<PdfLayoutOptions["fontFamily"]>,
+    { regular: string; bold: string; mono: string }
+  > = {
+    serif: { regular: StandardFonts.TimesRoman, bold: StandardFonts.TimesRomanBold, mono: StandardFonts.Courier },
+    sans: { regular: StandardFonts.Helvetica, bold: StandardFonts.HelveticaBold, mono: StandardFonts.Courier },
+    mono: { regular: StandardFonts.Courier, bold: StandardFonts.CourierBold, mono: StandardFonts.Courier },
+  };
+
   const {
     pageWidthPt = 595.28,
     pageHeightPt = 841.89,
@@ -189,7 +191,6 @@ async function toPdf(blocks: Block[], title: string, options: PdfLayoutOptions =
     footer,
     hfFontSizePt = 9,
   } = options;
-
   const pdf = await PDFDocument.create();
   const f = PDF_FONTS[fontFamily];
   const font = await pdf.embedFont(f.regular);
@@ -343,6 +344,7 @@ img { max-width: 100%; height: auto; }
 `;
 
 async function toEpub(blocks: Block[], title: string, author: string = "Autor"): Promise<Blob> {
+  const JSZip = (await import("jszip")).default;
   const zip = new JSZip();
   zip.file("mimetype", "application/epub+zip");
 
