@@ -119,10 +119,6 @@ fn startup_file() -> Option<String> {
 }
 
 fn main() {
-    // Software-Rendering erzwingen (fixt tao-0.35.x Event-Loop-Crash auf Windows)
-    #[cfg(windows)]
-    std::env::set_var("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS", "--disable-gpu");
-
     tauri::Builder::default()
         // Muss VOR dem Fenster-/Webview-Aufbau registriert werden (siehe Cargo.toml).
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
@@ -155,13 +151,24 @@ fn main() {
             write_log(&handle, "DEBUG", "ensure_user_dirs() OK");
             write_log(&handle, "INFO", "AI Writer Studio gestartet");
 
-            // Fenster explizit anzeigen — inkl. Unminimize, falls tao das
-            // Fenster in einem minimierten Zustand erzeugt hat.
+            // Fenster explizit anzeigen und in den Vordergrund holen
             if let Some(win) = app.get_webview_window("main") {
                 write_log(&handle, "DEBUG", "Fenster gefunden, zeige an...");
                 let _ = win.unminimize();
                 let _ = win.show();
                 let _ = win.set_focus();
+                // Fenster in die Mitte des Bildschirms setzen
+                if let Ok(monitor) = win.current_monitor() {
+                    if let Some(monitor) = monitor {
+                        let size = monitor.size();
+                        let pos = tauri::LogicalPosition::new(
+                            (size.width - 1280) / 2,
+                            (size.height - 800) / 2,
+                        );
+                        let _ = win.set_position(pos);
+                        write_log(&handle, "DEBUG", &format!("Fenster positioniert bei {:?}", pos));
+                    }
+                }
                 write_log(&handle, "DEBUG", "Fenster angezeigt");
             } else {
                 write_log(&handle, "WARN", "Kein Fenster 'main' gefunden");
