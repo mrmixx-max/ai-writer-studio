@@ -7,12 +7,36 @@
 //   4. Übergabe von Datei-Argumenten (.aiwsproj / .aiwschapter) an das Frontend
 //   5. Bereitstellung von App-Metadaten für den About-Dialog
 
-#![cfg_attr(debug_assertions, windows_subsystem = "windows")]
+#![cfg_attr(not(debug_assertions), windows_subsystem = "console")]
 
 use std::fs;
 use std::io::Write;
 use std::path::PathBuf;
 use tauri::{Emitter, Manager};
+
+/// Win32-Fallback: Tauris unminimize()/maximize() stellen das beim Start
+/// minimierte Release-Fenster nicht zuverlässig wieder her (beobachtet:
+/// iconic bleibt true). ShowWindow(SW_RESTORE) ist die verlässliche
+/// Windows-Primitive und wird daher direkt verwendet.
+#[cfg(windows)]
+fn force_restore(hwnd_isize: isize) -> bool {
+    use windows::Win32::Foundation::HWND;
+    use windows::Win32::UI::WindowsAndMessaging::{SetForegroundWindow, ShowWindow, SW_RESTORE};
+    unsafe {
+        let h = HWND(hwnd_isize as *mut _);
+        let ok = ShowWindow(h, SW_RESTORE).as_bool();
+        let _ = SetForegroundWindow(h);
+        ok
+    }
+}
+
+/// Prüft, ob ein Fenster minimiert ist (Win32 IsIconic).
+#[cfg(windows)]
+fn is_iconic(hwnd_isize: isize) -> bool {
+    use windows::Win32::Foundation::HWND;
+    use windows::Win32::UI::WindowsAndMessaging::IsIconic;
+    unsafe { IsIconic(HWND(hwnd_isize as *mut _)).as_bool() }
+}
 
 mod git;
 mod updater;
@@ -169,23 +193,34 @@ fn main() {
                 let _ = win.unminimize();
                 let _ = win.show();
                 let _ = win.set_focus();
-                let _ = win.set_always_on_top(true);
-                write_log(&handle, "DEBUG", "Fenster show()+set_always_on_top() aufgerufen");
+                write_log(&handle, "DEBUG", "Fenster show()+set_focus() aufgerufen");
 
-                // Retry-Thread für WebView2-Initialisierung
+                // Retry-Thread: Win32-SW_RESTORE, solange das Fenster
+                // minimiert ist (is_visible() liefert bei minimierten
+                // Fenstern true und darf NICHT als Abbruchkriterium dienen).
                 let win_clone = win.clone();
                 std::thread::spawn(move || {
+                    #[cfg(windows)]
+                    let hwnd: Option<isize> = win_clone.hwnd().ok().map(|h| h.0 as isize);
+                    #[cfg(not(windows))]
+                    let hwnd: Option<isize> = None;
+
                     for attempt in 1..=20u32 {
                         std::thread::sleep(std::time::Duration::from_millis(500));
+                        let iconic = hwnd.map(|h| is_iconic(h)).unwrap_or(false);
+                        if !iconic {
+                            if win_clone.is_visible().unwrap_or(false) {
+                                break;
+                            }
+                            let _ = win_clone.show();
+                            let _ = win_clone.set_focus();
+                            continue;
+                        }
+                        let restored = hwnd.map(force_restore).unwrap_or(false);
                         let _ = win_clone.unminimize();
                         let _ = win_clone.show();
                         let _ = win_clone.set_focus();
-                        if attempt == 5 {
-                            let _ = win_clone.set_always_on_top(true);
-                        }
-                        if attempt == 10 {
-                            let _ = win_clone.maximize();
-                        }
+                        let _ = restored; // nur Logging-Interesse
                     }
                 });
             } else {
