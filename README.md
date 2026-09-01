@@ -12,10 +12,12 @@ einrichtest.
 
 ## Inhalt
 
+- [Funktionen](#funktionen) — Detailübersicht: [FEATURES.md](FEATURES.md) · Änderungen: [CHANGELOG.md](CHANGELOG.md)
+- [Systemanforderungen](#systemanforderungen)
 - [Schnellstart](#schnellstart)
-- [Funktionen](#funktionen)
 - [Wo deine Daten liegen](#wo-deine-daten-liegen)
 - [KI-Anbieter einrichten](#ki-anbieter-einrichten)
+- [Häufige Fragen (FAQ)](#häufige-fragen-faq)
 - [Windows-Build](#windows-build)
 - [Installer erstellen](#installer-erstellen)
 - [Stille Installation](#stille-installation)
@@ -28,7 +30,32 @@ einrichtest.
 
 ---
 
+## Systemanforderungen
+
+| Anforderung | Minimum | Empfohlen |
+|---|---|---|
+| Betriebssystem | Windows 11 (10 64-bit läuft meist) | Windows 11 22H2 oder neuer |
+| Arbeitsspeicher | 4 GB | 8 GB |
+| Festplatte | 500 MB für die App | 2 GB frei (inkl. Modelle-Platzhalter) |
+| Grafik | beliebig | für lokale LLMs: GPU mit ≥ 8 GB VRAM |
+| Sonstiges | WebView2 (liefert der Installer bei Bedarf mit) | — |
+
+Die App selbst läuft ohne GPU. Lokale KI-Modelle über Ollama profitieren
+deutlich von einer eigenen Grafikkarte; ohne GPU funktioniert Ollama auf der
+CPU, nur langsamer.
+
 ## Schnellstart
+
+### Dein erstes Projekt, dein erstes Kapitel, dein erster Export
+
+1. **Projekt anlegen:** Nach dem Start auf „+ Projekt" klicken, Titel und
+   Genre eingeben — der Erststart-Assistent führt dorthin.
+2. **Kapitel schreiben:** Im Editor tippen oder per BookWriter eine Outline
+   generieren lassen und Kapitel erzeugen. Es wird automatisch gespeichert.
+3. **Prüfen:** Manuskriptprüfung (🔍) auf Konsistenz und Stil laufen lassen,
+   danach den KDP-/Export-Preflight (✅).
+4. **Exportieren:** Export-Menü öffnen, Format wählen (DOCX, EPUB, PDF,
+   Markdown, TXT), Bereich wählen (Kapitel oder ganzes Projekt), speichern.
 
 ### Für Anwender
 
@@ -115,6 +142,40 @@ Jedes Ergebnis sagt ausdrücklich, ob es vollwertig oder eingeschränkt ist.
 Weiterschreiben, Umschreiben, Zusammenfassen, Korrektur, Brainstorming, freier
 Chat — jeweils mit oder ohne Projektkontext. Dazu Stimmen-Labor,
 Abweichungs-Detektor, Dialog mit dem Text und Traumlogik-Modi.
+
+### BookWriter (KI-Romanpipeline)
+
+Vollautomatischer Romanmodus: Inventar/Outline erzeugen, Kapitel mit Streaming
+generieren, pausieren und regenerieren, Qualität prüfen — Kapitel landen mit
+einem Klick als echtes Kapitel im Editor. Optionale Bildgenerierung
+(DALL-E, Flux, lokale SD) für Bookwriter-Dokumente.
+
+### Markdown-Viewer/Editor
+
+Split-Ansicht: Markdown links, gerenderte Vorschau rechts. Editieren,
+speichern, Toolbar mit Undo/Redo, Überschriften, Linien. Markdown→HTML-
+Konvertierung auch im Haupteditor.
+
+### Plugins
+
+WordStats (Stil-Kennwerte), Ideas (Schreibimpulse), Consistency
+(Konsistenz-Befunde), Markdown (Markdown-Werkzeuge) — verwaltet über den
+integrierten Plugin-Manager.
+
+### Audio & Sprache
+
+Whisper-Transkription (Diktieren statt tippen), TTS (Text vorlesen),
+Stimmen-Labor.
+
+### Investigative Journalism & Wasserzeichen-Erkennung
+
+Recherche-Module für investigative Arbeiten sowie Erkennung von
+Text-Wasserzeichen in importierten/manuskriptnahen Texten.
+
+### KDP-Integration
+
+KDP-Service mit Metriken, Exportvorbereitung, Blurb-Generator, Cover-Prompt-
+Optimierer und Export-Preflight (siehe unten).
 
 ### Export
 
@@ -254,6 +315,54 @@ Erwartet unter `http://localhost:1234`.
 API-Schlüssel in den Einstellungen eintragen. **Hinweis:** Dabei werden
 Textausschnitte an OpenAI übertragen. Der Schlüssel wird ausschließlich lokal
 gespeichert und nur auf ausdrücklichen Knopfdruck geprüft.
+
+---
+
+## Häufige Fragen (FAQ)
+
+**Brauche ich Ollama oder einen API-Schlüssel?**
+Nein. Ohne KI-Anbindung funktionieren Editor, Projektverwaltung, Manuskriptprüfung, Preflight, Export und die lexikalische Projektsuche vollständig. KI-Modelle ergänzen die App nur.
+
+**Wie richte ich Ollama ein?**
+Von https://ollama.com installieren, dann in einer Konsole:
+`ollama serve`, `ollama pull llama3.2` (Textmodell) und optional
+`ollama pull nomic-embed-text` (semantische Suche). Die App findet Ollama
+unter `http://localhost:11434` automatisch.
+
+**Welche Cloud-Anbieter werden unterstützt?**
+OpenAI und jeder OpenAI-kompatible Endpunkt (LM Studio, OpenRouter u. a.).
+Den API-Schlüssel in den Einstellungen eintragen — er bleibt lokal, die
+App überträgt nichts außer den Textausschnitten, die du an das Modell sendest.
+
+**Wo liegen meine Daten?**
+Unter `%APPDATA%\com.aiwriterstudio.app\user_data\app.db` — nie im
+Installationsordner. Sichern heißt: Ordner kopieren.
+
+**Werden meine Texte ohne mein Zutun hochgeladen?**
+Nein. Es gibt kein Konto und keine Übertragung, solange du keinen
+Cloud-Anbieter einrichtest. Cloud-Sync ist optional (Dropbox, WebDAV).
+
+**Warum findet die semantische Suche nichts?**
+Ohne geladenes Einbettungsmodell arbeitet sie als rein lexikalische BM25-
+Suche weiter — sie findet dann nur wörtliche Treffer. `nomic-embed-text`
+über Ollama aktiviert die volle semantische Suche.
+
+**Muss ich KI-Verwendung bei KDP angeben?**
+Amazon verlangt die Offenlegung KI-generierter Inhalte beim Upload im
+KDP-Konto. Die App speichert den Hinweis im Preflight-Bereich und überträgt
+selbst nichts.
+
+**Was installiert der Installer?**
+Nur Release-Artefakte nach `%LOCALAPPDATA%\Programs\AI Writer Studio\` —
+ohne Administratorrechte. Deinstallation entfernt die Nutzerdaten nicht.
+
+**Läuft die App auf macOS oder Linux?**
+Nein, aktuell Windows only (Tauri 2 würde es erlauben, aber es gibt noch
+keine macOS-/Linux-Builds).
+
+**Ich habe einen Bug gefunden**
+Issue auf https://github.com/mrmixx-max/ai-writer-studio/issues öffnen —
+mit Log aus `%APPDATA%\com.aiwriterstudio.app\logs\app.log`.
 
 ---
 
@@ -738,6 +847,6 @@ sonst droht eine beschädigte SQLite-Datei.
 
 ## Lizenz
 
-MIT. Siehe [LICENSE.txt](LICENSE.txt).
+Apache-2.0. Siehe [LICENSE.txt](LICENSE.txt).
 
 © 2026 Erik Gieske

@@ -4,6 +4,34 @@ Alle nennenswerten Änderungen an AI Writer Studio werden in dieser Datei
 dokumentiert. Das Format folgt [Keep a Changelog](https://keepachangelog.com/de/1.1.0/)
 und [Semantic Versioning](https://semver.org/).
 
+## [Unreleased] — Änderungen seit [1.0.0]
+
+### Added — BookWriter
+- Kapitel-Content-Integration: generierte Kapitel werden als echtes Kapitel (TipTap JSON) im Editor angelegt (30415ea, 29bfe89)
+- Vollautomatischer BookWriter: Outline + Kapitel via Ollama (4b23d14)
+- Live-Vorschau während der Generierung (93c542a)
+- Robustes JSON-Parsing für BookWriter-Antworten (extractJson) (b352347)
+
+### Added — Markdown & Plugins
+- Markdown-Viewer/Editor mit Split-Preview, Editieren und Speichern (cd27460)
+- Markdown→HTML-Konvertierung + erweiterte Toolbar (Undo/Redo, Überschriften, Linie) (a6f579b)
+- Vier neue Plugins: WordStats, Ideas, Consistency, Markdown (ceba95e)
+
+### Fixed
+- H1/H2/H3-Buttons wirken nur auf die aktuelle Zeile/Selection statt auf den ganzen Text (5c6a728)
+- Release-Build: Fenster bleibt sichtbar — `.show()` entfernt, Sichtbarkeit via tauri.conf.json (acf1770)
+- Fenster-Startposition x=100/y=100 (Fenster war unsichtbar) (e4d5265)
+- Absätze im BookWriter-Prompt + Markdown-Parser (7b0e69a)
+- BookWriter-Export: in Editor einfügen + Markdown anzeigen (ad397ee)
+- BookWriter-Timeouts: 120 s/180 s, timeoutMs in ChatOptions (5f8ad82, 0ef7314)
+- openai-compatible listModels-Timeout (b336f28)
+- setLiveText als Arrow Function (554e968)
+- BookWriter-Import-Pfad + ungenutzte Variable (fecdd07)
+- ModelPicker: verkürzter Modellname ohne `hf.co/`-Präfix (5c09afc, 3e4c5ea)
+
+### Changed
+- ModelPicker vom App-Header in die Statusleiste verschoben (nach Crash-Reverts, 00d070a)
+
 ## [1.0.0] — 2026-08-28
 
 Erster produktionsreifer Release. Enthält alle Features seit dem initialen
