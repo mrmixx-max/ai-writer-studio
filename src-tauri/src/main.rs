@@ -151,25 +151,18 @@ fn main() {
             write_log(&handle, "DEBUG", "ensure_user_dirs() OK");
             write_log(&handle, "INFO", "AI Writer Studio gestartet");
 
-            // Fenster explizit anzeigen und in den Vordergrund holen
+            // Fenster explizit anzeigen — verzögert, da das Fenster
+            // beim setup() hook noch nicht vollständig erstellt ist.
             if let Some(win) = app.get_webview_window("main") {
                 write_log(&handle, "DEBUG", "Fenster gefunden, zeige an...");
-                let _ = win.unminimize();
-                let _ = win.show();
-                let _ = win.set_focus();
-                // Fenster in die Mitte des Bildschirms setzen
-                if let Ok(monitor) = win.current_monitor() {
-                    if let Some(monitor) = monitor {
-                        let size = monitor.size();
-                        let pos = tauri::LogicalPosition::new(
-                            (size.width - 1280) / 2,
-                            (size.height - 800) / 2,
-                        );
-                        let _ = win.set_position(pos);
-                        write_log(&handle, "DEBUG", &format!("Fenster positioniert bei {:?}", pos));
-                    }
-                }
-                write_log(&handle, "DEBUG", "Fenster angezeigt");
+                let win_clone = win.clone();
+                std::thread::spawn(move || {
+                    std::thread::sleep(std::time::Duration::from_millis(100));
+                    let _ = win_clone.unminimize();
+                    let _ = win_clone.show();
+                    let _ = win_clone.set_focus();
+                });
+                write_log(&handle, "DEBUG", "Fenster-Anzeige gestartet");
             } else {
                 write_log(&handle, "WARN", "Kein Fenster 'main' gefunden");
             }
