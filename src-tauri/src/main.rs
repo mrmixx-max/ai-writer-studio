@@ -100,6 +100,16 @@ fn user_paths(app: tauri::AppHandle) -> Result<serde_json::Value, String> {
     }))
 }
 
+/// Vom Frontend aufrufbar: zeigt das Hauptfenster garantiert an (Fallback).
+#[tauri::command]
+fn reveal_window(app: tauri::AppHandle) {
+    if let Some(win) = app.get_webview_window("main") {
+        let _ = win.unminimize();
+        let _ = win.show();
+        let _ = win.set_focus();
+    }
+}
+
 /// Filtert Datei-Argumente heraus, die die App öffnen soll.
 fn file_args(args: &[String]) -> Vec<String> {
     args.iter()
@@ -138,6 +148,7 @@ fn main() {
             app_info,
             user_paths,
             startup_file,
+            reveal_window,
             updater::check_for_updates,
             updater::download_and_install_update,
             updater::relaunch_app,
@@ -151,16 +162,36 @@ fn main() {
             write_log(&handle, "DEBUG", "ensure_user_dirs() OK");
             write_log(&handle, "INFO", "AI Writer Studio gestartet");
 
-            // Fenster explizit anzeigen — verzögert, da das Fenster
-            // beim setup() hook noch nicht vollständig erstellt ist.
+            // Fenster robust sichtbar machen: direkter Show-Versuch im setup()
+            // plus wiederholter Retry-Thread (handles Race zwischen
+            // WebView2-Initialisierung und Fensteranzeige im Release-Build).
             if let Some(win) = app.get_webview_window("main") {
                 write_log(&handle, "DEBUG", "Fenster gefunden, zeige an...");
+                // Direkt: sichtbar, Mindestgröße sicherstellen, fokussieren.
+                let _ = win.set_min_size(Some(tauri::LogicalSize::new(1000.0, 640.0)));
+                let _ = win.unminimize();
+                let _ = win.show();
+                let _ = win.set_focus();
+
+                // Retry-Thread: alle 250 ms bis 2 s prüfen und notfalls
+                // erneut show()+set_focus() rufen (deckt Verzögerungen der
+                // WebView2-Initialisierung im Release-Build ab).
                 let win_clone = win.clone();
                 std::thread::spawn(move || {
-                    std::thread::sleep(std::time::Duration::from_millis(100));
-                    let _ = win_clone.unminimize();
-                    let _ = win_clone.show();
-                    let _ = win_clone.set_focus();
+                    for attempt in 1..=8u32 {
+                        std::thread::sleep(std::time::Duration::from_millis(250));
+                        if win_clone.is_visible().unwrap_or(false) {
+                            let _ = win_clone.set_focus();
+                            break;
+                        }
+                        let _ = win_clone.unminimize();
+                        let _ = win_clone.show();
+                        let _ = win_clone.set_focus();
+                        if attempt == 4 {
+                            // Letzter Fallback: maximiert erzwingen.
+                            let _ = win_clone.maximize();
+                        }
+                    }
                 });
                 write_log(&handle, "DEBUG", "Fenster-Anzeige gestartet");
             } else {

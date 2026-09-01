@@ -160,11 +160,20 @@ function AppInner() {
   }, []);
 
   // Fenster einblenden, sobald der Startablauf entschieden ist.
-  // NOTE: Removed .show() call — tauri.conf.json has visible: true, and
-  // programmatic show() fails silently in release builds on Windows WebView2.
+  // tauri.conf.json hat visible:true, main.rs zeigt zusätzlich im setup()
+  // + Retry-Thread an. Dies hier ist die letzte Absicherung: setTimeout-
+  // Fallback (500 ms / 2 s), der per invoke() das Backend anweist, das
+  // Fenster anzuzeigen — falls selbst beide Rust-Pfade scheitern sollten.
   useEffect(() => {
     if (phase === "loading") return;
-    // Window is already visible via tauri.conf.json. Splash screen covers loading.
+    const timers: ReturnType<typeof setTimeout>[] = [500, 2000].map((ms) =>
+      setTimeout(() => {
+        void import("@tauri-apps/api/core")
+          .then((c) => c.invoke("reveal_window"))
+          .catch(() => {});
+      }, ms),
+    );
+    return () => timers.forEach(clearTimeout);
   }, [phase]);
 
   useEffect(() => {
