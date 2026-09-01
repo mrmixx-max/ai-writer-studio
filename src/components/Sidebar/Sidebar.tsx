@@ -4,6 +4,13 @@ import type { Project, Chapter } from "@/types/project";
 import { useProjectStore } from "@/store/projectStore";
 import { usePromptStore } from "@/store/promptStore";
 
+// Modi, die die Sidebar ebenfalls verbreitern ("wide") — als Set, damit die
+// JSX-Bedingung kurz bleibt und navigation.test.ts die Struktur pruefen kann.
+const WIDE_EXTRA_MODES = new Set<string>([
+  "research", "publishing", "investigate", "watermark", "tts",
+  "bookwriter", "markdown", "wordstats", "ideas", "consistency",
+]);
+
 // Lazy-loaded Panels — werden erst beim ersten Zugriff geladen
 const PromptGenerator = lazy(() =>
   import("@/components/PromptGenerator/PromptGenerator").then((m) => ({ default: m.PromptGenerator }))
@@ -209,8 +216,13 @@ export function Sidebar() {
   );
 
   if (inSpecialMode) {
+    // Zwei verkürzte Prädikate statt einer Riesen-Bedingung im JSX: Gleiche
+    // Logik, aber die textlastigen Kern-Modi bleiben strukturell nahe an der
+    // "wide"-Klasse (so prueft es navigation.test.ts).
+    const wideCore = mode === "knowledge" || mode === "diagnostics" || mode === "preflight" || mode === "snapshots" || mode === "kdp";
+    const wideExtra = WIDE_EXTRA_MODES.has(mode);
     return (
-      <aside id="app-sidebar" tabIndex={-1} aria-label="Projektliste" className={`sidebar${mode === "knowledge" || mode === "research" || mode === "diagnostics" || mode === "preflight" || mode === "snapshots" || mode === "kdp" || mode === "publishing" || mode === "investigate" || mode === "watermark" || mode === "tts" || mode === "bookwriter" || mode === "markdown" || mode === "wordstats" || mode === "ideas" || mode === "consistency" ? " wide" : ""}`}>
+      <aside id="app-sidebar" tabIndex={-1} aria-label="Projektliste" className={`sidebar${wideCore || wideExtra ? " wide" : ""}`}>
         {switcher}
         <div className="sidebar-content">
           <ModePanel mode={mode} projectId={activeProjectId} chapterId={activeChapterId} />

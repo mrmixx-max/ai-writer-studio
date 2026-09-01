@@ -19,6 +19,12 @@ tauri-plugin-fs = "2.2.0"
 tauri-plugin-process = "2.2.0"
 tauri-plugin-shell = "2.2.0"
 tauri-plugin-updater = "2.2.0"
+# Verhindert die WebView2-User-Data-Folder-Kollision: Startet die App ein
+# zweites Mal, während die erste Instanz läuft, scheitert die zweite Instanz
+# an der WebView2-Initialisierung — das Fenster bleibt unsichtbar, während
+# msedgewebview2-Prozesse weiterlaufen. Das Plugin leitet den zweiten Start
+# stattdessen an die bestehende Instanz weiter (Fenster fokusieren).
+tauri-plugin-single-instance = "2"
 tao = "0.37.0"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

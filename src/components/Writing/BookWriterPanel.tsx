@@ -170,10 +170,9 @@ export function BookWriterPanel() {
                     alert("Bitte erst ein Projekt öffnen/anlegen!");
                     return;
                   }
-                  // Kapitel mit Content anlegen
+                  // Kapitel mit Content anlegen (nur Kapitelkörper — Titel steht in der DB)
                   for (const ch of chapters) {
-                    const md = `## Kapitel ${ch.number}: ${ch.title}\n\n${ch.content}`;
-                    const tipTapJson = markdownToTipTap(md);
+                    const tipTapJson = markdownToTipTap(ch.content);
                     newChapter(`Kapitel ${ch.number}: ${ch.title}`, tipTapJson);
                   }
                   setLiveText((prev) => prev + `\n📚 ${chapters.length} Kapitel mit Content angelegt!`);

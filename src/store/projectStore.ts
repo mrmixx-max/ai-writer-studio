@@ -13,7 +13,7 @@ interface ProjectState {
   openProject: (id: string) => void;
   openChapter: (id: string) => void;
   newProject: (name: string) => void;
-  newChapter: (title: string) => void;
+  newChapter: (title: string, content?: string) => void;
   setActiveContent: (c: string) => void;
 }
 
@@ -40,7 +40,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     // async persist im Hintergrund; State sofort aktualisieren
     Promise.resolve(p).then((proj) => set({ projects: listProjects(), activeProjectId: proj.id, chapters: [] }));
   },
-  newChapter: (title, content) => {
+  newChapter: (title: string, content?: string) => {
     const pid = get().activeProjectId;
     if (!pid) return;
     const c = createChapter(pid, title, content);

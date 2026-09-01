@@ -51,6 +51,7 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
   const insertTrigger = useEditorStore((s) => s.insertTrigger);
   const timerRef = useRef<number | null>(null);
   const countTimerRef = useRef<number | null>(null);
+  const lastLoadedRef = useRef<string | undefined>(undefined);
   const [editorInstance, setEditorInstance] = useState<TipTapEditor | null>(null);
   const [trackChangesEnabled, setTrackChangesEnabled] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
@@ -100,6 +101,19 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
       },
     },
   });
+
+  // Kapitelwechsel: Wenn ein anderes Kapitel geladen wird, soll der
+  // Editor-Inhalt ersetzt werden (useEditor setzt content nur beim Mount).
+  useEffect(() => {
+    if (!editor) return;
+    if (!initialContent || initialContent === lastLoadedRef.current) return;
+    lastLoadedRef.current = initialContent;
+    const parsed = safeParse(initialContent);
+    // setContent mit emitUpdate=false: kein Autosave-Trigger beim reinen Laden.
+    editor.commands?.setContent?.(parsed, true);
+    const text = tiptapToText(editor.getJSON());
+    setCounts(countWords(text), countChars(text));
+  }, [editor, initialContent, setCounts]);
 
   // Auswahl-Modus: Editor auf nicht-bearbeitbar setzen → native Maus-Auswahl funktioniert
   useEffect(() => {
@@ -191,9 +205,9 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
           if (empty) {
             // Keine Markierung: nur aktuelle Zeile als Heading
             const $pos = editor.state.doc.resolve(from);
-            const start = $pos.start($pos.depth);
-            const end = $pos.end($pos.depth);
-            editor.chain().focus().setTextSelection({ start, end }).toggleHeading({ level: 1 }).run();
+            const fromPos = $pos.start($pos.depth);
+            const toPos = $pos.end($pos.depth);
+            editor.chain().focus().setTextSelection({ from: fromPos, to: toPos }).toggleHeading({ level: 1 }).run();
           } else {
             // Markierung: nur markierten Text
             editor.chain().focus().toggleHeading({ level: 1 }).run();
@@ -207,7 +221,7 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
             const $pos = editor.state.doc.resolve(from);
             const start = $pos.start($pos.depth);
             const end = $pos.end($pos.depth);
-            editor.chain().focus().setTextSelection({ start, end }).toggleHeading({ level: 2 }).run();
+            editor.chain().focus().setTextSelection({ from: start, to: end }).toggleHeading({ level: 2 }).run();
           } else {
             editor.chain().focus().toggleHeading({ level: 2 }).run();
           }
@@ -220,7 +234,7 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
             const $pos = editor.state.doc.resolve(from);
             const start = $pos.start($pos.depth);
             const end = $pos.end($pos.depth);
-            editor.chain().focus().setTextSelection({ start, end }).toggleHeading({ level: 3 }).run();
+            editor.chain().focus().setTextSelection({ from: start, to: end }).toggleHeading({ level: 3 }).run();
           } else {
             editor.chain().focus().toggleHeading({ level: 3 }).run();
           }

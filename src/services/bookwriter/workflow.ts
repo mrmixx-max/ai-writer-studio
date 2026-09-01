@@ -6,6 +6,7 @@
 import { loadSettings } from "@/services/settings";
 import { completeOnce } from "@/services/llm";
 import { createChapter } from "@/services/project";
+import { markdownToTipTap } from "@/services/editor/markdown";
 import { createSnapshot } from "@/services/snapshot";
 import {
   promptTitles,
@@ -306,10 +307,7 @@ async function generateManuskript(
       signal,
     );
 
-    const created = await createChapter(projectId, ch.title, JSON.stringify({
-      type: "doc",
-      content: [{ type: "paragraph", content: [{ type: "text", text: content }] }],
-    }));
+    const created = await createChapter(projectId, ch.title, markdownToTipTap(content));
 
     chapters.push({
       id: created.id,

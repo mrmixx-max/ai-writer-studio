@@ -3,6 +3,7 @@
 import { loadSettings } from "@/services/settings";
 import { createProvider, buildMessages } from "@/services/llm";
 import { createChapter, updateChapter } from "@/services/project";
+import { markdownToTipTap } from "@/services/editor/markdown";
 import { promptWriteChapter, promptSummarizeChapter, systemForGenre } from "./prompts";
 import { saveArtifact } from "./state";
 import { searchDocuments } from "./documents";
@@ -143,16 +144,10 @@ export async function generateManuskriptStreaming(
       if (results[i]?.id) {
         // Regenerierung: Bestehendes Kapitel überschreiben.
         chapterId = results[i].id;
-        await updateChapter(chapterId, JSON.stringify({
-          type: "doc",
-          content: [{ type: "paragraph", content: [{ type: "text", text: content }] }],
-        }));
+        await updateChapter(chapterId, markdownToTipTap(content));
       } else {
         // Neues Kapitel.
-        const created = await createChapter(runId, ch.title, JSON.stringify({
-          type: "doc",
-          content: [{ type: "paragraph", content: [{ type: "text", text: content }] }],
-        }));
+        const created = await createChapter(runId, ch.title, markdownToTipTap(content));
         chapterId = created.id;
       }
 

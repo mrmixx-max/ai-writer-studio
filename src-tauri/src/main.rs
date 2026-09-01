@@ -124,6 +124,14 @@ fn main() {
     std::env::set_var("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS", "--disable-gpu");
 
     tauri::Builder::default()
+        // Muss VOR dem Fenster-/Webview-Aufbau registriert werden (siehe Cargo.toml).
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            if let Some(win) = app.get_webview_window("main") {
+                let _ = win.unminimize();
+                let _ = win.show();
+                let _ = win.set_focus();
+            }
+        }))
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_process::init())
@@ -147,9 +155,11 @@ fn main() {
             write_log(&handle, "DEBUG", "ensure_user_dirs() OK");
             write_log(&handle, "INFO", "AI Writer Studio gestartet");
 
-            // Fenster explizit anzeigen
+            // Fenster explizit anzeigen — inkl. Unminimize, falls tao das
+            // Fenster in einem minimierten Zustand erzeugt hat.
             if let Some(win) = app.get_webview_window("main") {
                 write_log(&handle, "DEBUG", "Fenster gefunden, zeige an...");
+                let _ = win.unminimize();
                 let _ = win.show();
                 let _ = win.set_focus();
                 write_log(&handle, "DEBUG", "Fenster angezeigt");
