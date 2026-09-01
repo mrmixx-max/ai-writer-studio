@@ -6,7 +6,6 @@
 // Heading-Styles bestimmen die Kapitelgrenzen; Tabellen werden als Textzeilen
 // übernommen.
 
-import JSZip from "jszip";
 import { ImportError, type ImportedChapter, type ImportedDocument, type ImportProgress } from "./types";
 import { blocksToTipTap, type ImportBlock } from "./tiptap";
 
@@ -41,9 +40,10 @@ export async function importDocx(
 ): Promise<ImportedDocument> {
   const { onProgress, splitLevel = 1 } = options;
   onProgress?.(10, "DOCX wird entpackt…");
-  let zip: JSZip;
+  const JSZipCtor = (await import("jszip")).default;
+  let zip;
   try {
-    zip = await JSZip.loadAsync(data);
+    zip = await JSZipCtor.loadAsync(data);
   } catch (e) {
     throw new ImportError("Ungültige DOCX-Datei (kein ZIP-Archiv).", e);
   }
@@ -178,6 +178,7 @@ function hasPageBreak(p: Element): boolean {
 
 /** Liest docProps/core.xml (async) für Titel/Autor-Metadaten. */
 export async function readDocxMeta(data: ArrayBuffer | Uint8Array): Promise<Record<string, string>> {
+  const JSZip = (await import("jszip")).default;
   const zip = await JSZip.loadAsync(data);
   const entry = zip.file("docProps/core.xml");
   if (!entry) return {};

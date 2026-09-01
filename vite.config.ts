@@ -50,11 +50,13 @@ export default defineConfig({
           // nur Unterpfade (/state, /view). Als manualChunk-Eintrag scheitert
           // die Auflösung mit 'Missing "." specifier'.
           tiptap: ["@tiptap/react", "@tiptap/starter-kit", "@tiptap/core"],
-          export: ["docx", "pdf-lib", "jszip"],
+          // docx/pdf-lib/jszip/epubjs bewusst NICHT als manualChunks: Sie werden
+          // in services/export bzw. services/import nur dynamisch geladen und
+          // bekommen so automatisch eigene, bedarfsgeladene Chunks. Ein manueller
+          // 'export'-Chunk wurde dagegen beim App-Start vorgeladen (modulepreload),
+          // weil export/index.ts statisch im Startup-Graph liegt.
           sqlite: ["sql.js"],
           state: ["zustand"],
-          // epubjs ist groß und nur im EPUB-Export nötig — eigener Chunk.
-          epub: ["epubjs"],
         },
       },
     },

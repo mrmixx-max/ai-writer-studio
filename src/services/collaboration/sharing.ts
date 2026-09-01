@@ -1,6 +1,6 @@
 // Sharing-Service: Projekt als portierbare Datei teilen (.json-Bundle) und
 // Export mit Kommentaren (Anhang "Anmerkungen" an den Export anhängen).
-import JSZip from "jszip";
+// jszip wird lazy geladen — siehe Kommentar in services/export/index.ts.
 import { getDb, persist } from "@/services/db";
 import { createProject, createChapter, listChapters } from "@/services/project";
 import { listComments, listChanges, listSuggestions } from "@/services/collaboration";
@@ -85,6 +85,7 @@ function safeName(name: string): string {
 
 /** Teilt das Projekt als ZIP-Archiv (Bundle + MD-Export mit Kommentaren). */
 export async function shareProjectAsZip(project: Project, mdWithComments: string): Promise<void> {
+  const JSZip = (await import("jszip")).default;
   const zip = new JSZip();
   zip.file("share.json", JSON.stringify(buildProjectBundle(project), null, 2));
   zip.file("manuskript-mit-kommentaren.md", mdWithComments);

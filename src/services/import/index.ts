@@ -7,7 +7,6 @@ import { ImportError, type ImportedDocument, type ImportProgress } from "./types
 import { importMarkdownFiles, isMarkdownFile } from "./markdown";
 import { importDocx } from "./docx";
 import { importScrivenerWithFiles } from "./scrivener";
-import JSZip from "jszip";
 
 export type { ImportedDocument, ImportedChapter, ImportProgress, ImportError } from "./types";
 export { isMarkdownFile, parseMarkdown, parseMarkdownToChapters } from "./markdown";
@@ -87,6 +86,7 @@ export async function importFiles(
       const docFiles: Record<string, string> = {};
       if (file.data) {
         // .scriv-Paket (ZIP) oder nacktes .scrivx als Bytes
+        const JSZip = (await import("jszip")).default;
         const zip = await JSZip.loadAsync(file.data);
         const scrivxEntry = Object.keys(zip.files).find((k) => k.toLowerCase().endsWith(".scrivx"));
         if (scrivxEntry) {
