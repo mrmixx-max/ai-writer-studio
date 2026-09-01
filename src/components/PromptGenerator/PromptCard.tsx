@@ -1,5 +1,5 @@
 // Einzelne Prompt-Karte mit Aktionen + optionalem 10-Min-Freewriting-Timer.
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { GeneratedPrompt } from "@/services/prompt/types";
 
 interface Props {
@@ -16,6 +16,13 @@ const FREEWRITE_MS = 10 * 60 * 1000;
 export function PromptCard({ prompt, onInsert, onNewChapter, onFavorite, onCopy, onRegenerate }: Props) {
   const [timer, setTimer] = useState<number | null>(null);
   const [remaining, setRemaining] = useState(FREEWRITE_MS);
+
+  // Unmount-Cleanup: laufender Freewriting-Timer nicht überleben lassen.
+  useEffect(() => {
+    return () => {
+      if (timer !== null) window.clearInterval(timer);
+    };
+  }, [timer]);
 
   function startTimer() {
     onNewChapter(); // neues Kapitel mit Prompt

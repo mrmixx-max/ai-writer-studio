@@ -160,11 +160,11 @@ function AppInner() {
   }, []);
 
   // Fenster einblenden, sobald der Startablauf entschieden ist.
+  // NOTE: Removed .show() call — tauri.conf.json has visible: true, and
+  // programmatic show() fails silently in release builds on Windows WebView2.
   useEffect(() => {
     if (phase === "loading") return;
-    void import("@tauri-apps/api/webviewWindow")
-      .then(({ getCurrentWebviewWindow }) => getCurrentWebviewWindow().show())
-      .catch(() => {});
+    // Window is already visible via tauri.conf.json. Splash screen covers loading.
   }, [phase]);
 
   useEffect(() => {
