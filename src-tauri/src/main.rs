@@ -7,7 +7,7 @@
 //   4. Übergabe von Datei-Argumenten (.aiwsproj / .aiwschapter) an das Frontend
 //   5. Bereitstellung von App-Metadaten für den About-Dialog
 
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+#![cfg_attr(debug_assertions, windows_subsystem = "windows")]
 
 use std::fs;
 use std::io::Write;
