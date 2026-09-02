@@ -597,3 +597,210 @@
 .issue p { margin: 0; font-size: 0.75rem; }
 .issue small { color: #666; font-size: 0.65rem; }
 .consistency-ok { color: #10b981; margin-top: 12px; }
+
+/* --- Chapter Planner --- */
+.cp-overview {
+  background: #1e293b;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+.cp-overview-stats {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #94a3b8;
+  margin-bottom: 8px;
+}
+.cp-progress-bar {
+  height: 8px;
+  background: #334155;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.cp-progress-bar.cp-small { height: 6px; }
+.cp-progress-fill {
+  height: 100%;
+  background: #10b981;
+  transition: width 0.3s ease;
+}
+.cp-progress-text {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-top: 4px;
+  display: block;
+}
+
+.cp-add-form {
+  background: #1e293b;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+.cp-add-form h4 { margin: 0 0 8px; font-size: 0.9rem; }
+.cp-form-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.cp-input, .cp-select, .cp-number {
+  background: #0f172a;
+  border: 1px solid #334155;
+  color: #e2e8f0;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+.cp-input { flex: 1; }
+.cp-flex { flex: 1; }
+.cp-number { width: 100px; text-align: right; }
+.cp-number.cp-small { width: 80px; padding: 4px 6px; }
+.cp-target-input { display: flex; align-items: center; gap: 4px; }
+.cp-target-input label { font-size: 0.8rem; color: #94a3b8; }
+
+.cp-warnings { margin-bottom: 8px; }
+.cp-warning {
+  display: block;
+  font-size: 0.75rem;
+  color: #f59e0b;
+}
+.cp-add-btn {
+  background: #4f46e5;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+.cp-add-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.cp-chapters { display: flex; flex-direction: column; gap: 8px; }
+.cp-chapter {
+  background: #1e293b;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.cp-chapter-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.cp-chapter-number { font-weight: bold; color: #94a3b8; min-width: 24px; }
+.cp-chapter-title {
+  flex: 1;
+  background: transparent;
+  border: 1px solid transparent;
+  color: #e2e8f0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+.cp-chapter-title:focus { border-color: #4f46e5; }
+.cp-status-badge {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  color: white;
+  white-space: nowrap;
+}
+.cp-delete-btn {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 2px 6px;
+}
+
+.cp-chapter-body {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.cp-word-stats {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  min-width: 180px;
+}
+.cp-remaining { margin-left: 4px; }
+.cp-chapter-body .cp-progress-bar { flex: 1; }
+.cp-chapter-body .cp-progress-text { min-width: 36px; }
+
+.cp-purpose, .cp-synopsis {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 4px;
+}
+.cp-chapter-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+}
+.cp-move-btn {
+  background: #334155;
+  border: none;
+  color: #e2e8f0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+/* --- View Mode Tabs --- */
+.bw-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+.bw-tab {
+  flex: 1;
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #94a3b8;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+.bw-tab.active {
+  background: #4f46e5;
+  border-color: #4f46e5;
+  color: white;
+}
+.bw-fields-row {
+  display: flex;
+  gap: 8px;
+}
+.bw-fields-row label {
+  flex: 1;
+}
+
+/* --- Chapter Generation Buttons --- */
+.cp-generation {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.cp-gen-btn {
+  background: #1e293b;
+  border: 1px solid #4f46e5;
+  color: #e2e8f0;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  text-align: left;
+}
+.cp-gen-btn:hover:not(:disabled) {
+  background: #4f46e5;
+}
+.cp-gen-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

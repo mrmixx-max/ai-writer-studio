@@ -1,19 +1,28 @@
-// BookWriterPanel: vollautomatische Buchgenerierung mit Live-Vorschau.
+// BookWriterPanel: vollautomatische Buchgenerierung mit Kapitelplanung.
 import { useState, useRef, useCallback } from "react";
 import { generateOutline, generateChapter, type BookOutline, type BookChapter } from "@/services/writing/bookwriter";
+import { generateChapterChunked, type BookContext } from "@/services/writing/chapterEngine";
 import { useActiveModel } from "@/components/KIPanel/useActiveModel";
 import { useProjectStore } from "@/store/projectStore";
 import { markdownToTipTap } from "@/services/editor/markdown";
+import { ChapterPlanner } from "./ChapterPlanner";
+import type { Chapter } from "@/types/project";
 
 export function BookWriterPanel() {
   const { settings } = useActiveModel();
   const newChapter = useProjectStore((s) => s.newChapter);
   const activeProjectId = useProjectStore((s) => s.activeProjectId);
+  const storeChapters = useProjectStore((s) => s.chapters);
+  const updateChapter = useProjectStore((s) => s.updateChapter);
+  const newPlannedChapter = useProjectStore((s) => s.newPlannedChapter);
+  const reorderChapters = useProjectStore((s) => s.reorderChapters);
   const [topic, setTopic] = useState("");
   const [genre, setGenre] = useState("Sachbuch");
   const [targetAudience, setTargetAudience] = useState("Erwachsene");
   const [chapterCount, setChapterCount] = useState(8);
   const [language] = useState("Deutsch");
+  const [viewMode, setViewMode] = useState<"classic" | "planner">("planner");
+  const [premise, setPremise] = useState("");
   const [outline, setOutline] = useState<BookOutline | null>(null);
   const [chapters, setChapters] = useState<BookChapter[]>([]);
   const [currentChapter, setCurrentChapter] = useState(0);
@@ -88,10 +97,51 @@ export function BookWriterPanel() {
     }
   }, [topic, genre, targetAudience, chapterCount, language, settings]);
 
+  const handleDeleteChapter = useCallback((_chapterId: string) => {
+    // Nur aus Store entfernen — DB-Delete kommt später
+    const pid = activeProjectId;
+    if (!pid) return;
+    // TODO: DB-Delete implementieren
+  }, [activeProjectId]);
+
   const handleStop = useCallback(() => {
     abortRef.current?.abort();
     setIsGenerating(false);
   }, []);
+
+  const handleGeneratePlannedChapter = useCallback(async (chapter: Chapter) => {
+    if (!activeProjectId) return;
+    setIsGenerating(true);
+    updateChapter(chapter.id, { status: "generating" });
+
+    const bookCtx: BookContext = {
+      title: topic || "Unbenanntes Buch",
+      genre,
+      targetAudience,
+      language,
+      premise,
+    };
+
+    const result = await generateChapterChunked(
+      chapter,
+      bookCtx,
+      { model: settings.model, baseUrl: settings.ollamaBaseUrl || "http://127.0.0.1:11434" },
+      (chunk, total, words) => {
+        setCurrentChapter(chunk);
+        setLiveText(`✍️ Kapitel "${chapter.title}" — Chunk ${chunk}/${total} (${words} Wörter)`);
+      },
+      undefined,
+    );
+
+    updateChapter(chapter.id, {
+      content: result.chapter.content,
+      currentWordCount: result.totalWordCount,
+      status: result.chapter.status,
+    });
+
+    setIsGenerating(false);
+    setLiveText((prev) => prev + `\n✅ Kapitel "${chapter.title}" fertig (${result.totalWordCount} Wörter)`);
+  }, [activeProjectId, topic, genre, targetAudience, language, premise, settings, updateChapter]);
 
   const fullText = outline
     ? `# ${outline.title}\n\n${chapters.map((c) => `## Kapitel ${c.number}: ${c.title}\n\n${c.content}`).join("\n\n---\n\n")}`
@@ -101,35 +151,102 @@ export function BookWriterPanel() {
     <div className="bookwriter-panel">
       <h3>📖 Automatischer Buchautor</h3>
 
-      <div className="bw-fields">
-        <label>
-          Thema:
-          <input value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="z.B. KI im Alltag" />
-        </label>
-        <label>
-          Genre:
-          <select value={genre} onChange={(e) => setGenre(e.target.value)}>
-            <option>Sachbuch</option><option>Roman</option><option>Thriller</option>
-            <option>Fantasy</option><option>Selbsthilfe</option><option>Business</option>
-          </select>
-        </label>
-        <label>
-          Zielgruppe:
-          <input value={targetAudience} onChange={(e) => setTargetAudience(e.target.value)} />
-        </label>
-        <label>
-          Kapitel:
-          <input type="number" min={3} max={30} value={chapterCount} onChange={(e) => setChapterCount(Number(e.target.value))} />
-        </label>
+      {/* View Mode Tabs */}
+      <div className="bw-tabs">
+        <button
+          className={viewMode === "planner" ? "bw-tab active" : "bw-tab"}
+          onClick={() => setViewMode("planner")}
+        >
+          📋 Kapitelplaner
+        </button>
+        <button
+          className={viewMode === "classic" ? "bw-tab active" : "bw-tab"}
+          onClick={() => setViewMode("classic")}
+        >
+          ⚡ Klassisch
+        </button>
       </div>
 
+      {viewMode === "planner" ? (
+        <>
+          <div className="bw-fields">
+            <label>
+              Buchtitel:
+              <input value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="z.B. KI im Alltag" />
+            </label>
+            <label>
+              Prämisse:
+              <input value={premise} onChange={(e) => setPremise(e.target.value)} placeholder="Kurzidee / Exposé (optional)" />
+            </label>
+            <div className="bw-fields-row">
+              <label>
+                Genre:
+                <select value={genre} onChange={(e) => setGenre(e.target.value)}>
+                  <option>Sachbuch</option><option>Roman</option><option>Thriller</option>
+                  <option>Fantasy</option><option>Selbsthilfe</option><option>Business</option>
+                </select>
+              </label>
+              <label>
+                Zielgruppe:
+                <input value={targetAudience} onChange={(e) => setTargetAudience(e.target.value)} />
+              </label>
+            </div>
+          </div>
+          <ChapterPlanner
+            chapters={storeChapters}
+            onAddChapter={newPlannedChapter}
+            onUpdateChapter={updateChapter}
+            onDeleteChapter={handleDeleteChapter}
+            onReorderChapters={reorderChapters}
+          />
+          <div className="cp-generation">
+            {storeChapters.filter((ch) => ch.status === "planned").map((ch) => (
+              <button
+                key={ch.id}
+                onClick={() => handleGeneratePlannedChapter(ch)}
+                disabled={isGenerating || !activeProjectId}
+                className="cp-gen-btn"
+              >
+                ✍️ Kapitel generieren: {ch.title}
+              </button>
+            ))}
+          </div>
+        </>
+      ) : (
+        <div className="bw-fields">
+          <label>
+            Thema:
+            <input value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="z.B. KI im Alltag" />
+          </label>
+          <label>
+            Genre:
+            <select value={genre} onChange={(e) => setGenre(e.target.value)}>
+              <option>Sachbuch</option><option>Roman</option><option>Thriller</option>
+              <option>Fantasy</option><option>Selbsthilfe</option><option>Business</option>
+            </select>
+          </label>
+          <label>
+            Zielgruppe:
+            <input value={targetAudience} onChange={(e) => setTargetAudience(e.target.value)} />
+          </label>
+          <label>
+            Kapitel:
+            <input type="number" min={3} max={30} value={chapterCount} onChange={(e) => setChapterCount(Number(e.target.value))} />
+          </label>
+        </div>
+      )}
+
       <div className="bw-actions">
-        {!isGenerating ? (
-          <button onClick={handleGenerate} disabled={!topic.trim()} className="bw-start">
-            📝 Buch generieren
-          </button>
-        ) : (
-          <button onClick={handleStop} className="bw-stop">⏹ Stoppen</button>
+        {viewMode === "classic" && (
+          <>
+            {!isGenerating ? (
+              <button onClick={handleGenerate} disabled={!topic.trim()} className="bw-start">
+                📝 Buch generieren
+              </button>
+            ) : (
+              <button onClick={handleStop} className="bw-stop">⏹ Stoppen</button>
+            )}
+          </>
         )}
       </div>
 
@@ -170,7 +287,6 @@ export function BookWriterPanel() {
                     alert("Bitte erst ein Projekt öffnen/anlegen!");
                     return;
                   }
-                  // Kapitel mit Content anlegen (nur Kapitelkörper — Titel steht in der DB)
                   for (const ch of chapters) {
                     const tipTapJson = markdownToTipTap(ch.content);
                     newChapter(`Kapitel ${ch.number}: ${ch.title}`, tipTapJson);
