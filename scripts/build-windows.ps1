@@ -70,7 +70,7 @@ $DistDir      = Join-Path $RepoRoot $Cfg.Paths.DistDir
 $ExePath      = Join-Path $TauriRelease $Cfg.ExeName
 
 $script:StepNo = 0
-$script:TotalSteps = 7
+$script:TotalSteps = 8
 
 function Write-Step {
     param([string]$Text)
@@ -103,6 +103,16 @@ Write-Host '===========================================================' -Foregr
 Write-Host (" {0}  {1}" -f $Cfg.AppName, $Cfg.AppVersion) -ForegroundColor White
 Write-Host ' Windows-Release-Build' -ForegroundColor DarkGray
 Write-Host '===========================================================' -ForegroundColor White
+
+# ---------------------------------------------------------------------------
+#  0. Zombie-Prozesse beenden (verhindert WebView2-Blockade)
+# ---------------------------------------------------------------------------
+Write-Step 'Zombie-Prozesse beenden'
+$appName = $Cfg.ExeName -replace '\.exe$',''
+Get-Process -Name $appName -ErrorAction SilentlyContinue | Stop-Process -Force
+Get-Process -Name 'msedgewebview2' -ErrorAction SilentlyContinue | Stop-Process -Force
+Start-Sleep -Seconds 1
+Write-Ok 'Alte Prozesse beendet'
 
 # ---------------------------------------------------------------------------
 #  1. Werkzeuge pruefen
