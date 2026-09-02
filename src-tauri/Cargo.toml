@@ -19,22 +19,15 @@ tauri-plugin-fs = "2.2.0"
 tauri-plugin-process = "2.2.0"
 tauri-plugin-shell = "2.2.0"
 tauri-plugin-updater = "2.2.0"
-# Verhindert die WebView2-User-Data-Folder-Kollision: Startet die App ein
-# zweites Mal, während die erste Instanz läuft, scheitert die zweite Instanz
-# an der WebView2-Initialisierung — das Fenster bleibt unsichtbar, während
-# msedgewebview2-Prozesse weiterlaufen. Das Plugin leitet den zweiten Start
-# stattdessen an die bestehende Instanz weiter (Fenster fokusieren).
+# Verhindert parallele Instanzen: ein zweiter Start leitet an die bestehende
+# Instanz weiter (Fokus statt Zombie). Verbraucht die WebView2-UDF nicht.
 tauri-plugin-single-instance = "2"
-# Win32-Primitive (ShowWindow/SW_RESTORE): Tauris unminimize() stellt das
-# beim Release-Start minimierte Fenster nicht zuverlässig wieder her.
-windows = { version = "0.58", features = [
-    "Win32_Foundation",
-    "Win32_UI_WindowsAndMessaging",
-] }
-tao = "0.37.0"
+# Structured Logging mit Datei-Appender für Release-Diagnostics.
+tauri-plugin-log = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 chrono = "0.4"
+log = "0.4"
 
 [features]
 default = []

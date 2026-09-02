@@ -1,5 +1,10 @@
-// AI Writer Studio — minimaler Windows-Einstiegspunkt.
-// Ziel: Fenster im Release-Build garantiert sichtbar machen.
+// AI Writer Studio — Windows-Release-Einstiegspunkt.
+//
+// Verantwortlichkeiten:
+//   1. Single-Instance-Schutz (zweiter Start fokussiert die bestehende Instanz)
+//   2. Strukturiertes Logging in App-Datenverzeichnis (tauri-plugin-log)
+//   3. Defensive Fenster-Sichtbarkeit (show() im setup Hook)
+//   4. Sauberer Shutdown mit Logging
 
 use std::fs;
 use std::io::Write;
@@ -35,6 +40,8 @@ fn ensure_user_dirs(app: &tauri::AppHandle) {
     }
 }
 
+/// Fallback-Logger: schreibt direkt in eine Datei, falls tauri-plugin-log
+/// noch nicht initialisiert ist (z.B. Fehler im Builder vor .build()).
 fn write_log(app: &tauri::AppHandle, level: &str, message: &str) {
     if let Ok(root) = data_root(app) {
         let _ = fs::create_dir_all(root.join("logs"));
@@ -85,8 +92,27 @@ fn startup_file() -> Option<String> {
     })
 }
 
+
 fn main() {
     tauri::Builder::default()
+        // Single-Instance: zweiter Start wird an die bestehende Instanz weitergeleitet.
+        // Verhindert WebView2-User-Data-Folder-Kollision und Zombie-Prozesse.
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+            log::info!("Zweiter Start erkannt — fokussiere bestehende Instanz");
+            if let Some(win) = app.get_webview_window("main") {
+                let _ = win.set_focus();
+                let _ = win.show();
+            }
+        }))
+        // Structured Logging: schreibt nach %APPDATA%\com.aiwriterstudio.app\logs\
+        .plugin(
+            tauri_plugin_log::Builder::new()
+                .level(log::LevelFilter::Info)
+                .target(tauri_plugin_log::Target::new(
+                    tauri_plugin_log::TargetKind::LogDir { file_name: None },
+                ))
+                .build(),
+        )
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_process::init())
@@ -104,14 +130,29 @@ fn main() {
             git::run_git
         ])
         .setup(|app| {
-            write_log(app.handle(), "INFO", "App started");
+            log::info!("App started (setup)");
+            ensure_user_dirs(app.handle());
+
+            // Defensive Fenster-Sichtbarkeit: show() + Fokus.
             if let Some(win) = app.get_webview_window("main") {
-                let _ = win.show();
-                write_log(app.handle(), "INFO", "Window show() called");
+                match win.show() {
+                    Ok(_) => log::info!("Window show() OK"),
+                    Err(e) => log::error!("Window show() failed: {e}"),
+                }
+                match win.set_focus() {
+                    Ok(_) => log::info!("Window set_focus() OK"),
+                    Err(e) => log::error!("Window set_focus() failed: {e}"),
+                }
             } else {
-                write_log(app.handle(), "ERROR", "No window 'main' found");
+                log::error!("No window 'main' found in setup");
             }
+
             Ok(())
+        })
+        .on_window_event(|_window, event| {
+            if let tauri::WindowEvent::CloseRequested { .. } = event {
+                log::info!("Window close requested — shutting down");
+            }
         })
         .run(tauri::generate_context!())
         .expect("Failed to start");

@@ -107,12 +107,18 @@ Write-Host '===========================================================' -Foregr
 # ---------------------------------------------------------------------------
 #  0. Zombie-Prozesse beenden (verhindert WebView2-Blockade)
 # ---------------------------------------------------------------------------
-Write-Step 'Zombie-Prozesse beenden'
-$appName = $Cfg.ExeName -replace '\.exe$',''
-Get-Process -Name $appName -ErrorAction SilentlyContinue | Stop-Process -Force
-Get-Process -Name 'msedgewebview2' -ErrorAction SilentlyContinue | Stop-Process -Force
-Start-Sleep -Seconds 1
-Write-Ok 'Alte Prozesse beendet'
+Write-Step 'Alte App-Prozesse beenden'
+# Nur die eigene App killen — kein globaler msedgewebview2-Kill, da andere
+# Apps (Outlook, Teams, Electron) WebView2 nutzen könnten.
+$appName = $Cfg.ExeName -replace '\\.exe$',''
+$procs = Get-Process -Name $appName -ErrorAction SilentlyContinue
+if ($procs) {
+    $procs | Stop-Process -Force
+    Start-Sleep -Seconds 1
+    Write-Ok "$($procs.Count) alte(r) $appName Prozess(e) beendet"
+} else {
+    Write-Ok 'Keine alten Prozesse gefunden'
+}
 
 # ---------------------------------------------------------------------------
 #  1. Werkzeuge pruefen
