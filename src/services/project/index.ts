@@ -54,12 +54,21 @@ export async function deleteProject(id: string): Promise<void> {
 
 // ---- Kapitel ----
 
-export async function createChapter(projectId: string, title: string, content = "{}"): Promise<Chapter> {
+export async function createChapter(
+  projectId: string,
+  title: string,
+  content = "{}",
+  orderIndex?: number,
+): Promise<Chapter> {
   const db = getDb();
   const id = uid("chap");
   const now = Date.now();
-  const idxRow = db.exec("SELECT COALESCE(MAX(order_index),-1)+1 AS n FROM chapters WHERE project_id = ?", [projectId]);
-  const idx = idxRow.length ? (idxRow[0].values[0][0] as number) : 0;
+  const idx = orderIndex !== undefined
+    ? orderIndex
+    : (() => {
+        const idxRow = db.exec("SELECT COALESCE(MAX(order_index),-1)+1 AS n FROM chapters WHERE project_id = ?", [projectId]);
+        return idxRow.length ? (idxRow[0].values[0][0] as number) : 0;
+      })();
   // Verschlusselung: sensibler Kapitelinhalt wird AES-256-GCM chiffriert gespeichert.
   const stored = encryptionActive() && isManuscriptUnlocked() ? await encryptChapterContent(content) : content;
   db.run(
@@ -67,7 +76,20 @@ export async function createChapter(projectId: string, title: string, content = 
     [id, projectId, title, stored, idx, now, now],
   );
   await persist();
-  return { id, projectId, title, content, orderIndex: idx, createdAt: now, updatedAt: now };
+  return {
+    id,
+    projectId,
+    title,
+    content,
+    orderIndex: idx,
+    createdAt: now,
+    updatedAt: now,
+    status: "planned",
+    targetWordCount: 2000,
+    minimumWordCount: 1600,
+    maximumWordCount: 2400,
+    currentWordCount: 0,
+  };
 }
 
 export function listChapters(projectId: string): Chapter[] {
@@ -84,6 +106,12 @@ export function listChapters(projectId: string): Chapter[] {
     orderIndex: v[4] as number,
     createdAt: v[5] as number,
     updatedAt: v[6] as number,
+    // Rückwärtskompatibilität: Alte DB-Einträge ohne Planungs-Felder erhalten Defaults
+    status: "planned" as const,
+    targetWordCount: 2000,
+    minimumWordCount: 1600,
+    maximumWordCount: 2400,
+    currentWordCount: 0,
   }));
 }
 
@@ -106,6 +134,8 @@ export function getChapter(id: string): Chapter | null {
   return {
     id: v[0] as string, projectId: v[1] as string, title: v[2] as string,
     content: v[3] as string, orderIndex: v[4] as number, createdAt: v[5] as number, updatedAt: v[6] as number,
+    status: "planned" as const, targetWordCount: 2000, minimumWordCount: 1600,
+    maximumWordCount: 2400, currentWordCount: 0,
   };
 }
 

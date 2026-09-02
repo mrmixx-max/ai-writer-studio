@@ -133,7 +133,7 @@ describe("Sidebar", () => {
       useProjectStore.setState({
         projects: [{ id: "p1", name: "Mein Roman", createdAt: 0, updatedAt: 0 }],
         activeProjectId: "p1",
-        chapters: [{ id: "c1", title: "Kapitel 1", content: "{}", projectId: "p1", orderIndex: 0, createdAt: 0, updatedAt: 0 }],
+        chapters: [{ id: "c1", title: "Kapitel 1", content: "{}", projectId: "p1", orderIndex: 0, createdAt: 0, updatedAt: 0, status: "planned" as const, targetWordCount: 2000, minimumWordCount: 1600, maximumWordCount: 2400, currentWordCount: 0 }],
         activeChapterId: "c1",
       });
     });

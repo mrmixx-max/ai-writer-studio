@@ -14,6 +14,8 @@ function payload(name: string, chapters: { id: string; content: string }[], upda
     chapters: chapters.map((c, i) => ({
       id: c.id, projectId: "p1", title: `Kapitel ${i + 1}`, content: c.content,
       orderIndex: i, createdAt: 0, updatedAt,
+      status: "planned" as const, targetWordCount: 2000, minimumWordCount: 1600,
+      maximumWordCount: 2400, currentWordCount: 0,
     })),
     exportedAt: 1000,
     schemaVersion: 1,

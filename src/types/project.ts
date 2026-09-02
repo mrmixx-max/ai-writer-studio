@@ -6,6 +6,13 @@ export interface Project {
   updatedAt: number;
 }
 
+export type ChapterStatus =
+  | "planned"
+  | "generating"
+  | "draft"
+  | "needs_revision"
+  | "completed";
+
 export interface Chapter {
   id: string;
   projectId: string;
@@ -14,6 +21,16 @@ export interface Chapter {
   orderIndex: number;
   createdAt: number;
   updatedAt: number;
+  // --- Kapitelplanung ---
+  status: ChapterStatus;
+  targetWordCount: number;
+  minimumWordCount: number;
+  maximumWordCount: number;
+  currentWordCount: number;
+  purpose?: string;           // Kapiteltyp/Funktion (z.B. "Einleitung", "Szene")
+  synopsis?: string;          // Kurzbeschreibung/Kontext für KI
+  generatedContent?: string;  // letzter KI-Output
+  lastError?: string;         // Fehler beim Generieren
 }
 
 // --- Avantgarde ---
