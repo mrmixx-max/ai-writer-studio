@@ -1,50 +1,16 @@
-// AI Writer Studio — Windows-Einstiegspunkt.
-//
-// Verantwortlichkeiten dieses Moduls:
-//   1. Single-Instance-Schutz (zweiter Start fokussiert das bestehende Fenster)
-//   2. Anlegen der Nutzerdatenverzeichnisse unter %APPDATA% (nie in Program Files)
-//   3. Lokales Crash-/Fehlerlogging
-//   4. Übergabe von Datei-Argumenten (.aiwsproj / .aiwschapter) an das Frontend
-//   5. Bereitstellung von App-Metadaten für den About-Dialog
-
-#![cfg_attr(not(debug_assertions), windows_subsystem = "console")]
+// AI Writer Studio — minimaler Windows-Einstiegspunkt.
+// Ziel: Fenster im Release-Build garantiert sichtbar machen.
 
 use std::fs;
 use std::io::Write;
 use std::path::PathBuf;
-use tauri::{Emitter, Manager};
-
-/// Win32-Fallback: Tauris unminimize()/maximize() stellen das beim Start
-/// minimierte Release-Fenster nicht zuverlässig wieder her (beobachtet:
-/// iconic bleibt true). ShowWindow(SW_RESTORE) ist die verlässliche
-/// Windows-Primitive und wird daher direkt verwendet.
-#[cfg(windows)]
-fn force_restore(hwnd_isize: isize) -> bool {
-    use windows::Win32::Foundation::HWND;
-    use windows::Win32::UI::WindowsAndMessaging::{SetForegroundWindow, ShowWindow, SW_RESTORE};
-    unsafe {
-        let h = HWND(hwnd_isize as *mut _);
-        let ok = ShowWindow(h, SW_RESTORE).as_bool();
-        let _ = SetForegroundWindow(h);
-        ok
-    }
-}
-
-/// Prüft, ob ein Fenster minimiert ist (Win32 IsIconic).
-#[cfg(windows)]
-fn is_iconic(hwnd_isize: isize) -> bool {
-    use windows::Win32::Foundation::HWND;
-    use windows::Win32::UI::WindowsAndMessaging::IsIconic;
-    unsafe { IsIconic(HWND(hwnd_isize as *mut _)).as_bool() }
-}
+use tauri::Manager;
 
 mod git;
 mod updater;
 
-/// Unterverzeichnisse, die beim Start unter %APPDATA%\AI Writer Studio angelegt werden.
 const USER_DIRS: [&str; 4] = ["user_data", "logs", "exports", "backups"];
 
-/// App-Metadaten für den About-Dialog.
 #[derive(serde::Serialize)]
 struct AppInfo {
     name: String,
@@ -55,48 +21,36 @@ struct AppInfo {
     log_dir: String,
 }
 
-/// Liefert das Datenwurzelverzeichnis und stellt sicher, dass es existiert.
 fn data_root(app: &tauri::AppHandle) -> Result<PathBuf, String> {
-    let dir = app
-        .path()
-        .app_data_dir()
-        .map_err(|e| format!("App-Datenverzeichnis nicht ermittelbar: {e}"))?;
-    fs::create_dir_all(&dir).map_err(|e| format!("Datenverzeichnis nicht anlegbar: {e}"))?;
+    let dir = app.path().app_data_dir().map_err(|e| format!("{e}"))?;
+    fs::create_dir_all(&dir).map_err(|e| format!("{e}"))?;
     Ok(dir)
 }
 
-/// Legt user_data, logs, exports und backups an. Fehler werden protokolliert, brechen aber nicht ab.
 fn ensure_user_dirs(app: &tauri::AppHandle) {
-    let Ok(root) = data_root(app) else {
-        return;
-    };
-    for sub in USER_DIRS {
-        let p = root.join(sub);
-        if let Err(e) = fs::create_dir_all(&p) {
-            eprintln!("[AI Writer Studio] Verzeichnis {} konnte nicht angelegt werden: {e}", p.display());
+    if let Ok(root) = data_root(app) {
+        for sub in USER_DIRS {
+            let _ = fs::create_dir_all(root.join(sub));
         }
     }
 }
 
-/// Schreibt eine Zeile in %APPDATA%\AI Writer Studio\logs\app.log.
 fn write_log(app: &tauri::AppHandle, level: &str, message: &str) {
-    let Ok(root) = data_root(app) else { return };
-    let log_dir = root.join("logs");
-    let _ = fs::create_dir_all(&log_dir);
-    let path = log_dir.join("app.log");
-    let stamp = chrono::Local::now().format("%Y-%m-%d %H:%M:%S");
-    if let Ok(mut f) = fs::OpenOptions::new().create(true).append(true).open(&path) {
-        let _ = writeln!(f, "[{stamp}] [{level}] {message}");
+    if let Ok(root) = data_root(app) {
+        let _ = fs::create_dir_all(root.join("logs"));
+        let path = root.join("logs/app.log");
+        let stamp = chrono::Local::now().format("%Y-%m-%d %H:%M:%S");
+        if let Ok(mut f) = fs::OpenOptions::new().create(true).append(true).open(&path) {
+            let _ = writeln!(f, "[{stamp}] [{level}] {message}");
+        }
     }
 }
 
-/// Vom Frontend aufrufbar: schreibt einen Eintrag ins lokale Log.
 #[tauri::command]
 fn log_message(app: tauri::AppHandle, level: String, message: String) {
     write_log(&app, &level, &message);
 }
 
-/// Liefert App-Metadaten für den About-Dialog.
 #[tauri::command]
 fn app_info(app: tauri::AppHandle) -> Result<AppInfo, String> {
     let pkg = app.package_info();
@@ -111,7 +65,6 @@ fn app_info(app: tauri::AppHandle) -> Result<AppInfo, String> {
     })
 }
 
-/// Liefert die absoluten Pfade der Nutzerverzeichnisse.
 #[tauri::command]
 fn user_paths(app: tauri::AppHandle) -> Result<serde_json::Value, String> {
     let root = data_root(&app)?;
@@ -124,44 +77,16 @@ fn user_paths(app: tauri::AppHandle) -> Result<serde_json::Value, String> {
     }))
 }
 
-/// Vom Frontend aufrufbar: zeigt das Hauptfenster garantiert an (Fallback).
-#[tauri::command]
-fn reveal_window(app: tauri::AppHandle) {
-    if let Some(win) = app.get_webview_window("main") {
-        let _ = win.unminimize();
-        let _ = win.show();
-        let _ = win.set_focus();
-    }
-}
-
-/// Filtert Datei-Argumente heraus, die die App öffnen soll.
-fn file_args(args: &[String]) -> Vec<String> {
-    args.iter()
-        .skip(1) // argv[0] ist der eigene Pfad
-        .filter(|a| {
-            let lower = a.to_lowercase();
-            lower.ends_with(".aiwsproj") || lower.ends_with(".aiwschapter")
-        })
-        .cloned()
-        .collect()
-}
-
-/// Liefert die beim Start übergebene Datei, falls vorhanden (Doppelklick auf .aiwsproj).
 #[tauri::command]
 fn startup_file() -> Option<String> {
-    file_args(&std::env::args().collect::<Vec<_>>()).into_iter().next()
+    std::env::args().skip(1).find(|a| {
+        let l = a.to_lowercase();
+        l.ends_with(".aiwsproj") || l.ends_with(".aiwschapter")
+    })
 }
 
 fn main() {
     tauri::Builder::default()
-        // Muss VOR dem Fenster-/Webview-Aufbau registriert werden (siehe Cargo.toml).
-        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
-            if let Some(win) = app.get_webview_window("main") {
-                let _ = win.unminimize();
-                let _ = win.show();
-                let _ = win.set_focus();
-            }
-        }))
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_process::init())
@@ -172,7 +97,6 @@ fn main() {
             app_info,
             user_paths,
             startup_file,
-            reveal_window,
             updater::check_for_updates,
             updater::download_and_install_update,
             updater::relaunch_app,
@@ -180,68 +104,15 @@ fn main() {
             git::run_git
         ])
         .setup(|app| {
-            let handle = app.handle().clone();
-            write_log(&handle, "DEBUG", "setup() beginnt");
-            ensure_user_dirs(&handle);
-            write_log(&handle, "DEBUG", "ensure_user_dirs() OK");
-            write_log(&handle, "INFO", "AI Writer Studio gestartet");
-
-            // Fenster robust sichtbar machen
+            write_log(app.handle(), "INFO", "App started");
             if let Some(win) = app.get_webview_window("main") {
-                write_log(&handle, "DEBUG", "Fenster gefunden, zeige an...");
-                let _ = win.set_min_size(Some(tauri::LogicalSize::new(1000.0, 640.0)));
-                let _ = win.unminimize();
                 let _ = win.show();
-                let _ = win.set_focus();
-                write_log(&handle, "DEBUG", "Fenster show()+set_focus() aufgerufen");
-
-                // Retry-Thread: Win32-SW_RESTORE, solange das Fenster
-                // minimiert ist (is_visible() liefert bei minimierten
-                // Fenstern true und darf NICHT als Abbruchkriterium dienen).
-                let win_clone = win.clone();
-                std::thread::spawn(move || {
-                    #[cfg(windows)]
-                    let hwnd: Option<isize> = win_clone.hwnd().ok().map(|h| h.0 as isize);
-                    #[cfg(not(windows))]
-                    let hwnd: Option<isize> = None;
-
-                    for attempt in 1..=20u32 {
-                        std::thread::sleep(std::time::Duration::from_millis(500));
-                        let iconic = hwnd.map(|h| is_iconic(h)).unwrap_or(false);
-                        if !iconic {
-                            if win_clone.is_visible().unwrap_or(false) {
-                                break;
-                            }
-                            let _ = win_clone.show();
-                            let _ = win_clone.set_focus();
-                            continue;
-                        }
-                        let restored = hwnd.map(force_restore).unwrap_or(false);
-                        let _ = win_clone.unminimize();
-                        let _ = win_clone.show();
-                        let _ = win_clone.set_focus();
-                        let _ = restored; // nur Logging-Interesse
-                    }
-                });
+                write_log(app.handle(), "INFO", "Window show() called");
             } else {
-                write_log(&handle, "WARN", "Kein Fenster 'main' gefunden — versuche später...");
-                // Fallback: Fenster später holen
-                let handle_clone = handle.clone();
-                std::thread::spawn(move || {
-                    std::thread::sleep(std::time::Duration::from_millis(500));
-                    // Note: AppHandle ist nicht Send, daher nur Logging
-                    let _ = handle_clone;
-                });
+                write_log(app.handle(), "ERROR", "No window 'main' found");
             }
-
-            // Panics ins lokale Log schreiben
-            let panic_handle = handle.clone();
-            std::panic::set_hook(Box::new(move |info| {
-                write_log(&panic_handle, "PANIC", &format!("{info}"));
-            }));
-
             Ok(())
         })
         .run(tauri::generate_context!())
-        .expect("Fehler beim Start von AI Writer Studio");
+        .expect("Failed to start");
 }
