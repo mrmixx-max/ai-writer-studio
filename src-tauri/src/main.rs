@@ -143,6 +143,13 @@ fn main() {
                     Ok(_) => log::info!("Window set_focus() OK"),
                     Err(e) => log::error!("Window set_focus() failed: {e}"),
                 }
+                // DevTools öffnen für Debugging (Release-Build)
+                #[cfg(debug_assertions)]
+                {
+                    win.open_devtools();
+                    log::info!("DevTools opened (debug build)");
+                }
+                log::info!("WebView2 URL: {}", win.url().unwrap_or_else(|_| "unknown".into()));
             } else {
                 log::error!("No window 'main' found in setup");
             }
