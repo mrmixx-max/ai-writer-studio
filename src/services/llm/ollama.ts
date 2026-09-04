@@ -2,7 +2,7 @@
 // Endpunkte: GET  {base}/api/tags   → Modellliste
 //            POST {base}/api/chat    → Streaming (NDJSON, stream:true)
 
-import type { ChatMessage, ChatOptions, LLMProvider } from "@/types/llm";
+import type { ChatMessage, ChatOptions, LLMProvider, LLMProviderCapabilities } from "@/types/llm";
 import { ProviderError } from "@/types/llm";
 import { assertOk, parseNdjson, fetchWithTimeout } from "./stream";
 
@@ -14,6 +14,11 @@ export class OllamaProvider implements LLMProvider {
 
   describe(): string {
     return `Ollama (lokal: ${this.baseUrl})`;
+  }
+
+  /** B1: Fähigkeiten des lokalen Providers. */
+  capabilities(): LLMProviderCapabilities {
+    return { local: true, streaming: true, jsonMode: false, maxContextTokens: null };
   }
 
   async healthCheck(): Promise<boolean> {

@@ -28,6 +28,17 @@ export interface ProviderConfig {
   defaultModel?: string;
 }
 
+export interface LLMProviderCapabilities {
+  /** true = lokaler Provider (keine Cloud-Konnektivität) */
+  local: boolean;
+  /** Streaming-Chat unterstützt */
+  streaming: boolean;
+  /** Strukturierter JSON-Output (response_format/json mode) unterstützt */
+  jsonMode: boolean;
+  /** Bekannte maximale Kontextlänge in Tokens (null = unbekannt) */
+  maxContextTokens: number | null;
+}
+
 /**
  * Einheitliches Interface für alle LLM-Provider.
  * chat() streamt Token über einen AsyncGenerator – kein Blocking.
@@ -42,6 +53,11 @@ export interface LLMProvider {
   healthCheck(): Promise<boolean>;
   /** Menschlesbarer Status für UI (deutsch) */
   describe(): string;
+  /**
+   * Fähigkeiten des Providers (Sprint 2, B1). Optional, damit bestehende
+   * Provider-Implementierungen nicht brechen — Fallback via getCapabilities().
+   */
+  capabilities?(): LLMProviderCapabilities;
 }
 
 export class ProviderError extends Error {

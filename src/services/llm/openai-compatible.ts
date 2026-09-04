@@ -4,7 +4,7 @@
 //            POST {base}/v1/chat/completions     → Streaming (SSE, stream:true)
 // base ist typischerweise .../v1  (bei OpenAI/OpenRouter ist es die volle API-URL).
 
-import type { ChatMessage, ChatOptions, LLMProvider } from "@/types/llm";
+import type { ChatMessage, ChatOptions, LLMProvider, LLMProviderCapabilities } from "@/types/llm";
 import { ProviderError } from "@/types/llm";
 import { assertOk, parseSse, fetchWithTimeout } from "./stream";
 
@@ -16,12 +16,24 @@ export class OpenAICompatibleProvider implements LLMProvider {
    * @param baseUrl  Vollständige Basis-URL inkl. /v1 (z.B. http://localhost:1234/v1)
    * @param apiKey   Optional – nur für Cloud-Provider (OpenAI/OpenRouter/gpt2api)
    * @param label    Anzeigename für Fehler/Status
+   * @param capabilities Override für Subklassen (Default: Cloud-Profile)
    */
   constructor(
     private readonly baseUrl: string,
     private readonly apiKey: string | undefined,
     private readonly label: string,
+    protected readonly caps: LLMProviderCapabilities = {
+      local: false,
+      streaming: true,
+      jsonMode: true,
+      maxContextTokens: null,
+    },
   ) {}
+
+  /** B1: Fähigkeiten des Providers. */
+  capabilities(): LLMProviderCapabilities {
+    return { ...this.caps };
+  }
 
   describe(): string {
     if (this.apiKey) {

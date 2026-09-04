@@ -1,5 +1,7 @@
-// FallbackProvider — Provider-Kette mit automatischer Umschaltung.
+// FallbackProvider (Sprint 2, B1) – Provider-Kette mit automatischer Umschaltung.
 // Wenn der primäre Provider ausfällt, wird der nächste in der Kette probiert.
+// B2: Fallback-Routing mit Telemetrie + konservativer Trigger-Logik
+// (healthCheck rot, 2 Retry-Endfehler, Timeout-Quote > 50 %; NIE bei Abort/4xx).
 
 import type { AppSettings } from "@/types/config";
 import type { ChatMessage, ChatOptions, LLMProvider } from "@/types/llm";
