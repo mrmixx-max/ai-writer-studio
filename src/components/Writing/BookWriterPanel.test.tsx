@@ -140,3 +140,101 @@ describe("BookWriterPanel UI-Transparenz", () => {
     expect(typeof updateBookJobProgress).toBe("function");
   });
 });
+
+// ---------------------------------------------------------------------------
+// Export-UI (C3): Format-Auswahl, Export-Button, needs_revision-Warnung,
+// Erfolgsmeldung. saveExportBlob wird gemockt (kein Tauri/Download in Tests).
+// ---------------------------------------------------------------------------
+vi.mock("@/services/bookwriter/export/save", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/services/bookwriter/export/save")>();
+  return {
+    ...actual,
+    saveExportBlob: vi.fn(async (blob: Blob, filename: string) => ({
+      saved: true, path: `C:/Bücher/${filename}`, cancelled: false, error: null,
+    })),
+  };
+});
+
+describe("BookWriterPanel Export-UI (C3)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (getResumableBookJob as ReturnType<typeof vi.fn>).mockReturnValue(null);
+    useProjectStore.setState({
+      activeProjectId: "p1",
+      chapters: [],
+      projects: [{ id: "p1", name: "P", createdAt: 0, updatedAt: 0 }],
+    });
+  });
+
+  it("zeigt Export-Sektion mit Format-Auswahl (md/docx/epub)", () => {
+    render(<BookWriterPanel />);
+    expect(screen.getByTestId("bw-export-section")).toBeInTheDocument();
+    expect(screen.getByLabelText("Exportformat")).toBeInTheDocument();
+    const select = screen.getByLabelText("Exportformat") as HTMLSelectElement;
+    expect([...select.options].map((o) => o.value)).toEqual(["markdown", "docx", "epub"]);
+    expect(screen.getByTestId("bw-export-btn")).toBeInTheDocument();
+  });
+
+  it("Export mit draft/completed/needs_revision-Kapiteln: Erfolgsmeldung mit needs_revision-Warnung", async () => {
+    const chapters = [
+      makeChapter({ id: "c1", title: "K1", content: '{"type":"doc","content":[]}', status: "draft" }),
+      makeChapter({ id: "c2", title: "K2", content: '{"type":"doc","content":[]}', status: "completed" }),
+      makeChapter({ id: "c3", title: "K3", content: '{"type":"doc","content":[]}', status: "needs_revision" }),
+    ];
+    useProjectStore.setState({ chapters });
+    const user = userEvent.setup();
+    render(<BookWriterPanel />);
+
+    await user.click(screen.getByTestId("bw-export-btn"));
+
+    const success = await screen.findByTestId("bw-export-success");
+    expect(success.textContent).toContain("Export fertig");
+    // needs_revision-Warnung listet das betroffene Kapitel
+    expect(success.textContent).toContain("Kapitel 3: K3");
+    // Speichern wurde mit gewähltem Format aufgerufen
+    const { saveExportBlob } = await import("@/services/bookwriter/export/save");
+    expect(saveExportBlob).toHaveBeenCalledTimes(1);
+    expect((saveExportBlob as ReturnType<typeof vi.fn>).mock.calls[0][2]).toBe("epub");
+  });
+
+  it("planned/generating-Kapitel blockieren den Export", async () => {
+    const chapters = [
+      makeChapter({ id: "c1", title: "K1", status: "planned" }),
+      makeChapter({ id: "c2", title: "K2", status: "generating" }),
+    ];
+    useProjectStore.setState({ chapters });
+    const user = userEvent.setup();
+    render(<BookWriterPanel />);
+
+    await user.click(screen.getByTestId("bw-export-btn"));
+
+    const err = await screen.findByTestId("bw-export-error");
+    // planned/generating werden herausgefiltert → keine exportierbaren Kapitel.
+    expect(err.textContent).toContain("Keine exportierbaren Kapitel");
+    const { saveExportBlob } = await import("@/services/bookwriter/export/save");
+    expect(saveExportBlob).not.toHaveBeenCalled();
+  });
+
+  it("ohne exportierbare Kapitel: Hinweis statt Export", async () => {
+    useProjectStore.setState({ chapters: [] });
+    const user = userEvent.setup();
+    render(<BookWriterPanel />);
+    await user.click(screen.getByTestId("bw-export-btn"));
+    expect(await screen.findByTestId("bw-export-error").catch(() => screen.queryByTestId("bw-export-error")))
+      .toBeTruthy();
+  });
+
+  it("Format-Auswahl docx wird an saveExportBlob weitergegeben", async () => {
+    const chapters = [
+      makeChapter({ id: "c1", title: "K1", content: '{"type":"doc","content":[]}', status: "completed" }),
+    ];
+    useProjectStore.setState({ chapters });
+    const user = userEvent.setup();
+    render(<BookWriterPanel />);
+    await user.selectOptions(screen.getByLabelText("Exportformat"), "docx");
+    await user.click(screen.getByTestId("bw-export-btn"));
+    await screen.findByTestId("bw-export-success");
+    const { saveExportBlob } = await import("@/services/bookwriter/export/save");
+    expect((saveExportBlob as ReturnType<typeof vi.fn>).mock.calls[0][2]).toBe("docx");
+  });
+});

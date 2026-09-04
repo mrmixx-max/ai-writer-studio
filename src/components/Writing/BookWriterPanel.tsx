@@ -14,6 +14,11 @@ import { useActiveModel } from "@/components/KIPanel/useActiveModel";
 import { useProjectStore } from "@/store/projectStore";
 import { markdownToTipTap } from "@/services/editor/markdown";
 import { countWords } from "@/services/writing/chapterPlan";
+import {
+  exportBook, checkExportGate, formatNeedsRevisionWarning, saveExportBlob,
+  type ExportFormat,
+} from "@/services/bookwriter/export";
+import { logger } from "@/services/logger";
 import { ChapterPlanner } from "./ChapterPlanner";
 import type { Chapter, ChapterStatus } from "@/types/project";
 
@@ -67,6 +72,12 @@ export function BookWriterPanel() {
   const [chapterErrors, setChapterErrors] = useState<Record<number, string>>({});
   // Resume-Dialog (C2).
   const [resumeJob, setResumeJob] = useState<BookJob | null>(null);
+  // Export-UI (C3): Format-Auswahl, Fortschritt, Erfolgs-/Warn-Meldung.
+  const [exportFormat, setExportFormat] = useState<ExportFormat>("epub");
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportProgress, setExportProgress] = useState<number | null>(null);
+  const [exportStatus, setExportStatus] = useState<string | null>(null);
+  const [exportError, setExportError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const activeJobIdRef = useRef<string | null>(null);
 
@@ -240,6 +251,98 @@ export function BookWriterPanel() {
     if (resumeJob) await deleteBookJob(resumeJob.id);
     setResumeJob(null);
   }, [resumeJob]);
+
+  // -------------------------------------------------------------------------
+  // Export (C3): Nur Kapitel mit draft/completed erlauben; needs_revision
+  // warnt mit Kapitelliste; planned/generating blockieren. TipTap-JSON der
+  // Store-Kapitel → exportBook → Tauri-Save-Dialog (Fallback: Download).
+  // -------------------------------------------------------------------------
+  const handleExport = useCallback(async () => {
+    if (!activeProjectId) return;
+    const exportable = storeChapters.filter(
+      (ch) => ch.status === "draft" || ch.status === "completed" || ch.status === "needs_revision",
+    );
+    if (exportable.length === 0) {
+      setExportError("Keine exportierbaren Kapitel (nur draft/completed).");
+      return;
+    }
+
+    const gate = checkExportGate(
+      exportable.map((ch, i) => ({
+        number: i + 1,
+        title: ch.title,
+        content: ch.content,
+        status: ch.status,
+      })),
+    );
+    if (!gate.allowed) {
+      setExportError(
+        `Export blockiert: ${gate.blocking.map((c) => `Kapitel ${c.number} (${c.status})`).join(", ")}`,
+      );
+      return;
+    }
+    if (gate.needsRevision.length > 0) {
+      logger.warn(formatNeedsRevisionWarning(gate.needsRevision), "BookWriterPanel.export");
+    }
+
+    setIsExporting(true);
+    setExportError(null);
+    setExportStatus("Export wird vorbereitet…");
+    setExportProgress(0);
+    try {
+      const result = await exportBook(
+        {
+          title: topic.trim() || "Unbenanntes Buch",
+          author: "Autor",
+          language: "de",
+          chapters: exportable.map((ch, i) => ({
+            number: i + 1,
+            title: ch.title,
+            content: ch.content,
+            status: ch.status,
+          })),
+        },
+        exportFormat,
+        (pct, label) => {
+          setExportProgress(pct);
+          setExportStatus(label);
+        },
+      );
+      const save = await saveExportBlob(
+        result.blob,
+        result.filename,
+        exportFormat === "markdown" ? "md" : exportFormat,
+        (pct, label) => {
+          setExportProgress(pct);
+          setExportStatus(label);
+        },
+      );
+      if (save.cancelled) {
+        setExportStatus("Export abgebrochen.");
+      } else if (save.error) {
+        setExportError(`Speichern fehlgeschlagen: ${save.error}`);
+        logger.error(`Export-Speichern fehlgeschlagen: ${save.error}`, "BookWriterPanel.export");
+      } else {
+        const warn = gate.needsRevision.length > 0
+          ? ` ${formatNeedsRevisionWarning(gate.needsRevision)}`
+          : "";
+        setExportStatus(
+          `✅ Export fertig: ${save.path ?? result.filename}${warn}`,
+        );
+        logger.info(
+          `Book-Export ${exportFormat} → ${save.path ?? result.filename}`,
+          "BookWriterPanel.export",
+        );
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setExportError(msg);
+      logger.error("Export fehlgeschlagen", "BookWriterPanel.export", e);
+    } finally {
+      setIsExporting(false);
+      setExportProgress(null);
+    }
+  }, [activeProjectId, storeChapters, topic, exportFormat]);
 
   const handleDeleteChapter = useCallback((_chapterId: string) => {
     // Nur aus Store entfernen — DB-Delete kommt später
@@ -415,6 +518,54 @@ export function BookWriterPanel() {
                 ✍️ Kapitel generieren: {ch.title}
               </button>
             ))}
+          </div>
+          {/* Export-Sektion (C3): Format-Auswahl, Fortschritt, Erfolgs-Meldung. */}
+          <div className="bw-export-section" data-testid="bw-export-section">
+            <h4>📦 Export</h4>
+            <div className="bw-export-row">
+              <label>
+                Format:
+                <select
+                  value={exportFormat}
+                  onChange={(e) => setExportFormat(e.target.value as ExportFormat)}
+                  disabled={isExporting}
+                  aria-label="Exportformat"
+                >
+                  <option value="markdown">Markdown (.md)</option>
+                  <option value="docx">Word (.docx)</option>
+                  <option value="epub">EPUB (.epub)</option>
+                </select>
+              </label>
+              <button
+                onClick={handleExport}
+                disabled={isExporting || !activeProjectId}
+                className="bw-export-btn"
+                data-testid="bw-export-btn"
+                title="Export nur bei Entwurf/Abgeschlossen; needs_revision-Warnung"
+              >
+                {isExporting ? "⏳ Exportiere…" : "📦 Buch exportieren"}
+              </button>
+            </div>
+            {exportProgress !== null && (
+              <div className="bw-progress" data-testid="bw-export-progress">
+                <div className="bw-progress-bar">
+                  <div className="bw-progress-fill" style={{ width: `${exportProgress}%` }} />
+                </div>
+                <span className="bw-progress-text">{exportStatus}</span>
+              </div>
+            )}
+            {exportStatus && exportProgress === null && (
+              <div
+                className="bw-export-success"
+                data-testid="bw-export-success"
+                role="status"
+              >
+                {exportStatus}
+              </div>
+            )}
+            {exportError && (
+              <div className="bw-error" data-testid="bw-export-error">Export: {exportError}</div>
+            )}
           </div>
         </>
       ) : (
