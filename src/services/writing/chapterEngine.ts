@@ -1,6 +1,7 @@
 // KapitelEngine: chunkweise KI-Generierung mit Wortzahl-Steuerung.
 import { OllamaProvider } from "@/services/llm/ollama";
 import { countWords, computeWordStats } from "./chapterPlan";
+import { withRetry, isAbortError, createTimeoutController } from "./retry";
 import type { Chapter } from "@/types/project";
 
 export interface BookContext {
@@ -24,6 +25,8 @@ export interface GenerationConfig {
   baseUrl: string;
   maxTokensPerChunk: number;
   chunkTargetWords: number;  // Zielwortzahl pro Chunk (600-1200)
+  /** A3: Timeout pro Chunk-Request in ms (Default 120000 = 120s). */
+  timeoutMs: number;
 }
 
 const DEFAULT_CONFIG: GenerationConfig = {
@@ -31,6 +34,7 @@ const DEFAULT_CONFIG: GenerationConfig = {
   baseUrl: "http://127.0.0.1:11434",
   maxTokensPerChunk: 4096,
   chunkTargetWords: 800,
+  timeoutMs: 120000,
 };
 
 export interface ChunkResult {
@@ -116,18 +120,24 @@ ${previousSummary ? `Bisheriger Kontext (letzte Zusammenfassung):\n${previousSum
 Schreibe NUR den Kapiteltext. Keine Überschriften. Keine Erklärungen.
 WICHTIG: Nutze Absätze (doppelter Zeilenumbruch zwischen Textblöcken).`;
 
+  // A3: Timeout via kombiniertem Signal — bricht den laufenden Request ab.
+  const { controller, clear } = createTimeoutController(config.timeoutMs, signal);
   const chunks: string[] = [];
-  for await (const text of provider.chat(
-    [{ role: "user", content: prompt }],
-    {
-      model: config.model,
-      maxTokens: config.maxTokensPerChunk,
-      temperature: 0.7,
-      timeoutMs: 180000,
-    },
-    signal,
-  )) {
-    chunks.push(text);
+  try {
+    for await (const text of provider.chat(
+      [{ role: "user", content: prompt }],
+      {
+        model: config.model,
+        maxTokens: config.maxTokensPerChunk,
+        temperature: 0.7,
+        timeoutMs: config.timeoutMs,
+      },
+      controller.signal,
+    )) {
+      chunks.push(text);
+    }
+  } finally {
+    clear();
   }
 
   const fullText = chunks.join("");
@@ -169,8 +179,9 @@ export async function generateChapterChunked(
   try {
     for (let i = 0; i < chunkPlans.length; i++) {
       if (signal?.aborted) {
+        // A3: Abbruch → Status auf "planned" zurücksetzen (kein Ghost-State).
         return {
-          chapter: { ...chapter, content, currentWordCount: countWords(content), status: "draft" },
+          chapter: { ...chapter, content, currentWordCount: countWords(content), status: "planned" },
           chunks,
           totalWordCount: countWords(content),
           completed: false,
@@ -178,15 +189,10 @@ export async function generateChapterChunked(
         };
       }
 
-      const chunkResult = await generateChunk(
-        chunkPlans[i],
-        book,
-        chapter,
-        chunks,
-        cfg,
+      const chunkResult = await withRetry(
+        () => generateChunk(chunkPlans[i], book, chapter, chunks, cfg, signal),
         signal,
       );
-
       chunks.push(chunkResult);
       content += (content ? "\n\n" : "") + chunkResult.text;
 
@@ -220,6 +226,23 @@ export async function generateChapterChunked(
       completed: true,
     };
   } catch (error: unknown) {
+    // A3: Abbruch während der Generierung → Kapitel-Status sauber auf
+    // "planned" zurücksetzen (kein Ghost-State "generating").
+    if (isAbortError(error)) {
+      return {
+        chapter: {
+          ...chapter,
+          content,
+          currentWordCount: countWords(content),
+          status: "planned",
+          updatedAt: Date.now(),
+        },
+        chunks,
+        totalWordCount: countWords(content),
+        completed: false,
+        error: "Abgebrochen",
+      };
+    }
     const message = error instanceof Error ? error.message : String(error);
     return {
       chapter: {
@@ -273,12 +296,18 @@ ${chapter.content.slice(-500)}
 Schreibe NUR den ergänzenden Text (der an den bestehenden Inhalt angehängt wird). Keine Überschriften.`;
 
   const chunks: string[] = [];
-  for await (const text of provider.chat(
-    [{ role: "user", content: prompt }],
-    { model: cfg.model, maxTokens: cfg.maxTokensPerChunk, temperature: 0.7, timeoutMs: 180000 },
-    signal,
-  )) {
-    chunks.push(text);
+  // A3: Timeout via kombiniertem Signal.
+  const { controller, clear } = createTimeoutController(cfg.timeoutMs, signal);
+  try {
+    for await (const text of provider.chat(
+      [{ role: "user", content: prompt }],
+      { model: cfg.model, maxTokens: cfg.maxTokensPerChunk, temperature: 0.7, timeoutMs: cfg.timeoutMs },
+      controller.signal,
+    )) {
+      chunks.push(text);
+    }
+  } finally {
+    clear();
   }
 
   const expansion = chunks.join("");
