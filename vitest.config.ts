@@ -8,7 +8,7 @@ export default defineConfig({
     testTimeout: 30000,
     // Component-Tests (React Testing Library) laufen in jsdom, alle anderen in node.
     // jsdom wird pro Testdatei via `@vitest-environment jsdom` Docblock gewählt.
-    include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
+    include: ["src/**/*.test.ts", "src/**/*.test.tsx", "tests/**/*.test.ts"],
     setupFiles: ["src/test/setup.ts"],
     coverage: {
       provider: "v8",

@@ -6,6 +6,13 @@ und [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased] — Änderungen seit [1.0.0]
 
+### Added — Redaktion & Revisions-Loop (Sprint 2, Agent 4)
+- Revisions-Pipeline `reviseChapter(chapterId, mode)`: straffen (−10 %, Füllwörter), vertiefen (+15 %, Beispiele), stil (Stilprofil) — mit withRetry, Abort/4xx-Durchreichung und lokalem Straffungs-Fallback
+- Status-Loop: needs_revision/completed → draft nach jeder Revision, Revisionshistorie in neuer Tabelle `chapter_revisions` (Migration 019)
+- Stilprofile { id, name, systemHint, rules[] } pro Projekt: 3 Presets (Sachbuch klar, Ratgeber warm, Thriller temporeich) + Markdown-Import mit YAML-Frontmatter (ohne yaml-Dependency)
+- Lesbarkeits-Metriken ohne LLM: Flesch Reading Ease (deutsch), Ø-Satzlänge, Füllwort-Quote, Passiv-Schätzung; Schwellenwerte konfigurierbar
+- Review-UI `ChapterReview.tsx`: Kapitel-Liste mit Status- + Metrik-Badges, Aktionen Straffen/Vertiefen/Stil/completed, aufklappbare Revisionshistorie, Budget-Warnung aus der Telemetrie sperrt LLM-Aktionen
+
 ### Added — BookWriter
 - Kapitel-Content-Integration: generierte Kapitel werden als echtes Kapitel (TipTap JSON) im Editor angelegt (30415ea, 29bfe89)
 - Vollautomatischer BookWriter: Outline + Kapitel via Ollama (4b23d14)

@@ -149,7 +149,7 @@ vi.mock("@/services/bookwriter/export/save", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/services/bookwriter/export/save")>();
   return {
     ...actual,
-    saveExportBlob: vi.fn(async (blob: Blob, filename: string) => ({
+    saveExportBlob: vi.fn(async (_blob: Blob, filename: string) => ({
       saved: true, path: `C:/Bücher/${filename}`, cancelled: false, error: null,
     })),
   };

@@ -14,9 +14,61 @@
 //    Bogen). Bei Verletzung EIN Reparatur-Call; danach Fehlerliste an den
 //    Nutzer (manueller Eingriff).
 import { OllamaProvider } from "@/services/llm/ollama";
+import { BookwriterRouter, pickModelForTask, type BookwriterRouterConfig, type BookwriterTaskKind, type RouterCallMeta } from "@/services/llm/router";
 import { countWords, deriveMinMax } from "./chapterPlan";
 import { parseJsonLoose } from "./jsonExtract";
 import { withRetry, isAbortError, createTimeoutController } from "./retry";
+
+/**
+ * Optionaler Router für Bookwriter-Calls (Sprint 2, B2/B3). Null = Default-
+ * Verhalten über OllamaProvider (bestehende Tests/Aufrufer unangetastet).
+ * Wenn gesetzt, laufen alle Calls über die Provider-Kette; die Modell-Matrix
+ * wählt pro Aufgabe (outline/chapter/summary/entities/repair).
+ */
+let bookwriterRouter: BookwriterRouter | null = null;
+let bookwriterOnCall: ((meta: RouterCallMeta) => void) | null = null;
+
+/** Aktiviert den Router-Fallback (B2). router=null deaktiviert wieder. */
+export function setBookwriterRouter(config: BookwriterRouterConfig | null, onCall?: (meta: RouterCallMeta) => void): void {
+  bookwriterRouter = config ? new BookwriterRouter(config, { onCall }) : null;
+  bookwriterOnCall = onCall ?? null;
+}
+
+/** Aktiver Router (für Tests/Diagnose). */
+export function getBookwriterRouter(): BookwriterRouter | null {
+  return bookwriterRouter;
+}
+
+/**
+ * Führt einen generierungs-Call aus — über den Router (falls aktiviert)
+ * oder direkt über den OllamaProvider (Legacy-Pfad).
+ */
+async function collectChatRouted(
+  task: BookwriterTaskKind,
+  prompt: string,
+  config: BookWriterConfig,
+  opts: { model?: string; maxTokens: number; temperature: number; timeoutMs: number },
+  signal?: AbortSignal,
+  provider?: OllamaProvider,
+): Promise<string> {
+  if (bookwriterRouter) {
+    const { text, meta } = await bookwriterRouter.complete(
+      task,
+      [{ role: "user", content: prompt }],
+      { model: opts.model ?? config.model, maxTokens: opts.maxTokens, temperature: opts.temperature, timeoutMs: opts.timeoutMs },
+      signal,
+    );
+    bookwriterOnCall?.(meta);
+    return text;
+  }
+  const p = provider ?? new OllamaProvider(config.baseUrl);
+  return collectChat(p, prompt, {
+    model: opts.model ?? config.model,
+    maxTokens: opts.maxTokens,
+    temperature: opts.temperature,
+    timeoutMs: opts.timeoutMs,
+  }, signal);
+}
 
 /** Schärferer Wiederholungs-Prompt bei wiederholtem JSON-Fehler (A2). */
 const STRICT_JSON_SUFFIX =
@@ -220,15 +272,17 @@ ${truncate(content, 8000)}
 
 Antworte NUR mit dem Zusammenfassungstext.`;
 
-  const chunks: string[] = [];
-  for await (const chunk of provider.chat(
-    [{ role: "user", content: prompt }],
-    { model: config.model, maxTokens: 400, temperature: 0.3, timeoutMs: 120000 },
-    signal,
-  )) {
-    chunks.push(chunk);
-  }
-  return chunks.join("").trim();
+  // B3: summary → Schnell-Modell (Auto-Heuristik über konfigurierte Kandidaten).
+  const summaryModel = pickModelForTask("summary", {
+    main: config.model,
+    fast: (config as BookWriterConfig & { fastModel?: string }).fastModel,
+  }, [config.model]);
+  return collectChatRouted("summary", prompt, config, {
+    model: summaryModel,
+    maxTokens: 400,
+    temperature: 0.3,
+    timeoutMs: 120000,
+  }, signal, provider);
 }
 
 // --- B2: Kohärenz-Glossar ---------------------------------------------------
@@ -255,16 +309,18 @@ Antworte NUR als JSON-Objekt: {"entities": ["...", "..."]}
 Kapiteltexte:
 ${contents.map((c, i) => `--- Kapitel ${i + 1} ---\n${truncate(c, 4000)}`).join("\n")}`;
 
-  const chunks: string[] = [];
-  for await (const chunk of provider.chat(
-    [{ role: "user", content: prompt }],
-    { model: config.model, maxTokens: 400, temperature: 0.2, timeoutMs: 120000 },
-    signal,
-  )) {
-    chunks.push(chunk);
-  }
+  // B3: entities → Schnell-Modell.
+  const entitiesModel = pickModelForTask("entities", {
+    main: config.model,
+    fast: (config as BookWriterConfig & { fastModel?: string }).fastModel,
+  }, [config.model]);
+  const raw = await collectChatRouted("entities", prompt, config, {
+    model: entitiesModel,
+    maxTokens: 400,
+    temperature: 0.2,
+    timeoutMs: 120000,
+  }, signal, provider);
 
-  const raw = chunks.join("");
   const parsed = parseJsonLoose<{ entities?: unknown }>(raw, "Glossar-Extraktion");
   if (!Array.isArray(parsed.entities)) return [];
   return parsed.entities.filter((e): e is string => typeof e === "string");
@@ -330,6 +386,11 @@ async function adjustChapterWordCount(
 ): Promise<string> {
   const provider = new OllamaProvider(config.baseUrl);
   const { wordCount, min, max } = evaluation;
+  // B3: repair → Hauptmodell (Nachsteuer ist ein Reparatur-Call).
+  const repairModel = pickModelForTask("repair", {
+    main: config.model,
+    strong: (config as BookWriterConfig & { strongModel?: string }).strongModel,
+  }, [config.model]);
 
   const prompt = wordCount < min
     ? `Das Kapitel "${chapterTitle}" aus "${outline.title}" ist zu kurz: ${wordCount} Wörter (Ziel: ${evaluation.target}, Minimum: ${min}).
@@ -354,7 +415,7 @@ Antworte NUR mit dem vollständigen gekürzten Kapiteltext. Keine Überschriften
   const chunks: string[] = [];
   for await (const chunk of provider.chat(
     [{ role: "user", content: prompt }],
-    { model: config.model, maxTokens: 8192, temperature: 0.6, timeoutMs: 180000 },
+    { model: repairModel, maxTokens: 8192, temperature: 0.6, timeoutMs: 180000 },
     signal,
   )) {
     chunks.push(chunk);
@@ -471,18 +532,21 @@ ${JSON.stringify(outline)}
 Antworte NUR als korrigiertes JSON-Objekt:
 {"title": "Titel", "genre": "${config.genre}", "targetAudience": "${config.targetAudience}", "chapters": [{"number": 1, "title": "...", "summary": "..."}]}`;
 
-  const chunks: string[] = [];
-  for await (const chunk of provider.chat(
-    [{ role: "user", content: prompt }],
-    { model: config.model, maxTokens: 4096, temperature: 0.5, timeoutMs: 120000 },
-    signal,
-  )) {
-    chunks.push(chunk);
-  }
-
-  const parsed = parseJsonLoose<BookOutline>(chunks.join(""), "Gliederungs-Reparatur");
-  validateChapterShape(parsed.chapters);
-  return parsed;
+  // B3: repair → Hauptmodell (konservativ, hohe Qualität für Struktur-Fixes).
+  const repairModel = pickModelForTask("repair", {
+    main: config.model,
+    strong: (config as BookWriterConfig & { strongModel?: string }).strongModel,
+  }, [config.model]);
+  return collectChatRouted("repair", prompt, config, {
+    model: repairModel,
+    maxTokens: 4096,
+    temperature: 0.5,
+    timeoutMs: 120000,
+  }, signal, provider).then((text) => {
+    const parsed = parseJsonLoose<BookOutline>(text, "Gliederungs-Reparatur");
+    validateChapterShape(parsed.chapters);
+    return parsed;
+  });
 }
 
 // --- Kernfunktionen ----------------------------------------------------------
@@ -505,15 +569,22 @@ Vorgaben: Jeder Kapiteltitel ist eindeutig, jede Zusammenfassung hat mindestens 
 Antwitte NUR als JSON-Objekt:
 {"title": "Titel", "genre": "${config.genre}", "targetAudience": "${config.targetAudience}", "chapters": [{"number": 1, "title": "...", "summary": "..."}]}`;
 
+  // B3: outline → starkes Modell (Auto-Heuristik, konservativ Hauptmodell).
+  const outlineModel = pickModelForTask("outline", {
+    main: config.model,
+    strong: (config as BookWriterConfig & { strongModel?: string }).strongModel,
+  }, [config.model]);
   // A2: bis zu 3 Versuche; bei wiederholtem JSON-Fehler schärferer Prompt.
   const raw = await withRetry(
     async (_attempt, isJsonRetry) => {
       const prompt = isJsonRetry ? basePrompt + STRICT_JSON_SUFFIX : basePrompt;
-      const text = await collectChat(
-        provider,
+      const text = await collectChatRouted(
+        "outline",
         prompt,
-        { model: config.model, maxTokens: 4096, temperature: 0.8, timeoutMs },
+        config,
+        { model: outlineModel, maxTokens: 4096, temperature: 0.8, timeoutMs },
         signal,
+        provider,
       );
       // A1: zweistufige Extraktion (Parse → Bracket-State-Machine → Repair)
       const outline = parseJsonLoose<BookOutline>(text, "Gliederung");
@@ -573,10 +644,15 @@ Kapitel-${chapterNumber}-Details: ${chapter.summary}
 
 Schreibe nur den Kapiteltext (ca. ${targetWords} Wörter, mindestens ${min} Wörter). Keine Überschriften. WICHTIG: Nutze Absätze — füge zwischen Textblöcken eine Leerzeile ein (doppelter Zeilenumbruch).`;
 
+  // B3: chapter → Hauptmodell.
+  const chapterModel = pickModelForTask("chapter", {
+    main: config.model,
+    fast: (config as BookWriterConfig & { fastModel?: string }).fastModel,
+  }, [config.model]);
   const chunks: string[] = [];
   for await (const chunk of provider.chat(
     [{ role: "user", content: prompt }],
-    { model: config.model, maxTokens: 8192, temperature: 0.7, timeoutMs: 180000 },
+    { model: chapterModel, maxTokens: 8192, temperature: 0.7, timeoutMs: 180000 },
     signal,
   )) {
     chunks.push(chunk);
