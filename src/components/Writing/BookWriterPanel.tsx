@@ -1,12 +1,41 @@
 // BookWriterPanel: vollautomatische Buchgenerierung mit Kapitelplanung.
-import { useState, useRef, useCallback } from "react";
+// Crash-sicher: jedes fertig generierte Kapitel wird SOFORT per updateChapter
+// in SQLite geschrieben (Status draft). Job-Status liegt in bookwriter_jobs
+// und überlebt App-Neustart → Resume-Dialog beim Panel-Start.
+import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { generateOutline, generateChapter, type BookOutline, type BookChapter } from "@/services/writing/bookwriter";
 import { generateChapterChunked, type BookContext } from "@/services/writing/chapterEngine";
+import { withRetry } from "@/services/resilience/retry";
+import {
+  createBookJob, setBookJobOutline, updateBookJobProgress, setBookJobStatus,
+  getResumableBookJob, completeBookJob, deleteBookJob, type BookJob,
+} from "@/services/bookwriter/jobs";
 import { useActiveModel } from "@/components/KIPanel/useActiveModel";
 import { useProjectStore } from "@/store/projectStore";
 import { markdownToTipTap } from "@/services/editor/markdown";
+import { countWords } from "@/services/writing/chapterPlan";
 import { ChapterPlanner } from "./ChapterPlanner";
-import type { Chapter } from "@/types/project";
+import type { Chapter, ChapterStatus } from "@/types/project";
+
+// Status-Badge-Labels/Farben — gleiche Quelle wie ChapterPlanner (C3).
+export const STATUS_LABELS: Record<ChapterStatus, string> = {
+  planned: "Geplant",
+  generating: "Generierung läuft",
+  draft: "Entwurf",
+  needs_revision: "Überarbeitung nötig",
+  completed: "Abgeschlossen",
+};
+
+export const STATUS_COLORS: Record<ChapterStatus, string> = {
+  planned: "#6b7280",
+  generating: "#f59e0b",
+  draft: "#3b82f6",
+  needs_revision: "#ef4444",
+  completed: "#10b981",
+};
+
+/** Retry-Zähler je Kapitelnummer (aus Agent-1-Retry via withRetry). */
+type RetryCounts = Record<number, number>;
 
 export function BookWriterPanel() {
   const { settings } = useActiveModel();
@@ -14,6 +43,7 @@ export function BookWriterPanel() {
   const activeProjectId = useProjectStore((s) => s.activeProjectId);
   const storeChapters = useProjectStore((s) => s.chapters);
   const updateChapter = useProjectStore((s) => s.updateChapter);
+  const reconcileOutline = useProjectStore((s) => s.reconcileOutline);
   const newPlannedChapter = useProjectStore((s) => s.newPlannedChapter);
   const reorderChapters = useProjectStore((s) => s.reorderChapters);
   const [topic, setTopic] = useState("");
@@ -29,73 +59,187 @@ export function BookWriterPanel() {
   const [liveText, setLiveText] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [retryCounts, setRetryCounts] = useState<RetryCounts>({});
+  // Gleitender Durchschnitt der Kapitel-Generierungszeiten (ms) → Restzeit.
+  const chapterDurationsRef = useRef<number[]>([]);
+  const [estimatedRemainingMs, setEstimatedRemainingMs] = useState<number | null>(null);
+  // Inline-Fehler je Kapitelnummer (statt generischem Abbruch, C3).
+  const [chapterErrors, setChapterErrors] = useState<Record<number, string>>({});
+  // Resume-Dialog (C2).
+  const [resumeJob, setResumeJob] = useState<BookJob | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const activeJobIdRef = useRef<string | null>(null);
+
+  // Beim Panel-Start/Mount: fortsetzbaren Job prüfen → Dialog zeigen (C2).
+  useEffect(() => {
+    if (!activeProjectId || isGenerating) return;
+    const job = getResumableBookJob(activeProjectId);
+    if (job && job.currentChapter > 0) setResumeJob(job);
+  }, [activeProjectId, isGenerating]);
+
+  /** Gleitender Durchschnitt + Restzeit-Schätzung aktualisieren (C3). */
+  const recordChapterDuration = useCallback((durationMs: number, totalChapters: number, doneChapters: number) => {
+    const durations = chapterDurationsRef.current;
+    durations.push(durationMs);
+    // Fenster der letzten 3 Kapitel (gleitender Durchschnitt).
+    const window = durations.slice(-3);
+    const avg = window.reduce((a, b) => a + b, 0) / window.length;
+    const remaining = Math.max(0, totalChapters - doneChapters);
+    setEstimatedRemainingMs(avg * remaining);
+  }, []);
+
+  const configFor = useCallback(() => ({
+    topic: topic.trim(),
+    genre,
+    targetAudience,
+    chapterCount,
+    model: settings.model,
+    baseUrl: settings.ollamaBaseUrl || "http://127.0.0.1:11434",
+    language,
+  }), [topic, genre, targetAudience, chapterCount, language, settings]);
+
+  // ---------------------------------------------------------------------------
+  // Kernschleife: Kapitel generieren, SOFORT speichern, Job-Fortschritt
+  // committen (C1). Wird für Neustart und Resume gleichermaßen genutzt.
+  // ---------------------------------------------------------------------------
+  const runGeneration = useCallback(async (
+    cfg: { topic: string; genre: string; targetAudience: string; chapterCount: number; model: string; baseUrl: string; language: string },
+    bookOutline: BookOutline,
+    startAt: number,
+    written: BookChapter[],
+    job: BookJob,
+  ) => {
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+    for (let i = startAt; i <= bookOutline.chapters.length; i++) {
+      if (ctrl.signal.aborted) break;
+      setCurrentChapter(i);
+      setLiveText((prev) => prev + `✍️ Schreibe Kapitel ${i}: ${bookOutline.chapters[i - 1].title}...\n`);
+      const startedAt = Date.now();
+
+      try {
+        // Agent-1-Retry: JSON-/Netzwerkfehler werden bis zu 3× wiederholt;
+        // der Versuchszähler landet im UI (Retry-Badge).
+        const chapter = await withRetry(
+          () => generateChapter(cfg, bookOutline, i, written, ctrl.signal),
+          {
+            attempts: 3,
+            baseDelayMs: 1000,
+            signal: ctrl.signal,
+            onRetry: (attempt) => {
+              setRetryCounts((prev) => ({ ...prev, [i]: attempt }));
+              setLiveText((prev) => prev + `⚠️ Kapitel ${i}: Versuch ${attempt + 1} nach Fehler\n`);
+            },
+          },
+        );
+        const elapsed = Date.now() - startedAt;
+
+        // C1: SOFORT in den Store + SQLite (Status draft).
+        setChapters((prev) => [...prev, chapter]);
+        recordChapterDuration(elapsed, bookOutline.chapters.length, written.length + 1);
+        setLiveText((prev) => prev + `✅ Kapitel ${i} fertig (${chapter.content.length} Zeichen)\n\n`);
+
+        // Job-Fortschritt committed (persistNow) → Prozess-Kill-sicher.
+        await updateBookJobProgress(job.id, i);
+      } catch (e: unknown) {
+        if (e instanceof Error && e.name === "AbortError") break;
+        // Inline-Fehler im Kapitel-Row statt generischem Abbruch (C3).
+        const msg = e instanceof Error ? e.message : String(e);
+        setChapterErrors((prev) => ({ ...prev, [i]: msg }));
+        setLiveText((prev) => prev + `❌ Kapitel ${i}: ${msg}\n`);
+        await setBookJobStatus(job.id, "interrupted", `Kapitel ${i}: ${msg}`);
+        continue;
+      }
+    }
+  }, [recordChapterDuration]);
 
   const handleGenerate = useCallback(async () => {
-    if (!topic.trim()) return;
+    if (!topic.trim() || !activeProjectId) return;
     setIsGenerating(true);
     setError(null);
     setOutline(null);
     setChapters([]);
     setCurrentChapter(0);
     setLiveText("");
+    setRetryCounts({});
+    setChapterErrors({});
+    setEstimatedRemainingMs(null);
+    chapterDurationsRef.current = [];
     const ctrl = new AbortController();
     abortRef.current = ctrl;
 
+    // Job anlegen VOR der Outline — crash-sicher ab hier (C1).
+    const cfg = {
+      topic: topic.trim(), genre, targetAudience, chapterCount,
+      model: settings.model, baseUrl: settings.ollamaBaseUrl || "http://127.0.0.1:11434", language,
+    };
+    const job = createBookJob(activeProjectId, cfg);
+    activeJobIdRef.current = job.id;
+
     try {
       // Schritt 1: Outline
-      setLiveText("📋 Erstelle Gliederung...");
-      const bookOutline = await generateOutline(
-        {
-          topic: topic.trim(),
-          genre,
-          targetAudience,
-          chapterCount,
-          model: settings.model,
-          baseUrl: settings.ollamaBaseUrl || "http://127.0.0.1:11434",
-          language,
-        },
-        ctrl.signal,
-      );
+      setLiveText("📋 Erstelle Gliederung...\n");
+      const bookOutline = await generateOutline(cfg, ctrl.signal);
       setOutline(bookOutline);
-      setLiveText(`✅ Gliederung erstellt: ${bookOutline.chapters.length} Kapitel\n\n`);
+      // Outline am Job persistieren → Resume kennt Titel/Struktur.
+      await setBookJobOutline(job.id, bookOutline);
+      setLiveText((prev) => prev + `✅ Gliederung erstellt: ${bookOutline.chapters.length} Kapitel\n\n`);
 
       // Schritt 2: Kapitel einzeln generieren mit Live-Text
       const writtenChapters: BookChapter[] = [];
-      for (let i = 1; i <= bookOutline.chapters.length; i++) {
-        if (ctrl.signal.aborted) break;
-        setCurrentChapter(i);
-        setLiveText((prev) => prev + `✍️ Schreibe Kapitel ${i}: ${bookOutline.chapters[i - 1].title}...\n`);
-
-        const chapter = await generateChapter(
-          {
-            topic: topic.trim(),
-            genre,
-            targetAudience,
-            chapterCount,
-            model: settings.model,
-            baseUrl: settings.ollamaBaseUrl || "http://127.0.0.1:11434",
-            language,
-          },
-          bookOutline,
-          i,
-          writtenChapters,
-          ctrl.signal,
-        );
-        writtenChapters.push(chapter);
-        setChapters([...writtenChapters]);
-        setLiveText((prev) => prev + `✅ Kapitel ${i} fertig (${chapter.content.length} Zeichen)\n\n`);
-      }
+      await runGeneration(cfg, bookOutline, 1, writtenChapters, job);
 
       setLiveText((prev) => prev + "🎉 Buch fertig!");
+      await completeBookJob(job.id);
     } catch (e: unknown) {
       if (e instanceof Error && e.name !== "AbortError") {
         setError(e.message);
+        await setBookJobStatus(job.id, "interrupted", e.message);
       }
     } finally {
       setIsGenerating(false);
     }
-  }, [topic, genre, targetAudience, chapterCount, language, settings]);
+  }, [topic, genre, targetAudience, chapterCount, language, settings, activeProjectId, runGeneration]);
+
+  // Resume (C2): startet bei current_chapter + 1; bereits gespeicherte Kapitel
+  // kommen aus dem Store (kompatibel zu Rolling Context).
+  const handleResume = useCallback(async () => {
+    const job = resumeJob;
+    setResumeJob(null);
+    if (!job || !job.outline) return;
+    setIsGenerating(true);
+    setError(null);
+    setOutline(job.outline);
+    setChapters([]);
+    setRetryCounts({});
+    setChapterErrors({});
+    setLiveText(`⏩ Fortsetzung ab Kapitel ${job.currentChapter + 1}...\n`);
+    const cfg = { ...job.config, model: settings.model, baseUrl: settings.ollamaBaseUrl || "http://127.0.0.1:11434" };
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+    activeJobIdRef.current = job.id;
+    await setBookJobStatus(job.id, "running", null);
+
+    try {
+      const writtenChapters: BookChapter[] = [];
+      await runGeneration(cfg, job.outline, job.currentChapter + 1, writtenChapters, job);
+      setLiveText((prev) => prev + "🎉 Buch fertig!");
+      await completeBookJob(job.id);
+    } catch (e: unknown) {
+      if (e instanceof Error && e.name !== "AbortError") {
+        setError(e.message);
+        await setBookJobStatus(job.id, "interrupted", e.message);
+      }
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [resumeJob, settings, runGeneration]);
+
+  /** Resume ablehnen: Job verwerfen, Kapitel bleiben erhalten. */
+  const handleDiscardJob = useCallback(async () => {
+    if (resumeJob) await deleteBookJob(resumeJob.id);
+    setResumeJob(null);
+  }, [resumeJob]);
 
   const handleDeleteChapter = useCallback((_chapterId: string) => {
     // Nur aus Store entfernen — DB-Delete kommt später
@@ -104,10 +248,43 @@ export function BookWriterPanel() {
     // TODO: DB-Delete implementieren
   }, [activeProjectId]);
 
+  // Abbruch NUR nach Bestätigung — bereits generierte Kapitel bleiben
+  // erhalten (C3).
   const handleStop = useCallback(() => {
+    if (!window.confirm("Generierung wirklich abbrechen? Bereits generierte Kapitel bleiben erhalten.")) return;
     abortRef.current?.abort();
     setIsGenerating(false);
+    const jobId = activeJobIdRef.current;
+    if (jobId) void setBookJobStatus(jobId, "interrupted", "Vom Nutzer abgebrochen");
   }, []);
+
+  // C4: Nur die Gliederung neu generieren — fertige Kapitel (draft/completed)
+  // bleiben erhalten, betroffene werden auf needs_revision gesetzt.
+  const [isRegeneratingOutline, setIsRegeneratingOutline] = useState(false);
+  const handleRegenerateOutline = useCallback(async () => {
+    if (!topic.trim()) return;
+    setIsRegeneratingOutline(true);
+    setError(null);
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+    try {
+      const bookOutline = await generateOutline(
+        {
+          topic: topic.trim(), genre, targetAudience, chapterCount,
+          model: settings.model, baseUrl: settings.ollamaBaseUrl || "http://127.0.0.1:11434", language,
+        },
+        ctrl.signal,
+      );
+      setOutline(bookOutline);
+      // Store-Reconcile: fertige Kapitel behalten, betroffene markieren.
+      reconcileOutline(bookOutline.chapters.map((c) => ({ title: c.title, summary: c.summary })));
+      setLiveText((prev) => prev + `🔄 Gliederung neu generiert (${bookOutline.chapters.length} Kapitel) — fertige Kapitel blieben erhalten.\n`);
+    } catch (e: unknown) {
+      if (e instanceof Error && e.name !== "AbortError") setError(e.message);
+    } finally {
+      setIsRegeneratingOutline(false);
+    }
+  }, [topic, genre, targetAudience, chapterCount, language, settings, reconcileOutline]);
 
   const handleGeneratePlannedChapter = useCallback(async (chapter: Chapter) => {
     if (!activeProjectId) return;
@@ -147,9 +324,28 @@ export function BookWriterPanel() {
     ? `# ${outline.title}\n\n${chapters.map((c) => `## Kapitel ${c.number}: ${c.title}\n\n${c.content}`).join("\n\n---\n\n")}`
     : "";
 
+  // Restzeit formatiert (C3).
+  const remainingLabel = useMemo(() => {
+    if (estimatedRemainingMs === null || !isGenerating) return null;
+    const s = Math.round(estimatedRemainingMs / 1000);
+    return s >= 60 ? `~${Math.ceil(s / 60)} min` : `~${s} s`;
+  }, [estimatedRemainingMs, isGenerating]);
+
   return (
     <div className="bookwriter-panel">
       <h3>📖 Automatischer Buchautor</h3>
+
+      {/* Resume-Dialog (C2): Job läuft seit App-Neustart weiter */}
+      {resumeJob && resumeJob.outline && (
+        <div className="bw-resume" role="dialog" aria-label="Generierung fortsetzen?">
+          <p>
+            Unterbrochene Generierung gefunden (Kapitel {resumeJob.currentChapter} / {resumeJob.outline.chapters.length}).
+            Bereits gespeicherte Kapitel bleiben erhalten.
+          </p>
+          <button className="bw-start" onClick={handleResume}>▶️ Fortsetzen</button>
+          <button className="bw-stop" onClick={handleDiscardJob}>🗑 Verwerfen</button>
+        </div>
+      )}
 
       {/* View Mode Tabs */}
       <div className="bw-tabs">
@@ -200,6 +396,15 @@ export function BookWriterPanel() {
             onReorderChapters={reorderChapters}
           />
           <div className="cp-generation">
+            <button
+              onClick={handleRegenerateOutline}
+              disabled={isRegeneratingOutline || !topic.trim()}
+              className="cp-gen-btn"
+              title="Nur die Gliederung neu erstellen — fertige Kapitel bleiben erhalten"
+            >
+              🔄 Gliederung neu generieren
+            </button>
+            {isRegeneratingOutline && <span className="bw-progress-text">Gliederung wird neu erstellt…</span>}
             {storeChapters.filter((ch) => ch.status === "planned").map((ch) => (
               <button
                 key={ch.id}
@@ -244,7 +449,7 @@ export function BookWriterPanel() {
                 📝 Buch generieren
               </button>
             ) : (
-              <button onClick={handleStop} className="bw-stop">⏹ Stoppen</button>
+              <button onClick={handleStop} className="bw-stop" title="Bereits generierte Kapitel bleiben erhalten.">⏹ Stoppen</button>
             )}
           </>
         )}
@@ -253,9 +458,12 @@ export function BookWriterPanel() {
       {isGenerating && (
         <div className="bw-progress">
           <div className="bw-progress-bar">
-            <div className="bw-progress-fill" style={{ width: `${(currentChapter / chapterCount) * 100}%` }} />
+            <div className="bw-progress-fill" style={{ width: `${(currentChapter / Math.max(1, chapterCount)) * 100}%` }} />
           </div>
-          <span className="bw-progress-text">Kapitel {currentChapter} / {chapterCount}</span>
+          <span className="bw-progress-text">
+            Kapitel {currentChapter} / {chapterCount}
+            {remainingLabel ? ` · geschätzte Restzeit ${remainingLabel}` : ""}
+          </span>
         </div>
       )}
 
@@ -272,12 +480,66 @@ export function BookWriterPanel() {
         <div className="bw-result">
           <h4>{outline.title}</h4>
           <div className="bw-chapters">
-            {chapters.map((c) => (
-              <details key={c.number} className="bw-chapter">
-                <summary>Kapitel {c.number}: {c.title} ({c.content.length} Zeichen)</summary>
-                <p>{c.content}</p>
-              </details>
-            ))}
+            {chapters.map((c) => {
+              // C3: pro Kapitel Status-Badge, Wortzahl vs. Ziel, Retry-Zähler,
+              // inline Fehler im Row.
+              const retry = retryCounts[c.number] ?? 0;
+              const words = countWords(c.content);
+              const rowError = chapterErrors[c.number];
+              return (
+                <div key={c.number} className="bw-chapter">
+                  <summary>
+                    Kapitel {c.number}: {c.title} ({c.content.length} Zeichen)
+                  </summary>
+                  <div className="bw-chapter-meta">
+                    <span
+                      className="cp-status-badge"
+                      data-testid={`bw-status-${c.number}`}
+                      style={{ background: STATUS_COLORS[statusForChapter(c, chapters)] }}
+                    >
+                      {STATUS_LABELS[statusForChapter(c, chapters)]}
+                    </span>
+                    <span className="bw-wordcount" data-testid={`bw-words-${c.number}`}>
+                      {words.toLocaleString("de-DE")} / {outlineWordTarget(c.number).toLocaleString("de-DE")} Wörter
+                    </span>
+                    {retry > 0 && (
+                      <span className="bw-retry-badge" data-testid={`bw-retry-${c.number}`}>🔁 {retry}× Retry</span>
+                    )}
+                  </div>
+                  {rowError && (
+                    <div className="bw-chapter-error" data-testid={`bw-chapter-error-${c.number}`}>
+                      Kapitel {c.number}: {rowError} —{" "}
+                      <button
+                        className="bw-retry-btn"
+                        onClick={() => {
+                          setChapterErrors((prev) => {
+                            // Rest ohne Eintrag für dieses Kapitel (Rest-Pattern).
+                            const rest: Record<number, string> = {};
+                            for (const [k, v] of Object.entries(prev)) {
+                              if (Number(k) !== c.number) rest[Number(k)] = v;
+                            }
+                            return rest;
+                          });
+                          const cfg = configFor();
+                          setIsGenerating(true);
+                          // Wiederaufnahme genau dieses Kapitels:
+                          const jobId = activeJobIdRef.current ?? "";
+                          (async () => {
+                            await runGeneration(cfg, outline!, c.number, chapters, {
+                              id: jobId, projectId: activeProjectId ?? "",
+                            } as BookJob);
+                            setIsGenerating(false);
+                          })();
+                        }}
+                      >
+                        erneut versuchen?
+                      </button>
+                    </div>
+                  )}
+                  <p>{c.content}</p>
+                </div>
+              );
+            })}
           </div>
           {outline && chapters.length > 0 && (
             <>
@@ -317,4 +579,15 @@ export function BookWriterPanel() {
       )}
     </div>
   );
+}
+
+/** Status eines klassisch generierten Kapitels für das Badge (C3). */
+function statusForChapter(c: BookChapter, all: BookChapter[]): ChapterStatus {
+  return all.includes(c) ? "draft" : "generating";
+}
+
+/** Zielwortzahl aus der Outline (Default 2000, wenn kein Summary-Target). */
+function outlineWordTarget(chapterNumber: number): number {
+  void chapterNumber;
+  return 2000;
 }

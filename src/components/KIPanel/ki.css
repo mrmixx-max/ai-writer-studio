@@ -804,3 +804,50 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* --- BookWriter Resume + UI-Transparenz (Agent 3) --- */
+.bw-resume {
+  border: 1px solid #4f46e5;
+  background: rgba(79, 70, 229, 0.12);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+.bw-resume p { margin: 0 0 8px; font-size: 0.8rem; }
+.bw-resume .bw-start { margin-right: 8px; }
+.bw-chapter-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+.bw-wordcount { white-space: nowrap; }
+.bw-retry-badge {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border-radius: 10px;
+  padding: 1px 8px;
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+.bw-chapter-error, .cp-chapter-error {
+  font-size: 0.75rem;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 4px;
+  padding: 6px 8px;
+  margin-top: 4px;
+}
+.bw-retry-btn, .cp-retry-btn {
+  background: transparent;
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  border-radius: 4px;
+  padding: 2px 8px;
+  cursor: pointer;
+  font-size: 0.7rem;
+}
+.bw-retry-btn:hover, .cp-retry-btn:hover { background: rgba(239, 68, 68, 0.15); }

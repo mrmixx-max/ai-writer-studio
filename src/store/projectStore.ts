@@ -1,8 +1,13 @@
 // Projekt-State: aktives Projekt/Kapitel + Baum.
+// Kapitel-Updates werden jetzt INKREMENTELL in SQLite persistiert
+// (updateChapterFields) — kein reinen RAM-Puffer mehr.
 import { create } from "zustand";
-import { listProjects, listChapters, createProject, createChapter, getChapter } from "@/services/project";
+import {
+  listProjects, listChapters, createProject, createChapter, getChapter,
+  updateChapterFields,
+} from "@/services/project";
 import type { Project, Chapter, ChapterStatus } from "@/types/project";
-import { createDefaultChapter } from "@/services/writing/chapterPlan";
+import { createDefaultChapter, computeWordStats } from "@/services/writing/chapterPlan";
 
 interface ProjectState {
   projects: Project[];
@@ -17,7 +22,7 @@ interface ProjectState {
   newChapter: (title: string, content?: string) => void;
   /** Erstellt ein Kapitel mit vollständiger Planung (Zielwortzahl etc.). */
   newPlannedChapter: (title: string, targetWordCount: number, purpose?: string, synopsis?: string) => void;
-  /** Aktualisiert Felder eines Kapitels. */
+  /** Aktualisiert Felder eines Kapitels (State + DB, inkrementell). */
   updateChapter: (id: string, updates: Partial<Chapter>) => void;
   /** Setzt den Status eines Kapitels. */
   setChapterStatus: (id: string, status: ChapterStatus) => void;
@@ -26,6 +31,14 @@ interface ProjectState {
   /** Sortiert Kapitel um (Drag & Drop). */
   reorderChapters: (fromIndex: number, toIndex: number) => void;
   setActiveContent: (c: string) => void;
+  /**
+   * INTERFACE-CHANGE: Gliederung-Reconcile für "Gliederung neu generieren".
+   * Behält fertige Kapitel (draft/completed), markiert abweichende als
+   * needs_revision, plant neue Kapitel ein.
+   */
+  reconcileOutline: (
+    newChapters: { title: string; summary?: string; purpose?: string }[],
+  ) => void;
 }
 
 export const useProjectStore = create<ProjectState>((set, get) => ({
@@ -86,22 +99,16 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
       ch.id === id ? { ...ch, ...updates, updatedAt: Date.now() } : ch,
     );
     set({ chapters });
-    // TODO: persistiere in DB sobald createChapter/Update API existiert
+    // Inkrementell in SQLite schreiben (kein RAM-Puffer mehr).
+    void updateChapterFields(id, updates).catch(() => {
+      // DB-Fehler darf die UI nicht blockieren; State bleibt konsistent.
+    });
   },
   setChapterStatus: (id, status) => {
     get().updateChapter(id, { status });
   },
   updateChapterWordCount: (id, wordCount) => {
-    const chapters = get().chapters.map((ch) =>
-      ch.id === id
-        ? {
-            ...ch,
-            currentWordCount: wordCount,
-            updatedAt: Date.now(),
-          }
-        : ch,
-    );
-    set({ chapters });
+    get().updateChapter(id, { currentWordCount: wordCount });
   },
   reorderChapters: (fromIndex, toIndex) => {
     const chapters = [...get().chapters];
@@ -110,5 +117,53 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     // orderIndex neu setzen
     const reordered = chapters.map((ch, i) => ({ ...ch, orderIndex: i }));
     set({ chapters: reordered });
+    // Persistieren der neuen Reihenfolge
+    for (const ch of reordered) {
+      void updateChapterFields(ch.id, { orderIndex: ch.orderIndex }).catch(() => undefined);
+    }
+  },
+  reconcileOutline: (newChapters) => {
+    const pid = get().activeProjectId;
+    if (!pid) return;
+    const existing = get().chapters;
+    const now = Date.now();
+    const next: Chapter[] = [];
+
+    newChapters.forEach((nc, i) => {
+      const prev = existing[i];
+      const titleChanged = !prev || prev.title !== nc.title;
+      if (prev && !titleChanged) {
+        // Unverändertes Kapitel: Plan-Felder aktualisieren, Status behalten.
+        next.push({ ...prev, synopsis: nc.summary ?? prev.synopsis, updatedAt: now });
+        if (nc.summary !== undefined && nc.summary !== prev.synopsis) {
+          get().updateChapter(prev.id, { synopsis: nc.summary });
+        }
+      } else if (prev) {
+        // Umbenannt → Betroffenes Kapitel zur Überarbeitung markieren,
+        // fertiger Content bleibt erhalten (draft/completed nicht löschen).
+        const keepStatus = prev.status === "draft" || prev.status === "completed"
+          ? "needs_revision"
+          : prev.status;
+        get().updateChapter(prev.id, { title: nc.title, synopsis: nc.summary, status: keepStatus });
+        next.push({ ...prev, title: nc.title, synopsis: nc.summary, status: keepStatus, updatedAt: now });
+      } else {
+        // Neues Kapitel ans Ende planen.
+        const fresh = createDefaultChapter(pid, i, {
+          title: nc.title,
+          synopsis: nc.summary,
+          purpose: nc.purpose,
+        });
+        const created = createChapter(pid, fresh.id, "", i);
+        Promise.resolve(created).then(() => {
+          void updateChapterFields(fresh.id, { synopsis: nc.summary, purpose: nc.purpose }).catch(() => undefined);
+        });
+        next.push(fresh);
+      }
+    });
+
+    set({ chapters: next });
   },
 }));
+
+// Re-Export für Komponenten, die Statistiken im Row berechnen (Agent 3 UI).
+export { computeWordStats };

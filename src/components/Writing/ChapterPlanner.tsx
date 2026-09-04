@@ -168,6 +168,18 @@ export function ChapterPlanner({
 
               {ch.purpose && <div className="cp-purpose">Typ: {ch.purpose}</div>}
               {ch.synopsis && <div className="cp-synopsis">{ch.synopsis}</div>}
+              {/* Inline-Fehler im Kapitel-Row (C3) statt generischem Abbruch. */}
+              {ch.lastError && (
+                <div className="cp-chapter-error" data-testid={`cp-error-${ch.id}`}>
+                  Kapitel {index + 1}: {ch.lastError} —{" "}
+                  <button
+                    className="cp-retry-btn"
+                    onClick={() => onUpdateChapter(ch.id, { lastError: undefined, status: "planned" })}
+                  >
+                    erneut versuchen?
+                  </button>
+                </div>
+              )}
 
               <div className="cp-chapter-actions">
                 <input
