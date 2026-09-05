@@ -37,6 +37,7 @@ import type {
   BookwriterPhase,
   KdpMetadata,
 } from "@/types/bookwriter";
+import type { HitlGate } from "@/services/cli/hitl";
 
 /** Ein Kapitel mit seinem Inhalt. */
 export interface ChapterData {
@@ -80,12 +81,35 @@ export async function startBookwriter(
   return run.id;
 }
 
-/** Führt einen Lauf von der aktuellen Phase aus. */
+/**
+ * Optionale HITL-Hooks (Sprint 5): Human-in-the-Loop-Steuerung für die CLI.
+ *
+ * - shouldPause(gate): Pausiert der Lauf an diesem Haltepunkt? (false = kein
+ *   HITL-Verhalten, bestehende Aufrufer unverändert).
+ * - onGate(gate, runId, projectId, summary?): Interaktiver Haltepunkt —
+ *   wirft bei 'rejected' (Lauf wird pausiert).
+ * - applyInjects(prompt): Injiziert eingespeiste Redaktionsanweisungen in
+ *   den nächsten Prompt (neutral, wenn keine vorhanden sind).
+ *
+ * Haltepunkte: outline (nach Gliederung), memory (Kontext-Block vor dem
+ * Schreiben), revision (nach dem finalen Revisions-Loop).
+ */
+export interface HitlHooks {
+  shouldPause(gate: HitlGate): boolean;
+  onGate(gate: HitlGate, runId: string, projectId: string, summary?: string): Promise<void>;
+  applyInjects(prompt: string): string;
+}
+
+/**
+ * Führt einen Lauf von der aktuellen Phase aus. Mit `hitl` werden optionale
+ * Haltepunkte (Outline, Memory-Base, finaler Revisions-Loop) durchlaufen.
+ */
 export async function runBookwriter(
   runId: string,
   projectName: string,
   onProgress?: (phase: BookwriterPhase, progress: number, label: string) => void,
   signal?: AbortSignal,
+  hitl?: HitlHooks,
 ): Promise<void> {
   const run = loadRun(runId);
   if (!run || (run.status !== "active" && run.status !== "paused")) {
@@ -132,13 +156,13 @@ export async function runBookwriter(
         case "gliederung":
           await generateGliederung(runId, briefing, settings, (p, label) => {
             onProgress?.(phase, p, label);
-          }, signal);
+          }, signal, hitl);
           break;
 
         case "manuskript":
           await generateManuskript(runId, run.projectId, briefing, settings, (p, label) => {
             onProgress?.(phase, p, label);
-          }, signal);
+          }, signal, hitl);
           break;
 
         case "qualitaet":
@@ -167,6 +191,58 @@ export async function runBookwriter(
       }
 
       await setPhaseStatus(runId, phase, "done", 1);
+
+      // --- HITL-Haltepunkt: outline (nach der Gliederung) ----------------
+      if (phase === "gliederung" && hitl?.shouldPause("outline")) {
+        const outline = loadArtifact<BookOutline>(runId, "gliederung");
+        const summary = outline
+          ? `Gliederung — ${outline.chapters.length} Kapitel, ${outline.totalWords} Wörter gesamt:\n` +
+            outline.chapters.map((c, i) => `  ${i + 1}. ${c.title} (ca. ${c.estimatedWords ?? 0} Wörter)`).join("\n")
+          : "Keine Gliederung gefunden.";
+        try {
+          await hitl.onGate("outline", runId, run.projectId, summary);
+        } catch {
+          if (signal?.aborted) return;
+          await pauseRun(runId);
+          onProgress?.(phase, 1, "Haltepunkt Outline abgelehnt — Lauf pausiert.");
+          console.log("⏸ Haltepunkt 'outline' abgelehnt — Lauf pausiert (Fortsetzen über Job-Recovery).");
+          return;
+        }
+      }
+
+      // --- HITL-Haltepunkt: memory (Memory-Base vor dem Schreiben) -------
+      if (phase === "manuskript" && hitl?.shouldPause("memory")) {
+        const { buildContextBlock } = await import("./contextManager");
+        const memoryBlock = buildContextBlock(run.projectId);
+        const summary = memoryBlock
+          ? `Memory-Base (verbindlicher Kontext):\n${memoryBlock}`
+          : "Memory-Base ist leer (keine Fakten gespeichert).";
+        try {
+          await hitl.onGate("memory", runId, run.projectId, summary);
+        } catch {
+          if (signal?.aborted) return;
+          await pauseRun(runId);
+          onProgress?.(phase, 0, "Haltepunkt Memory abgelehnt — Lauf pausiert.");
+          console.log("⏸ Haltepunkt 'memory' abgelehnt — Lauf pausiert (Fortsetzen über Job-Recovery).");
+          return;
+        }
+      }
+
+      // --- HITL-Haltepunkt: revision (nach dem finalen Revisions-Loop) ---
+      if (phase === "ueberarbeitung" && hitl?.shouldPause("revision")) {
+        try {
+          await hitl.onGate(
+            "revision", runId, run.projectId,
+            "Finaler Revisions-Loop (Überarbeitung): Stil, Konsistenz und Lesbarkeit wurden geprüft. Freigabe vor Export?",
+          );
+        } catch {
+          if (signal?.aborted) return;
+          await pauseRun(runId);
+          onProgress?.(phase, 1, "Haltepunkt Revision abgelehnt — Lauf pausiert.");
+          console.log("⏸ Haltepunkt 'revision' abgelehnt — Lauf pausiert (Fortsetzen über Job-Recovery).");
+          return;
+        }
+      }
 
       if (run.mode === "manual" && phase !== "export") {
         await pauseRun(runId);
@@ -250,13 +326,14 @@ async function generateGliederung(
   settings: ReturnType<typeof loadSettings>,
   onProgress: (progress: number, label: string) => void,
   signal?: AbortSignal,
+  hitl?: HitlHooks,
 ): Promise<void> {
   const system = systemForGenre(briefing.genre, briefing.tone, briefing.language);
 
   onProgress(0.2, "Gliederung wird erstellt…");
   const raw = await completeOnce(
     settings,
-    promptOutline(briefing),
+    hitl ? hitl.applyInjects(promptOutline(briefing)) : promptOutline(briefing),
     [{ role: "system", content: system }],
     signal,
   );
@@ -283,6 +360,7 @@ async function generateManuskript(
   settings: ReturnType<typeof loadSettings>,
   onProgress: (progress: number, label: string) => void,
   signal?: AbortSignal,
+  hitl?: HitlHooks,
 ): Promise<void> {
   const outline = loadArtifact<BookOutline>(runId, "gliederung");
   if (!outline) throw new Error("Keine Gliederung gefunden.");
@@ -297,12 +375,21 @@ async function generateManuskript(
     const ch = outline.chapters[i];
     onProgress(i / outline.chapters.length, `Kapitel ${i + 1} wird geschrieben…`);
 
+    // Sprint 5 (HITL): Eingespeiste Redaktionsanweisungen des Publishers
+    // als verbindlichen Block in den Kapitel-Prompt injizieren.
+    const userPrompt = hitl
+      ? hitl.applyInjects(promptWriteChapter(briefing, ch, {
+          previousSummaries: summaries,
+          researchNotes: [],
+        }))
+      : promptWriteChapter(briefing, ch, {
+          previousSummaries: summaries,
+          researchNotes: [],
+        });
+
     const content = await completeOnce(
       settings,
-      promptWriteChapter(briefing, ch, {
-        previousSummaries: summaries,
-        researchNotes: [],
-      }),
+      userPrompt,
       [{ role: "system", content: system }],
       signal,
     );

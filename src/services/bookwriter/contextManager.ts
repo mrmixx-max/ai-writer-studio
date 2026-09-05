@@ -24,11 +24,18 @@ export type FactKind =
   | "entity"
   | "terminology"
   | "structure"
-  | "timeline";
+  | "timeline"
+  // Sprint 5 (Agent 3): Publishing-Metadaten für den KDP-Upload-Flow.
+  | "isbn"
+  | "pricing";
 
 export const FACT_KINDS: FactKind[] = [
   "character", "place", "entity", "terminology", "structure", "timeline",
+  "isbn", "pricing",
 ];
+
+/** Publishing-relevante Fakten-Arten (Sprint 5: ISBN + Preisstrategie). */
+export const PUBLISHING_FACT_KINDS: FactKind[] = ["isbn", "pricing"];
 
 /** Deutsche Labels für den Prompt-Kontextblock. */
 const KIND_LABELS: Record<FactKind, string> = {
@@ -38,6 +45,9 @@ const KIND_LABELS: Record<FactKind, string> = {
   terminology: "Fachbegriffe",
   structure: "Fachbuch-Struktur",
   timeline: "Zeitlinie",
+  // Sprint 5 (Agent 3): Publishing-Metadaten.
+  isbn: "ISBNs",
+  pricing: "Preisstrategie",
 };
 
 /** Ein gespeicherter Fakt. */
@@ -81,6 +91,35 @@ export interface FactInput {
 }
 
 /**
+ * Validiert Publishing-Fakten (Sprint 5): ISBN-Formate (paperback|ebook|
+ * hardcover), Preisstrategie-Ids und Preise in den KDP-Grenzen (0.99-200).
+ */
+export function validatePublishingFact(kind: "isbn" | "pricing", key: string, value: string): void {
+  if (kind === "isbn") {
+    if (!(ISBN_FACT_FORMATS as string[]).includes(key)) {
+      throw new Error(`Ungültiges ISBN-Format: "${key}". Erlaubt: ${ISBN_FACT_FORMATS.join(", ")}.`);
+    }
+    return;
+  }
+  // kind === "pricing"
+  if (key === "strategy") {
+    getPricingStrategy(value); // wirft bei unbekannter Strategie
+    return;
+  }
+  if (key === "USD" || key === "EUR" || key === "GBP") {
+    const n = Number(value);
+    if (Number.isNaN(n)) {
+      throw new Error(`Preis "${key}" muss numerisch sein (aktuell: "${value}").`);
+    }
+    if (n < 0.99 || n > 200) {
+      throw new Error(`Preis "${key}" verletzt die KDP-Grenzen 0.99-200 (aktuell: ${n}).`);
+    }
+    return;
+  }
+  throw new Error(`Ungültiger Pricing-Schlüssel: "${key}". Erlaubt: strategy, USD, EUR, GBP.`);
+}
+
+/**
  * Speichert oder aktualisiert einen Fakt (Upsert per Projekt+Art+Schlüssel).
  * Wirft bei leerem key/value — sonst ist der Kontextblock später Müll.
  */
@@ -94,6 +133,10 @@ export async function upsertFact(
   if (!value) throw new Error(`Fakt "${key}" ohne value kann nicht gespeichert werden.`);
   if (!FACT_KINDS.includes(input.kind)) {
     throw new Error(`Unbekannte Fakt-Art: ${input.kind}`);
+  }
+  // Sprint 5 (Agent 3): Publishing-Fakten (isbn/pricing) validieren.
+  if (input.kind === "isbn" || input.kind === "pricing") {
+    validatePublishingFact(input.kind, key, value);
   }
 
   const db = getDb();
@@ -213,4 +256,93 @@ export function buildContextBlock(
   }
   if (grouped.length === 0) return "";
   return `Stabiler Kontext (verbindlich für alle Kapitel):\n${grouped.join("\n")}`;
+}
+
+
+// --- Publishing: ISBN & Preisstrategie (Sprint 5, Agent 3) --------------------------
+
+import { getPricingStrategy, computePrices, type PriceOverrides } from "@/services/kdp/pricingStrategy";
+import { ISBN_FORMATS, isbnPlaceholder, type IsbnFormat } from "@/services/kdp/uploadSheet";
+
+/** Gültige ISBN-Formate als key der "isbn"-Fakten. */
+export const ISBN_FACT_FORMATS = ISBN_FORMATS;
+
+
+/**
+ * Liest die ISBNs eines Projekts. Vergebene ISBNs als Wert, offene Slots als
+ * Platzhalter-Token ("{{ISBN:FORMAT}}") — substituierbar per resolveIsbnPlaceholders.
+ */
+export function resolveProjectIsbns(projectId: string): Record<IsbnFormat, string> {
+  const out = {} as Record<IsbnFormat, string>;
+  for (const fmt of ISBN_FORMATS) {
+    const fact = getFact(projectId, "isbn", fmt);
+    out[fmt] = fact?.value?.trim() ? fact.value.trim() : isbnPlaceholder(fmt);
+  }
+  return out;
+}
+
+/** Pricing-Konfiguration eines Projekts (Strategie-Id + konkrete Preise). */
+export interface ProjectPricing {
+  strategy: string;
+  prices: { USD: number; EUR: number; GBP: number };
+}
+
+/** Liest die Preisstrategie aus der Fakten-Base (Default: "standard"). */
+export function getProjectPricing(projectId: string): ProjectPricing {
+  const strategyFact = getFact(projectId, "pricing", "strategy");
+  const strategyId = strategyFact?.value?.trim() || "standard";
+  const strategy = getPricingStrategy(strategyId);
+  const overrides: PriceOverrides = {};
+  for (const cur of ["USD", "EUR", "GBP"] as const) {
+    const f = getFact(projectId, "pricing", cur);
+    if (f?.value?.trim()) {
+      const n = Number(f.value);
+      if (!Number.isNaN(n)) overrides[cur] = n;
+    }
+  }
+  return { strategy: strategy.id, prices: computePrices(strategyId, overrides) };
+}
+
+/**
+ * Speichert die Preisstrategie (und optional Override-Preise) als pricing-Fakten.
+ * Konfigurierbar per Strategie-Id; Preise werden deterministisch aus der
+ * Strategie berechnet (Overrides überschreiben pro Währung).
+ */
+export async function setProjectPricingStrategy(
+  projectId: string,
+  strategyId: string,
+  overrides?: PriceOverrides,
+): Promise<ProjectPricing> {
+  const strategy = getPricingStrategy(strategyId); // wirft bei unbekannter Strategie
+  await upsertFact(projectId, { kind: "pricing", key: "strategy", value: strategy.id });
+  const prices = computePrices(strategy.id, overrides);
+  for (const cur of ["USD", "EUR", "GBP"] as const) {
+    await upsertFact(projectId, { kind: "pricing", key: cur, value: prices[cur].toFixed(2) });
+  }
+  return { strategy: strategy.id, prices };
+}
+
+/**
+ * Baut den Publishing-Kontextblock (ISBNs + Preisstrategie) für den Upload-Flow.
+ * Deterministisch; leer, wenn weder ISBNs noch Pricing gesetzt sind.
+ */
+export function buildPublishingContextBlock(projectId: string): string {
+  const lines: string[] = [];
+  const isbns = resolveProjectIsbns(projectId);
+  const hasIsbn = (ISBN_FORMATS as IsbnFormat[]).some((f) => !isbns[f].startsWith("{{ISBN:"));
+  if (hasIsbn) {
+    lines.push("ISBNs:");
+    for (const fmt of ISBN_FORMATS) {
+      lines.push(`- ${fmt}: ${isbns[fmt]}`);
+    }
+  }
+  const pricing = getProjectPricing(projectId);
+  const hasPricing = getFact(projectId, "pricing", "strategy") !== null;
+  if (hasPricing) {
+    lines.push(
+      `Preisstrategie: ${pricing.strategy} (USD ${pricing.prices.USD.toFixed(2)} / EUR ${pricing.prices.EUR.toFixed(2)} / GBP ${pricing.prices.GBP.toFixed(2)})`,
+    );
+  }
+  if (lines.length === 0) return "";
+  return `Publishing-Kontext (KDP-Upload):\n${lines.join("\n")}`;
 }
