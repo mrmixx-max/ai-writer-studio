@@ -7,6 +7,7 @@ import { markdownToTipTap } from "@/services/editor/markdown";
 import { promptWriteChapter, promptSummarizeChapter, systemForGenre } from "./prompts";
 import { saveArtifact } from "./state";
 import { searchDocuments } from "./documents";
+import { buildContextBlock } from "./contextManager";
 import type { BookBriefing, BookOutline, OutlineChapter } from "@/types/bookwriter";
 
 /** Ein generiertes Kapitel. */
@@ -58,6 +59,11 @@ export async function generateChapter(
     const query = `${chapter.title} ${chapter.goal} ${chapter.conflict} ${chapter.outcome}`;
     const hits = searchDocuments(projectId, query, 3);
     ragNotes = hits.map((h) => `[Quelle: ${h.docTitle}]\n${h.text}`);
+    // Sprint 3 (Long-Term Memory): Fakten-Base als verbindlichen Kontext
+    // voranstellen — Charaktere, Orte, Zeitlinien bleiben über alle Kapitel
+    // hinweg konsistent. Leere Base → keine Änderung am Prompt.
+    const memoryContext = buildContextBlock(projectId);
+    if (memoryContext) ragNotes = [memoryContext, ...ragNotes];
   }
 
   const userPrompt = promptWriteChapter(briefing, chapter, {

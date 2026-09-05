@@ -14,6 +14,10 @@
 //    Bogen). Bei Verletzung EIN Reparatur-Call; danach Fehlerliste an den
 //    Nutzer (manueller Eingriff).
 import { OllamaProvider } from "@/services/llm/ollama";
+import {
+  applyLocalModelProfile,
+  capMaxTokensForModel,
+} from "@/services/llm/localModelProfiles";
 import { BookwriterRouter, pickModelForTask, type BookwriterRouterConfig, type BookwriterTaskKind, type RouterCallMeta } from "@/services/llm/router";
 import { countWords, deriveMinMax } from "./chapterPlan";
 import { parseJsonLoose } from "./jsonExtract";
@@ -51,11 +55,17 @@ async function collectChatRouted(
   signal?: AbortSignal,
   provider?: OllamaProvider,
 ): Promise<string> {
+  // Sprint 3 (Local-Model-Optimierung): maxTokens wird pro Modell-Familie
+  // gedeckelt (Qwen enger als DeepSeek); andere Modelle unverändert.
+  const maxTokens = capMaxTokensForModel(opts.model ?? config.model, opts.maxTokens);
   if (bookwriterRouter) {
+    // Sprint 3 (Local-Model-Optimierung): Familien-Profil (DeepSeek/Qwen)
+    // als System-Prompt-Fallback — ohne bestehenden System-Prompt zu
+    // überschreiben; für andere Modelle neutral (leeres Profil).
     const { text, meta } = await bookwriterRouter.complete(
       task,
-      [{ role: "user", content: prompt }],
-      { model: opts.model ?? config.model, maxTokens: opts.maxTokens, temperature: opts.temperature, timeoutMs: opts.timeoutMs },
+      applyLocalModelProfile(config.model, [{ role: "user", content: prompt }]),
+      { model: opts.model ?? config.model, maxTokens, temperature: opts.temperature, timeoutMs: opts.timeoutMs },
       signal,
     );
     bookwriterOnCall?.(meta);
@@ -64,7 +74,7 @@ async function collectChatRouted(
   const p = provider ?? new OllamaProvider(config.baseUrl);
   return collectChat(p, prompt, {
     model: opts.model ?? config.model,
-    maxTokens: opts.maxTokens,
+    maxTokens,
     temperature: opts.temperature,
     timeoutMs: opts.timeoutMs,
   }, signal);
@@ -87,9 +97,12 @@ async function collectChat(
 ): Promise<string> {
   const { controller, clear } = createTimeoutController(opts.timeoutMs, signal);
   const chunks: string[] = [];
+  // Sprint 3 (Local-Model-Optimierung): auch der Legacy-Pfad (ohne Router)
+  // bekommt das Familien-Profil (DeepSeek/Qwen) als System-Prompt-Fallback.
+  const messages = applyLocalModelProfile(opts.model, [{ role: "user", content: prompt }]);
   try {
     for await (const chunk of provider.chat(
-      [{ role: "user", content: prompt }],
+      messages,
       { model: opts.model, maxTokens: opts.maxTokens, temperature: opts.temperature, timeoutMs: opts.timeoutMs },
       controller.signal,
     )) {
@@ -434,6 +447,35 @@ Antworte NUR mit dem vollständigen gekürzten Kapiteltext. Keine Überschriften
 const CONCLUSION_TITLE_PATTERN = /fazit|zusammenfassung|schluss|conclusion|abschluss|resümee|resumee/i;
 
 /**
+ * FMEA-R-14: Zero-Width- und Formatierungs-Zeichen, mit denen ein Duplikat
+ * oder ein Fazit-Titel dem Dedup/Gate-Compare entgangen wäre. Entfernt werden
+ * alle Varianten, die visuell unsichtbar sind oder nicht zu Wörtern zählen:
+ * U+200B/U+200C/U+200D (Zero-Width Space/Non-Joiner/Joiner), U+2060 (Word
+ * Joiner), U+FEFF (BOM), U+00AD (Soft Hyphen), U+180E (Mongolian Vowel
+ * Separator), Bidi-Marks U+200E/U+200F, Bidi-Steuerzeichen U+202A-U+202E und
+ * die unsichtbaren Mathe-Operatoren U+2061-U+2064.
+ */
+export const ZERO_WIDTH_PATTERN =
+  // eslint-disable-next-line no-misleading-character-class
+  /[\u200B\u200C\u200D\u2060\uFEFF\u00AD\u180E\u200E\u200F\u202A\u202B\u202C\u202D\u202E\u2061\u2062\u2063\u2064]/g;
+
+/**
+ * Normalisiert einen Kapiteltitel für den Dedup-/Gate-Vergleich (FMEA-R-14):
+ * Zero-Width-Zeichen entfernen, NFKC (u. a. Fullwidth-Latin → ASCII),
+ * Whitespace kollabieren, trimmen, lowercase. Vorher angewendete
+ * Case-Normalisierung allein war durchschaubar (R08) und die reine
+ * Trim-Variante ließ unsichtbare Zeichen als "eigenen Titel" durch (R18).
+ */
+export function normalizeTitleForDedup(title: string): string {
+  return title
+    .normalize("NFKC")
+    .replace(ZERO_WIDTH_PATTERN, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+/**
  * Prüft die Gliederung: Kapitelanzahl, fortlaufende Nummern, eindeutige
  * Titel, Summaries >= 20 Wörter, logischer Bogen (Kapitel 1 kein Fazit,
  * höchstens ein Fazit). Gibt Liste von Fehlern zurück (leer = valide).
@@ -460,9 +502,11 @@ export function validateOutline(
     }
   }
 
+  // FMEA-R-14: Dedup über normalisierte Schlüssel — sonst umgehen
+  // Zero-Width-Varianten (z.B. "GRUNDLAGEN" mit U+200B) den Duplikat-Check.
   const seenTitles = new Set<string>();
   for (const c of outline.chapters) {
-    const key = (c.title ?? "").trim().toLowerCase();
+    const key = normalizeTitleForDedup(c.title ?? "");
     if (!key) {
       errors.push(`Kapitel ${String(c.number)} hat keinen Titel.`);
     } else if (seenTitles.has(key)) {
@@ -482,10 +526,14 @@ export function validateOutline(
   }
 
   // Logischer Bogen: Kapitel 1 ist keine Schlussbetrachtung, höchstens ein Fazit.
+  // Auch hier über normalisierte Titel — "F\u200bazit" ist kein Schlupfloch.
   const conclusionChapters = outline.chapters.filter((c) =>
-    CONCLUSION_TITLE_PATTERN.test(c.title ?? ""),
+    CONCLUSION_TITLE_PATTERN.test(normalizeTitleForDedup(c.title ?? "")),
   );
-  if (outline.chapters.length > 0 && CONCLUSION_TITLE_PATTERN.test(outline.chapters[0].title ?? "")) {
+  if (
+    outline.chapters.length > 0 &&
+    CONCLUSION_TITLE_PATTERN.test(normalizeTitleForDedup(outline.chapters[0].title ?? ""))
+  ) {
     errors.push(
       `Logischer Bogen: Kapitel 1 ("${outline.chapters[0].title}") ist bereits ein Fazit — Einleitung fehlt.`,
     );

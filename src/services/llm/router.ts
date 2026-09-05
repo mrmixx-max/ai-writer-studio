@@ -17,6 +17,60 @@ import { classifyError } from "@/services/writing/retry";
 /** Aufgaben-Typen des Bookwriters mit Qualitäts-Anforderung. */
 export type BookwriterTaskKind = "outline" | "chapter" | "summary" | "entities" | "repair" | "metadata";
 
+// --- Sprint 3: Spezialisiertes Agenten-Routing (Logik vs. Kreativ) ----------
+
+/**
+ * Sprint 3: Aufgaben-Klassen. "logic" = Faktenchecks, Entitäten-Extraktion,
+ * Konsistenzprüfungen, Reparaturen → spezialisiertes Logik-Modell.
+ * "creative" = reine Textgenerierung → kreatives Modell.
+ */
+export type TaskClass = "logic" | "creative";
+
+/**
+ * Sprint 3: Zuordnung Aufgabe → Modell-Rolle. LLM-Faktenchecks und
+ * JSON-Reparatur brauchen strikte Befolgung — reine Kapitel-/Zusammen-
+ * fassungs-Generierung profitiert von kreativen Modellen.
+ */
+export const TASK_CLASS_MATRIX: Record<BookwriterTaskKind, TaskClass> = {
+  outline: "creative",
+  chapter: "creative",
+  summary: "creative",
+  entities: "logic",
+  repair: "logic",
+  metadata: "creative",
+};
+
+/** Rollen-Namen für die Modellkonfiguration. */
+export type TaskModelRole = "main" | "fast" | "strong" | "logic";
+
+/** Erweiterte Modell-Config: logic = spezialisiertes Logik-/Faktencheck-Modell. */
+export interface TaskModelsWithLogic extends TaskModels {
+  /** Spezialisiertes Logik-Modell (Faktenchecks, JSON-Reparatur). Optional. */
+  logic?: string;
+}
+
+/**
+ * Wählt das Modell für eine Aufgabe unter Berücksichtigung der Aufgaben-Klasse
+ * (Sprint 3). Logik-Aufgaben (entities/repair) bekommen bevorzugt das
+ * spezialisierte Logik-Modell, sonst gilt die bestehende Modell-Matrix.
+ * Konservativ: ohne logic-Kandidat bleibt es beim Matrix-Ergebnis —
+ * es wird nie ein Modell erfunden.
+ */
+export function pickModelWithTaskClass(
+  task: BookwriterTaskKind,
+  models: TaskModelsWithLogic,
+  available: string[] = [],
+): string {
+  if (TASK_CLASS_MATRIX[task] === "logic" && models.logic) return models.logic;
+  return pickModelForTask(task, models, available);
+}
+
+/** Klassifiziert eine Aufgabe (für Router-Metadaten/Telemetrie). */
+export function taskClassOf(task: BookwriterTaskKind): TaskClass {
+  return TASK_CLASS_MATRIX[task];
+}
+
+
 export type ModelQuality = "strong" | "main" | "fast";
 
 /** B3: Matrix Aufgabe → benötigte Qualität. outline=stark, chapter/repair=Haupt, summary/entities=schnell. */
@@ -128,6 +182,8 @@ export interface RouterCallMeta {
   /** Warum ein anderer Provider als der erste der Kette bedient hat (null = keiner). */
   fallback_reason: FallbackReason | null;
   task: BookwriterTaskKind;
+  /** Sprint 3: Aufgaben-Klasse (logic= Faktencheck/Reparatur, creative= Generierung). */
+  task_class?: TaskClass;
   ok: boolean;
 }
 
@@ -183,13 +239,14 @@ export class BookwriterRouter {
     return s.calls === 0 ? 0 : Math.round((s.timeouts / s.calls) * 100);
   }
 
-  /** Modelle eines Chain-Eintrags (Hauptmodell = spec.models.main oder Fallback). */
-  modelsFor(idx: number, fallbackMain: string): TaskModels {
+  /** Modelle eines Chain-Eintrags (Hauptmodell = spec.models.main oder Fallback). Sprint 3: inkl. logic-Rolle. */
+  modelsFor(idx: number, fallbackMain: string): TaskModelsWithLogic {
     const spec = this.entries[idx].spec;
     return {
       main: spec.models?.main ?? fallbackMain,
       fast: spec.models?.fast,
       strong: spec.models?.strong,
+      logic: (spec.models as TaskModelsWithLogic | undefined)?.logic,
     };
   }
 
@@ -237,7 +294,9 @@ export class BookwriterRouter {
       }
 
       const models = this.modelsFor(idx, opts.model ?? "");
-      const model = pickModelForTask(task, models, []);
+      // Sprint 3: Logik-/Faktencheck-Aufgaben bevorzugt an spezialisierte
+      // Logik-Modelle, Kreativ-Aufgaben an das Matrix-Modell.
+      const model = pickModelWithTaskClass(task, models, []);
       const chatOpts: ChatOptions = {
         model,
         temperature: opts.temperature,
@@ -270,6 +329,7 @@ export class BookwriterRouter {
             tokens_est: estimateTokensRouter(text),
             fallback_reason: fallbackReason,
             task,
+            task_class: taskClassOf(task),
             ok: true,
           };
           this.onCall?.(meta);
