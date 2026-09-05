@@ -17,10 +17,13 @@ h1 { font-size: 1.8em; margin: 1.5em 0 0.5em; page-break-before: always; break-b
 h2 { font-size: 1.4em; margin-top: 1.2em; }
 h3 { font-size: 1.2em; margin-top: 1em; }
 p { margin: 0.5em 0; text-align: justify; text-indent: 1.2em; }
+p.noindent { text-indent: 0; text-align: left; }
 blockquote { margin: 1em 2em; padding-left: 1em; border-left: 3px solid #ccc; font-style: italic; }
 pre { font-family: "Courier New", monospace; background: #f4f4f4; padding: 1em; overflow-x: auto; font-size: 0.9em; }
 ul, ol { margin: 0.5em 0; padding-left: 2em; }
-.title-page { text-align: center; }
+h1.chapter-title { page-break-before: auto; break-before: auto; text-align: center; }
+div.center { text-align: center; }
+div.center p { text-align: center; }
 nav ol { list-style: none; padding-left: 0; }
 nav li { margin: 0.4em 0; }
 `;
@@ -83,6 +86,7 @@ function buildOpf(input: ZipInput): string {
     <dc:language>${lang}</dc:language>
     <dc:date>${new Date().toISOString().slice(0, 10)}</dc:date>
     <meta property="dcterms:modified">${new Date().toISOString().replace(/\.\d+Z$/, "Z")}</meta>
+    <meta name="generator" content="AI Writer Studio (Jutoh-optimierter Export)"/>
   </metadata>
   <manifest>
 ${manifestItems.map((i) => `    ${i}`).join("\n")}

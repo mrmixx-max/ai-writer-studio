@@ -534,6 +534,7 @@ export function BookWriterPanel() {
                   <option value="markdown">Markdown (.md)</option>
                   <option value="docx">Word (.docx)</option>
                   <option value="epub">EPUB (.epub)</option>
+                  <option value="opml">Scrivener-Outline (.opml)</option>
                 </select>
               </label>
               <button

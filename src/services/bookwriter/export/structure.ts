@@ -1,9 +1,15 @@
 // Buch-Struktur (C2): gemeinsame Titelblatt-/Impressum-/TOC-Bausteine für
 // DOCX und EPUB; Markdown baut seine eigene Fassung in markdown.ts.
+//
+// Sprint 3 (Agent 3) — Jutoh-optimiert: EPUB-XHTML ist semantisches HTML ohne
+// Inline-Styles; Formatierung ausschließlich über CSS-Klassen im zentralen
+// styles.css. Jutoh übernimmt die Struktur 1:1 und mappt die Klassen auf
+// seine eigenen Stile.
 
 import type { Block } from "@/services/export/blocks";
 import type { BookChapterInput } from "./types";
 import { normalizeTypography } from "./typography";
+import { xmlEscape } from "./vba";
 
 /** Kapitel-Blöcke mit typografisch normalisiertem Text. */
 export function normalizedChapterBlocks(blocks: Block[]): Block[] {
@@ -61,6 +67,8 @@ export function chapterHeading(chapter: BookChapterInput, index: number): string
 /**
  * Ein Kapitel als eigenständiges XHTML (EPUB, UTF-8).
  * Ein eindeutiges id-Attribut auf dem <h1> macht das Inhaltsverzeichnis klickbar.
+ * Keine Inline-Styles — Ausnahme: Erster Absatz bekommt die CSS-Klasse
+ * `noindent` (Buchsatz-Konvention), sonst reine semantische Tags.
  */
 export function buildEpubChapterXhtml(
   chapter: BookChapterInput,
@@ -68,6 +76,7 @@ export function buildEpubChapterXhtml(
   bookTitle: string,
 ): string {
   const anchor = `kapitel-${chapter.number ?? 0}`;
+  const firstParaSeen = { done: false };
   const body = blocks
     .map((b) => {
       if (b.type === "h2") return `<h2>${xmlEscape(b.text)}</h2>`;
@@ -86,6 +95,11 @@ export function buildEpubChapterXhtml(
       if (b.type === "image") {
         return `<p><em>${xmlEscape(b.text)}</em></p>`;
       }
+      // Erster Absatz nach der Überschrift ohne Erstzeilen-Einzug (Buchsatz)
+      if (!firstParaSeen.done) {
+        firstParaSeen.done = true;
+        return `<p class="noindent">${xmlEscape(b.text)}</p>`;
+      }
       return `<p>${xmlEscape(b.text)}</p>`;
     })
     .join("\n");
@@ -99,14 +113,14 @@ export function buildEpubChapterXhtml(
   <link rel="stylesheet" type="text/css" href="styles.css" />
 </head>
 <body>
-<h1 id="${anchor}">${xmlEscape(chapterHeading(chapter, chapter.number ? chapter.number - 1 : 0))}</h1>
-<p><em>${xmlEscape(bookTitle)}</em></p>
+<h1 id="${anchor}" class="chapter-title">${xmlEscape(chapterHeading(chapter, chapter.number ? chapter.number - 1 : 0))}</h1>
+<p class="noindent"><em>${xmlEscape(bookTitle)}</em></p>
 ${body}
 </body>
 </html>`;
 }
 
-/** Titelblatt als eigenständiges XHTML (EPUB). */
+/** Titelblatt als eigenständiges XHTML (EPUB, zentriert über CSS-Klasse). */
 export function buildEpubTitleXhtml(title: string, author: string, year: number): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html>
@@ -117,16 +131,12 @@ export function buildEpubTitleXhtml(title: string, author: string, year: number)
   <link rel="stylesheet" type="text/css" href="styles.css" />
 </head>
 <body>
-<h1 id="titel">${xmlEscape(title)}</h1>
-<p>von ${xmlEscape(author)}</p>
-<p>© ${year} ${xmlEscape(author)}</p>
-<p>Alle Rechte vorbehalten.</p>
+<div class="center">
+  <h1 id="titel" class="chapter-title">${xmlEscape(title)}</h1>
+  <p class="noindent">von ${xmlEscape(author)}</p>
+  <p class="noindent">© ${year} ${xmlEscape(author)}</p>
+  <p class="noindent">Alle Rechte vorbehalten.</p>
+</div>
 </body>
 </html>`;
-}
-
-export function xmlEscape(s: string): string {
-  return s.replace(/[<>&"']/g, (c) => ({
-    "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;", "'": "&apos;",
-  }[c]!));
 }

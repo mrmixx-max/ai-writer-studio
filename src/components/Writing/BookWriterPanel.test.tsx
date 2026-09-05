@@ -171,7 +171,7 @@ describe("BookWriterPanel Export-UI (C3)", () => {
     expect(screen.getByTestId("bw-export-section")).toBeInTheDocument();
     expect(screen.getByLabelText("Exportformat")).toBeInTheDocument();
     const select = screen.getByLabelText("Exportformat") as HTMLSelectElement;
-    expect([...select.options].map((o) => o.value)).toEqual(["markdown", "docx", "epub"]);
+    expect([...select.options].map((o) => o.value)).toEqual(["markdown", "docx", "epub", "opml"]);
     expect(screen.getByTestId("bw-export-btn")).toBeInTheDocument();
   });
 

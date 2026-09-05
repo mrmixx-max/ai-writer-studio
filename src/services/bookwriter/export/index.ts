@@ -1,4 +1,4 @@
-// Export-Kern für generierte Bücher (Bookwriter → Markdown, DOCX, EPUB).
+// Export-Kern für generierte Bücher (Bookwriter → Markdown, DOCX, EPUB, OPML).
 //
 // Pure Transformationen: TipTap-JSON / Klartext-Kapitel → Block → Zielformat.
 // KDP-Struktur: Titelblatt + Impressum + klickbares Inhaltsverzeichnis +
@@ -7,21 +7,29 @@
 //
 // DOCX: `docx` npm-Paket (bereits Dependency, kein neues Paket).
 // EPUB: JSZip (bereits Dependency) — EPUB 3 mit OPF + NCX (Kompatibilität),
-//       ein XHTML-Dokument je Kapitel, UTF-8.
+//       ein XHTML-Dokument je Kapitel, UTF-8. Sprint 3: semantisches HTML
+//       ohne Inline-Styles (Jutoh-optimiert).
+// OPML: Sprint 3 — Outline 2.0 für den verlustfreien Import in Scrivener 3.
+// DOCX/VBA: Sprint 3 — Custom XML Part + Custom Properties für die externen
+//       "AI Text Refinement Suites" (Microsoft Word).
 
 import { toBlocks } from "@/services/export/blocks";
 import { normalizeTypography } from "./typography";
 import { buildBookMarkdown } from "./markdown";
 import { buildBookDocxBlob } from "./docx";
 import { buildBookEpubBlob } from "./epub";
+import { buildBookOpml } from "./opml";
 import { logger } from "@/services/logger";
 import type { ExportBookInput, ExportBookResult, ExportFormat, BookChapterInput } from "./types";
 
 export type { ExportBookInput, ExportBookResult, ExportFormat, BookChapterInput };
 export { normalizeTypography, buildBookMarkdown };
-export { buildTitlePageBlocks, buildEpubChapterXhtml, xmlEscape } from "./structure";
+export { buildTitlePageBlocks, buildEpubChapterXhtml } from "./structure";
+export { xmlEscape } from "./vba";
 export { checkExportGate, formatNeedsRevisionWarning } from "./gate";
 export { saveExportBlob } from "./save";
+export { buildBookOpml } from "./opml";
+export { aiwsHiddenTagFor, buildAiwsCustomXml, buildAiwsCustomProperties, AIWS_HIDDEN_TAG } from "./vba";
 export type { ExportGateResult } from "./gate";
 export type { SaveExportResult } from "./save";
 
@@ -29,9 +37,12 @@ export type { SaveExportResult } from "./save";
  * Exportiert ein generiertes Buch in das gewünschte Format.
  *
  * - markdown: Buch-Markdown mit Titel/Impressum/Inhaltsverzeichnis.
- * - docx: KDP-Struktur mit Titelblatt, TOC-Hyperlinks,
- *   Kapiteln auf neuer Seite (pageBreakBefore).
- * - epub: EPUB 3 (OPF + NCX), ein XHTML-Kapitel je Datei, UTF-8.
+ * - docx: KDP-Struktur mit Titelblatt, TOC-Hyperlinks, Kapiteln auf neuer
+ *   Seite (pageBreakBefore), standardisierten Formatvorlagen (Heading1/2,
+ *   Standard, Einzug) und VBA-Integration (Custom XML Part).
+ * - epub: EPUB 3 (OPF + NCX), ein XHTML-Kapitel je Datei, UTF-8,
+ *   semantisches HTML ohne Inline-Styles (Jutoh-optimiert).
+ * - opml: Outline 2.0 für den verlustfreien Import in Scrivener 3.
  */
 export async function exportBook(
   input: ExportBookInput,
@@ -63,12 +74,16 @@ export async function exportBook(
     blob = new Blob([md], { type: "text/markdown;charset=utf-8" });
   } else if (format === "docx") {
     blob = await buildBookDocxBlob(meta, chapters, blocksPerChapter);
+  } else if (format === "opml") {
+    const opml = buildBookOpml(meta, chapters);
+    blob = new Blob([opml], { type: "text/x-opml;charset=utf-8" });
   } else {
     blob = await buildBookEpubBlob(meta, chapters, blocksPerChapter);
   }
 
   onProgress?.(90, "Datei wird benannt…");
-  const filename = `${sanitizeFilename(input.title)}.${format === "markdown" ? "md" : format}`;
+  const ext = { markdown: "md", docx: "docx", epub: "epub", opml: "opml" }[format];
+  const filename = `${sanitizeFilename(input.title)}.${ext}`;
 
   onProgress?.(100, "Export fertig.");
   logger.info(

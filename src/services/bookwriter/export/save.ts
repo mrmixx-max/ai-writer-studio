@@ -27,7 +27,7 @@ function hasTauri(): boolean {
 export async function saveExportBlob(
   blob: Blob,
   defaultFilename: string,
-  format: "md" | "docx" | "epub",
+  format: "md" | "docx" | "epub" | "opml",
   onProgress?: (percent: number, label: string) => void,
 ): Promise<SaveExportResult> {
   const filters = [
@@ -35,7 +35,9 @@ export async function saveExportBlob(
       ? { name: "Markdown", extensions: ["md"] }
       : format === "docx"
         ? { name: "Word-Dokument", extensions: ["docx"] }
-        : { name: "EPUB", extensions: ["epub"] },
+        : format === "opml"
+          ? { name: "OPML-Outline (Scrivener)", extensions: ["opml"] }
+          : { name: "EPUB", extensions: ["epub"] },
   ];
 
   if (hasTauri()) {

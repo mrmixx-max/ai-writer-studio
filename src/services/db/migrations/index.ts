@@ -20,6 +20,7 @@ import { migration017 } from "./017_ki_memory";
 import { migration018 } from "./018_bookwriter_jobs";
 import { migration019 } from "./019_revision";
 import { migration020 } from "./020_bookwriter_telemetry";
+import { migration021 } from "./021_memory";
 
 export interface Migration {
   version: number;
@@ -48,6 +49,7 @@ export const MIGRATIONS: Migration[] = [
   { version: 18, name: "bookwriter_jobs", up: migration018 },
   { version: 19, name: "revision_loop", up: migration019 },
   { version: 20, name: "bookwriter_jobs_telemetry", up: migration020 },
+  { version: 21, name: "bookwriter_memory", up: migration021 },
 ];
 
 /**

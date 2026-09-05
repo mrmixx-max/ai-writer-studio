@@ -1,6 +1,6 @@
 // Typen für den Book-Export (Markdown/DOCX/EPUB).
 
-export type ExportFormat = "markdown" | "docx" | "epub";
+export type ExportFormat = "markdown" | "docx" | "epub" | "opml";
 
 /** Ein Kapitel des Buchs. `content` ist TipTap-JSON (auch Klartext erlaubt). */
 export interface BookChapterInput {

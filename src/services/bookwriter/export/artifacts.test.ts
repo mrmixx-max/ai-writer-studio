@@ -64,6 +64,23 @@ describe("Akzeptanz: 8-Kapitel-Testbuch als .md, .docx, .epub exportiert", () =>
     // Systemmeldung fürs Log
     console.log(`[book-export] artifacts written to ${OUT_DIR}`);
     console.log(`[book-export] ${md.filename}=${readFileSync(mdPath).length}B, ${docx.filename}=${readFileSync(docxPath).length}B, ${epub.filename}=${readFileSync(epubPath).length}B`);
+
+    // --- Sprint 3 (Agent 3): OPML-Artefakt + DOCX-Custom-XML-Verifikation ---
+    const opml = await exportBook(book, "opml");
+    const opmlPath = path.join(OUT_DIR, opml.filename);
+    writeFileSync(opmlPath, await opml.blob.text());
+    expect(existsSync(opmlPath), opmlPath).toBe(true);
+    expect(readFileSync(opmlPath).length).toBeGreaterThan(500);
+    console.log(`[book-export] ${opml.filename}=${readFileSync(opmlPath).length}B (Scrivener-Outline)`);
+
+    // DOCX: Custom XML Part + Custom Properties real im Artefakt prüfen
+    const dzip2 = await JSZip.loadAsync(readFileSync(docxPath));
+    const item = await dzip2.file("customXml/item1.xml")!.async("string");
+    expect(item).toContain("urn:ai-writer-studio:ai-text-refinement");
+    expect(item).toContain("AI Text Refinement Suites");
+    const custom = await dzip2.file("docProps/custom.xml")!.async("string");
+    expect(custom).toContain("AIWS_AISuite");
+    console.log(`[book-export] DOCX customXml/item1.xml + docProps/custom.xml verifiziert (VBA-Integration)`);
   });
 
   it("EPUB ist per unzip als gültiges Zip lesbar (System-Tool, falls vorhanden)", () => {
