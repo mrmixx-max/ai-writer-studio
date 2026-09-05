@@ -17,7 +17,7 @@ import {
   promptSummarizeChapter,
   promptBlurb,
   promptKeywords,
-  systemForGenre,
+  systemForGenre, getStyle,
 } from "./prompts";
 import {
   createRun,
@@ -267,7 +267,7 @@ async function generateKonzept(
   onProgress: (progress: number, label: string) => void,
   signal?: AbortSignal,
 ): Promise<void> {
-  const system = systemForGenre(briefing.genre, briefing.tone, briefing.language);
+  const system = systemForGenre(briefing.genre, briefing.tone, briefing.language, getStyle(briefing.tone) ? briefing.tone : null);
 
   onProgress(0.1, "Titel werden generiert…");
   const titlesRaw = await completeOnce(
@@ -328,7 +328,7 @@ async function generateGliederung(
   signal?: AbortSignal,
   hitl?: HitlHooks,
 ): Promise<void> {
-  const system = systemForGenre(briefing.genre, briefing.tone, briefing.language);
+  const system = systemForGenre(briefing.genre, briefing.tone, briefing.language, getStyle(briefing.tone) ? briefing.tone : null);
 
   onProgress(0.2, "Gliederung wird erstellt…");
   const raw = await completeOnce(
@@ -365,7 +365,7 @@ async function generateManuskript(
   const outline = loadArtifact<BookOutline>(runId, "gliederung");
   if (!outline) throw new Error("Keine Gliederung gefunden.");
 
-  const system = systemForGenre(briefing.genre, briefing.tone, briefing.language);
+  const system = systemForGenre(briefing.genre, briefing.tone, briefing.language, getStyle(briefing.tone) ? briefing.tone : null);
   const summaries: string[] = [];
   const chapters: ChapterData[] = [];
 
@@ -446,7 +446,7 @@ async function generateMetadaten(
   onProgress: (progress: number, label: string) => void,
   signal?: AbortSignal,
 ): Promise<void> {
-  const system = systemForGenre(briefing.genre, briefing.tone, briefing.language);
+  const system = systemForGenre(briefing.genre, briefing.tone, briefing.language, getStyle(briefing.tone) ? briefing.tone : null);
 
   onProgress(0.3, "Keywords werden generiert…");
   const keywordsRaw = await completeOnce(

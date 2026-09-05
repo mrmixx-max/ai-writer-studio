@@ -20,6 +20,9 @@ export {
   PROMPT_LIBRARY_VERSION,
   listGenres,
   listTemplates,
+  listStyles,
+  getStyle,
+  styleOverlay,
   renderPrompt,
   resolveGenre,
   normalizeGenreKey,
@@ -27,13 +30,26 @@ export {
 } from "./prompts/library";
 export { renderTemplate, isTruthy } from "./prompts/template";
 export type { TemplateVars } from "./prompts/template";
-export type { GenreProfile, PromptLibrary } from "./prompts/library";
+export type { GenreProfile, PromptLibrary, StylePreset } from "./prompts/library";
 
 export const PROMPT_VERSION = "2.0";
 
-/** Bauen einen System-Prompt je nach Genre (jetzt aus prompts.json). */
-export function systemForGenre(genre: string, tone: string, language: string): string {
-  return systemFromProfile(genre, tone, language);
+/**
+ * Bauen einen System-Prompt je nach Genre (jetzt aus prompts.json).
+ *
+ * Sprint 7, Agent 3: optionaler Parameter `style` — Stil-Preset-ID aus
+ * prompts.json (z.B. "thriller", "jerry-cotton"). Bekanntes Preset wird
+ * als Stil-Overlay in den System-Prompt injiziert; unbekanntes/leeres
+ * Stil-ID ändert nichts (keine Breaking Changes, alle Bestands-Caller
+ * mit 3 Argumenten unverändert).
+ */
+export function systemForGenre(
+  genre: string,
+  tone: string,
+  language: string,
+  style?: string | null,
+): string {
+  return systemFromProfile(genre, tone, language, style);
 }
 
 const BLURB_STYLES = [

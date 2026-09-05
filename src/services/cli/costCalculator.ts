@@ -57,6 +57,18 @@ export function counterfactualCloudCostUsd(meta: RouterCallMeta): number {
   return (tokens / 1_000_000) * DEFAULT_CLOUD_PRICE_PER_M;
 }
 
+/**
+ * Potenzielle Cloud-Kosten eines Call-Sets (Sprint 7, Agent 4): Cloud-Calls
+ * zu ihrem Modellpreis, lokale Calls zum Default-Preis (Counterfactual).
+ * Grundlage für den Lokal-vs-Cloud-Vergleich im Zeitstrail.
+ */
+export function potentialCloudCostUsd(calls: RouterCallMeta[]): number {
+  return calls.reduce(
+    (sum, c) => sum + (isCloudProvider(c.provider) ? callCostUsd(c) : counterfactualCloudCostUsd(c)),
+    0,
+  );
+}
+
 export interface CostReport {
   /** Summe aller Token-Schätzungen über alle Calls. */
   tokensTotal: number;

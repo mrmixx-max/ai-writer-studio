@@ -18,6 +18,7 @@
 import { createRequire } from "node:module";
 import type { Database } from "sql.js";
 import { collectStats, renderStats } from "./stats";
+import { renderAnalyticsCsv } from "./statsAnalytics";
 import { isDbReady } from "@/services/db";
 import { runMigrations } from "@/services/db/migrations";
 import { info } from "@/services/logger";
@@ -25,6 +26,20 @@ import { info } from "@/services/logger";
 /** true, wenn --stats (ggf. mit Wert) in argv steht. */
 export function parseStatsArg(argv: string[]): boolean {
   return argv.some((a) => a === "--stats" || a.startsWith("--stats="));
+}
+
+/** Standarddateiname des Analytics-CSV-Exports (Sprint 7, Agent 4). */
+export const DEFAULT_EXPORT_FILENAME = "analytics.csv";
+
+/**
+ * Liest --export[=pfad] aus argv (Sprint 7, Agent 4). Rückgabe: Zieldatei —
+ * expliziter Pfad nach `=`, sonst der Standarddateiname. Ohne --export: null.
+ */
+export function parseExportArg(argv: string[]): string | null {
+  const hit = argv.find((a) => a === "--export" || a.startsWith("--export="));
+  if (!hit) return null;
+  const value = hit.slice("--export".length).replace(/^=/, "").trim();
+  return value.length > 0 ? value : DEFAULT_EXPORT_FILENAME;
 }
 
 /** Standardpfad der App-DB (Windows: %APPDATA%), oder null wenn unbekannt. */
@@ -75,13 +90,30 @@ export async function ensureStatsDb(opts: { dbPath?: string } = {}): Promise<voi
 
 /**
  * Führt den stats-Befehl aus: DB sicherstellen, Historie sammeln, rendern,
- * ausgeben. Return-Wert für Tests: der gerenderte Text.
+ * ausgeben. Mit `exportPath` (bzw. --export in argv) wird zusätzlich der
+ * Tages-Zeitstrail als CSV geschrieben (Sprint 7, Agent 4). Return-Wert für
+ * Tests: der gerenderte Text.
  */
-export async function runStatsCommand(): Promise<string> {
+export async function runStatsCommand(opts: { exportPath?: string | null } = {}): Promise<string> {
   await ensureStatsDb();
   const report = collectStats();
   const text = renderStats(report);
   console.log(text);
+  const exportPath = opts.exportPath !== undefined ? opts.exportPath : parseExportArg(process.argv);
+  if (exportPath) {
+    const csv = renderAnalyticsCsv(report.jobs, 30, Date.now());
+    nodeFs().writeFileSync(exportPath, csv, "utf8");
+    console.log(`\nAnalytics-Export: ${exportPath} (letzte 30 Tage)`);
+    info(
+      `stats: Analytics-Export nach ${exportPath} (${report.jobs.length} Job(s))`,
+      "cli/stats",
+    );
+  }
   info(`CLI stats: ${report.totals.jobs} Job(s), ${report.totals.tokens} Tokens, Cloud-Kosten $${report.totals.cloudCostUsd.toFixed(4)}, Ersparnis $${report.totals.savingsUsd.toFixed(4)}`, "cli/stats");
   return text;
+}
+
+/** node:fs via createRequire — bundler-sicher (siehe ensureStatsDb). */
+function nodeFs(): typeof import("node:fs") {
+  return createRequire(import.meta.url)("node:fs") as typeof import("node:fs");
 }

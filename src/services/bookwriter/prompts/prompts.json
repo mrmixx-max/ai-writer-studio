@@ -256,5 +256,67 @@
         "qualityCheck": "Bewerte das folgende Kapitel in der Dimension „{{dimension}}\".\n\nKapitel: {{chapterTitle}}\nZiel: {{chapterGoal}}\n\nInhalt:\n{{chapterContent}}\n\nAntworte als JSON-Objekt:\n{\n  \"score\": <0–100>,\n  \"level\": \"<green|yellow|red>\",\n  \"details\": \"<ein Satz, was auffällt oder gut ist>\"\n}\n\nNur das JSON, sonst nichts."
       }
     }
-  }
+  },
+  "styles": [
+    {
+      "id": "wissenschaftlich",
+      "label": "Wissenschaftlich",
+      "description": "Präzise, zitierfähig, distanziert.",
+      "systemHint": "Du schreibst im Wissenschaftsstil: präzise Begrifflichkeit, distanzierte sachliche Distanz, jede Aussage zitierfähig bzw. quellenbelegt formuliert.",
+      "rules": [
+        "Formuliere präzise und terminologisch sauber; vermeide umgangssprachliche Verkürzungen.",
+        "Mache jede Aussage zitierfähig: belegbar, nachvollziehbar, ohne Übertreibung.",
+        "Bleibe distanziert und sachlich — keine Werbetöne, keine dramatischen Effekte.",
+        "Kennzeichne Unsicherheiten explizit (z.B. „nach aktuellem Forschungsstand“, „die Datenlage ist uneinheitlich“)."
+      ]
+    },
+    {
+      "id": "blog",
+      "label": "Blog",
+      "description": "Nah, direkt, mit Storytelling.",
+      "systemHint": "Du schreibst im Blogstil: nah am Leser, direkte Ansprache, Geschichten und Beispiele vor abstrakter Theorie.",
+      "rules": [
+        "Sprich den Leser direkt an („Sie“, „du“ nach Vorgabe) und bleibe nah.",
+        "Erzähle statt aufzuzählen: kleine Geschichten und konkrete Szenen als Einstieg.",
+        "Kurze Absätze, aktive Verben, keine Fachchinesisch-Mauern.",
+        "Erlaube Persönlichkeit — aber jede Anekdote muss einen Punkt machen."
+      ]
+    },
+    {
+      "id": "jerry-cotton",
+      "label": "Jerry Cotton (1950er-Pulp)",
+      "description": "Kurz, szenisch, 1950er-Pulp.",
+      "systemHint": "Du schreibst im Stil der Jerry-Cotton-Heftromane der 1950er-Jahre: kurz, szenisch, harter Pulp-Ton. New York, FBI, harte Männer, schnelle Schnitte.",
+      "rules": [
+        "Kurze, harte Sätze. Kein Ausstaffieren, keine Schachtelsätze.",
+        "Szenische Einstiege: mitten in der Aktion, mit konkreten Details (Nebel, Neonlicht, Revolver).",
+        "Ton: 1950er-Pulp — hart, schnoddrig, melodramatisch, ohne moderne Begriffe.",
+        "Dialoge spitz und knapp; Ende der Szene mit Haken oder Cliffhanger."
+      ]
+    },
+    {
+      "id": "sachbuch-klassisch",
+      "label": "Sachbuch klassisch",
+      "description": "Strukturiert, Beispiele, Fußnoten.",
+      "systemHint": "Du schreibst ein klassisches Sachbuch: klare Struktur, anschauliche Beispiele, präzise Fußnoten.",
+      "rules": [
+        "Strukturiere jeden Abschnitt klar: These, Begründung, Beispiel, Übergang.",
+        "Jede zentrale Behauptung bekommt ein konkretes, anschauliches Beispiel.",
+        "Markiere Belegstellen als Fußnote im Format [^1], [^2] am Absatzende.",
+        "Keine rhetorischen Spitzfindigkeiten — sachlich, gründlich, verlässlich."
+      ]
+    },
+    {
+      "id": "thriller",
+      "label": "Thriller",
+      "description": "Spannung, Cliffhanger, kurze Sätze.",
+      "systemHint": "Du schreibst Thriller: hohe Spannung, Cliffhanger am Kapitelende, kurze harte Sätze, Taktgefühl für Timing.",
+      "rules": [
+        "Halte die Spannung hoch: Andeutungen, Bedrohung, Unbekanntes.",
+        "Kurze, harte Sätze. Tempo vor Beschreibung.",
+        "Kapitel enden mit Cliffhanger oder Wendung.",
+        "Zeige statt zu erklären; innere Konflikte sichtbar machen."
+      ]
+    }
+  ]
 }

@@ -19,6 +19,7 @@ import {
   type ExportFormat,
 } from "@/services/bookwriter/export";
 import { logger } from "@/services/logger";
+import { listStyles } from "@/services/bookwriter/prompts/library";
 import { ChapterPlanner } from "./ChapterPlanner";
 import type { Chapter, ChapterStatus } from "@/types/project";
 
@@ -42,6 +43,11 @@ export const STATUS_COLORS: Record<ChapterStatus, string> = {
 /** Retry-Zähler je Kapitelnummer (aus Agent-1-Retry via withRetry). */
 type RetryCounts = Record<number, number>;
 
+// Sprint 7 (Agent 3): Stil/Ton-Presets aus prompts.json — Dropdown statt
+// freiem Textfeld. Die Auswahl (Preset-ID) wird als tone an die Generierung
+// übergeben und landet als Stil-Overlay im System-Prompt (systemForGenre).
+const STYLE_PRESETS = listStyles();
+
 export function BookWriterPanel() {
   const { settings } = useActiveModel();
   const newChapter = useProjectStore((s) => s.newChapter);
@@ -56,6 +62,9 @@ export function BookWriterPanel() {
   const [targetAudience, setTargetAudience] = useState("Erwachsene");
   const [chapterCount, setChapterCount] = useState(8);
   const [tone, setTone] = useState("");
+  // Beschreibung des gewählten Stil-Presets (Transparenz: der Nutzer sieht,
+  // was das Preset macht) — leer bei "Kein Stil-Preset".
+  const toneDescription = STYLE_PRESETS.find((s) => s.id === tone)?.description ?? "";
   const [language] = useState("Deutsch");
   const [viewMode, setViewMode] = useState<"classic" | "planner">("planner");
   const [premise, setPremise] = useState("");
@@ -483,7 +492,22 @@ export function BookWriterPanel() {
             </label>
             <label>
               Stil/Ton:
-              <input value={tone} onChange={(e) => setTone(e.target.value)} placeholder="z.B. sachlich-nah, dramatisch, humorvoll (optional)" />
+              <select
+                aria-label="Stil/Ton"
+                value={tone}
+                onChange={(e) => setTone(e.target.value)}
+                data-testid="bw-style-select"
+              >
+                <option value="">Kein Stil-Preset</option>
+                {STYLE_PRESETS.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.label}
+                  </option>
+                ))}
+              </select>
+              {toneDescription && (
+                <small data-testid="bw-style-description">{toneDescription}</small>
+              )}
             </label>
             <div className="bw-fields-row">
               <label>
@@ -596,7 +620,22 @@ export function BookWriterPanel() {
      </label>
      <label>
        Stil/Ton:
-       <input value={tone} onChange={(e) => setTone(e.target.value)} placeholder="z.B. sachlich-nah, dramatisch (optional)" />
+       <select
+         aria-label="Stil/Ton"
+         value={tone}
+         onChange={(e) => setTone(e.target.value)}
+         data-testid="bw-style-select"
+       >
+         <option value="">Kein Stil-Preset</option>
+         {STYLE_PRESETS.map((s) => (
+           <option key={s.id} value={s.id}>
+             {s.label}
+           </option>
+         ))}
+       </select>
+       {toneDescription && (
+         <small data-testid="bw-style-description">{toneDescription}</small>
+       )}
      </label>
      <label>
        Kapitel:

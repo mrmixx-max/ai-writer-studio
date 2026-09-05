@@ -24,10 +24,21 @@ export interface GenreProfile {
   prompts: Record<string, string>;
 }
 
+/** Ein Stil/Ton-Preset aus prompts.json (Sprint 7, Agent 3). */
+export interface StylePreset {
+  id: string;
+  label: string;
+  description: string;
+  systemHint: string;
+  rules: string[];
+}
+
 /** Wurzel-Schema von prompts.json. */
 export interface PromptLibrary {
   version: string;
   defaultGenre: string;
+  /** Vordefinierte Stil/Ton-Presets (Sprint 7). Optional für Abwärtskompatibilität. */
+  styles?: StylePreset[];
   genres: Record<string, GenreProfile>;
 }
 
@@ -78,13 +89,51 @@ export function normalizeGenreKey(genre: string): string {
 }
 
 /**
+ * Stil/Ton-Presets (Sprint 7, Agent 3): alle Presets aus prompts.json
+ * in definierter Reihenfolge.
+ */
+export function listStyles(): StylePreset[] {
+  return PROMPT_LIBRARY.styles ?? [];
+}
+
+/**
+ * Löst ein Stil-Preset per ID auf (case-insensitive, getrimmt).
+ * Unbekanntes oder leeres Stil-ID → null (kein Overlay).
+ */
+export function getStyle(styleId: string | null | undefined): StylePreset | null {
+  if (!styleId) return null;
+  const needle = styleId.trim().toLowerCase();
+  if (needle === "") return null;
+  return listStyles().find((s) => s.id === needle) ?? null;
+}
+
+/**
+ * Rendert den Stil-Overlay-Block (Sprint 7): Rollen-Hinweis + Stil-Regeln.
+ * Wird NUR bei gesetztem, bekanntem Stil an den System-Prompt angehängt —
+ * ohne Stil bleibt der Prompt byte-identisch zum Sprint-6-Stand.
+ */
+export function styleOverlay(styleId: string | null | undefined): string {
+  const style = getStyle(styleId);
+  if (!style) return "";
+  const rules = style.rules.map((r) => `- ${r}`).join("\n");
+  return `\n\nStil-Overlay: ${style.id}\n${style.systemHint}\n\nStil-Regeln:\n${rules}`;
+}
+
+/**
  * System-Prompt je Genre (Ersetzung für die bisherige systemForGenre) —
  * rollen- und regelbasiert aus dem Profil gerendert.
+ *
+ * Sprint 7, Agent 3: optionaler Parameter `style` (Stil-Preset-ID aus
+ * prompts.json). Bekanntes Preset → Stil-Overlay (systemHint + Regeln)
+ * wird ANGENÄHLT (nicht ersetzt) — der Genre-Prompt bleibt unverändert
+ * am Anfang. Unbekanntes/leeres Stil-ID → Verhalten wie ohne Stil
+ * (keine Breaking Changes).
  */
 export function systemFromProfile(
   genre: string,
   tone: string,
   language: string,
+  style?: string | null,
 ): string {
   const profile = resolveGenre(genre);
   const langNote = language === "en"
@@ -97,7 +146,7 @@ Tonalität: ${tone}
 ${langNote}
 
 Regeln:
-${rules}`;
+${rules}${styleOverlay(style)}`;
 }
 
 /** Verfügbare Prompt-Templates eines Genres (oder des Default-Genres). */

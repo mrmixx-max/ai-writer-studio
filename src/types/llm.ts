@@ -19,6 +19,12 @@ export interface ChatOptions {
   maxTokens?: number;
   systemPrompt?: string;
   timeoutMs?: number;
+  /**
+   * Sprint 7: Response-Caching für identische Prompts (opt-in).
+   * Nur für deterministische Aufgaben setzen (temperature niedrig, gleiche
+   * Erwartung bei Wiederholung, z. B. Outline-Re-Render).
+   */
+  cache?: boolean;
 }
 
 export interface ProviderConfig {

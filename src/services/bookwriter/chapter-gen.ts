@@ -4,7 +4,18 @@ import { loadSettings } from "@/services/settings";
 import { createProvider, buildMessages } from "@/services/llm";
 import { createChapter, updateChapter } from "@/services/project";
 import { markdownToTipTap } from "@/services/editor/markdown";
-import { promptWriteChapter, promptSummarizeChapter, systemForGenre } from "./prompts";
+import { promptWriteChapter, promptSummarizeChapter, systemForGenre, getStyle } from "./prompts";
+
+/**
+ * Sprint 7 (Agent 3): Löst den tone-Wert eines Briefings als Stil-Preset auf.
+ * Die GUI setzt tone auf eine Preset-ID (Dropdown) — ist es eine bekannte
+ * Preset-ID, liefert getStyle() das Preset und systemForGenre injiziert das
+ * Stil-Overlay. Freier Text (Legacy-Briefings) oder leer → kein Overlay,
+ * der tone-Wert wirkt unverändert als "Tonalität:"-Zeile weiter.
+ */
+function styleFromBriefing(briefing: BookBriefing): string | null {
+  return getStyle(briefing.tone) ? briefing.tone : null;
+}
 import { saveArtifact } from "./state";
 import { searchDocuments } from "./documents";
 import { buildContextBlock } from "./contextManager";
@@ -51,7 +62,7 @@ export async function generateChapter(
 ): Promise<string> {
   const settings = loadSettings();
   const provider = createProvider(settings);
-  const system = systemForGenre(briefing.genre, briefing.tone, briefing.language);
+  const system = systemForGenre(briefing.genre, briefing.tone, briefing.language, styleFromBriefing(briefing));
 
   // RAG: Relevante Dokument-Passagen suchen.
   let ragNotes: string[] = [];
@@ -106,7 +117,7 @@ export async function generateManuskriptStreaming(
   projectId?: string,
 ): Promise<GeneratedChapter[]> {
   const settings = loadSettings();
-  const system = systemForGenre(briefing.genre, briefing.tone, briefing.language);
+  const system = systemForGenre(briefing.genre, briefing.tone, briefing.language, styleFromBriefing(briefing));
   const results: GeneratedChapter[] = [...existingChapters];
   const summaries: string[] = existingChapters.map((c) => c.summary);
 
@@ -262,7 +273,7 @@ export async function regenerateChapter(
   }
 
   const settings = loadSettings();
-  const system = systemForGenre(briefing.genre, briefing.tone, briefing.language);
+  const system = systemForGenre(briefing.genre, briefing.tone, briefing.language, styleFromBriefing(briefing));
   const summary = await generateSummary(settings, system, ch.title, content);
 
   return {

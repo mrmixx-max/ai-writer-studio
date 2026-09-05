@@ -9,8 +9,9 @@
 import { getDb } from "@/services/db";
 import type { RouterCallMeta } from "@/services/llm/router";
 import {
-  computeCostReport,
+  computeCostReport, potentialCloudCostUsd as potentialCostOfCalls,
 } from "./costCalculator";
+import { renderTrendSection } from "./statsAnalytics";
 
 // ---------------------------------------------------------------------------
 // Typen
@@ -33,6 +34,8 @@ export interface JobStats {
   /** Gesamtlanzensumme aller Calls in ms. */
   latencyMs: number;
   costUsd: number;
+  /** Counterfactual: Cloud-Kosten aller Tokens dieses Jobs (Sprint 7). */
+  potentialCostUsd: number;
 }
 
 export interface ProviderStats {
@@ -118,6 +121,7 @@ export function computeJobStats(input: {
     tokens: report.tokensTotal,
     latencyMs: report.latencyTotalMs,
     costUsd: report.cloudCostUsd,
+    potentialCostUsd: potentialCostOfCalls(input.calls),
   };
 }
 
@@ -231,6 +235,10 @@ export function renderStats(report: StatsReport): string {
   lines.push("── Zeit pro Buch (lokal vs. Cloud) ──");
   lines.push(bucketLine("Lokal", report.timePerBook.local));
   lines.push(bucketLine("Cloud", report.timePerBook.cloud));
+  lines.push("");
+  // Sprint 7 (Agent 4): Zeitstrail-Trends mit Unicode-Charts (Kosten pro
+  // Tag, Lokal vs. Cloud, Buecher pro Woche).
+  lines.push(renderTrendSection(report.jobs));
   lines.push("");
   lines.push("── Kosten (OpenRouter / Cloud) ──");
   lines.push(`  Tatsächliche Cloud-Kosten: ${fmtUsd(report.totals.cloudCostUsd)}`);

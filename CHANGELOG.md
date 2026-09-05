@@ -6,6 +6,13 @@ und [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased] — Änderungen seit [1.0.0]
 
+### Added — Dashboard & Analytics (Sprint 7, Agent 4)
+- Zeitstrail-Analytics: Kosten pro Tag (14 Tage), Buecher pro Woche (8 Wochen, ISO-KW), Lokal-vs-Cloud-Vergleich — neu in `src/services/cli/statsAnalytics.ts`, in `renderStats` integriert.
+- Dashboard-Charts: Unicode-Sparklines (`▁▂▃▄▅▆▇█`) im CLI via `sparkline()`.
+- CSV-Export: `stats --export[=pfad]` schreibt Tages-Zeitstrail (30 Tage) als Spreadsheet-taugliche CSV (Punkt-Dezimaltrenner, Default `analytics.csv`).
+- `costCalculator`: neue Funktion `potentialCloudCostUsd(calls)` (Counterfactual je Call-Set); `JobStats.potentialCostUsd` ergänzt.
+- Tests: 16 neue Tests in `src/services/cli/statsAnalytics.test.ts` (TDD, alle gruen; CLI-Suite 105/105).
+
 ### Added — Redaktion & Revisions-Loop (Sprint 2, Agent 4)
 - Revisions-Pipeline `reviseChapter(chapterId, mode)`: straffen (−10 %, Füllwörter), vertiefen (+15 %, Beispiele), stil (Stilprofil) — mit withRetry, Abort/4xx-Durchreichung und lokalem Straffungs-Fallback
 - Status-Loop: needs_revision/completed → draft nach jeder Revision, Revisionshistorie in neuer Tabelle `chapter_revisions` (Migration 019)
