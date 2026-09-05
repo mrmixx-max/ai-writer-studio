@@ -255,6 +255,282 @@
         "keywords": "Entwickle 7 Keywords für KDP für das Buch „{{title}}\".\nGenre: {{genre}}\nIdee: {{idea}}\nZielgruppe: {{targetAudience}}\n\nJeder Keyword-String darf bis zu 50 Zeichen lang sein. Mache eine Mischung\naus spezifischen Phrasen (2–3 Wörtern) und einzelnen Begriffen.\n\nGib nur die Keywords, einer pro Zeile.",
         "qualityCheck": "Bewerte das folgende Kapitel in der Dimension „{{dimension}}\".\n\nKapitel: {{chapterTitle}}\nZiel: {{chapterGoal}}\n\nInhalt:\n{{chapterContent}}\n\nAntworte als JSON-Objekt:\n{\n  \"score\": <0–100>,\n  \"level\": \"<green|yellow|red>\",\n  \"details\": \"<ein Satz, was auffällt oder gut ist>\"\n}\n\nNur das JSON, sonst nichts."
       }
+    },
+    "horror": {
+      "label": "horror",
+      "systemRole": "Du bist ein Horror-Autor. Du baust langsam steigende Unbehaglichkeit auf, nutzt Unbekanntes und Psychologisches statt billiger Jump-Scares. Deine Atmosphäre ist dicht, deine Figuren verletzlich.",
+      "systemRules": [
+        "Schreibe in klarem, literarischem Deutsch, nicht in Bulletpoints.",
+        "Vermeide Füllwörter, Abschweifungen und leere Floskeln.",
+        "Jede Aussage muss einen konkreten Inhalt haben.",
+        "Stelle nie Tatsachen auf, die du nicht prüfen kannst. Wo unsicher, formuliere vage oder markiere den Punkt.",
+        "Keine Platzhalter wie [hier einfügen], keine unvollständigen Sätze.",
+        "Keine Selbstreferenzen wie \"in diesem Kapitel\" oder \"wie oben erwähnt\"."
+      ],
+      "prompts": {
+        "titles": "Entwickle 10 Titel für ein {{genre}} mit dieser Idee:\n\n{{idea}}\n\nAlleinstellungsmerkmal: {{uniqueAngle}}\nZielgruppe: {{targetAudience}}\nKernversprechen: {{corePromise}}\n\nDie Titel sollen:\n- Neugier wecken, nicht alles verraten\n- Für das Genre typisch sein, aber nicht klischeehaft\n- 3–8 Wörter lang sein\n- Keine Doppelpunkte oder Untertitel enthalten (das kommt danach)\n\nGib nur die Titel, einer pro Zeile, ohne Nummerierung.",
+        "subtitles": "Entwickle 10 Untertitel für den Titel „{{title}}\" ({{genre}}).\n\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\n\nEin guter Untertitel ergänzt den Titel, ohne ihn zu wiederholen. Er kann\neinen Nutzen benennen, eine Zielgruppe ansprechen oder eine Spannung\naufbauen.\n\nGib nur die Untertitel, einer pro Zeile, ohne Nummerierung.",
+        "positioning": "Entwickle 5 Positionierungen für ein {{genre}}.\n\nIdee: {{idea}}\nAlleinstellungsmerkmal: {{uniqueAngle}}\nZielgruppe: {{targetAudience}}\n\nEine Positionierung ist ein Satz, der dem Leser sagt: Warum dieses Buch\nund nicht die hundert anderen. Sie ist spezifisch, glaubwürdig und\nunterscheidet sich von der Konkurrenz.\n\nGib nur die Sätze, einer pro Zeile.",
+        "outline": "Erstelle eine vollständige Gliederung für ein {{genre}}.\n\nIdee: {{idea}}\nAlleinstellungsmerkmal: {{uniqueAngle}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\nUmfang: {{chapterCount}} Kapitel, je ca. {{wordsPerChapter}} Wörter\n{{#if customOutline}}\nDer Nutzer hat diese Gliederung vorgegeben. Entwickle sie weiter, fülle sie aus, behalte die Struktur bei:\n{{customOutline}}\n{{/if}}\nFür jedes Kapitel gib:\n- Titel\n- Ziel des Kapitels (ein Satz)\n- Kernfrage oder Konflikt\n- Ergebnis / Erkenntnis am Ende\n- Geschätzte Wortzahl\n- Perspektive (erste Person, dritte Person auktorial, etc.)\n- 2–4 Recherchepunkte, falls nötig\n- 2–4 Unterkapitel mit eigenen Titeln\n\nAntworte als JSON-Array. Kein Markdown drumherum. Beispiel:\n[\n  {\n    \"title\": \"...\",\n    \"goal\": \"...\",\n    \"conflict\": \"...\",\n    \"outcome\": \"...\",\n    \"estimatedWords\": 2000,\n    \"pov\": \"dritte Person\",\n    \"research\": [\"...\"],\n    \"subchapters\": [\"...\"]\n  }\n]",
+        "writeChapter": "Schreibe ein Kapitel für ein {{genre}}.\n\nBuchidee: {{idea}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\n\nKapitel: {{chapterTitle}}\nZiel: {{chapterGoal}}\nKonflikt/Kernfrage: {{chapterConflict}}\nErgebnis am Ende: {{chapterOutcome}}\nPerspektive: {{chapterPov}}\nGewünschte Länge: ca. {{chapterWords}} Wörter\n\nUnterkapitel, die enthalten sein müssen:\n{{#each subchapters}}- {{this}}\n{{/each}}{{#if previousSummaries}}\nBisherige Kapitel (Zusammenfassungen):\n{{#each previousSummaries}}Kapitel {{@index1}}: {{this}}\n{{/each}}{{/if}}{{#if researchNotes}}\nRechercheergebnisse:\n{{#each researchNotes}}{{this}}\n{{/each}}{{/if}}\nSchreibe das Kapitel als Fließtext. Keine Überschriften im Text, keine\nZusammenfassung am Ende, keine Selbstreferenzen. Nur der reine Kapiteltext.",
+        "summarizeChapter": "Fasse das folgende Kapitel „{{title}}\" in 3–5 Sätzen zusammen.\nDie Zusammenfassung soll Handlung, Figuren und Kernthematik abdecken,\ndamit sie als Kontext für die nächsten Kapitel dienen kann.\n\nKapitel:\n{{content}}\n\nNur die Zusammenfassung, sonst nichts.",
+        "blurb": "Schreibe einen Klappentext für „{{title}}\" ({{subtitle}}).\nGenre: {{genre}}\nIdee: {{idea}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\n\nStil dieser Variante: {{blurbStyle}}\n\nDer Klappentext soll 150–200 Wörter lang sein, den Leser neugierig machen\nund nicht alles verraten. Nur der Text, keine Überschriften.",
+        "keywords": "Entwickle 7 Keywords für KDP für das Buch „{{title}}\".\nGenre: {{genre}}\nIdee: {{idea}}\nZielgruppe: {{targetAudience}}\n\nJeder Keyword-String darf bis zu 50 Zeichen lang sein. Mache eine Mischung\naus spezifischen Phrasen (2–3 Wörtern) und einzelnen Begriffen.\n\nGib nur die Keywords, einer pro Zeile.",
+        "qualityCheck": "Bewerte das folgende Kapitel in der Dimension „{{dimension}}\".\n\nKapitel: {{chapterTitle}}\nZiel: {{chapterGoal}}\n\nInhalt:\n{{chapterContent}}\n\nAntworte als JSON-Objekt:\n{\n  \"score\": <0–100>,\n  \"level\": \"<green|yellow|red>\",\n  \"details\": \"<ein Satz, was auffällt oder gut ist>\"\n}\n\nNur das JSON, sonst nichts."
+      }
+    },
+    "romance": {
+      "label": "romance",
+      "systemRole": "Du bist ein Romance-Autor. Du baust chemische Spannung zwischen Figuren auf, schreibst gefühlvoll und glaubwürdig, mit Happy End oder angemessenem Open End.",
+      "systemRules": [
+        "Schreibe in klarem, literarischem Deutsch, nicht in Bulletpoints.",
+        "Vermeide Füllwörter, Abschweifungen und leere Floskeln.",
+        "Jede Aussage muss einen konkreten Inhalt haben.",
+        "Stelle nie Tatsachen auf, die du nicht prüfen kannst. Wo unsicher, formuliere vage oder markiere den Punkt.",
+        "Keine Platzhalter wie [hier einfügen], keine unvollständigen Sätze.",
+        "Keine Selbstreferenzen wie \"in diesem Kapitel\" oder \"wie oben erwähnt\"."
+      ],
+      "prompts": {
+        "titles": "Entwickle 10 Titel für ein {{genre}} mit dieser Idee:\n\n{{idea}}\n\nAlleinstellungsmerkmal: {{uniqueAngle}}\nZielgruppe: {{targetAudience}}\nKernversprechen: {{corePromise}}\n\nDie Titel sollen:\n- Neugier wecken, nicht alles verraten\n- Für das Genre typisch sein, aber nicht klischeehaft\n- 3–8 Wörter lang sein\n- Keine Doppelpunkte oder Untertitel enthalten (das kommt danach)\n\nGib nur die Titel, einer pro Zeile, ohne Nummerierung.",
+        "subtitles": "Entwickle 10 Untertitel für den Titel „{{title}}\" ({{genre}}).\n\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\n\nEin guter Untertitel ergänzt den Titel, ohne ihn zu wiederholen. Er kann\neinen Nutzen benennen, eine Zielgruppe ansprechen oder eine Spannung\naufbauen.\n\nGib nur die Untertitel, einer pro Zeile, ohne Nummerierung.",
+        "positioning": "Entwickle 5 Positionierungen für ein {{genre}}.\n\nIdee: {{idea}}\nAlleinstellungsmerkmal: {{uniqueAngle}}\nZielgruppe: {{targetAudience}}\n\nEine Positionierung ist ein Satz, der dem Leser sagt: Warum dieses Buch\nund nicht die hundert anderen. Sie ist spezifisch, glaubwürdig und\nunterscheidet sich von der Konkurrenz.\n\nGib nur die Sätze, einer pro Zeile.",
+        "outline": "Erstelle eine vollständige Gliederung für ein {{genre}}.\n\nIdee: {{idea}}\nAlleinstellungsmerkmal: {{uniqueAngle}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\nUmfang: {{chapterCount}} Kapitel, je ca. {{wordsPerChapter}} Wörter\n{{#if customOutline}}\nDer Nutzer hat diese Gliederung vorgegeben. Entwickle sie weiter, fülle sie aus, behalte die Struktur bei:\n{{customOutline}}\n{{/if}}\nFür jedes Kapitel gib:\n- Titel\n- Ziel des Kapitels (ein Satz)\n- Kernfrage oder Konflikt\n- Ergebnis / Erkenntnis am Ende\n- Geschätzte Wortzahl\n- Perspektive (erste Person, dritte Person auktorial, etc.)\n- 2–4 Recherchepunkte, falls nötig\n- 2–4 Unterkapitel mit eigenen Titeln\n\nAntworte als JSON-Array. Kein Markdown drumherum. Beispiel:\n[\n  {\n    \"title\": \"...\",\n    \"goal\": \"...\",\n    \"conflict\": \"...\",\n    \"outcome\": \"...\",\n    \"estimatedWords\": 2000,\n    \"pov\": \"dritte Person\",\n    \"research\": [\"...\"],\n    \"subchapters\": [\"...\"]\n  }\n]",
+        "writeChapter": "Schreibe ein Kapitel für ein {{genre}}.\n\nBuchidee: {{idea}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\n\nKapitel: {{chapterTitle}}\nZiel: {{chapterGoal}}\nKonflikt/Kernfrage: {{chapterConflict}}\nErgebnis am Ende: {{chapterOutcome}}\nPerspektive: {{chapterPov}}\nGewünschte Länge: ca. {{chapterWords}} Wörter\n\nUnterkapitel, die enthalten sein müssen:\n{{#each subchapters}}- {{this}}\n{{/each}}{{#if previousSummaries}}\nBisherige Kapitel (Zusammenfassungen):\n{{#each previousSummaries}}Kapitel {{@index1}}: {{this}}\n{{/each}}{{/if}}{{#if researchNotes}}\nRechercheergebnisse:\n{{#each researchNotes}}{{this}}\n{{/each}}{{/if}}\nSchreibe das Kapitel als Fließtext. Keine Überschriften im Text, keine\nZusammenfassung am Ende, keine Selbstreferenzen. Nur der reine Kapiteltext.",
+        "summarizeChapter": "Fasse das folgende Kapitel „{{title}}\" in 3–5 Sätzen zusammen.\nDie Zusammenfassung soll Handlung, Figuren und Kernthematik abdecken,\ndamit sie als Kontext für die nächsten Kapitel dienen kann.\n\nKapitel:\n{{content}}\n\nNur die Zusammenfassung, sonst nichts.",
+        "blurb": "Schreibe einen Klappentext für „{{title}}\" ({{subtitle}}).\nGenre: {{genre}}\nIdee: {{idea}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\n\nStil dieser Variante: {{blurbStyle}}\n\nDer Klappentext soll 150–200 Wörter lang sein, den Leser neugierig machen\nund nicht alles verraten. Nur der Text, keine Überschriften.",
+        "keywords": "Entwickle 7 Keywords für KDP für das Buch „{{title}}\".\nGenre: {{genre}}\nIdee: {{idea}}\nZielgruppe: {{targetAudience}}\n\nJeder Keyword-String darf bis zu 50 Zeichen lang sein. Mache eine Mischung\naus spezifischen Phrasen (2–3 Wörtern) und einzelnen Begriffen.\n\nGib nur die Keywords, einer pro Zeile.",
+        "qualityCheck": "Bewerte das folgende Kapitel in der Dimension „{{dimension}}\".\n\nKapitel: {{chapterTitle}}\nZiel: {{chapterGoal}}\n\nInhalt:\n{{chapterContent}}\n\nAntworte als JSON-Objekt:\n{\n  \"score\": <0–100>,\n  \"level\": \"<green|yellow|red>\",\n  \"details\": \"<ein Satz, was auffällt oder gut ist>\"\n}\n\nNur das JSON, sonst nichts."
+      }
+    },
+    "scifi": {
+      "label": "scifi",
+      "systemRole": "Du bist ein Science-Fiction-Autor. Du baust eine konsistente Zukunftswelt auf mit plausiblem technologischem oder gesellschaftlichem Konzept. Deine Figuren sind realistisch, die Welt ein Ausgangspunkt für Ideen.",
+      "systemRules": [
+        "Schreibe in klarem, literarischem Deutsch, nicht in Bulletpoints.",
+        "Vermeide Füllwörter, Abschweifungen und leere Floskeln.",
+        "Jede Aussage muss einen konkreten Inhalt haben.",
+        "Stelle nie Tatsachen auf, die du nicht prüfen kannst. Wo unsicher, formuliere vage oder markiere den Punkt.",
+        "Keine Platzhalter wie [hier einfügen], keine unvollständigen Sätze.",
+        "Keine Selbstreferenzen wie \"in diesem Kapitel\" oder \"wie oben erwähnt\"."
+      ],
+      "prompts": {
+        "titles": "Entwickle 10 Titel für ein {{genre}} mit dieser Idee:\n\n{{idea}}\n\nAlleinstellungsmerkmal: {{uniqueAngle}}\nZielgruppe: {{targetAudience}}\nKernversprechen: {{corePromise}}\n\nDie Titel sollen:\n- Neugier wecken, nicht alles verraten\n- Für das Genre typisch sein, aber nicht klischeehaft\n- 3–8 Wörter lang sein\n- Keine Doppelpunkte oder Untertitel enthalten (das kommt danach)\n\nGib nur die Titel, einer pro Zeile, ohne Nummerierung.",
+        "subtitles": "Entwickle 10 Untertitel für den Titel „{{title}}\" ({{genre}}).\n\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\n\nEin guter Untertitel ergänzt den Titel, ohne ihn zu wiederholen. Er kann\neinen Nutzen benennen, eine Zielgruppe ansprechen oder eine Spannung\naufbauen.\n\nGib nur die Untertitel, einer pro Zeile, ohne Nummerierung.",
+        "positioning": "Entwickle 5 Positionierungen für ein {{genre}}.\n\nIdee: {{idea}}\nAlleinstellungsmerkmal: {{uniqueAngle}}\nZielgruppe: {{targetAudience}}\n\nEine Positionierung ist ein Satz, der dem Leser sagt: Warum dieses Buch\nund nicht die hundert anderen. Sie ist spezifisch, glaubwürdig und\nunterscheidet sich von der Konkurrenz.\n\nGib nur die Sätze, einer pro Zeile.",
+        "outline": "Erstelle eine vollständige Gliederung für ein {{genre}}.\n\nIdee: {{idea}}\nAlleinstellungsmerkmal: {{uniqueAngle}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\nUmfang: {{chapterCount}} Kapitel, je ca. {{wordsPerChapter}} Wörter\n{{#if customOutline}}\nDer Nutzer hat diese Gliederung vorgegeben. Entwickle sie weiter, fülle sie aus, behalte die Struktur bei:\n{{customOutline}}\n{{/if}}\nFür jedes Kapitel gib:\n- Titel\n- Ziel des Kapitels (ein Satz)\n- Kernfrage oder Konflikt\n- Ergebnis / Erkenntnis am Ende\n- Geschätzte Wortzahl\n- Perspektive (erste Person, dritte Person auktorial, etc.)\n- 2–4 Recherchepunkte, falls nötig\n- 2–4 Unterkapitel mit eigenen Titeln\n\nAntworte als JSON-Array. Kein Markdown drumherum. Beispiel:\n[\n  {\n    \"title\": \"...\",\n    \"goal\": \"...\",\n    \"conflict\": \"...\",\n    \"outcome\": \"...\",\n    \"estimatedWords\": 2000,\n    \"pov\": \"dritte Person\",\n    \"research\": [\"...\"],\n    \"subchapters\": [\"...\"]\n  }\n]",
+        "writeChapter": "Schreibe ein Kapitel für ein {{genre}}.\n\nBuchidee: {{idea}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\n\nKapitel: {{chapterTitle}}\nZiel: {{chapterGoal}}\nKonflikt/Kernfrage: {{chapterConflict}}\nErgebnis am Ende: {{chapterOutcome}}\nPerspektive: {{chapterPov}}\nGewünschte Länge: ca. {{chapterWords}} Wörter\n\nUnterkapitel, die enthalten sein müssen:\n{{#each subchapters}}- {{this}}\n{{/each}}{{#if previousSummaries}}\nBisherige Kapitel (Zusammenfassungen):\n{{#each previousSummaries}}Kapitel {{@index1}}: {{this}}\n{{/each}}{{/if}}{{#if researchNotes}}\nRechercheergebnisse:\n{{#each researchNotes}}{{this}}\n{{/each}}{{/if}}\nSchreibe das Kapitel als Fließtext. Keine Überschriften im Text, keine\nZusammenfassung am Ende, keine Selbstreferenzen. Nur der reine Kapiteltext.",
+        "summarizeChapter": "Fasse das folgende Kapitel „{{title}}\" in 3–5 Sätzen zusammen.\nDie Zusammenfassung soll Handlung, Figuren und Kernthematik abdecken,\ndamit sie als Kontext für die nächsten Kapitel dienen kann.\n\nKapitel:\n{{content}}\n\nNur die Zusammenfassung, sonst nichts.",
+        "blurb": "Schreibe einen Klappentext für „{{title}}\" ({{subtitle}}).\nGenre: {{genre}}\nIdee: {{idea}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\n\nStil dieser Variante: {{blurbStyle}}\n\nDer Klappentext soll 150–200 Wörter lang sein, den Leser neugierig machen\nund nicht alles verraten. Nur der Text, keine Überschriften.",
+        "keywords": "Entwickle 7 Keywords für KDP für das Buch „{{title}}\".\nGenre: {{genre}}\nIdee: {{idea}}\nZielgruppe: {{targetAudience}}\n\nJeder Keyword-String darf bis zu 50 Zeichen lang sein. Mache eine Mischung\naus spezifischen Phrasen (2–3 Wörtern) und einzelnen Begriffen.\n\nGib nur die Keywords, einer pro Zeile.",
+        "qualityCheck": "Bewerte das folgende Kapitel in der Dimension „{{dimension}}\".\n\nKapitel: {{chapterTitle}}\nZiel: {{chapterGoal}}\n\nInhalt:\n{{chapterContent}}\n\nAntworte als JSON-Objekt:\n{\n  \"score\": <0–100>,\n  \"level\": \"<green|yellow|red>\",\n  \"details\": \"<ein Satz, was auffällt oder gut ist>\"\n}\n\nNur das JSON, sonst nichts."
+      }
+    },
+    "philosophie": {
+      "label": "philosophie",
+      "systemRole": "Du bist ein Philosophie-Autor und Wissenschaftsjournalist. Du erklärst komplexe Denker und Konzepte allgemeinverständlich, ohne sie zu verfalschen, und zeigre warum sie heute relevant sind.",
+      "systemRules": [
+        "Schreibe in klarem, literarischem Deutsch, nicht in Bulletpoints.",
+        "Vermeide Füllwörter, Abschweifungen und leere Floskeln.",
+        "Jede Aussage muss einen konkreten Inhalt haben.",
+        "Stelle nie Tatsachen auf, die du nicht prüfen kannst. Wo unsicher, formuliere vage oder markiere den Punkt.",
+        "Keine Platzhalter wie [hier einfügen], keine unvollständigen Sätze.",
+        "Keine Selbstreferenzen wie \"in diesem Kapitel\" oder \"wie oben erwähnt\"."
+      ],
+      "prompts": {
+        "titles": "Entwickle 10 Titel für ein {{genre}} mit dieser Idee:\n\n{{idea}}\n\nAlleinstellungsmerkmal: {{uniqueAngle}}\nZielgruppe: {{targetAudience}}\nKernversprechen: {{corePromise}}\n\nDie Titel sollen:\n- Neugier wecken, nicht alles verraten\n- Für das Genre typisch sein, aber nicht klischeehaft\n- 3–8 Wörter lang sein\n- Keine Doppelpunkte oder Untertitel enthalten (das kommt danach)\n\nGib nur die Titel, einer pro Zeile, ohne Nummerierung.",
+        "subtitles": "Entwickle 10 Untertitel für den Titel „{{title}}\" ({{genre}}).\n\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\n\nEin guter Untertitel ergänzt den Titel, ohne ihn zu wiederholen. Er kann\neinen Nutzen benennen, eine Zielgruppe ansprechen oder eine Spannung\naufbauen.\n\nGib nur die Untertitel, einer pro Zeile, ohne Nummerierung.",
+        "positioning": "Entwickle 5 Positionierungen für ein {{genre}}.\n\nIdee: {{idea}}\nAlleinstellungsmerkmal: {{uniqueAngle}}\nZielgruppe: {{targetAudience}}\n\nEine Positionierung ist ein Satz, der dem Leser sagt: Warum dieses Buch\nund nicht die hundert anderen. Sie ist spezifisch, glaubwürdig und\nunterscheidet sich von der Konkurrenz.\n\nGib nur die Sätze, einer pro Zeile.",
+        "outline": "Erstelle eine vollständige Gliederung für ein {{genre}}.\n\nIdee: {{idea}}\nAlleinstellungsmerkmal: {{uniqueAngle}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\nUmfang: {{chapterCount}} Kapitel, je ca. {{wordsPerChapter}} Wörter\n{{#if customOutline}}\nDer Nutzer hat diese Gliederung vorgegeben. Entwickle sie weiter, fülle sie aus, behalte die Struktur bei:\n{{customOutline}}\n{{/if}}\nFür jedes Kapitel gib:\n- Titel\n- Ziel des Kapitels (ein Satz)\n- Kernfrage oder Konflikt\n- Ergebnis / Erkenntnis am Ende\n- Geschätzte Wortzahl\n- Perspektive (erste Person, dritte Person auktorial, etc.)\n- 2–4 Recherchepunkte, falls nötig\n- 2–4 Unterkapitel mit eigenen Titeln\n\nAntworte als JSON-Array. Kein Markdown drumherum. Beispiel:\n[\n  {\n    \"title\": \"...\",\n    \"goal\": \"...\",\n    \"conflict\": \"...\",\n    \"outcome\": \"...\",\n    \"estimatedWords\": 2000,\n    \"pov\": \"dritte Person\",\n    \"research\": [\"...\"],\n    \"subchapters\": [\"...\"]\n  }\n]",
+        "writeChapter": "Schreibe ein Kapitel für ein {{genre}}.\n\nBuchidee: {{idea}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\n\nKapitel: {{chapterTitle}}\nZiel: {{chapterGoal}}\nKonflikt/Kernfrage: {{chapterConflict}}\nErgebnis am Ende: {{chapterOutcome}}\nPerspektive: {{chapterPov}}\nGewünschte Länge: ca. {{chapterWords}} Wörter\n\nUnterkapitel, die enthalten sein müssen:\n{{#each subchapters}}- {{this}}\n{{/each}}{{#if previousSummaries}}\nBisherige Kapitel (Zusammenfassungen):\n{{#each previousSummaries}}Kapitel {{@index1}}: {{this}}\n{{/each}}{{/if}}{{#if researchNotes}}\nRechercheergebnisse:\n{{#each researchNotes}}{{this}}\n{{/each}}{{/if}}\nSchreibe das Kapitel als Fließtext. Keine Überschriften im Text, keine\nZusammenfassung am Ende, keine Selbstreferenzen. Nur der reine Kapiteltext.",
+        "summarizeChapter": "Fasse das folgende Kapitel „{{title}}\" in 3–5 Sätzen zusammen.\nDie Zusammenfassung soll Handlung, Figuren und Kernthematik abdecken,\ndamit sie als Kontext für die nächsten Kapitel dienen kann.\n\nKapitel:\n{{content}}\n\nNur die Zusammenfassung, sonst nichts.",
+        "blurb": "Schreibe einen Klappentext für „{{title}}\" ({{subtitle}}).\nGenre: {{genre}}\nIdee: {{idea}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\n\nStil dieser Variante: {{blurbStyle}}\n\nDer Klappentext soll 150–200 Wörter lang sein, den Leser neugierig machen\nund nicht alles verraten. Nur der Text, keine Überschriften.",
+        "keywords": "Entwickle 7 Keywords für KDP für das Buch „{{title}}\".\nGenre: {{genre}}\nIdee: {{idea}}\nZielgruppe: {{targetAudience}}\n\nJeder Keyword-String darf bis zu 50 Zeichen lang sein. Mache eine Mischung\naus spezifischen Phrasen (2–3 Wörtern) und einzelnen Begriffen.\n\nGib nur die Keywords, einer pro Zeile.",
+        "qualityCheck": "Bewerte das folgende Kapitel in der Dimension „{{dimension}}\".\n\nKapitel: {{chapterTitle}}\nZiel: {{chapterGoal}}\n\nInhalt:\n{{chapterContent}}\n\nAntworte als JSON-Objekt:\n{\n  \"score\": <0–100>,\n  \"level\": \"<green|yellow|red>\",\n  \"details\": \"<ein Satz, was auffällt oder gut ist>\"\n}\n\nNur das JSON, sonst nichts."
+      }
+    },
+    "wirtschaft": {
+      "label": "wirtschaft",
+      "systemRole": "Du bist ein Wirtschaftsautor und Unternehmensberater. Du erklärst betriebswirtschaftliche Konzepte praxisnah, mit konkreten Beispielen und Handlungsempfehlungen.",
+      "systemRules": [
+        "Schreibe in klarem, literarischem Deutsch, nicht in Bulletpoints.",
+        "Vermeide Füllwörter, Abschweifungen und leere Floskeln.",
+        "Jede Aussage muss einen konkreten Inhalt haben.",
+        "Stelle nie Tatsachen auf, die du nicht prüfen kannst. Wo unsicher, formuliere vage oder markiere den Punkt.",
+        "Keine Platzhalter wie [hier einfügen], keine unvollständigen Sätze.",
+        "Keine Selbstreferenzen wie \"in diesem Kapitel\" oder \"wie oben erwähnt\"."
+      ],
+      "prompts": {
+        "titles": "Entwickle 10 Titel für ein {{genre}} mit dieser Idee:\n\n{{idea}}\n\nAlleinstellungsmerkmal: {{uniqueAngle}}\nZielgruppe: {{targetAudience}}\nKernversprechen: {{corePromise}}\n\nDie Titel sollen:\n- Neugier wecken, nicht alles verraten\n- Für das Genre typisch sein, aber nicht klischeehaft\n- 3–8 Wörter lang sein\n- Keine Doppelpunkte oder Untertitel enthalten (das kommt danach)\n\nGib nur die Titel, einer pro Zeile, ohne Nummerierung.",
+        "subtitles": "Entwickle 10 Untertitel für den Titel „{{title}}\" ({{genre}}).\n\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\n\nEin guter Untertitel ergänzt den Titel, ohne ihn zu wiederholen. Er kann\neinen Nutzen benennen, eine Zielgruppe ansprechen oder eine Spannung\naufbauen.\n\nGib nur die Untertitel, einer pro Zeile, ohne Nummerierung.",
+        "positioning": "Entwickle 5 Positionierungen für ein {{genre}}.\n\nIdee: {{idea}}\nAlleinstellungsmerkmal: {{uniqueAngle}}\nZielgruppe: {{targetAudience}}\n\nEine Positionierung ist ein Satz, der dem Leser sagt: Warum dieses Buch\nund nicht die hundert anderen. Sie ist spezifisch, glaubwürdig und\nunterscheidet sich von der Konkurrenz.\n\nGib nur die Sätze, einer pro Zeile.",
+        "outline": "Erstelle eine vollständige Gliederung für ein {{genre}}.\n\nIdee: {{idea}}\nAlleinstellungsmerkmal: {{uniqueAngle}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\nUmfang: {{chapterCount}} Kapitel, je ca. {{wordsPerChapter}} Wörter\n{{#if customOutline}}\nDer Nutzer hat diese Gliederung vorgegeben. Entwickle sie weiter, fülle sie aus, behalte die Struktur bei:\n{{customOutline}}\n{{/if}}\nFür jedes Kapitel gib:\n- Titel\n- Ziel des Kapitels (ein Satz)\n- Kernfrage oder Konflikt\n- Ergebnis / Erkenntnis am Ende\n- Geschätzte Wortzahl\n- Perspektive (erste Person, dritte Person auktorial, etc.)\n- 2–4 Recherchepunkte, falls nötig\n- 2–4 Unterkapitel mit eigenen Titeln\n\nAntworte als JSON-Array. Kein Markdown drumherum. Beispiel:\n[\n  {\n    \"title\": \"...\",\n    \"goal\": \"...\",\n    \"conflict\": \"...\",\n    \"outcome\": \"...\",\n    \"estimatedWords\": 2000,\n    \"pov\": \"dritte Person\",\n    \"research\": [\"...\"],\n    \"subchapters\": [\"...\"]\n  }\n]",
+        "writeChapter": "Schreibe ein Kapitel für ein {{genre}}.\n\nBuchidee: {{idea}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\n\nKapitel: {{chapterTitle}}\nZiel: {{chapterGoal}}\nKonflikt/Kernfrage: {{chapterConflict}}\nErgebnis am Ende: {{chapterOutcome}}\nPerspektive: {{chapterPov}}\nGewünschte Länge: ca. {{chapterWords}} Wörter\n\nUnterkapitel, die enthalten sein müssen:\n{{#each subchapters}}- {{this}}\n{{/each}}{{#if previousSummaries}}\nBisherige Kapitel (Zusammenfassungen):\n{{#each previousSummaries}}Kapitel {{@index1}}: {{this}}\n{{/each}}{{/if}}{{#if researchNotes}}\nRechercheergebnisse:\n{{#each researchNotes}}{{this}}\n{{/each}}{{/if}}\nSchreibe das Kapitel als Fließtext. Keine Überschriften im Text, keine\nZusammenfassung am Ende, keine Selbstreferenzen. Nur der reine Kapiteltext.",
+        "summarizeChapter": "Fasse das folgende Kapitel „{{title}}\" in 3–5 Sätzen zusammen.\nDie Zusammenfassung soll Handlung, Figuren und Kernthematik abdecken,\ndamit sie als Kontext für die nächsten Kapitel dienen kann.\n\nKapitel:\n{{content}}\n\nNur die Zusammenfassung, sonst nichts.",
+        "blurb": "Schreibe einen Klappentext für „{{title}}\" ({{subtitle}}).\nGenre: {{genre}}\nIdee: {{idea}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\n\nStil dieser Variante: {{blurbStyle}}\n\nDer Klappentext soll 150–200 Wörter lang sein, den Leser neugierig machen\nund nicht alles verraten. Nur der Text, keine Überschriften.",
+        "keywords": "Entwickle 7 Keywords für KDP für das Buch „{{title}}\".\nGenre: {{genre}}\nIdee: {{idea}}\nZielgruppe: {{targetAudience}}\n\nJeder Keyword-String darf bis zu 50 Zeichen lang sein. Mache eine Mischung\naus spezifischen Phrasen (2–3 Wörtern) und einzelnen Begriffen.\n\nGib nur die Keywords, einer pro Zeile.",
+        "qualityCheck": "Bewerte das folgende Kapitel in der Dimension „{{dimension}}\".\n\nKapitel: {{chapterTitle}}\nZiel: {{chapterGoal}}\n\nInhalt:\n{{chapterContent}}\n\nAntworte als JSON-Objekt:\n{\n  \"score\": <0–100>,\n  \"level\": \"<green|yellow|red>\",\n  \"details\": \"<ein Satz, was auffällt oder gut ist>\"\n}\n\nNur das JSON, sonst nichts."
+      }
+    },
+    "kinderbuch": {
+      "label": "kinderbuch",
+      "systemRole": "Du bist ein Kinderbuchautor (Alter 6-10). Du schreibst bilderreich, mit kurzen Sätzen, klaren Konflikten, Altersgerechtem Humor und einem positiven Ende. Keine komplexen Fremdwörter.",
+      "systemRules": [
+        "Schreibe in klarem, literarischem Deutsch, nicht in Bulletpoints.",
+        "Vermeide Füllwörter, Abschweifungen und leere Floskeln.",
+        "Jede Aussage muss einen konkreten Inhalt haben.",
+        "Stelle nie Tatsachen auf, die du nicht prüfen kannst. Wo unsicher, formuliere vage oder markiere den Punkt.",
+        "Keine Platzhalter wie [hier einfügen], keine unvollständigen Sätze.",
+        "Keine Selbstreferenzen wie \"in diesem Kapitel\" oder \"wie oben erwähnt\"."
+      ],
+      "prompts": {
+        "titles": "Entwickle 10 Titel für ein {{genre}} mit dieser Idee:\n\n{{idea}}\n\nAlleinstellungsmerkmal: {{uniqueAngle}}\nZielgruppe: {{targetAudience}}\nKernversprechen: {{corePromise}}\n\nDie Titel sollen:\n- Neugier wecken, nicht alles verraten\n- Für das Genre typisch sein, aber nicht klischeehaft\n- 3–8 Wörter lang sein\n- Keine Doppelpunkte oder Untertitel enthalten (das kommt danach)\n\nGib nur die Titel, einer pro Zeile, ohne Nummerierung.",
+        "subtitles": "Entwickle 10 Untertitel für den Titel „{{title}}\" ({{genre}}).\n\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\n\nEin guter Untertitel ergänzt den Titel, ohne ihn zu wiederholen. Er kann\neinen Nutzen benennen, eine Zielgruppe ansprechen oder eine Spannung\naufbauen.\n\nGib nur die Untertitel, einer pro Zeile, ohne Nummerierung.",
+        "positioning": "Entwickle 5 Positionierungen für ein {{genre}}.\n\nIdee: {{idea}}\nAlleinstellungsmerkmal: {{uniqueAngle}}\nZielgruppe: {{targetAudience}}\n\nEine Positionierung ist ein Satz, der dem Leser sagt: Warum dieses Buch\nund nicht die hundert anderen. Sie ist spezifisch, glaubwürdig und\nunterscheidet sich von der Konkurrenz.\n\nGib nur die Sätze, einer pro Zeile.",
+        "outline": "Erstelle eine vollständige Gliederung für ein {{genre}}.\n\nIdee: {{idea}}\nAlleinstellungsmerkmal: {{uniqueAngle}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\nUmfang: {{chapterCount}} Kapitel, je ca. {{wordsPerChapter}} Wörter\n{{#if customOutline}}\nDer Nutzer hat diese Gliederung vorgegeben. Entwickle sie weiter, fülle sie aus, behalte die Struktur bei:\n{{customOutline}}\n{{/if}}\nFür jedes Kapitel gib:\n- Titel\n- Ziel des Kapitels (ein Satz)\n- Kernfrage oder Konflikt\n- Ergebnis / Erkenntnis am Ende\n- Geschätzte Wortzahl\n- Perspektive (erste Person, dritte Person auktorial, etc.)\n- 2–4 Recherchepunkte, falls nötig\n- 2–4 Unterkapitel mit eigenen Titeln\n\nAntworte als JSON-Array. Kein Markdown drumherum. Beispiel:\n[\n  {\n    \"title\": \"...\",\n    \"goal\": \"...\",\n    \"conflict\": \"...\",\n    \"outcome\": \"...\",\n    \"estimatedWords\": 2000,\n    \"pov\": \"dritte Person\",\n    \"research\": [\"...\"],\n    \"subchapters\": [\"...\"]\n  }\n]",
+        "writeChapter": "Schreibe ein Kapitel für ein {{genre}}.\n\nBuchidee: {{idea}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\n\nKapitel: {{chapterTitle}}\nZiel: {{chapterGoal}}\nKonflikt/Kernfrage: {{chapterConflict}}\nErgebnis am Ende: {{chapterOutcome}}\nPerspektive: {{chapterPov}}\nGewünschte Länge: ca. {{chapterWords}} Wörter\n\nUnterkapitel, die enthalten sein müssen:\n{{#each subchapters}}- {{this}}\n{{/each}}{{#if previousSummaries}}\nBisherige Kapitel (Zusammenfassungen):\n{{#each previousSummaries}}Kapitel {{@index1}}: {{this}}\n{{/each}}{{/if}}{{#if researchNotes}}\nRechercheergebnisse:\n{{#each researchNotes}}{{this}}\n{{/each}}{{/if}}\nSchreibe das Kapitel als Fließtext. Keine Überschriften im Text, keine\nZusammenfassung am Ende, keine Selbstreferenzen. Nur der reine Kapiteltext.",
+        "summarizeChapter": "Fasse das folgende Kapitel „{{title}}\" in 3–5 Sätzen zusammen.\nDie Zusammenfassung soll Handlung, Figuren und Kernthematik abdecken,\ndamit sie als Kontext für die nächsten Kapitel dienen kann.\n\nKapitel:\n{{content}}\n\nNur die Zusammenfassung, sonst nichts.",
+        "blurb": "Schreibe einen Klappentext für „{{title}}\" ({{subtitle}}).\nGenre: {{genre}}\nIdee: {{idea}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\n\nStil dieser Variante: {{blurbStyle}}\n\nDer Klappentext soll 150–200 Wörter lang sein, den Leser neugierig machen\nund nicht alles verraten. Nur der Text, keine Überschriften.",
+        "keywords": "Entwickle 7 Keywords für KDP für das Buch „{{title}}\".\nGenre: {{genre}}\nIdee: {{idea}}\nZielgruppe: {{targetAudience}}\n\nJeder Keyword-String darf bis zu 50 Zeichen lang sein. Mache eine Mischung\naus spezifischen Phrasen (2–3 Wörtern) und einzelnen Begriffen.\n\nGib nur die Keywords, einer pro Zeile.",
+        "qualityCheck": "Bewerte das folgende Kapitel in der Dimension „{{dimension}}\".\n\nKapitel: {{chapterTitle}}\nZiel: {{chapterGoal}}\n\nInhalt:\n{{chapterContent}}\n\nAntworte als JSON-Objekt:\n{\n  \"score\": <0–100>,\n  \"level\": \"<green|yellow|red>\",\n  \"details\": \"<ein Satz, was auffällt oder gut ist>\"\n}\n\nNur das JSON, sonst nichts."
+      }
+    },
+    "western": {
+      "label": "western",
+      "systemRole": "Du bist ein Western-Autor. Du schreibst über Einsamkeit, Gewalt, Ehre und den Kampf ums Überleben in der endgültigen Grenzwildnis. Deine Prosa ist hart, deine Dialoge knapp, deine Landschaft ein eigenständiger Charakter.",
+      "systemRules": [
+        "Schreibe in klarem, literarischem Deutsch, nicht in Bulletpoints.",
+        "Vermeide Füllwörter, Abschweifungen und leere Floskeln.",
+        "Jede Aussage muss einen konkreten Inhalt haben.",
+        "Stelle nie Tatsachen auf, die du nicht prüfen kannst. Wo unsicher, formuliere vage oder markiere den Punkt.",
+        "Keine Platzhalter wie [hier einfügen], keine unvollständigen Sätze.",
+        "Keine Selbstreferenzen wie \"in diesem Kapitel\" oder \"wie oben erwähnt\"."
+      ],
+      "prompts": {
+        "titles": "Entwickle 10 Titel für ein {{genre}} mit dieser Idee:\n\n{{idea}}\n\nAlleinstellungsmerkmal: {{uniqueAngle}}\nZielgruppe: {{targetAudience}}\nKernversprechen: {{corePromise}}\n\nDie Titel sollen:\n- Neugier wecken, nicht alles verraten\n- Für das Genre typisch sein, aber nicht klischeehaft\n- 3–8 Wörter lang sein\n- Keine Doppelpunkte oder Untertitel enthalten (das kommt danach)\n\nGib nur die Titel, einer pro Zeile, ohne Nummerierung.",
+        "subtitles": "Entwickle 10 Untertitel für den Titel „{{title}}\" ({{genre}}).\n\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\n\nEin guter Untertitel ergänzt den Titel, ohne ihn zu wiederholen. Er kann\neinen Nutzen benennen, eine Zielgruppe ansprechen oder eine Spannung\naufbauen.\n\nGib nur die Untertitel, einer pro Zeile, ohne Nummerierung.",
+        "positioning": "Entwickle 5 Positionierungen für ein {{genre}}.\n\nIdee: {{idea}}\nAlleinstellungsmerkmal: {{uniqueAngle}}\nZielgruppe: {{targetAudience}}\n\nEine Positionierung ist ein Satz, der dem Leser sagt: Warum dieses Buch\nund nicht die hundert anderen. Sie ist spezifisch, glaubwürdig und\nunterscheidet sich von der Konkurrenz.\n\nGib nur die Sätze, einer pro Zeile.",
+        "outline": "Erstelle eine vollständige Gliederung für ein {{genre}}.\n\nIdee: {{idea}}\nAlleinstellungsmerkmal: {{uniqueAngle}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\nUmfang: {{chapterCount}} Kapitel, je ca. {{wordsPerChapter}} Wörter\n{{#if customOutline}}\nDer Nutzer hat diese Gliederung vorgegeben. Entwickle sie weiter, fülle sie aus, behalte die Struktur bei:\n{{customOutline}}\n{{/if}}\nFür jedes Kapitel gib:\n- Titel\n- Ziel des Kapitels (ein Satz)\n- Kernfrage oder Konflikt\n- Ergebnis / Erkenntnis am Ende\n- Geschätzte Wortzahl\n- Perspektive (erste Person, dritte Person auktorial, etc.)\n- 2–4 Recherchepunkte, falls nötig\n- 2–4 Unterkapitel mit eigenen Titeln\n\nAntworte als JSON-Array. Kein Markdown drumherum. Beispiel:\n[\n  {\n    \"title\": \"...\",\n    \"goal\": \"...\",\n    \"conflict\": \"...\",\n    \"outcome\": \"...\",\n    \"estimatedWords\": 2000,\n    \"pov\": \"dritte Person\",\n    \"research\": [\"...\"],\n    \"subchapters\": [\"...\"]\n  }\n]",
+        "writeChapter": "Schreibe ein Kapitel für ein {{genre}}.\n\nBuchidee: {{idea}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\n\nKapitel: {{chapterTitle}}\nZiel: {{chapterGoal}}\nKonflikt/Kernfrage: {{chapterConflict}}\nErgebnis am Ende: {{chapterOutcome}}\nPerspektive: {{chapterPov}}\nGewünschte Länge: ca. {{chapterWords}} Wörter\n\nUnterkapitel, die enthalten sein müssen:\n{{#each subchapters}}- {{this}}\n{{/each}}{{#if previousSummaries}}\nBisherige Kapitel (Zusammenfassungen):\n{{#each previousSummaries}}Kapitel {{@index1}}: {{this}}\n{{/each}}{{/if}}{{#if researchNotes}}\nRechercheergebnisse:\n{{#each researchNotes}}{{this}}\n{{/each}}{{/if}}\nSchreibe das Kapitel als Fließtext. Keine Überschriften im Text, keine\nZusammenfassung am Ende, keine Selbstreferenzen. Nur der reine Kapiteltext.",
+        "summarizeChapter": "Fasse das folgende Kapitel „{{title}}\" in 3–5 Sätzen zusammen.\nDie Zusammenfassung soll Handlung, Figuren und Kernthematik abdecken,\ndamit sie als Kontext für die nächsten Kapitel dienen kann.\n\nKapitel:\n{{content}}\n\nNur die Zusammenfassung, sonst nichts.",
+        "blurb": "Schreibe einen Klappentext für „{{title}}\" ({{subtitle}}).\nGenre: {{genre}}\nIdee: {{idea}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\n\nStil dieser Variante: {{blurbStyle}}\n\nDer Klappentext soll 150–200 Wörter lang sein, den Leser neugierig machen\nund nicht alles verraten. Nur der Text, keine Überschriften.",
+        "keywords": "Entwickle 7 Keywords für KDP für das Buch „{{title}}\".\nGenre: {{genre}}\nIdee: {{idea}}\nZielgruppe: {{targetAudience}}\n\nJeder Keyword-String darf bis zu 50 Zeichen lang sein. Mache eine Mischung\naus spezifischen Phrasen (2–3 Wörtern) und einzelnen Begriffen.\n\nGib nur die Keywords, einer pro Zeile.",
+        "qualityCheck": "Bewerte das folgende Kapitel in der Dimension „{{dimension}}\".\n\nKapitel: {{chapterTitle}}\nZiel: {{chapterGoal}}\n\nInhalt:\n{{chapterContent}}\n\nAntworte als JSON-Objekt:\n{\n  \"score\": <0–100>,\n  \"level\": \"<green|yellow|red>\",\n  \"details\": \"<ein Satz, was auffällt oder gut ist>\"\n}\n\nNur das JSON, sonst nichts."
+      }
+    },
+    "cyberpunk": {
+      "label": "cyberpunk",
+      "systemRole": "Du bist ein Cyberpunk-Autor. Du baust eine dystopische Zukunft auf mit Konzetwen, KI und menschlicher Adaption. Deine Welt ist schmutzig, deine Figuren am Rand, deine Technologie allgegenwärtig.",
+      "systemRules": [
+        "Schreibe in klarem, literarischem Deutsch, nicht in Bulletpoints.",
+        "Vermeide Füllwörter, Abschweifungen und leere Floskeln.",
+        "Jede Aussage muss einen konkreten Inhalt haben.",
+        "Stelle nie Tatsachen auf, die du nicht prüfen kannst. Wo unsicher, formuliere vage oder markiere den Punkt.",
+        "Keine Platzhalter wie [hier einfügen], keine unvollständigen Sätze.",
+        "Keine Selbstreferenzen wie \"in diesem Kapitel\" oder \"wie oben erwähnt\"."
+      ],
+      "prompts": {
+        "titles": "Entwickle 10 Titel für ein {{genre}} mit dieser Idee:\n\n{{idea}}\n\nAlleinstellungsmerkmal: {{uniqueAngle}}\nZielgruppe: {{targetAudience}}\nKernversprechen: {{corePromise}}\n\nDie Titel sollen:\n- Neugier wecken, nicht alles verraten\n- Für das Genre typisch sein, aber nicht klischeehaft\n- 3–8 Wörter lang sein\n- Keine Doppelpunkte oder Untertitel enthalten (das kommt danach)\n\nGib nur die Titel, einer pro Zeile, ohne Nummerierung.",
+        "subtitles": "Entwickle 10 Untertitel für den Titel „{{title}}\" ({{genre}}).\n\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\n\nEin guter Untertitel ergänzt den Titel, ohne ihn zu wiederholen. Er kann\neinen Nutzen benennen, eine Zielgruppe ansprechen oder eine Spannung\naufbauen.\n\nGib nur die Untertitel, einer pro Zeile, ohne Nummerierung.",
+        "positioning": "Entwickle 5 Positionierungen für ein {{genre}}.\n\nIdee: {{idea}}\nAlleinstellungsmerkmal: {{uniqueAngle}}\nZielgruppe: {{targetAudience}}\n\nEine Positionierung ist ein Satz, der dem Leser sagt: Warum dieses Buch\nund nicht die hundert anderen. Sie ist spezifisch, glaubwürdig und\nunterscheidet sich von der Konkurrenz.\n\nGib nur die Sätze, einer pro Zeile.",
+        "outline": "Erstelle eine vollständige Gliederung für ein {{genre}}.\n\nIdee: {{idea}}\nAlleinstellungsmerkmal: {{uniqueAngle}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\nUmfang: {{chapterCount}} Kapitel, je ca. {{wordsPerChapter}} Wörter\n{{#if customOutline}}\nDer Nutzer hat diese Gliederung vorgegeben. Entwickle sie weiter, fülle sie aus, behalte die Struktur bei:\n{{customOutline}}\n{{/if}}\nFür jedes Kapitel gib:\n- Titel\n- Ziel des Kapitels (ein Satz)\n- Kernfrage oder Konflikt\n- Ergebnis / Erkenntnis am Ende\n- Geschätzte Wortzahl\n- Perspektive (erste Person, dritte Person auktorial, etc.)\n- 2–4 Recherchepunkte, falls nötig\n- 2–4 Unterkapitel mit eigenen Titeln\n\nAntworte als JSON-Array. Kein Markdown drumherum. Beispiel:\n[\n  {\n    \"title\": \"...\",\n    \"goal\": \"...\",\n    \"conflict\": \"...\",\n    \"outcome\": \"...\",\n    \"estimatedWords\": 2000,\n    \"pov\": \"dritte Person\",\n    \"research\": [\"...\"],\n    \"subchapters\": [\"...\"]\n  }\n]",
+        "writeChapter": "Schreibe ein Kapitel für ein {{genre}}.\n\nBuchidee: {{idea}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\n\nKapitel: {{chapterTitle}}\nZiel: {{chapterGoal}}\nKonflikt/Kernfrage: {{chapterConflict}}\nErgebnis am Ende: {{chapterOutcome}}\nPerspektive: {{chapterPov}}\nGewünschte Länge: ca. {{chapterWords}} Wörter\n\nUnterkapitel, die enthalten sein müssen:\n{{#each subchapters}}- {{this}}\n{{/each}}{{#if previousSummaries}}\nBisherige Kapitel (Zusammenfassungen):\n{{#each previousSummaries}}Kapitel {{@index1}}: {{this}}\n{{/each}}{{/if}}{{#if researchNotes}}\nRechercheergebnisse:\n{{#each researchNotes}}{{this}}\n{{/each}}{{/if}}\nSchreibe das Kapitel als Fließtext. Keine Überschriften im Text, keine\nZusammenfassung am Ende, keine Selbstreferenzen. Nur der reine Kapiteltext.",
+        "summarizeChapter": "Fasse das folgende Kapitel „{{title}}\" in 3–5 Sätzen zusammen.\nDie Zusammenfassung soll Handlung, Figuren und Kernthematik abdecken,\ndamit sie als Kontext für die nächsten Kapitel dienen kann.\n\nKapitel:\n{{content}}\n\nNur die Zusammenfassung, sonst nichts.",
+        "blurb": "Schreibe einen Klappentext für „{{title}}\" ({{subtitle}}).\nGenre: {{genre}}\nIdee: {{idea}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\n\nStil dieser Variante: {{blurbStyle}}\n\nDer Klappentext soll 150–200 Wörter lang sein, den Leser neugierig machen\nund nicht alles verraten. Nur der Text, keine Überschriften.",
+        "keywords": "Entwickle 7 Keywords für KDP für das Buch „{{title}}\".\nGenre: {{genre}}\nIdee: {{idea}}\nZielgruppe: {{targetAudience}}\n\nJeder Keyword-String darf bis zu 50 Zeichen lang sein. Mache eine Mischung\naus spezifischen Phrasen (2–3 Wörtern) und einzelnen Begriffen.\n\nGib nur die Keywords, einer pro Zeile.",
+        "qualityCheck": "Bewerte das folgende Kapitel in der Dimension „{{dimension}}\".\n\nKapitel: {{chapterTitle}}\nZiel: {{chapterGoal}}\n\nInhalt:\n{{chapterContent}}\n\nAntworte als JSON-Objekt:\n{\n  \"score\": <0–100>,\n  \"level\": \"<green|yellow|red>\",\n  \"details\": \"<ein Satz, was auffällt oder gut ist>\"\n}\n\nNur das JSON, sonst nichts."
+      }
+    },
+    "maerchen": {
+      "label": "maerchen",
+      "systemRole": "Du bist ein Märchenautor. Du schreibst mit klarer Moral, archetypischen Figuren und einer Welt, in der das Gute am Ende siegt. Dein Stil ist zeitlos, bilderreich, weder zu kindlich noch zu ernst.",
+      "systemRules": [
+        "Schreibe in klarem, literarischem Deutsch, nicht in Bulletpoints.",
+        "Vermeide Füllwörter, Abschweifungen und leere Floskeln.",
+        "Jede Aussage muss einen konkreten Inhalt haben.",
+        "Stelle nie Tatsachen auf, die du nicht prüfen kannst. Wo unsicher, formuliere vage oder markiere den Punkt.",
+        "Keine Platzhalter wie [hier einfügen], keine unvollständigen Sätze.",
+        "Keine Selbstreferenzen wie \"in diesem Kapitel\" oder \"wie oben erwähnt\"."
+      ],
+      "prompts": {
+        "titles": "Entwickle 10 Titel für ein {{genre}} mit dieser Idee:\n\n{{idea}}\n\nAlleinstellungsmerkmal: {{uniqueAngle}}\nZielgruppe: {{targetAudience}}\nKernversprechen: {{corePromise}}\n\nDie Titel sollen:\n- Neugier wecken, nicht alles verraten\n- Für das Genre typisch sein, aber nicht klischeehaft\n- 3–8 Wörter lang sein\n- Keine Doppelpunkte oder Untertitel enthalten (das kommt danach)\n\nGib nur die Titel, einer pro Zeile, ohne Nummerierung.",
+        "subtitles": "Entwickle 10 Untertitel für den Titel „{{title}}\" ({{genre}}).\n\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\n\nEin guter Untertitel ergänzt den Titel, ohne ihn zu wiederholen. Er kann\neinen Nutzen benennen, eine Zielgruppe ansprechen oder eine Spannung\naufbauen.\n\nGib nur die Untertitel, einer pro Zeile, ohne Nummerierung.",
+        "positioning": "Entwickle 5 Positionierungen für ein {{genre}}.\n\nIdee: {{idea}}\nAlleinstellungsmerkmal: {{uniqueAngle}}\nZielgruppe: {{targetAudience}}\n\nEine Positionierung ist ein Satz, der dem Leser sagt: Warum dieses Buch\nund nicht die hundert anderen. Sie ist spezifisch, glaubwürdig und\nunterscheidet sich von der Konkurrenz.\n\nGib nur die Sätze, einer pro Zeile.",
+        "outline": "Erstelle eine vollständige Gliederung für ein {{genre}}.\n\nIdee: {{idea}}\nAlleinstellungsmerkmal: {{uniqueAngle}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\nUmfang: {{chapterCount}} Kapitel, je ca. {{wordsPerChapter}} Wörter\n{{#if customOutline}}\nDer Nutzer hat diese Gliederung vorgegeben. Entwickle sie weiter, fülle sie aus, behalte die Struktur bei:\n{{customOutline}}\n{{/if}}\nFür jedes Kapitel gib:\n- Titel\n- Ziel des Kapitels (ein Satz)\n- Kernfrage oder Konflikt\n- Ergebnis / Erkenntnis am Ende\n- Geschätzte Wortzahl\n- Perspektive (erste Person, dritte Person auktorial, etc.)\n- 2–4 Recherchepunkte, falls nötig\n- 2–4 Unterkapitel mit eigenen Titeln\n\nAntworte als JSON-Array. Kein Markdown drumherum. Beispiel:\n[\n  {\n    \"title\": \"...\",\n    \"goal\": \"...\",\n    \"conflict\": \"...\",\n    \"outcome\": \"...\",\n    \"estimatedWords\": 2000,\n    \"pov\": \"dritte Person\",\n    \"research\": [\"...\"],\n    \"subchapters\": [\"...\"]\n  }\n]",
+        "writeChapter": "Schreibe ein Kapitel für ein {{genre}}.\n\nBuchidee: {{idea}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\n\nKapitel: {{chapterTitle}}\nZiel: {{chapterGoal}}\nKonflikt/Kernfrage: {{chapterConflict}}\nErgebnis am Ende: {{chapterOutcome}}\nPerspektive: {{chapterPov}}\nGewünschte Länge: ca. {{chapterWords}} Wörter\n\nUnterkapitel, die enthalten sein müssen:\n{{#each subchapters}}- {{this}}\n{{/each}}{{#if previousSummaries}}\nBisherige Kapitel (Zusammenfassungen):\n{{#each previousSummaries}}Kapitel {{@index1}}: {{this}}\n{{/each}}{{/if}}{{#if researchNotes}}\nRechercheergebnisse:\n{{#each researchNotes}}{{this}}\n{{/each}}{{/if}}\nSchreibe das Kapitel als Fließtext. Keine Überschriften im Text, keine\nZusammenfassung am Ende, keine Selbstreferenzen. Nur der reine Kapiteltext.",
+        "summarizeChapter": "Fasse das folgende Kapitel „{{title}}\" in 3–5 Sätzen zusammen.\nDie Zusammenfassung soll Handlung, Figuren und Kernthematik abdecken,\ndamit sie als Kontext für die nächsten Kapitel dienen kann.\n\nKapitel:\n{{content}}\n\nNur die Zusammenfassung, sonst nichts.",
+        "blurb": "Schreibe einen Klappentext für „{{title}}\" ({{subtitle}}).\nGenre: {{genre}}\nIdee: {{idea}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\n\nStil dieser Variante: {{blurbStyle}}\n\nDer Klappentext soll 150–200 Wörter lang sein, den Leser neugierig machen\nund nicht alles verraten. Nur der Text, keine Überschriften.",
+        "keywords": "Entwickle 7 Keywords für KDP für das Buch „{{title}}\".\nGenre: {{genre}}\nIdee: {{idea}}\nZielgruppe: {{targetAudience}}\n\nJeder Keyword-String darf bis zu 50 Zeichen lang sein. Mache eine Mischung\naus spezifischen Phrasen (2–3 Wörtern) und einzelnen Begriffen.\n\nGib nur die Keywords, einer pro Zeile.",
+        "qualityCheck": "Bewerte das folgende Kapitel in der Dimension „{{dimension}}\".\n\nKapitel: {{chapterTitle}}\nZiel: {{chapterGoal}}\n\nInhalt:\n{{chapterContent}}\n\nAntworte als JSON-Objekt:\n{\n  \"score\": <0–100>,\n  \"level\": \"<green|yellow|red>\",\n  \"details\": \"<ein Satz, was auffällt oder gut ist>\"\n}\n\nNur das JSON, sonst nichts."
+      }
+    },
+    "doku": {
+      "label": "doku",
+      "systemRole": "Du bist ein Dokumentarfilm-Autor und Essayist. Du erklärst komplexe reale Ereignisse, gesellschaftliche Zusammenhänge oder historische Abläufe allgemeinverständlich und faktisch korrekt.",
+      "systemRules": [
+        "Schreibe in klarem, literarischem Deutsch, nicht in Bulletpoints.",
+        "Vermeide Füllwörter, Abschweifungen und leere Floskeln.",
+        "Jede Aussage muss einen konkreten Inhalt haben.",
+        "Stelle nie Tatsachen auf, die du nicht prüfen kannst. Wo unsicher, formuliere vage oder markiere den Punkt.",
+        "Keine Platzhalter wie [hier einfügen], keine unvollständigen Sätze.",
+        "Keine Selbstreferenzen wie \"in diesem Kapitel\" oder \"wie oben erwähnt\"."
+      ],
+      "prompts": {
+        "titles": "Entwickle 10 Titel für ein {{genre}} mit dieser Idee:\n\n{{idea}}\n\nAlleinstellungsmerkmal: {{uniqueAngle}}\nZielgruppe: {{targetAudience}}\nKernversprechen: {{corePromise}}\n\nDie Titel sollen:\n- Neugier wecken, nicht alles verraten\n- Für das Genre typisch sein, aber nicht klischeehaft\n- 3–8 Wörter lang sein\n- Keine Doppelpunkte oder Untertitel enthalten (das kommt danach)\n\nGib nur die Titel, einer pro Zeile, ohne Nummerierung.",
+        "subtitles": "Entwickle 10 Untertitel für den Titel „{{title}}\" ({{genre}}).\n\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\n\nEin guter Untertitel ergänzt den Titel, ohne ihn zu wiederholen. Er kann\neinen Nutzen benennen, eine Zielgruppe ansprechen oder eine Spannung\naufbauen.\n\nGib nur die Untertitel, einer pro Zeile, ohne Nummerierung.",
+        "positioning": "Entwickle 5 Positionierungen für ein {{genre}}.\n\nIdee: {{idea}}\nAlleinstellungsmerkmal: {{uniqueAngle}}\nZielgruppe: {{targetAudience}}\n\nEine Positionierung ist ein Satz, der dem Leser sagt: Warum dieses Buch\nund nicht die hundert anderen. Sie ist spezifisch, glaubwürdig und\nunterscheidet sich von der Konkurrenz.\n\nGib nur die Sätze, einer pro Zeile.",
+        "outline": "Erstelle eine vollständige Gliederung für ein {{genre}}.\n\nIdee: {{idea}}\nAlleinstellungsmerkmal: {{uniqueAngle}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\nUmfang: {{chapterCount}} Kapitel, je ca. {{wordsPerChapter}} Wörter\n{{#if customOutline}}\nDer Nutzer hat diese Gliederung vorgegeben. Entwickle sie weiter, fülle sie aus, behalte die Struktur bei:\n{{customOutline}}\n{{/if}}\nFür jedes Kapitel gib:\n- Titel\n- Ziel des Kapitels (ein Satz)\n- Kernfrage oder Konflikt\n- Ergebnis / Erkenntnis am Ende\n- Geschätzte Wortzahl\n- Perspektive (erste Person, dritte Person auktorial, etc.)\n- 2–4 Recherchepunkte, falls nötig\n- 2–4 Unterkapitel mit eigenen Titeln\n\nAntworte als JSON-Array. Kein Markdown drumherum. Beispiel:\n[\n  {\n    \"title\": \"...\",\n    \"goal\": \"...\",\n    \"conflict\": \"...\",\n    \"outcome\": \"...\",\n    \"estimatedWords\": 2000,\n    \"pov\": \"dritte Person\",\n    \"research\": [\"...\"],\n    \"subchapters\": [\"...\"]\n  }\n]",
+        "writeChapter": "Schreibe ein Kapitel für ein {{genre}}.\n\nBuchidee: {{idea}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\n\nKapitel: {{chapterTitle}}\nZiel: {{chapterGoal}}\nKonflikt/Kernfrage: {{chapterConflict}}\nErgebnis am Ende: {{chapterOutcome}}\nPerspektive: {{chapterPov}}\nGewünschte Länge: ca. {{chapterWords}} Wörter\n\nUnterkapitel, die enthalten sein müssen:\n{{#each subchapters}}- {{this}}\n{{/each}}{{#if previousSummaries}}\nBisherige Kapitel (Zusammenfassungen):\n{{#each previousSummaries}}Kapitel {{@index1}}: {{this}}\n{{/each}}{{/if}}{{#if researchNotes}}\nRechercheergebnisse:\n{{#each researchNotes}}{{this}}\n{{/each}}{{/if}}\nSchreibe das Kapitel als Fließtext. Keine Überschriften im Text, keine\nZusammenfassung am Ende, keine Selbstreferenzen. Nur der reine Kapiteltext.",
+        "summarizeChapter": "Fasse das folgende Kapitel „{{title}}\" in 3–5 Sätzen zusammen.\nDie Zusammenfassung soll Handlung, Figuren und Kernthematik abdecken,\ndamit sie als Kontext für die nächsten Kapitel dienen kann.\n\nKapitel:\n{{content}}\n\nNur die Zusammenfassung, sonst nichts.",
+        "blurb": "Schreibe einen Klappentext für „{{title}}\" ({{subtitle}}).\nGenre: {{genre}}\nIdee: {{idea}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\n\nStil dieser Variante: {{blurbStyle}}\n\nDer Klappentext soll 150–200 Wörter lang sein, den Leser neugierig machen\nund nicht alles verraten. Nur der Text, keine Überschriften.",
+        "keywords": "Entwickle 7 Keywords für KDP für das Buch „{{title}}\".\nGenre: {{genre}}\nIdee: {{idea}}\nZielgruppe: {{targetAudience}}\n\nJeder Keyword-String darf bis zu 50 Zeichen lang sein. Mache eine Mischung\naus spezifischen Phrasen (2–3 Wörtern) und einzelnen Begriffen.\n\nGib nur die Keywords, einer pro Zeile.",
+        "qualityCheck": "Bewerte das folgende Kapitel in der Dimension „{{dimension}}\".\n\nKapitel: {{chapterTitle}}\nZiel: {{chapterGoal}}\n\nInhalt:\n{{chapterContent}}\n\nAntworte als JSON-Objekt:\n{\n  \"score\": <0–100>,\n  \"level\": \"<green|yellow|red>\",\n  \"details\": \"<ein Satz, was auffällt oder gut ist>\"\n}\n\nNur das JSON, sonst nichts."
+      }
+    },
+    "reisebericht": {
+      "label": "reisebericht",
+      "systemRole": "Du bist ein Reisejournalist und Autor. Du schreibst anschaulich über Orte, Kulturen und Begegnungen, mit sensorischen Details und persönlicher Reflexion.",
+      "systemRules": [
+        "Schreibe in klarem, literarischem Deutsch, nicht in Bulletpoints.",
+        "Vermeide Füllwörter, Abschweifungen und leere Floskeln.",
+        "Jede Aussage muss einen konkreten Inhalt haben.",
+        "Stelle nie Tatsachen auf, die du nicht prüfen kannst. Wo unsicher, formuliere vage oder markiere den Punkt.",
+        "Keine Platzhalter wie [hier einfügen], keine unvollständigen Sätze.",
+        "Keine Selbstreferenzen wie \"in diesem Kapitel\" oder \"wie oben erwähnt\"."
+      ],
+      "prompts": {
+        "titles": "Entwickle 10 Titel für ein {{genre}} mit dieser Idee:\n\n{{idea}}\n\nAlleinstellungsmerkmal: {{uniqueAngle}}\nZielgruppe: {{targetAudience}}\nKernversprechen: {{corePromise}}\n\nDie Titel sollen:\n- Neugier wecken, nicht alles verraten\n- Für das Genre typisch sein, aber nicht klischeehaft\n- 3–8 Wörter lang sein\n- Keine Doppelpunkte oder Untertitel enthalten (das kommt danach)\n\nGib nur die Titel, einer pro Zeile, ohne Nummerierung.",
+        "subtitles": "Entwickle 10 Untertitel für den Titel „{{title}}\" ({{genre}}).\n\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\n\nEin guter Untertitel ergänzt den Titel, ohne ihn zu wiederholen. Er kann\neinen Nutzen benennen, eine Zielgruppe ansprechen oder eine Spannung\naufbauen.\n\nGib nur die Untertitel, einer pro Zeile, ohne Nummerierung.",
+        "positioning": "Entwickle 5 Positionierungen für ein {{genre}}.\n\nIdee: {{idea}}\nAlleinstellungsmerkmal: {{uniqueAngle}}\nZielgruppe: {{targetAudience}}\n\nEine Positionierung ist ein Satz, der dem Leser sagt: Warum dieses Buch\nund nicht die hundert anderen. Sie ist spezifisch, glaubwürdig und\nunterscheidet sich von der Konkurrenz.\n\nGib nur die Sätze, einer pro Zeile.",
+        "outline": "Erstelle eine vollständige Gliederung für ein {{genre}}.\n\nIdee: {{idea}}\nAlleinstellungsmerkmal: {{uniqueAngle}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\nUmfang: {{chapterCount}} Kapitel, je ca. {{wordsPerChapter}} Wörter\n{{#if customOutline}}\nDer Nutzer hat diese Gliederung vorgegeben. Entwickle sie weiter, fülle sie aus, behalte die Struktur bei:\n{{customOutline}}\n{{/if}}\nFür jedes Kapitel gib:\n- Titel\n- Ziel des Kapitels (ein Satz)\n- Kernfrage oder Konflikt\n- Ergebnis / Erkenntnis am Ende\n- Geschätzte Wortzahl\n- Perspektive (erste Person, dritte Person auktorial, etc.)\n- 2–4 Recherchepunkte, falls nötig\n- 2–4 Unterkapitel mit eigenen Titeln\n\nAntworte als JSON-Array. Kein Markdown drumherum. Beispiel:\n[\n  {\n    \"title\": \"...\",\n    \"goal\": \"...\",\n    \"conflict\": \"...\",\n    \"outcome\": \"...\",\n    \"estimatedWords\": 2000,\n    \"pov\": \"dritte Person\",\n    \"research\": [\"...\"],\n    \"subchapters\": [\"...\"]\n  }\n]",
+        "writeChapter": "Schreibe ein Kapitel für ein {{genre}}.\n\nBuchidee: {{idea}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\n\nKapitel: {{chapterTitle}}\nZiel: {{chapterGoal}}\nKonflikt/Kernfrage: {{chapterConflict}}\nErgebnis am Ende: {{chapterOutcome}}\nPerspektive: {{chapterPov}}\nGewünschte Länge: ca. {{chapterWords}} Wörter\n\nUnterkapitel, die enthalten sein müssen:\n{{#each subchapters}}- {{this}}\n{{/each}}{{#if previousSummaries}}\nBisherige Kapitel (Zusammenfassungen):\n{{#each previousSummaries}}Kapitel {{@index1}}: {{this}}\n{{/each}}{{/if}}{{#if researchNotes}}\nRechercheergebnisse:\n{{#each researchNotes}}{{this}}\n{{/each}}{{/if}}\nSchreibe das Kapitel als Fließtext. Keine Überschriften im Text, keine\nZusammenfassung am Ende, keine Selbstreferenzen. Nur der reine Kapiteltext.",
+        "summarizeChapter": "Fasse das folgende Kapitel „{{title}}\" in 3–5 Sätzen zusammen.\nDie Zusammenfassung soll Handlung, Figuren und Kernthematik abdecken,\ndamit sie als Kontext für die nächsten Kapitel dienen kann.\n\nKapitel:\n{{content}}\n\nNur die Zusammenfassung, sonst nichts.",
+        "blurb": "Schreibe einen Klappentext für „{{title}}\" ({{subtitle}}).\nGenre: {{genre}}\nIdee: {{idea}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\n\nStil dieser Variante: {{blurbStyle}}\n\nDer Klappentext soll 150–200 Wörter lang sein, den Leser neugierig machen\nund nicht alles verraten. Nur der Text, keine Überschriften.",
+        "keywords": "Entwickle 7 Keywords für KDP für das Buch „{{title}}\".\nGenre: {{genre}}\nIdee: {{idea}}\nZielgruppe: {{targetAudience}}\n\nJeder Keyword-String darf bis zu 50 Zeichen lang sein. Mache eine Mischung\naus spezifischen Phrasen (2–3 Wörtern) und einzelnen Begriffen.\n\nGib nur die Keywords, einer pro Zeile.",
+        "qualityCheck": "Bewerte das folgende Kapitel in der Dimension „{{dimension}}\".\n\nKapitel: {{chapterTitle}}\nZiel: {{chapterGoal}}\n\nInhalt:\n{{chapterContent}}\n\nAntworte als JSON-Objekt:\n{\n  \"score\": <0–100>,\n  \"level\": \"<green|yellow|red>\",\n  \"details\": \"<ein Satz, was auffällt oder gut ist>\"\n}\n\nNur das JSON, sonst nichts."
+      }
+    },
+    "lyrik": {
+      "label": "lyrik",
+      "systemRole": "Du bist ein Lyriker und Gedicht-Autor. Du schreibst mit Rhythmus, Klang, Metapher und Emotion, in bewusster Wahl der Form und des Tons.",
+      "systemRules": [
+        "Schreibe in klarem, literarischem Deutsch, nicht in Bulletpoints.",
+        "Vermeide Füllwörter, Abschweifungen und leere Floskeln.",
+        "Jede Aussage muss einen konkreten Inhalt haben.",
+        "Stelle nie Tatsachen auf, die du nicht prüfen kannst. Wo unsicher, formuliere vage oder markiere den Punkt.",
+        "Keine Platzhalter wie [hier einfügen], keine unvollständigen Sätze.",
+        "Keine Selbstreferenzen wie \"in diesem Kapitel\" oder \"wie oben erwähnt\"."
+      ],
+      "prompts": {
+        "titles": "Entwickle 10 Titel für ein {{genre}} mit dieser Idee:\n\n{{idea}}\n\nAlleinstellungsmerkmal: {{uniqueAngle}}\nZielgruppe: {{targetAudience}}\nKernversprechen: {{corePromise}}\n\nDie Titel sollen:\n- Neugier wecken, nicht alles verraten\n- Für das Genre typisch sein, aber nicht klischeehaft\n- 3–8 Wörter lang sein\n- Keine Doppelpunkte oder Untertitel enthalten (das kommt danach)\n\nGib nur die Titel, einer pro Zeile, ohne Nummerierung.",
+        "subtitles": "Entwickle 10 Untertitel für den Titel „{{title}}\" ({{genre}}).\n\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\n\nEin guter Untertitel ergänzt den Titel, ohne ihn zu wiederholen. Er kann\neinen Nutzen benennen, eine Zielgruppe ansprechen oder eine Spannung\naufbauen.\n\nGib nur die Untertitel, einer pro Zeile, ohne Nummerierung.",
+        "positioning": "Entwickle 5 Positionierungen für ein {{genre}}.\n\nIdee: {{idea}}\nAlleinstellungsmerkmal: {{uniqueAngle}}\nZielgruppe: {{targetAudience}}\n\nEine Positionierung ist ein Satz, der dem Leser sagt: Warum dieses Buch\nund nicht die hundert anderen. Sie ist spezifisch, glaubwürdig und\nunterscheidet sich von der Konkurrenz.\n\nGib nur die Sätze, einer pro Zeile.",
+        "outline": "Erstelle eine vollständige Gliederung für ein {{genre}}.\n\nIdee: {{idea}}\nAlleinstellungsmerkmal: {{uniqueAngle}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\nUmfang: {{chapterCount}} Kapitel, je ca. {{wordsPerChapter}} Wörter\n{{#if customOutline}}\nDer Nutzer hat diese Gliederung vorgegeben. Entwickle sie weiter, fülle sie aus, behalte die Struktur bei:\n{{customOutline}}\n{{/if}}\nFür jedes Kapitel gib:\n- Titel\n- Ziel des Kapitels (ein Satz)\n- Kernfrage oder Konflikt\n- Ergebnis / Erkenntnis am Ende\n- Geschätzte Wortzahl\n- Perspektive (erste Person, dritte Person auktorial, etc.)\n- 2–4 Recherchepunkte, falls nötig\n- 2–4 Unterkapitel mit eigenen Titeln\n\nAntworte als JSON-Array. Kein Markdown drumherum. Beispiel:\n[\n  {\n    \"title\": \"...\",\n    \"goal\": \"...\",\n    \"conflict\": \"...\",\n    \"outcome\": \"...\",\n    \"estimatedWords\": 2000,\n    \"pov\": \"dritte Person\",\n    \"research\": [\"...\"],\n    \"subchapters\": [\"...\"]\n  }\n]",
+        "writeChapter": "Schreibe ein Kapitel für ein {{genre}}.\n\nBuchidee: {{idea}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\n\nKapitel: {{chapterTitle}}\nZiel: {{chapterGoal}}\nKonflikt/Kernfrage: {{chapterConflict}}\nErgebnis am Ende: {{chapterOutcome}}\nPerspektive: {{chapterPov}}\nGewünschte Länge: ca. {{chapterWords}} Wörter\n\nUnterkapitel, die enthalten sein müssen:\n{{#each subchapters}}- {{this}}\n{{/each}}{{#if previousSummaries}}\nBisherige Kapitel (Zusammenfassungen):\n{{#each previousSummaries}}Kapitel {{@index1}}: {{this}}\n{{/each}}{{/if}}{{#if researchNotes}}\nRechercheergebnisse:\n{{#each researchNotes}}{{this}}\n{{/each}}{{/if}}\nSchreibe das Kapitel als Fließtext. Keine Überschriften im Text, keine\nZusammenfassung am Ende, keine Selbstreferenzen. Nur der reine Kapiteltext.",
+        "summarizeChapter": "Fasse das folgende Kapitel „{{title}}\" in 3–5 Sätzen zusammen.\nDie Zusammenfassung soll Handlung, Figuren und Kernthematik abdecken,\ndamit sie als Kontext für die nächsten Kapitel dienen kann.\n\nKapitel:\n{{content}}\n\nNur die Zusammenfassung, sonst nichts.",
+        "blurb": "Schreibe einen Klappentext für „{{title}}\" ({{subtitle}}).\nGenre: {{genre}}\nIdee: {{idea}}\nKernversprechen: {{corePromise}}\nZielgruppe: {{targetAudience}}\nTonalität: {{tone}}\n\nStil dieser Variante: {{blurbStyle}}\n\nDer Klappentext soll 150–200 Wörter lang sein, den Leser neugierig machen\nund nicht alles verraten. Nur der Text, keine Überschriften.",
+        "keywords": "Entwickle 7 Keywords für KDP für das Buch „{{title}}\".\nGenre: {{genre}}\nIdee: {{idea}}\nZielgruppe: {{targetAudience}}\n\nJeder Keyword-String darf bis zu 50 Zeichen lang sein. Mache eine Mischung\naus spezifischen Phrasen (2–3 Wörtern) und einzelnen Begriffen.\n\nGib nur die Keywords, einer pro Zeile.",
+        "qualityCheck": "Bewerte das folgende Kapitel in der Dimension „{{dimension}}\".\n\nKapitel: {{chapterTitle}}\nZiel: {{chapterGoal}}\n\nInhalt:\n{{chapterContent}}\n\nAntworte als JSON-Objekt:\n{\n  \"score\": <0–100>,\n  \"level\": \"<green|yellow|red>\",\n  \"details\": \"<ein Satz, was auffällt oder gut ist>\"\n}\n\nNur das JSON, sonst nichts."
+      }
     }
   },
   "styles": [
@@ -283,18 +559,6 @@
       ]
     },
     {
-      "id": "jerry-cotton",
-      "label": "Jerry Cotton (1950er-Pulp)",
-      "description": "Kurz, szenisch, 1950er-Pulp.",
-      "systemHint": "Du schreibst im Stil der Jerry-Cotton-Heftromane der 1950er-Jahre: kurz, szenisch, harter Pulp-Ton. New York, FBI, harte Männer, schnelle Schnitte.",
-      "rules": [
-        "Kurze, harte Sätze. Kein Ausstaffieren, keine Schachtelsätze.",
-        "Szenische Einstiege: mitten in der Aktion, mit konkreten Details (Nebel, Neonlicht, Revolver).",
-        "Ton: 1950er-Pulp — hart, schnoddrig, melodramatisch, ohne moderne Begriffe.",
-        "Dialoge spitz und knapp; Ende der Szene mit Haken oder Cliffhanger."
-      ]
-    },
-    {
       "id": "sachbuch-klassisch",
       "label": "Sachbuch klassisch",
       "description": "Strukturiert, Beispiele, Fußnoten.",
@@ -316,6 +580,54 @@
         "Kurze, harte Sätze. Tempo vor Beschreibung.",
         "Kapitel enden mit Cliffhanger oder Wendung.",
         "Zeige statt zu erklären; innere Konflikte sichtbar machen."
+      ]
+    },
+    {
+      "id": "humorvoll",
+      "label": "Humorvoll",
+      "description": "Locker, witzig, mit Anekdoten und Wortspielen.",
+      "systemHint": "Du schreibst humorvoll: lockerer Ton, eingestreute Anekdoten, Wortspiele und Übertreibungen zum Zweck der Unterhaltung.",
+      "rules": [
+        "Nutze Humor gezielt — er muss dem Thema dienen, nicht von ihm ablenken.",
+        "Anekdoten sollten kurz sein und einen klaren Pointe haben.",
+        "Wortspiele und Metaphern erlauben, aber nicht auf Kosten der Klarheit.",
+        "Vermeide Flachwitze und Spott auf Kosten von Personen oder Gruppen."
+      ]
+    },
+    {
+      "id": "noir",
+      "label": "Noir",
+      "description": "Düster, atmosphärisch, harter Kriminalroman-Stil.",
+      "systemHint": "Du schreibst im Noir-Stil: düstere Atmosphäre, moralische Ambiguität, harte Schnitte, melancholische Unterton.",
+      "rules": [
+        "Atmosphäre vor Handlung: beschreibe Licht, Schatten, Geräusche.",
+        "Figuren sind ambivalent — weder komplett gut noch komplett böse.",
+        "Sätze können kurz und abgehackt sein; Absätze wirken wie Schritte.",
+        "Ende offen oder bitter — Happy Endings sind kein Muss."
+      ]
+    },
+    {
+      "id": "poetisch",
+      "label": "Poetisch",
+      "description": "Bildreich, rhythmisch, literarisch anspruchsvoll.",
+      "systemHint": "Du schreibst poetisch: bildreiche Sprache, Rhythmus, lautmalerische Elemente, literarische Anspruchshöhe.",
+      "rules": [
+        "Wähle Worte auch nach Klang und Rhythmus, nicht nur nach Bedeutung.",
+        "Metaphern und Vergleiche sind willkommen, aber nicht überladen.",
+        "Satzbau variieren: mal kurz und prägnant, mal fließend und lang.",
+        "Vermeide Kitsch — Emotionen zeigen, nicht deklarieren."
+      ]
+    },
+    {
+      "id": "biografisch",
+      "label": "Biografisch",
+      "description": "Persönlich, reflektierend, Lebensgeschichte.",
+      "systemHint": "Du schreibst biografisch: persönlicher Ton, Reflexion, Lebensgeschichte mit innerer Entwicklung.",
+      "rules": [
+        "Erzähle in der Ich-Form oder eng an einer Figur dran.",
+        "Reflexion ist wichtiger als reine Faktenauflistung.",
+        "Zeige Wachstum und Wandel — die Figur am Ende ist nicht dieselbe wie am Anfang.",
+        "Erlaue Schwächen und Fehler; Perfektion wenig glaubwürdig."
       ]
     }
   ]
