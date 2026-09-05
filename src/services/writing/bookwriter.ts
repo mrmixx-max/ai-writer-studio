@@ -165,6 +165,8 @@ export interface BookWriterConfig {
   language: string;
   /** INTERFACE-CHANGE: Zielwortzahl pro Kapitel (Default 1000). */
   wordsPerChapter?: number;
+  /** INTERFACE-CHANGE: Stil/Ton der Generierung (z.B. "sachlich-nah", "dramatisch"). */
+  tone?: string;
 }
 
 // --- B1/B3 Konstanten -------------------------------------------------------
@@ -611,6 +613,7 @@ export async function generateOutline(
 - Zielgruppe: ${config.targetAudience}
 - Kapitel: ${config.chapterCount}
 - Sprache: ${config.language}
+${config.tone ? `- Stil/Ton: ${config.tone}` : ''}
 
 Vorgaben: Jeder Kapiteltitel ist eindeutig, jede Zusammenfassung hat mindestens 20 Wörter. Kapitel 1 führt ein, höchstens ein Fazit-Kapitel am Ende.
 
@@ -684,7 +687,7 @@ export async function generateChapter(
   const context = buildChapterContext(outline, chapterNumber, previousChapters);
 
   const prompt = `Schreibe Kapitel ${chapterNumber} von "${outline.title}".
-Genre: ${outline.genre} | Zielgruppe: ${outline.targetAudience} | Sprache: ${config.language}
+Genre: ${outline.genre} | Zielgruppe: ${outline.targetAudience} | Sprache: ${config.language}${config.tone ? ` | Stil/Ton: ${config.tone}` : ''}
 
 ${context}
 

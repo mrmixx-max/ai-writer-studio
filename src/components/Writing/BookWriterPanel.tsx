@@ -55,6 +55,7 @@ export function BookWriterPanel() {
   const [genre, setGenre] = useState("Sachbuch");
   const [targetAudience, setTargetAudience] = useState("Erwachsene");
   const [chapterCount, setChapterCount] = useState(8);
+  const [tone, setTone] = useState("");
   const [language] = useState("Deutsch");
   const [viewMode, setViewMode] = useState<"classic" | "planner">("planner");
   const [premise, setPremise] = useState("");
@@ -107,7 +108,8 @@ export function BookWriterPanel() {
     model: settings.model,
     baseUrl: settings.ollamaBaseUrl || "http://127.0.0.1:11434",
     language,
-  }), [topic, genre, targetAudience, chapterCount, language, settings]);
+    tone: tone.trim() || undefined,
+  }), [topic, genre, targetAudience, chapterCount, language, tone, settings]);
 
   // ---------------------------------------------------------------------------
   // Kernschleife: Kapitel generieren, SOFORT speichern, Job-Fortschritt
@@ -183,6 +185,7 @@ export function BookWriterPanel() {
     const cfg = {
       topic: topic.trim(), genre, targetAudience, chapterCount,
       model: settings.model, baseUrl: settings.ollamaBaseUrl || "http://127.0.0.1:11434", language,
+      tone: tone.trim() || undefined,
     };
     const job = createBookJob(activeProjectId, cfg);
     activeJobIdRef.current = job.id;
@@ -375,6 +378,7 @@ export function BookWriterPanel() {
         {
           topic: topic.trim(), genre, targetAudience, chapterCount,
           model: settings.model, baseUrl: settings.ollamaBaseUrl || "http://127.0.0.1:11434", language,
+          tone: tone.trim() || undefined,
         },
         ctrl.signal,
       );
@@ -477,6 +481,10 @@ export function BookWriterPanel() {
               Prämisse:
               <input value={premise} onChange={(e) => setPremise(e.target.value)} placeholder="Kurzidee / Exposé (optional)" />
             </label>
+            <label>
+              Stil/Ton:
+              <input value={tone} onChange={(e) => setTone(e.target.value)} placeholder="z.B. sachlich-nah, dramatisch, humorvoll (optional)" />
+            </label>
             <div className="bw-fields-row">
               <label>
                 Genre:
@@ -570,27 +578,31 @@ export function BookWriterPanel() {
           </div>
         </>
       ) : (
-        <div className="bw-fields">
-          <label>
-            Thema:
-            <input value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="z.B. KI im Alltag" />
-          </label>
-          <label>
-            Genre:
-            <select value={genre} onChange={(e) => setGenre(e.target.value)}>
-              <option>Sachbuch</option><option>Roman</option><option>Thriller</option>
-              <option>Fantasy</option><option>Selbsthilfe</option><option>Business</option>
-            </select>
-          </label>
-          <label>
-            Zielgruppe:
-            <input value={targetAudience} onChange={(e) => setTargetAudience(e.target.value)} />
-          </label>
-          <label>
-            Kapitel:
-            <input type="number" min={3} max={30} value={chapterCount} onChange={(e) => setChapterCount(Number(e.target.value))} />
-          </label>
-        </div>
+   <div className="bw-fields">
+     <label>
+       Thema:
+       <input value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="z.B. KI im Alltag" />
+     </label>
+     <label>
+       Genre:
+       <select value={genre} onChange={(e) => setGenre(e.target.value)}>
+         <option>Sachbuch</option><option>Roman</option><option>Thriller</option>
+         <option>Fantasy</option><option>Selbsthilfe</option><option>Business</option>
+       </select>
+     </label>
+     <label>
+       Zielgruppe:
+       <input value={targetAudience} onChange={(e) => setTargetAudience(e.target.value)} />
+     </label>
+     <label>
+       Stil/Ton:
+       <input value={tone} onChange={(e) => setTone(e.target.value)} placeholder="z.B. sachlich-nah, dramatisch (optional)" />
+     </label>
+     <label>
+       Kapitel:
+       <input type="number" min={3} max={30} value={chapterCount} onChange={(e) => setChapterCount(Number(e.target.value))} />
+     </label>
+   </div>
       )}
 
       <div className="bw-actions">

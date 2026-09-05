@@ -208,7 +208,7 @@ export function parseLogLine(line: string): {
   let message = m[4];
   let error: unknown = undefined;
   // Trailing JSON (Error-Detail) abspalten: beginnt mit { oder ".
-  const jsonStart = message.search(/\\s(?=\\{|")/);
+  const jsonStart = message.search(/\s(?=\\{|")/);
   if (jsonStart !== -1) {
     const candidate = message.slice(jsonStart + 1);
     try {
