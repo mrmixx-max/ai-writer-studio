@@ -2,9 +2,16 @@ import { createRoot } from "react-dom/client";
 import { App } from "./App";
 import { installGlobalErrorHandlers } from "./services/resilience/globalErrorHandler";
 import { installFetchRetryShim } from "./services/resilience/fetchRetryShim";
+import { installLogPersistence } from "./services/loggingRuntime";
 import "./theme.css";
 import "./app.css";
 
+// Persistierende Log-Rotation (app-YYYY-MM.log) VOR dem ersten Render
+// installieren — Konsolen-Outputs und Fehler landen in rotierenden Dateien.
+// Fire-and-forget: Ein Fehler hier darf den App-Start niemals blockieren.
+installLogPersistence().catch(() => {
+  /* Logging bleibt Konsole + Puffer */
+});
 // Globale Fehler-Handler VOR dem ersten React-Render installieren, damit
 // auch Fehler beim Booten (DB-Init, i18n) protokolliert werden.
 installGlobalErrorHandlers();

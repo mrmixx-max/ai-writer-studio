@@ -1,0 +1,61 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AI Writer Studio Prompt Library",
+  "description": "Externe Prompt-Templates (Handlebars) + Genre-Profile fuer den Bookwriter. Sprint 6, Agent 2.",
+  "type": "object",
+  "required": [
+    "version",
+    "defaultGenre",
+    "genres"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+$"
+    },
+    "defaultGenre": {
+      "type": "string"
+    },
+    "genres": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "label",
+          "systemRole",
+          "systemRules",
+          "prompts"
+        ],
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "systemRole": {
+            "type": "string",
+            "minLength": 1
+          },
+          "systemRules": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "prompts": {
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -38,6 +38,11 @@ const AnalyticsPanel = lazy(() =>
 const AnalyticsTracker = lazy(() =>
   import("@/components/Analytics/AnalyticsTracker").then((m) => ({ default: m.AnalyticsTracker }))
 );
+// Sprint 6 (Agent 5): Job-Recovery-Dialog — erscheint beim App-Start, wenn
+// abgebrochene Buchgenerierungsläufe in der DB liegen (bookwriter_jobs).
+const BookWriterRecoveryDialog = lazy(() =>
+  import("@/components/BookWriter/BookWriterDashboard").then((m) => ({ default: m.BookWriterRecoveryDialog }))
+);
 
 import { Splash } from "@/components/Welcome/Splash";
 import { useEditorStore } from "@/store/editorStore";
@@ -229,6 +234,14 @@ function AppInner() {
         {phase === "setup" && (
           <Suspense fallback={<Splash note="Assistent wird geladen…" />}>
             <WelcomeWizard onDone={handleWizardDone} />
+          </Suspense>
+        )}
+
+        {/* Sprint 6 (Agent 5): Job-Recovery beim App-Start — abgebrochene
+            Buchgenerierungen anzeigen und Fortsetzung anbieten. */}
+        {phase === "ready" && (
+          <Suspense fallback={null}>
+            <BookWriterRecoveryDialog />
           </Suspense>
         )}
 

@@ -11,3 +11,4 @@ export * from "./coverPrompts";
 export * from "./marketingAssets";
 export * from "./markupGuard";
 export * from "./translatorService";
+export * from "./multilingualPipeline";

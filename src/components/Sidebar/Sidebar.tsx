@@ -54,6 +54,11 @@ const ObstructionPanel = lazy(() =>
 const DreamLogicPanel = lazy(() =>
   import("@/components/DreamLogic/DreamLogicPanel").then((m) => ({ default: m.DreamLogicPanel }))
 );
+// Sprint 6 (Agent 5): BookWriter-Dashboard — eigener Modus mit Übersicht,
+// Live-Fortschritt und Steuerung. Braucht kein offenes Kapitel.
+const BookWriterDashboardPanel = lazy(() =>
+  import("@/components/BookWriter/BookWriterDashboard").then((m) => ({ default: m.BookWriterDashboardPanel }))
+);
 const ImageGenerationPanel = lazy(() =>
   import("@/components/ImageGen/ImageGenPanel").then((m) => ({ default: m.ImageGenerationPanel }))
 );
@@ -80,9 +85,6 @@ const WatermarkPanel = lazy(() =>
 );
 const TTSPanel = lazy(() =>
   import("@/components/Writing/TTSPanel").then((m) => ({ default: m.TTSPanel }))
-);
-const BookWriterPanel = lazy(() =>
-  import("@/components/Writing/BookWriterPanel").then((m) => ({ default: m.BookWriterPanel }))
 );
 const MarkdownViewerPanel = lazy(() =>
   import("@/components/Writing/MarkdownViewerPanel").then((m) => ({ default: m.MarkdownViewerPanel }))
@@ -134,7 +136,7 @@ const MODES: { id: EditorMode; label: string; icon: string }[] = [
   { id: "investigate", label: "Investigativ", icon: "🕵️" },
   { id: "watermark", label: "Waschen", icon: "💧" },
   { id: "tts", label: "Vorlesen", icon: "🔊" },
-  { id: "bookwriter", label: "Buch schreiben", icon: "📖" },
+  { id: "bookwriter", label: "BookWriter", icon: "📖" },
   { id: "markdown", label: "Markdown", icon: "📝" },
   { id: "wordstats", label: "Statistik", icon: "📊" },
   { id: "ideas", label: "Ideen", icon: "💡" },
@@ -186,6 +188,17 @@ export function Sidebar() {
 
   useEffect(() => {
     refresh();
+  }, []);
+
+  // Sprint 6 (Agent 5): Recovery-Dialog/Dashboard bitten per Fenster-Event um
+  // den Wechsel in den BookWriter-Modus (nach dem Öffnen des Projekts).
+  useEffect(() => {
+    const onOpenMode = (e: Event) => {
+      const target = (e as CustomEvent<string>).detail;
+      if (typeof target === "string" && target) setMode(target as EditorMode);
+    };
+    window.addEventListener("bookwriter:open-mode", onOpenMode);
+    return () => window.removeEventListener("bookwriter:open-mode", onOpenMode);
   }, []);
 
   // Avantgarde-Modus aktiv? Der Switcher wird weiter unten definiert und hier
@@ -377,6 +390,9 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "snapshots") return <SnapshotPanel projectId={projectId} />;
     if (mode === "kdp") return <KdpChecklistPanel projectId={projectId} />;
     if (mode === "publishing") return <PublishingAssistantPanel projectId={projectId} />;
+    // Sprint 6 (Agent 5): BookWriter-Dashboard braucht kein offenes Kapitel —
+    // es arbeitet projektübergreifend auf dem Job-Store.
+    if (mode === "bookwriter") return <BookWriterDashboardPanel />;
     if (!projectId || !chapterId) {
       return <div className="mode-placeholder">Wähle links ein Projekt und Kapitel, um die Avantgarde-Funktionen zu nutzen.</div>;
     }
@@ -398,7 +414,6 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
       case "investigate": return <InvestigatePanel />;
       case "watermark": return <WatermarkPanel />;
       case "tts": return <TTSPanel />;
-      case "bookwriter": return <BookWriterPanel />;
       case "markdown": return <MarkdownViewerPanel />;
       case "wordstats": return <WordStatsPanel />;
       case "ideas": return <IdeasPanel />;

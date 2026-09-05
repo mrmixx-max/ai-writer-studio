@@ -20,11 +20,20 @@ import {
 } from "./dashboard";
 import { findInterruptedJobs, formatRecoveryPrompt, buildRecoveryChoice } from "./jobRecovery";
 import { checkAllLocalInstances, renderTrafficLights } from "./healthMonitor";
+import { parseHitlArg, createHitlSession, type HitlIo } from "./hitl";
+import { parsePromptArgs, formatPromptFlags, loadPromptLibraryOverride } from "./promptArgs";
+import { parseStatsArg, runStatsCommand } from "./statsCommand";
 
 function ask(question: string): Promise<string> {
   const rl = readline.createInterface({ input, output });
   return rl.question(question).finally(() => rl.close());
 }
+
+/** Terminal-IO für die HITL-Session (readline-Adapter). */
+const terminalIo: HitlIo = {
+  question: (prompt) => ask(prompt),
+  print: (msg) => console.log(msg),
+};
 
 /** Schritt 1: Ampel für lokale Instanzen. */
 export async function runHealthCheck(): Promise<void> {
@@ -91,9 +100,44 @@ export async function runDashboardLoop(
   rl.close();
 }
 
+/**
+ * Baut die HITL-Workflow-Hooks für runBookwriter(). Ohne --hitl=true →
+ * undefined (kein Verhalten). Mit Flag: interaktive Haltepunkte nach
+ * Outline, Memory-Base und finalem Revisions-Loop; eingespeiste
+ * Änderungswünsche werden als Inject in die nächsten Prompts übergeben.
+ */
+export function buildHitlHooks(): ReturnType<ReturnType<typeof createHitlSession>["workflowHooks"]> | undefined {
+  const enabled = parseHitlArg(process.argv);
+  const session = createHitlSession(enabled, terminalIo);
+  return enabled ? session.workflowHooks() : undefined;
+}
+
 /** Haupteinstiegspunkt (nur bei direktem Aufruf, nicht bei Test-Import). */
 export async function main(): Promise<void> {
-  console.log("AI Writer Studio — CLI-Orchestrierung (Sprint 4)\n");
+  console.log("AI Writer Studio — CLI-Orchestrierung (Sprint 6)\n");
+  // Sprint 6 (Agent 1): `--stats` → Token-Analytics-Historie statt Live-Loop.
+  // await: ensureStatsDb() lädt die App-DB-Datei nach (außerhalb des Tauri-
+  // Webviews existiert sonst keine DB — siehe statsCommand.ts).
+  if (parseStatsArg(process.argv)) {
+    await runStatsCommand();
+    return;
+  }
+  // Sprint 6 (Agent 2): Prompt-Library-Flags — Genre-Profil, Zielgruppe,
+  // Tonalität, Buchlänge (--genre=, --audience=, --tone=, --length=) und
+  // optionaler Library-Override (--prompts=, validiert vor dem Start).
+  const promptFlags = parsePromptArgs(process.argv);
+  const flagLine = formatPromptFlags(promptFlags);
+  if (flagLine) console.log(flagLine + "\n");
+  try {
+    loadPromptLibraryOverride(promptFlags.promptsPath);
+  } catch (e) {
+    console.error(`Prompt-Library-Fehler: ${(e as Error).message}`);
+    process.exitCode = 1;
+    return;
+  }
+  if (parseHitlArg(process.argv)) {
+    console.log("HITL-Modus aktiv: Haltepunkte nach Outline, Memory-Base und finalem Revisions-Loop.\n");
+  }
   await runHealthCheck();
   await runJobRecovery();
   await runDashboardLoop();
