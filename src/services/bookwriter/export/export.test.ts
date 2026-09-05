@@ -192,6 +192,31 @@ describe("exportBook Roundtrip 8-Kapitel-Testbuch", () => {
   });
 });
 
+// --- Sprint 4: VBA-Macro-Generator -------------------------------------------
+
+describe("exportBook vbaMacro (Sprint 4)", () => {
+  it("liefert je Export ein dediziertes .bas-Modul mit", async () => {
+    const res = await exportBook(book, "docx");
+    expect(res.vbaMacro).toBeDefined();
+    expect(res.vbaMacro!.filename).toBe("AIWSTextRefinement_Testbuch_ KI verstehen.bas");
+    const bas = res.vbaMacro!.content;
+    expect(bas).toMatch(/^Attribute VB_Name = "AIWSTextRefinement"/);
+    expect(bas).toContain("Sub AIWS_RefineAll()");
+    expect(bas).toContain('Private Const AIWS_BOOK_TITLE As String = "Testbuch: KI verstehen"');
+    expect(bas).toContain("Private Const AIWS_CHAPTER_COUNT As Long = 8");
+  });
+
+  it("VBA-Makro deckt alle 5 Refinement-Schritte ab", async () => {
+    const res = await exportBook(book, "markdown");
+    const bas = res.vbaMacro!.content;
+    expect(bas).toContain("Sub AIWS_ApplyNativeStyles(doc As Document)");
+    expect(bas).toContain("Sub AIWS_CleanHardLineBreaks(doc As Document)");
+    expect(bas).toContain("Sub AIWS_FixTypographicQuotes(doc As Document)");
+    expect(bas).toContain("Sub AIWS_RemoveHiddenChapterTags(doc As Document)");
+    expect(bas).toContain("Sub AIWS_CleanSpacesAndZeroWidth(doc As Document)");
+  });
+});
+
 // --- normalizeTypography Re-Export ------------------------------------------
 
 describe("normalizeTypography (Re-Export)", () => {

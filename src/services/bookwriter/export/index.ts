@@ -19,10 +19,12 @@ import { buildBookMarkdown } from "./markdown";
 import { buildBookDocxBlob } from "./docx";
 import { buildBookEpubBlob } from "./epub";
 import { buildBookOpml } from "./opml";
+import { buildAiwsVbaBas, buildAiwsBasFilename } from "./vbaMacro";
 import { logger } from "@/services/logger";
-import type { ExportBookInput, ExportBookResult, ExportFormat, BookChapterInput } from "./types";
+import type { ExportBookInput, ExportBookResult, ExportFormat, BookChapterInput, ExportVbaMacroResult } from "./types";
 
 export type { ExportBookInput, ExportBookResult, ExportFormat, BookChapterInput };
+export type { ExportVbaMacroResult };
 export { normalizeTypography, buildBookMarkdown };
 export { buildTitlePageBlocks, buildEpubChapterXhtml } from "./structure";
 export { xmlEscape } from "./vba";
@@ -30,6 +32,7 @@ export { checkExportGate, formatNeedsRevisionWarning } from "./gate";
 export { saveExportBlob } from "./save";
 export { buildBookOpml } from "./opml";
 export { aiwsHiddenTagFor, buildAiwsCustomXml, buildAiwsCustomProperties, AIWS_HIDDEN_TAG } from "./vba";
+export { buildAiwsVbaBas, buildAiwsBasFilename, AIWS_VBA_MODULE } from "./vbaMacro";
 export type { ExportGateResult } from "./gate";
 export type { SaveExportResult } from "./save";
 
@@ -85,12 +88,20 @@ export async function exportBook(
   const ext = { markdown: "md", docx: "docx", epub: "epub", opml: "opml" }[format];
   const filename = `${sanitizeFilename(input.title)}.${ext}`;
 
+  // Sprint 4: dediziertes VBA-Modul ("AI Text Refinement") je Buch —
+  // bereinigt harte Umbrüche, Anführungszeichen, Leerzeichen, Zero-Width
+  // und mappt die DOCX-Tags auf native Word-Formatvorlagen.
+  const vbaMacro: ExportVbaMacroResult = {
+    filename: buildAiwsBasFilename(input.title),
+    content: buildAiwsVbaBas(meta, chapters),
+  };
+
   onProgress?.(100, "Export fertig.");
   logger.info(
-    `Book-Export ${format.toUpperCase()}: ${filename} (${blob.size} Bytes, ${chapters.length} Kapitel)`,
+    `Book-Export ${format.toUpperCase()}: ${filename} (${blob.size} Bytes, ${chapters.length} Kapitel, VBA-Makro ${vbaMacro.filename})`,
     "exportBook",
   );
-  return { filename, blob, format };
+  return { filename, blob, format, vbaMacro };
 }
 
 /** Entfernt Dateisystem-gefährliche Zeichen aus Dateinamen. */

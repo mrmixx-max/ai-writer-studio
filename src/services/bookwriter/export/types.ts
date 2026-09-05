@@ -26,6 +26,16 @@ export interface ExportBookResult {
   filename: string;
   blob: Blob;
   format: ExportFormat;
+  /** Sprint 4: passendes VBA-Makro (.bas) für die Word-Post-Production. */
+  vbaMacro?: ExportVbaMacroResult;
+}
+
+/** Sprint 4: Generiertes VBA-Modul ("AI Text Refinement") für Word. */
+export interface ExportVbaMacroResult {
+  /** Dateiname des .bas-Moduls (dateisystem-sicher, aus Buchtitel abgeleitet). */
+  filename: string;
+  /** Vollständiger VBA-Quelltext (Attribut-Header + Refinement-Subs). */
+  content: string;
 }
 
 /** Ein generiertes Buch mit Status je Kapitel (Export-Gate + needs_revision-Warnung). */
