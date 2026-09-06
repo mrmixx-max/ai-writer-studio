@@ -1,4 +1,6 @@
 // AI Writer Studio — Windows-Release-Einstiegspunkt.
+// Kein Konsolen-Fenster im Release-Build (nur Debug).
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 //
 // Verantwortlichkeiten:
 //   1. Single-Instance-Schutz (zweiter Start fokussiert die bestehende Instanz)
@@ -92,8 +94,6 @@ fn startup_file() -> Option<String> {
     })
 }
 
-
-#[windows_subsystem = "windows"]
 
 fn main() {
     tauri::Builder::default()

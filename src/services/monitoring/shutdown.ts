@@ -105,10 +105,11 @@ export function registerDefaultShutdownTasks(): void {
     name: "close-ollama-connections",
     priority: 50,
     execute: async () => {
-      // Connection Pool leeren
-       
-      const { connectionPool } = await import("@/services/ollama/connectionPool");
-      connectionPool?.clear?.();
+      // Connection Pools zurücksetzen (wartende Queues verwerfen)
+      const { resetOllamaPools } = await import(
+        "@/services/ollama/connectionPool"
+      );
+      resetOllamaPools();
     },
   });
 }
