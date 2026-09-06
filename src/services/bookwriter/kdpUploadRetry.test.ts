@@ -148,13 +148,13 @@ describe("resumeUpload", () => {
     const state = { ...createUploadState(null, META.title, "u-res", 1000), status: "uploading" as const, startedAt: 1000 };
     const r = await resumeUpload(state, pkg, {
       now: () => 2000,
-      delayFn: noWait,
+      retry: { delayFn: noWait },
       uploadFn: async () => ({ remoteId: "r-res" }),
       pollFn: async () => "live",
     });
     expect(r.state.status).toBe("live");
     expect(r.remoteId).toBe("r-res");
-    expect(r.package.uploadId).toBe("u-res");
+    expect(r.package?.uploadId).toBe("u-res");
   });
 
   it("setzt processing fort: nur Poll, kein erneuter Upload", async () => {

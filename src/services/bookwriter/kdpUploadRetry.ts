@@ -175,7 +175,7 @@ export async function resumeUpload(
           ...state,
           status: polled,
           reason: polled === "rejected" ? "KDP hat das Manuskript abgelehnt (Review)." : state.reason,
-          finishedAt: polled === "processing" ? null : now(),
+          finishedAt: now(),
           updatedAt: now(),
           history: [
             ...state.history,

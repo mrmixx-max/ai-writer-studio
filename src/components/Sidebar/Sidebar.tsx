@@ -3,6 +3,7 @@ import { memo, useCallback, useMemo, useState, useEffect, lazy, Suspense } from 
 import type { Project, Chapter } from "@/types/project";
 import { useProjectStore } from "@/store/projectStore";
 import { usePromptStore } from "@/store/promptStore";
+import { useI18n } from "@/i18n";
 
 // Modi, die die Sidebar ebenfalls verbreitern ("wide") — als Set, damit die
 // JSX-Bedingung kurz bleibt und navigation.test.ts die Struktur pruefen kann.
@@ -109,41 +110,42 @@ import {
 } from "@/services/project";
 import type { EditorMode } from "@/types/mode";
 
-const MODES: { id: EditorMode; label: string; icon: string }[] = [
-  { id: "editor", label: "Editor", icon: "📝" },
-  { id: "prompts", label: "Prompts", icon: "💡" },
-  { id: "knowledge", label: "Projektwissen", icon: "📚" },
-  { id: "diagnostics", label: "Manuskriptprüfung", icon: "🔍" },
-  { id: "preflight", label: "Exportprüfung", icon: "✅" },
-  { id: "snapshots", label: "Snapshots", icon: "📂" },
-  { id: "kdp", label: "KDP", icon: "🚀" },
-  { id: "publishing", label: "Publishing", icon: "📦" },
-  { id: "fragments", label: "Fragmente", icon: "🧩" },
-  { id: "voices", label: "Stimmen", icon: "🎭" },
-  { id: "map", label: "Karte", icon: "🗺️" },
-  { id: "dialogue", label: "Dialog", icon: "💬" },
-  { id: "versions", label: "Versionen", icon: "🕐" },
-  { id: "obstruction", label: "Obstruktion", icon: "⛓️" },
-  { id: "dream", label: "Traumlogik", icon: "🌙" },
-  { id: "imagegen", label: "Bildgenerierung", icon: "🖼️" },
-  { id: "covergen", label: "Cover-Generator", icon: "📚" },
-  { id: "blurbgen", label: "Blurb-Generator", icon: "📝" },
-  { id: "scientificwriting", label: "Wissenschaft", icon: "🎓" },
-  { id: "timeline", label: "Timeline", icon: "📅" },
-  { id: "characters", label: "Figuren", icon: "👥" },
-  { id: "worldbuilding", label: "Worldbuilding", icon: "🌍" },
-  { id: "research", label: "Recherche", icon: "🔎" },
-  { id: "investigate", label: "Investigativ", icon: "🕵️" },
-  { id: "watermark", label: "Waschen", icon: "💧" },
-  { id: "tts", label: "Vorlesen", icon: "🔊" },
-  { id: "bookwriter", label: "BookWriter", icon: "📖" },
-  { id: "markdown", label: "Markdown", icon: "📝" },
-  { id: "wordstats", label: "Statistik", icon: "📊" },
-  { id: "ideas", label: "Ideen", icon: "💡" },
-  { id: "consistency", label: "Check", icon: "✅" },
+const MODES: { id: EditorMode; key: `sidebar.mode.${EditorMode}`; icon: string }[] = [
+  { id: "editor", key: "sidebar.mode.editor", icon: "📝" },
+  { id: "prompts", key: "sidebar.mode.prompts", icon: "💡" },
+  { id: "knowledge", key: "sidebar.mode.knowledge", icon: "📚" },
+  { id: "diagnostics", key: "sidebar.mode.diagnostics", icon: "🔍" },
+  { id: "preflight", key: "sidebar.mode.preflight", icon: "✅" },
+  { id: "snapshots", key: "sidebar.mode.snapshots", icon: "📂" },
+  { id: "kdp", key: "sidebar.mode.kdp", icon: "🚀" },
+  { id: "publishing", key: "sidebar.mode.publishing", icon: "📦" },
+  { id: "fragments", key: "sidebar.mode.fragments", icon: "🧩" },
+  { id: "voices", key: "sidebar.mode.voices", icon: "🎭" },
+  { id: "map", key: "sidebar.mode.map", icon: "🗺️" },
+  { id: "dialogue", key: "sidebar.mode.dialogue", icon: "💬" },
+  { id: "versions", key: "sidebar.mode.versions", icon: "🕐" },
+  { id: "obstruction", key: "sidebar.mode.obstruction", icon: "⛓️" },
+  { id: "dream", key: "sidebar.mode.dream", icon: "🌙" },
+  { id: "imagegen", key: "sidebar.mode.imagegen", icon: "🖼️" },
+  { id: "covergen", key: "sidebar.mode.covergen", icon: "📚" },
+  { id: "blurbgen", key: "sidebar.mode.blurbgen", icon: "📝" },
+  { id: "scientificwriting", key: "sidebar.mode.scientificwriting", icon: "🎓" },
+  { id: "timeline", key: "sidebar.mode.timeline", icon: "📅" },
+  { id: "characters", key: "sidebar.mode.characters", icon: "👥" },
+  { id: "worldbuilding", key: "sidebar.mode.worldbuilding", icon: "🌍" },
+  { id: "research", key: "sidebar.mode.research", icon: "🔎" },
+  { id: "investigate", key: "sidebar.mode.investigate", icon: "🕵️" },
+  { id: "watermark", key: "sidebar.mode.watermark", icon: "💧" },
+  { id: "tts", key: "sidebar.mode.tts", icon: "🔊" },
+  { id: "bookwriter", key: "sidebar.mode.bookwriter", icon: "📖" },
+  { id: "markdown", key: "sidebar.mode.markdown", icon: "📝" },
+  { id: "wordstats", key: "sidebar.mode.wordstats", icon: "📊" },
+  { id: "ideas", key: "sidebar.mode.ideas", icon: "💡" },
+  { id: "consistency", key: "sidebar.mode.consistency", icon: "✅" },
 ];
 
 export function Sidebar() {
+  const { t } = useI18n();
   const [tab, setTab] = useState<"projects" | "prompts">("projects");
   const [mode, setMode] = useState<EditorMode>("editor");
   const activeProjectId = useProjectStore((s) => s.activeProjectId);
@@ -160,22 +162,22 @@ export function Sidebar() {
   // Stabilisierte Handler: Nur so kann memoized ProjectRow auf Rerenders
   // der Sidebar verzichten, wenn sich Projekt-/Kapitelliste nicht geändert hat.
   const handleRenameProject = useCallback((id: string, name: string) => {
-    const n = renamePrompt(name);
+    const n = renamePrompt(t("sidebar.promptNewName"), name);
     if (n) { renameProject(id, n); refresh(); }
-  }, [refresh]);
+  }, [refresh, t]);
 
   const handleDeleteProject = useCallback((id: string) => {
-    if (confirm("Projekt löschen?")) { deleteProject(id); refresh(); }
-  }, [refresh]);
+    if (confirm(t("sidebar.confirmDeleteProject"))) { deleteProject(id); refresh(); }
+  }, [refresh, t]);
 
   const handleRenameChapter = useCallback((pid: string, id: string, title: string) => {
-    const n = renamePrompt(title);
+    const n = renamePrompt(t("sidebar.promptNewName"), title);
     if (n) { renameChapter(id, n); openProject(pid); }
-  }, [openProject]);
+  }, [openProject, t]);
 
   const handleDeleteChapter = useCallback((pid: string, id: string) => {
-    if (confirm("Kapitel löschen?")) { deleteChapter(id); openProject(pid); }
-  }, [openProject]);
+    if (confirm(t("sidebar.confirmDeleteChapter"))) { deleteChapter(id); openProject(pid); }
+  }, [openProject, t]);
 
   const rowActions = useMemo<RowActions>(() => ({
     onOpenProject: openProject,
@@ -209,24 +211,27 @@ export function Sidebar() {
   // Spezialbereiche (Projektwissen, Fragmente, Stimmen …) unerreichbar.
   // Genau dieser Fehler hat alle acht Modi unbenutzbar gemacht.
   const switcher = (
-    <nav className="mode-switcher">
-      {MODES.map((m) => (
-        <button
-          key={m.id}
-          title={m.label}
-          aria-label={m.label}
-          aria-pressed={mode === m.id}
-          className={mode === m.id ? "active" : ""}
-          onClick={() => {
-            setMode(m.id);
-            // Editor und Prompts sind gleichzeitig Tabs — synchron halten.
-            if (m.id === "editor") setTab("projects");
-            if (m.id === "prompts") setTab("prompts");
-          }}
-        >
-          {m.icon}
-        </button>
-      ))}
+    <nav className="mode-switcher" aria-label={t("sidebar.modesLabel")}>
+      {MODES.map((m) => {
+        const label = t(m.key);
+        return (
+          <button
+            key={m.id}
+            title={label}
+            aria-label={label}
+            aria-pressed={mode === m.id}
+            className={mode === m.id ? "active" : ""}
+            onClick={() => {
+              setMode(m.id);
+              // Editor und Prompts sind gleichzeitig Tabs — synchron halten.
+              if (m.id === "editor") setTab("projects");
+              if (m.id === "prompts") setTab("prompts");
+            }}
+          >
+            {m.icon}
+          </button>
+        );
+      })}
     </nav>
   );
 
@@ -237,7 +242,7 @@ export function Sidebar() {
     const wideCore = mode === "knowledge" || mode === "diagnostics" || mode === "preflight" || mode === "snapshots" || mode === "kdp";
     const wideExtra = WIDE_EXTRA_MODES.has(mode);
     return (
-      <aside id="app-sidebar" tabIndex={-1} aria-label="Projektliste" className={`sidebar${wideCore || wideExtra ? " wide" : ""}`}>
+      <aside id="app-sidebar" tabIndex={-1} aria-label={t("sidebar.listLabel")} className={`sidebar${wideCore || wideExtra ? " wide" : ""}`}>
         {switcher}
         <div className="sidebar-content">
           <ModePanel mode={mode} projectId={activeProjectId} chapterId={activeChapterId} />
@@ -248,29 +253,29 @@ export function Sidebar() {
 
   if (tab === "prompts") {
     return (
-      <aside id="app-sidebar" tabIndex={-1} aria-label="Projektliste" className="sidebar">
+      <aside id="app-sidebar" tabIndex={-1} aria-label={t("sidebar.listLabel")} className="sidebar">
         {switcher}
         <nav className="sidebar-tabs">
-          <button onClick={() => { setTab("projects"); setMode("editor"); }}>📁 Projekte</button>
-          <button className="active" onClick={() => prompt.set("tab", "generate")}>💡 Prompts</button>
+          <button onClick={() => { setTab("projects"); setMode("editor"); }}>{t("sidebar.projectsTab")}</button>
+          <button className="active" aria-current="page" onClick={() => prompt.set("tab", "generate")}>{t("sidebar.promptsTab")}</button>
         </nav>
-        <div className="sidebar-content"><Suspense fallback={<div className="mode-placeholder">Lädt…</div>}><PromptGenerator /></Suspense></div>
+        <div className="sidebar-content"><Suspense fallback={<div className="mode-placeholder">{t("sidebar.loading")}</div>}><PromptGenerator /></Suspense></div>
       </aside>
     );
   }
 
   return (
-    <aside id="app-sidebar" tabIndex={-1} aria-label="Projektliste" className="sidebar">
+    <aside id="app-sidebar" tabIndex={-1} aria-label={t("sidebar.listLabel")} className="sidebar">
       {switcher}
       <nav className="sidebar-tabs">
-        <button className="active" onClick={() => setTab("projects")}>📁 Projekte</button>
-        <button onClick={() => { setTab("prompts"); setMode("prompts"); }}>💡 Prompts</button>
+        <button className="active" aria-current="page" onClick={() => setTab("projects")}>{t("sidebar.projectsTab")}</button>
+        <button onClick={() => { setTab("prompts"); setMode("prompts"); }}>{t("sidebar.promptsTab")}</button>
       </nav>
       <div className="sidebar-content">
         <div className="project-toolbar">
-          <button onClick={() => { const n = promptName(); if (n) newProject(n); }}>+ Projekt</button>
+          <button onClick={() => { const n = promptName(t("sidebar.promptProjectName")); if (n) newProject(n); }}>{t("sidebar.newProject")}</button>
           {activeProjectId && (
-            <button onClick={() => { const t = promptChapter(); if (t) newChapter(t); }}>+ Kapitel</button>
+            <button onClick={() => { const t2 = promptChapter(t("sidebar.promptChapterTitle")); if (t2) newChapter(t2); }}>{t("sidebar.newChapter")}</button>
           )}
         </div>
         <ul className="project-tree">
@@ -315,13 +320,14 @@ const ChapterRow = memo(function ChapterRow({
   active: boolean;
   actions: RowActions;
 }) {
+  const { t } = useI18n();
   return (
     <li className={active ? "active" : ""}>
       <div
         className="node"
         role="button"
         tabIndex={0}
-        aria-label={`Kapitel öffnen: ${chapter.title}`}
+        aria-label={t("sidebar.openChapter", { title: chapter.title })}
         onClick={() => actions.onOpenChapter(chapter.id)}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") { e.preventDefault(); actions.onOpenChapter(chapter.id); }
@@ -329,8 +335,8 @@ const ChapterRow = memo(function ChapterRow({
       >
         📄 {chapter.title}
         <span className="node-actions">
-          <button aria-label={`Kapitel "${chapter.title}" umbenennen`} onClick={(e) => { e.stopPropagation(); actions.onRenameChapter(projectId, chapter.id, chapter.title); }}>✎</button>
-          <button aria-label={`Kapitel "${chapter.title}" löschen`} onClick={(e) => { e.stopPropagation(); actions.onDeleteChapter(projectId, chapter.id); }}>🗑</button>
+          <button aria-label={t("sidebar.renameChapter", { title: chapter.title })} onClick={(e) => { e.stopPropagation(); actions.onRenameChapter(projectId, chapter.id, chapter.title); }}>✎</button>
+          <button aria-label={t("sidebar.deleteChapter", { title: chapter.title })} onClick={(e) => { e.stopPropagation(); actions.onDeleteChapter(projectId, chapter.id); }}>🗑</button>
         </span>
       </div>
     </li>
@@ -346,13 +352,14 @@ const ProjectRow = memo(function ProjectRow({
   chapters: Chapter[];
   actions: RowActions;
 }) {
+  const { t } = useI18n();
   return (
     <li className={active ? "active" : ""}>
       <div
         className="node"
         role="button"
         tabIndex={0}
-        aria-label={`Projekt öffnen: ${project.name}`}
+        aria-label={t("sidebar.openProject", { name: project.name })}
         onClick={() => actions.onOpenProject(project.id)}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") { e.preventDefault(); actions.onOpenProject(project.id); }
@@ -360,8 +367,8 @@ const ProjectRow = memo(function ProjectRow({
       >
         📁 {project.name}
         <span className="node-actions">
-          <button aria-label={`Projekt "${project.name}" umbenennen`} onClick={(e) => { e.stopPropagation(); actions.onRenameProject(project.id, project.name); }}>✎</button>
-          <button aria-label={`Projekt "${project.name}" löschen`} onClick={(e) => { e.stopPropagation(); actions.onDeleteProject(project.id); }}>🗑</button>
+          <button aria-label={t("sidebar.renameProject", { name: project.name })} onClick={(e) => { e.stopPropagation(); actions.onRenameProject(project.id, project.name); }}>✎</button>
+          <button aria-label={t("sidebar.deleteProject", { name: project.name })} onClick={(e) => { e.stopPropagation(); actions.onDeleteProject(project.id); }}>🗑</button>
         </span>
       </div>
       {active && (
@@ -382,6 +389,7 @@ const ProjectRow = memo(function ProjectRow({
 });
 
 function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId: string | null; chapterId: string | null }) {
+  const { t } = useI18n();
   const panel = (() => {
     if (mode === "knowledge") return <KnowledgePanel projectId={projectId} />;
     if (mode === "research") return <ResearchPanel projectId={projectId} />;
@@ -394,7 +402,7 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     // es arbeitet projektübergreifend auf dem Job-Store.
     if (mode === "bookwriter") return <BookWriterDashboardPanel />;
     if (!projectId || !chapterId) {
-      return <div className="mode-placeholder">Wähle links ein Projekt und Kapitel, um die Avantgarde-Funktionen zu nutzen.</div>;
+      return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }
     switch (mode) {
       case "fragments": return <FragmentPanel chapterId={chapterId} />;
@@ -422,18 +430,18 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     }
   })();
 
-  return <Suspense fallback={<div className="mode-placeholder">Lädt…</div>}>{panel}</Suspense>;
+  return <Suspense fallback={<div className="mode-placeholder">{t("sidebar.loading")}</div>}>{panel}</Suspense>;
 }
 
-function promptName(): string | null {
-  const v = window.prompt("Projektname:");
+function promptName(label: string): string | null {
+  const v = window.prompt(label);
   return v && v.trim() ? v.trim() : null;
 }
-function promptChapter(): string | null {
-  const v = window.prompt("Kapitel-Titel:");
+function promptChapter(label: string): string | null {
+  const v = window.prompt(label);
   return v && v.trim() ? v.trim() : null;
 }
-function renamePrompt(current: string): string | null {
-  const v = window.prompt("Neuer Name:", current);
+function renamePrompt(label: string, current: string): string | null {
+  const v = window.prompt(label, current);
   return v && v.trim() ? v.trim() : null;
 }

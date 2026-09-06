@@ -12,6 +12,7 @@ import {
 } from "@/services/bookwriter/jobs";
 import { useActiveModel } from "@/components/KIPanel/useActiveModel";
 import { useProjectStore } from "@/store/projectStore";
+import { useI18n } from "@/i18n";
 import { markdownToTipTap } from "@/services/editor/markdown";
 import { countWords } from "@/services/writing/chapterPlan";
 import {
@@ -49,6 +50,7 @@ type RetryCounts = Record<number, number>;
 const STYLE_PRESETS = listStyles();
 
 export function BookWriterPanel() {
+  const { t } = useI18n();
   const { settings } = useActiveModel();
   const newChapter = useProjectStore((s) => s.newChapter);
   const activeProjectId = useProjectStore((s) => s.activeProjectId);
@@ -275,7 +277,7 @@ export function BookWriterPanel() {
       (ch) => ch.status === "draft" || ch.status === "completed" || ch.status === "needs_revision",
     );
     if (exportable.length === 0) {
-      setExportError("Keine exportierbaren Kapitel (nur draft/completed).");
+      setExportError(t("bookwriter.noExportable"));
       return;
     }
 
@@ -289,7 +291,7 @@ export function BookWriterPanel() {
     );
     if (!gate.allowed) {
       setExportError(
-        `Export blockiert: ${gate.blocking.map((c) => `Kapitel ${c.number} (${c.status})`).join(", ")}`,
+        t("bookwriter.exportBlocked", { chapters: gate.blocking.map((c) => t("bookwriter.exportBlockedChapter", { number: c.number, status: c.status })).join(", ") }),
       );
       return;
     }
@@ -299,7 +301,7 @@ export function BookWriterPanel() {
 
     setIsExporting(true);
     setExportError(null);
-    setExportStatus("Export wird vorbereitet…");
+    setExportStatus(t("bookwriter.exportPreparing"));
     setExportProgress(0);
     try {
       const result = await exportBook(
@@ -330,16 +332,16 @@ export function BookWriterPanel() {
         },
       );
       if (save.cancelled) {
-        setExportStatus("Export abgebrochen.");
+        setExportStatus(t("bookwriter.exportCancelled"));
       } else if (save.error) {
-        setExportError(`Speichern fehlgeschlagen: ${save.error}`);
+        setExportError(t("bookwriter.saveFailed", { error: save.error }));
         logger.error(`Export-Speichern fehlgeschlagen: ${save.error}`, "BookWriterPanel.export");
       } else {
         const warn = gate.needsRevision.length > 0
           ? ` ${formatNeedsRevisionWarning(gate.needsRevision)}`
           : "";
         setExportStatus(
-          `✅ Export fertig: ${save.path ?? result.filename}${warn}`,
+          t("bookwriter.exportDone", { target: save.path ?? result.filename, warning: warn }),
         );
         logger.info(
           `Book-Export ${exportFormat} → ${save.path ?? result.filename}`,
@@ -354,7 +356,7 @@ export function BookWriterPanel() {
       setIsExporting(false);
       setExportProgress(null);
     }
-  }, [activeProjectId, storeChapters, topic, exportFormat]);
+  }, [activeProjectId, storeChapters, topic, exportFormat, t]);
 
   const handleDeleteChapter = useCallback((_chapterId: string) => {
     // Nur aus Store entfernen — DB-Delete kommt später
@@ -366,12 +368,12 @@ export function BookWriterPanel() {
   // Abbruch NUR nach Bestätigung — bereits generierte Kapitel bleiben
   // erhalten (C3).
   const handleStop = useCallback(() => {
-    if (!window.confirm("Generierung wirklich abbrechen? Bereits generierte Kapitel bleiben erhalten.")) return;
+    if (!window.confirm(t("bookwriter.confirmStop"))) return;
     abortRef.current?.abort();
     setIsGenerating(false);
     const jobId = activeJobIdRef.current;
     if (jobId) void setBookJobStatus(jobId, "interrupted", "Vom Nutzer abgebrochen");
-  }, []);
+  }, [t]);
 
   // C4: Nur die Gliederung neu generieren — fertige Kapitel (draft/completed)
   // bleiben erhalten, betroffene werden auf needs_revision gesetzt.
@@ -449,33 +451,34 @@ export function BookWriterPanel() {
 
   return (
     <div className="bookwriter-panel">
-      <h3>📖 Automatischer Buchautor</h3>
+      <h3>{t("bookwriter.title")}</h3>
 
       {/* Resume-Dialog (C2): Job läuft seit App-Neustart weiter */}
       {resumeJob && resumeJob.outline && (
-        <div className="bw-resume" role="dialog" aria-label="Generierung fortsetzen?">
+        <div className="bw-resume" role="dialog" aria-label={t("bookwriter.resumeTitle")}>
           <p>
-            Unterbrochene Generierung gefunden (Kapitel {resumeJob.currentChapter} / {resumeJob.outline.chapters.length}).
-            Bereits gespeicherte Kapitel bleiben erhalten.
+            {t("bookwriter.resumeText", { current: resumeJob.currentChapter, total: resumeJob.outline.chapters.length })}
           </p>
-          <button className="bw-start" onClick={handleResume}>▶️ Fortsetzen</button>
-          <button className="bw-stop" onClick={handleDiscardJob}>🗑 Verwerfen</button>
+          <button className="bw-start" autoFocus onClick={handleResume}>{t("bookwriter.resume")}</button>
+          <button className="bw-stop" onClick={handleDiscardJob}>{t("bookwriter.discard")}</button>
         </div>
       )}
 
       {/* View Mode Tabs */}
       <div className="bw-tabs">
         <button
+          aria-pressed={viewMode === "planner"}
           className={viewMode === "planner" ? "bw-tab active" : "bw-tab"}
           onClick={() => setViewMode("planner")}
         >
-          📋 Kapitelplaner
+          {t("bookwriter.plannerTab")}
         </button>
         <button
+          aria-pressed={viewMode === "classic"}
           className={viewMode === "classic" ? "bw-tab active" : "bw-tab"}
           onClick={() => setViewMode("classic")}
         >
-          ⚡ Klassisch
+          {t("bookwriter.classicTab")}
         </button>
       </div>
 
@@ -483,22 +486,22 @@ export function BookWriterPanel() {
         <>
           <div className="bw-fields">
             <label>
-              Buchtitel:
-              <input value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="z.B. KI im Alltag" />
+              {t("bookwriter.bookTitle")}
+              <input value={topic} onChange={(e) => setTopic(e.target.value)} placeholder={t("bookwriter.bookTitlePh")} />
             </label>
             <label>
-              Prämisse:
-              <input value={premise} onChange={(e) => setPremise(e.target.value)} placeholder="Kurzidee / Exposé (optional)" />
+              {t("bookwriter.premise")}
+              <input value={premise} onChange={(e) => setPremise(e.target.value)} placeholder={t("bookwriter.premisePh")} />
             </label>
             <label>
-              Stil/Ton:
+              {t("bookwriter.style")}
               <select
-                aria-label="Stil/Ton"
+                aria-label={t("bookwriter.style")}
                 value={tone}
                 onChange={(e) => setTone(e.target.value)}
                 data-testid="bw-style-select"
               >
-                <option value="">Kein Stil-Preset</option>
+                <option value="">{t("bookwriter.noStyle")}</option>
                 {STYLE_PRESETS.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.label}
@@ -511,14 +514,14 @@ export function BookWriterPanel() {
             </label>
             <div className="bw-fields-row">
               <label>
-                Genre:
+                {t("bookwriter.genre")}
                 <select value={genre} onChange={(e) => setGenre(e.target.value)}>
                   <option>Sachbuch</option><option>Roman</option><option>Thriller</option>
                   <option>Fantasy</option><option>Selbsthilfe</option><option>Business</option>
                 </select>
               </label>
               <label>
-                Zielgruppe:
+                {t("bookwriter.audience")}
                 <input value={targetAudience} onChange={(e) => setTargetAudience(e.target.value)} />
               </label>
             </div>
@@ -535,11 +538,11 @@ export function BookWriterPanel() {
               onClick={handleRegenerateOutline}
               disabled={isRegeneratingOutline || !topic.trim()}
               className="cp-gen-btn"
-              title="Nur die Gliederung neu erstellen — fertige Kapitel bleiben erhalten"
+              title={t("bookwriter.regenOutlineTitle")}
             >
-              🔄 Gliederung neu generieren
+              {t("bookwriter.regenOutline")}
             </button>
-            {isRegeneratingOutline && <span className="bw-progress-text">Gliederung wird neu erstellt…</span>}
+            {isRegeneratingOutline && <span className="bw-progress-text">{t("bookwriter.regenOutlineProgress")}</span>}
             {storeChapters.filter((ch) => ch.status === "planned").map((ch) => (
               <button
                 key={ch.id}
@@ -547,7 +550,7 @@ export function BookWriterPanel() {
                 disabled={isGenerating || !activeProjectId}
                 className="cp-gen-btn"
               >
-                ✍️ Kapitel generieren: {ch.title}
+                {t("bookwriter.genChapter", { title: ch.title })}
               </button>
             ))}
           </div>
