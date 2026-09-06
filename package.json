@@ -30,7 +30,10 @@
     "update:delta": "powershell -ExecutionPolicy Bypass -File scripts/generate-delta.ps1",
     "icons": "powershell -ExecutionPolicy Bypass -File scripts/generate-icons.ps1",
     "test:e2e": "vitest run src/services/bookwriter/workflow.e2e.test.ts",
-    "pipeline": "powershell -ExecutionPolicy Bypass -File scripts/e2e-bookwriter.ps1"
+    "pipeline": "powershell -ExecutionPolicy Bypass -File scripts/e2e-bookwriter.ps1",
+    "release:notes": "node scripts/release-notes.mjs",
+    "release:check": "node scripts/release.mjs --check",
+    "release:changelog": "node scripts/release.mjs --changelog"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.1.1",

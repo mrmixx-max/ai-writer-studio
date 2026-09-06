@@ -12,10 +12,18 @@
 
 import { spawnSync } from "node:child_process";
 import { createWriteStream, existsSync, mkdirSync, statSync } from "node:fs";
-import { readFile, rm } from "node:fs/promises";
+import { readFile, rm, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import path from "node:path";
 import process from "node:process";
+import {
+  checkVersionSync,
+  applyVersion,
+  bumpVersion,
+  groupCommits,
+  renderChangelog,
+  sha256File,
+} from "./release-lib.mjs";
 
 const ROOT = process.cwd();
 const DIST = path.join(ROOT, "dist");
@@ -84,7 +92,100 @@ async function collectDist(dir, base = "") {
   return out;
 }
 
+function gitLog(range) {
+  const res = spawnSync("git", ["log", range, "--pretty=format:%s"], { cwd: ROOT, encoding: "utf8" });
+  if (res.status !== 0) throw new Error(`git log fehlgeschlagen: ${(res.stderr || "").trim()}`);
+  const out = (res.stdout || "").trim();
+  return out ? out.split("\n") : [];
+}
+
+function lastTag() {
+  const res = spawnSync("git", ["describe", "--tags", "--abbrev=0"], { cwd: ROOT, encoding: "utf8" });
+  return res.status === 0 ? (res.stdout || "").trim() : null;
+}
+
+/** Schreibt SHA256-Summen der Dateien in <file>.sha256 (eine Zeile pro Datei). */
+async function writeSha256(files) {
+  const lines = [];
+  for (const f of files) {
+    const hash = await sha256File(f);
+    lines.push(`${hash}  ${path.basename(f)}`);
+    console.log(`  ${hash}  ${path.basename(f)}`);
+  }
+  const outFile = `${files[0]}.sha256`;
+  await writeFile(outFile, `${lines.join("\n")}\n`, "utf8");
+  console.log(`✓ SHA256 geschrieben: ${outFile}`);
+  return outFile;
+}
+
+/**
+ * --changelog: Changelog-Sektion aus Git-Log seit letztem Tag erzeugen und
+ * oben in docs/CHANGELOG.md einfügen (erstellt die Datei bei Bedarf).
+ */
+async function cmdChangelog() {
+  const tag = lastTag();
+  const range = tag ? `${tag}..HEAD` : "HEAD";
+  const lines = gitLog(range);
+  const { version } = checkVersionSync(ROOT);
+  const today = new Date().toISOString().slice(0, 10);
+  const section = renderChangelog(version ?? readVersion(), today, groupCommits(lines));
+  const changelogPath = path.join(ROOT, "docs", "CHANGELOG.md");
+  const header = "# Changelog\n\nAlle nennenswerten Änderungen dieses Projekts werden in dieser Datei dokumentiert.\n\n";
+  const prev = existsSync(changelogPath) ? await readFile(changelogPath, "utf8") : header;
+  const body = prev.startsWith("# Changelog") ? prev.slice(prev.indexOf("\n\n") + 2) : prev;
+  await writeFile(changelogPath, `${header}${section}\n${body.replace(/^\n+/, "")}`, "utf8");
+  console.log(`✓ Changelog aktualisiert: docs/CHANGELOG.md (${lines.length} Commits seit ${tag ?? "Anfang"})`);
+}
+
+function printHelp() {
+  console.log(`AI Writer Studio — Release-Build
+
+Nutzung:
+  npm run release                          Voll-Pipeline (Typecheck → Build → Tests → ZIP)
+  npm run release -- --check                Nur Versions-Sync prüfen (package.json/tauri.conf.json/Cargo.toml)
+  npm run release -- --bump <major|minor|patch|x.y.z> [--dry-run]
+                                            Version in allen drei Dateien (+ src/version.ts) setzen
+  npm run release -- --changelog             Changelog-Sektion aus Git-Log in docs/CHANGELOG.md
+  npm run release -- --sha256 <datei...>     SHA256-Summen schreiben (<datei>.sha256)
+  npm run release:notes [-- --out <file>]   Release-Notes seit letztem Tag (stdout oder Datei)`);
+}
+
 async function main() {
+  const argv = process.argv.slice(2);
+
+  if (argv.includes("--help") || argv.includes("-h")) { printHelp(); return; }
+
+  if (argv.includes("--check")) {
+    const { synced, versions, version } = checkVersionSync(ROOT);
+    console.log("Versions-Sync:", JSON.stringify(versions, null, 2));
+    if (!synced) { console.error("✗ Versionen weichen voneinander ab."); process.exit(1); }
+    console.log(`✓ Alle Quellen synchron auf ${version}`);
+    return;
+  }
+
+  const bumpIdx = argv.indexOf("--bump");
+  if (bumpIdx !== -1) {
+    const kind = argv[bumpIdx + 1];
+    if (!kind) { console.error("✗ --bump braucht ein Argument (major|minor|patch|x.y.z)."); process.exit(1); }
+    const { version: current } = checkVersionSync(ROOT);
+    const base = current ?? readVersion();
+    const dryRun = argv.includes("--dry-run");
+    const res = applyVersion(ROOT, bumpVersion(base, kind), { dryRun });
+    console.log(`${dryRun ? "(dry-run) " : ""}✓ Version ${base} → ${res.version}`);
+    for (const f of res.files) console.log(`  ${path.relative(ROOT, f)}`);
+    return;
+  }
+
+  if (argv.includes("--changelog")) { await cmdChangelog(); return; }
+
+  const shaIdx = argv.indexOf("--sha256");
+  if (shaIdx !== -1) {
+    const files = argv.slice(shaIdx + 1).filter((a) => !a.startsWith("--"));
+    if (files.length === 0) { console.error("✗ --sha256 braucht mindestens eine Datei."); process.exit(1); }
+    await writeSha256(files);
+    return;
+  }
+
   const t0 = Date.now();
   const version = readVersion();
   console.log(`AI Writer Studio — Release-Build v${version}`);
