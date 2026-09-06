@@ -60,6 +60,37 @@ Erzeugt wird die Datei von `scripts/generate-update-manifest.ps1` (Details siehe
 Header-Kommentar im Skript). Die Artefakte (`.nsis.zip` + `.sig`) entstehen beim
 `tauri build`, weil `bundle.createUpdaterArtifacts: true` gesetzt ist.
 
+### Feed-Workflow key-agnostisch (`scripts/updater-feed.mjs`, Sprint 11)
+
+Key-agnostisch heißt: **Ohne Signing-Key wird nichts signiert und nichts
+publiziert** — es entsteht nur ein `UNSIGNED`-Draft, der explizit gestoppt wird.
+
+```sh
+# 1) Draft bauen (ohne Key → unsigned Draft + Exit 2, Stopp vor Publishing)
+node scripts/updater-feed.mjs --repo mrmixx-max/ai-writer-studio \
+  --tag v1.1.0 --notes-file NOTES.md --out latest.json
+
+# 2) Opt-in via release.mjs (default AUS — normale Releases bleiben unverändert)
+node scripts/release.mjs --updater-feed -- --repo mrmixx-max/ai-writer-studio --tag v1.1.0 --out latest.json
+
+# 3) Mit Key (CI/Release-Rechner): Signatur übernehmen → signierter Feed, Exit 0
+TAURI_SIGNING_PRIVATE_KEY=... node scripts/updater-feed.mjs --repo ... --tag v1.1.0 \
+  --sig windows-x86_64="$(cat *.nsis.zip.sig)" --out latest.json
+```
+
+Regeln:
+
+- Ohne `TAURI_SIGNING_PRIVATE_KEY` (oder `TAURI_PRIVATE_KEY`): Draft mit
+  `"unsigned": true` + leeren Signaturen schreiben, dann **exakt** ausgeben:
+  `Kein Signing-Key gefunden. Key erzeugen mit: tauri signer generate -w`
+  und mit Exit-Code 2 stoppen (`latest.json` NICHT als Release-Asset hochladen).
+- Mit Key: nur übergebene `--sig`-Werte übernehmen (das Skript signiert nicht
+  selbst, der Key-Wert wird nie ausgegeben/geloggt).
+- Fixture-Modus ohne Netzwerk: `node scripts/updater-feed.mjs --release-json
+  release.json --out latest.json` (`{tag, body, assets[]}`).
+- Tests: `npx vitest run tests/updater-feed.test.ts` (reine Fixtures, keine
+  Keys, kein Netzwerk).
+
 ## Key-Rotation (Signaturschlüssel wechseln)
 
 Der `pubkey` in `tauri.conf.json` ist **öffentlich** (kein Secret) und wird in

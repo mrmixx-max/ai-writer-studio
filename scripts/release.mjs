@@ -147,7 +147,9 @@ Nutzung:
                                             Version in allen drei Dateien (+ src/version.ts) setzen
   npm run release -- --changelog             Changelog-Sektion aus Git-Log in docs/CHANGELOG.md
   npm run release -- --sha256 <datei...>     SHA256-Summen schreiben (<datei>.sha256)
-  npm run release:notes [-- --out <file>]   Release-Notes seit letztem Tag (stdout oder Datei)`);
+  npm run release:notes [-- --out <file>]   Release-Notes seit letztem Tag (stdout oder Datei)
+  node scripts/release.mjs --updater-feed [-- --repo <owner/name> --out latest.json]
+                                            Updater-Feed-Draft (latest.json) bauen, default AUS (opt-in)`);
 }
 
 async function main() {
@@ -177,6 +179,15 @@ async function main() {
   }
 
   if (argv.includes("--changelog")) { await cmdChangelog(); return; }
+
+  if (argv.includes("--updater-feed")) {
+    // Opt-in: Updater-Feed-Draft bauen (default AUS). Rest-Args nach "--" weiterreichen.
+    const dash = argv.indexOf("--");
+    const feedArgs = dash !== -1 ? argv.slice(dash + 1) : [];
+    const { spawnSync: sp } = await import("node:child_process");
+    const r = sp("node", [path.join(ROOT, "scripts", "updater-feed.mjs"), ...feedArgs], { stdio: "inherit", cwd: ROOT });
+    process.exit(r.status ?? 0);
+  }
 
   const shaIdx = argv.indexOf("--sha256");
   if (shaIdx !== -1) {

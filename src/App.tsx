@@ -12,8 +12,16 @@ import { useState, useEffect, useMemo, lazy, Suspense } from "react";
 import { Sidebar } from "@/components/Sidebar/Sidebar";
 import { Editor } from "@/components/Editor/Editor";
 import { WordCountBar } from "@/components/Editor/WordCountBar";
-import { KIPanel } from "@/components/KIPanel/KIPanel";
-import { ExportBar } from "@/components/Export/ExportBar";
+// Sprint 11 (Agent 4): KIPanel + ExportBar nur bei Bedarf laden — beide ziehen
+// schwere Service-Graphen (LLM/KI-Stack bzw. Export-/Preflight-Libs) in das
+// Main-Bundle und sind für die erste Darstellung nicht kritisch (Seitenpanel /
+// Header-Dialog). Fallback-Platzhalter halten Layout/Tastaturwege stabil.
+const KIPanel = lazy(() =>
+  import("@/components/KIPanel/KIPanel").then((m) => ({ default: m.KIPanel }))
+);
+const ExportBar = lazy(() =>
+  import("@/components/Export/ExportBar").then((m) => ({ default: m.ExportBar }))
+);
 
 // Dialoge/Panel-Modals nur bei Bedarf laden — sie sind initial nicht sichtbar
 // und würden sonst die Startup-Zeit des Main-Bundles verlängern.
@@ -251,7 +259,9 @@ function AppInner() {
           <header className="app-header">
             <span className="logo">{t("app.name")}</span>
             <div className="header-actions">
-              <ExportBar />
+              <Suspense fallback={<span className="mode-placeholder">Export…</span>}>
+                <ExportBar />
+              </Suspense>
               <button onClick={() => setShowPrintLayout(true)} aria-label={t("header.layout")}>
                 {t("header.layout")}
               </button>
@@ -312,7 +322,9 @@ function AppInner() {
               </Suspense>
             )}
           </section>
-          <KIPanel />
+          <Suspense fallback={<div className="mode-placeholder">KI-Panel lädt…</div>}>
+            <KIPanel />
+          </Suspense>
         </main>
 
         {showSettings && (

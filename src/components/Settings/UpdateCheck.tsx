@@ -10,6 +10,7 @@
 import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import { useI18n } from "@/i18n";
 
 /** Zustände der Update-State-Machine. */
 export type UpdateStatus =
@@ -39,17 +40,8 @@ interface InstalledPayload {
   version: string;
 }
 
-const STATUS_TEXT: Record<UpdateStatus, string> = {
-  idle: "Noch nicht geprüft.",
-  checking: "Suche nach Updates …",
-  available: "Update verfügbar.",
-  downloading: "Update wird heruntergeladen …",
-  ready: "Update bereit.",
-  "up-to-date": "Die App ist aktuell.",
-  error: "Fehler bei der Update-Prüfung.",
-};
-
 export function UpdateCheck() {
+  const { t } = useI18n();
   const [status, setStatus] = useState<UpdateStatus>("idle");
   const [info, setInfo] = useState<UpdateInfo | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -58,6 +50,16 @@ export function UpdateCheck() {
   const [restarting, setRestarting] = useState(false);
   const statusRef = useRef(status);
   statusRef.current = status;
+
+  const STATUS_TEXT: Record<UpdateStatus, string> = {
+    idle: t("updatecheck.status.idle"),
+    checking: t("updatecheck.status.checking"),
+    available: t("updatecheck.status.available"),
+    downloading: t("updatecheck.status.downloading"),
+    ready: t("updatecheck.status.ready"),
+    "up-to-date": t("updatecheck.status.upToDate"),
+    error: t("updatecheck.status.error"),
+  };
 
   // Fortschritts-Events einmalig beim Mount abonnieren.
   useEffect(() => {
@@ -143,21 +145,21 @@ export function UpdateCheck() {
 
   return (
     <div className="update-check" data-status={status}>
-      <h4>App-Updates</h4>
+      <h4>{t("updatecheck.title")}</h4>
       <p className="update-check-status" role="status">
         {status === "error" && error ? error : STATUS_TEXT[status]}
       </p>
 
       {info?.current_version && (
         <p className="update-check-version">
-          Installiert: {info.current_version}
+          {t("updatecheck.installed", { current: info.current_version })}
           {info.version && info.available && <> → {info.version}</>}
         </p>
       )}
 
       {status === "available" && info?.notes && (
         <details className="update-check-notes">
-          <summary>Release-Notes ({info.version})</summary>
+          <summary>{t("updatecheck.releaseNotes", { version: info.version ?? "" })}</summary>
           <pre>{info.notes}</pre>
         </details>
       )}
@@ -170,17 +172,17 @@ export function UpdateCheck() {
           {status !== "available" ? (
             <button
               onClick={check}
-              title="Update-Feed auf eine neuere Version prüfen"
+              title={t("updatecheck.checkTitle")}
             >
-              Nach Updates suchen
+              {t("updatecheck.check")}
             </button>
           ) : (
             <>
-              <button onClick={download} title="Update herunterladen und installieren">
-                Update installieren
+              <button onClick={download} title={t("updatecheck.installTitle")}>
+                {t("updatecheck.install")}
               </button>
-              <button onClick={check} title="Erneut prüfen">
-                Erneut prüfen
+              <button onClick={check} title={t("updatecheck.recheckTitle")}>
+                {t("updatecheck.recheck")}
               </button>
             </>
           )}
@@ -192,12 +194,12 @@ export function UpdateCheck() {
           <progress
             value={percent ?? undefined}
             max={100}
-            aria-label="Download-Fortschritt"
+            aria-label={t("updatecheck.progressLabel")}
           />
           <span>
             {percent != null
-              ? `${percent} %`
-              : `${Math.round(downloaded / 1024)} KB geladen`}
+              ? t("updatecheck.percent", { percent })
+              : t("updatecheck.downloadedKb", { kb: Math.round(downloaded / 1024) })}
           </span>
         </div>
       )}
@@ -205,11 +207,12 @@ export function UpdateCheck() {
       {status === "ready" && (
         <div className="update-check-ready">
           <p>
-            Update{info?.version ? ` auf ${info.version}` : ""} ist installiert.
-            Bitte die App neu starten, um es zu verwenden.
+            {info?.version
+              ? t("updatecheck.readyWithVersion", { version: info.version })
+              : t("updatecheck.readyWithoutVersion")}
           </p>
           <button onClick={restart} disabled={restarting}>
-            {restarting ? "Starte neu …" : "Jetzt neu starten"}
+            {restarting ? t("updatecheck.restarting") : t("updatecheck.restart")}
           </button>
         </div>
       )}

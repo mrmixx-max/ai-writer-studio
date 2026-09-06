@@ -2,13 +2,14 @@
 //
 // Standalone-Komponente — verändert KEINE bestehenden Panels.
 // Nutzt nur helpIndex.ts (DE-Einträge + EN-Fallback).
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   HELP_ENTRIES,
   helpBody,
   helpTitle,
   searchHelp,
 } from "./helpIndex";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 export interface HelpPanelProps {
   /** Sprachcode, z. B. "de" oder "en". Default "de". */
@@ -29,12 +30,22 @@ export function HelpPanel({
 }: HelpPanelProps) {
   const [query, setQuery] = useState("");
   const [openId, setOpenId] = useState<string | null>(initialOpenId);
+  const panelRef = useRef<HTMLElement>(null);
+  // Overlay-Modus = onClose gesetzt: Fokus-Falle + ESC + Fokus-Restore.
+  // Eingebettet (ohne onClose) bleibt das Panel eine passive Section.
+  const overlay = onClose !== undefined;
+  useFocusTrap(panelRef, onClose, { enabled: overlay });
 
   const results = useMemo(() => searchHelp(query), [query]);
   const isEn = lang.startsWith("en");
 
   return (
-    <section className="help-panel" aria-label={heading}>
+    <section
+      ref={panelRef}
+      className="help-panel"
+      aria-label={heading}
+      {...(overlay ? { role: "dialog", "aria-modal": true } : {})}
+    >
       <div className="help-panel-head">
         <h3>{heading}</h3>
         {onClose && (

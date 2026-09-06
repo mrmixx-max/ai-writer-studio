@@ -4,9 +4,10 @@
 // Dateipersistenz (In-Memory), muss der Nutzer das erfahren können, bevor
 // er stundenlang schreibt.
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { APP_NAME, APP_VERSION, APP_CLAIM, APP_COPYRIGHT, APP_URL } from "@/version";
 import { databasePath, isPersistent } from "@/services/db";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 interface Props {
   onClose: () => void;
@@ -22,6 +23,9 @@ interface Paths {
 export function AboutDialog({ onClose }: Props) {
   const [paths, setPaths] = useState<Paths | null>(null);
   const [tauriVersion, setTauriVersion] = useState<string | null>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
+  // Fokus-Falle + Escape + Fokuswiederherstellung (ersetzt den alten ESC-Handler).
+  useFocusTrap(sheetRef, onClose);
 
   useEffect(() => {
     // Pfade und Backend-Version aus dem Rust-Teil holen. Schlägt das fehl
@@ -39,23 +43,17 @@ export function AboutDialog({ onClose }: Props) {
     })();
   }, []);
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
   const dbPath = databasePath();
   const persistent = isPersistent();
 
   return (
     <div className="about-backdrop" onClick={onClose} role="presentation">
       <div
+        ref={sheetRef}
         className="about-sheet"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
+        aria-modal="true"
         aria-label={`Über ${APP_NAME}`}
       >
         <div className="about-brand">

@@ -16,6 +16,7 @@ import {
   type InstalledModel,
   type PullProgress,
 } from "@/services/ollama/modelManager";
+import { useI18n } from "@/i18n";
 import "./settings.css";
 
 export interface ModelManagerProps {
@@ -36,6 +37,7 @@ export default function ModelManager({
   modelsDirHint = OLLAMA_MODELS_DIR_HINT,
   freeDiskBytes = null,
 }: ModelManagerProps) {
+  const { t } = useI18n();
   const [models, setModels] = useState<InstalledModel[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -69,16 +71,16 @@ export default function ModelManager({
     const ctrl = new AbortController();
     abortRef.current = ctrl;
     setPulling(true);
-    setProgress({ status: "startet…", percent: null });
+    setProgress({ status: t("modelmanager.pullStarting"), percent: null });
     setError(null);
     try {
       await pullModel(name, (p) => setProgress(p), { baseUrl, signal: ctrl.signal });
       setPullName("");
-      setProgress({ status: "success", percent: 100 });
+      setProgress({ status: t("modelmanager.pullSuccess"), percent: 100 });
       await refresh();
     } catch (e) {
       if (e instanceof DOMException && e.name === "AbortError") {
-        setProgress({ status: "abgebrochen", percent: null });
+        setProgress({ status: t("modelmanager.pullAborted"), percent: null });
       } else {
         setError(e instanceof Error ? e.message : String(e));
         setProgress(null);
@@ -90,7 +92,7 @@ export default function ModelManager({
 
   async function handleDelete(name: string) {
     if (deleting) return;
-    if (!window.confirm(`Modell „${name}“ wirklich löschen?`)) return;
+    if (!window.confirm(t("modelmanager.deleteConfirm", { name }))) return;
     setDeleting(name);
     setError(null);
     try {
@@ -108,16 +110,15 @@ export default function ModelManager({
   const percent = progress?.percent;
 
   return (
-    <section className="settings-panel" aria-label="Lokale Modell-Verwaltung">
-      <h2>Modelle (lokal)</h2>
+    <section className="settings-panel" aria-label={t("modelmanager.ariaLabel")}>
+      <h2>{t("modelmanager.title")}</h2>
       <p className="settings-hint">
-        Ollama: {baseUrl} · Verzeichnis: {modelsDirHint}
+        {t("modelmanager.hint", { baseUrl, dir: modelsDirHint })}
       </p>
 
       {lowDisk && (
         <p className="field-error" role="alert">
-          ⚠ Wenig freier Plattenplatz ({formatModelSize(freeDiskBytes ?? 0)}) — vor dem
-          Laden eines Modells Speicher freigeben.
+          {t("modelmanager.lowDisk", { size: formatModelSize(freeDiskBytes ?? 0) })}
         </p>
       )}
       {error && (
@@ -128,14 +129,14 @@ export default function ModelManager({
 
       <div className="provider-card-actions">
         <button type="button" onClick={() => void refresh()} disabled={loading || pulling}>
-          {loading ? "lädt…" : "Aktualisieren"}
+          {loading ? t("modelmanager.loading") : t("modelmanager.refresh")}
         </button>
       </div>
 
       {loading && models.length === 0 ? (
-        <p className="settings-hint">Modelle werden geladen…</p>
+        <p className="settings-hint">{t("modelmanager.loadingModels")}</p>
       ) : models.length === 0 ? (
-        <p className="settings-hint">Keine Modelle installiert.</p>
+        <p className="settings-hint">{t("modelmanager.empty")}</p>
       ) : (
         <ul className="provider-cards">
           {models.map((m) => (
@@ -154,7 +155,7 @@ export default function ModelManager({
                   onClick={() => void handleDelete(m.name)}
                   disabled={deleting === m.name || pulling}
                 >
-                  {deleting === m.name ? "wird gelöscht…" : "Löschen"}
+                  {deleting === m.name ? t("modelmanager.deleting") : t("modelmanager.delete")}
                 </button>
               </div>
             </li>
@@ -162,17 +163,17 @@ export default function ModelManager({
         </ul>
       )}
       {models.length > 0 && (
-        <p className="settings-hint">Gesamt: {formatModelSize(totalBytes)}</p>
+        <p className="settings-hint">{t("modelmanager.total", { size: formatModelSize(totalBytes) })}</p>
       )}
 
-      <h3>Modell laden</h3>
+      <h3>{t("modelmanager.pullTitle")}</h3>
       <div className="provider-card-fields">
         <input
           type="text"
           value={pullName}
           onChange={(e) => setPullName(e.target.value)}
-          placeholder="z. B. llama3.2, qwen2.5:7b"
-          aria-label="Modellname zum Laden"
+          placeholder={t("modelmanager.pullPlaceholder")}
+          aria-label={t("modelmanager.pullAriaLabel")}
           disabled={pulling}
           onKeyDown={(e) => {
             if (e.key === "Enter") void handlePull();
@@ -180,14 +181,14 @@ export default function ModelManager({
         />
         <div className="provider-card-actions">
           <button type="button" onClick={() => void handlePull()} disabled={!pullName.trim() || pulling}>
-            {pulling ? "lädt…" : "Laden"}
+            {pulling ? t("modelmanager.loading") : t("modelmanager.pull")}
           </button>
           {pulling && (
             <button
               type="button"
               onClick={() => abortRef.current?.abort()}
             >
-              Abbrechen
+              {t("modelmanager.cancel")}
             </button>
           )}
         </div>
@@ -197,12 +198,12 @@ export default function ModelManager({
         <div role="progressbar" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}>
           <progress value={percent} max={100} style={{ width: "100%" }} />
           <p className="settings-hint">
-            {progress?.status} — {percent} %
+            {t("modelmanager.progress", { status: progress?.status ?? "", percent })}
           </p>
         </div>
       )}
       {pulling && percent == null && (
-        <p className="settings-hint">{progress?.status ?? "lädt…"}</p>
+        <p className="settings-hint">{progress?.status ?? t("modelmanager.loading")}</p>
       )}
     </section>
   );
