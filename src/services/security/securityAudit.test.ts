@@ -28,35 +28,39 @@ describe("Security Audit", () => {
 
 describe("Input Validation", () => {
   it("validatePrompt() akzeptiert valide Prompts", () => {
-    expect(validatePrompt("Schreibe ein Kapitel über KI.").valid).toBe(true);
+    expect(() => validatePrompt("Schreibe ein Kapitel über KI.")).not.toThrow();
   });
 
   it("validatePrompt() lehnt leere Prompts ab", () => {
-    expect(validatePrompt("").valid).toBe(false);
+    expect(() => validatePrompt("")).toThrow(/nicht leer/);
   });
 
   it("validatePrompt() lehnt zu lange Prompts ab", () => {
-    const long = "a ".repeat(10000);
-    expect(validatePrompt(long).valid).toBe(false);
+    const long = "a ".repeat(200000);
+    expect(() => validatePrompt(long)).toThrow(/zu lang/);
   });
 
   it("validateFilename() akzeptiert valide Dateinamen", () => {
-    expect(validateFilename("mein-buch.docx").valid).toBe(true);
+    expect(() => validateFilename("mein-buch.docx")).not.toThrow();
   });
 
   it("validateFilename() lehnt Path Traversal ab", () => {
-    expect(validateFilename("../../etc/passwd").valid).toBe(false);
-    expect(validateFilename("../../../windows/system32/config").valid).toBe(false);
+    expect(() => validateFilename("../../etc/passwd")).toThrow(
+      /Pfad-Traversal/
+    );
+    expect(() =>
+      validateFilename("../../../windows/system32/config")
+    ).toThrow(/Pfad-Traversal/);
   });
 
   it("validateFilename() lehnt leere Dateinamen ab", () => {
-    expect(validateFilename("").valid).toBe(false);
+    expect(() => validateFilename("")).toThrow(/nicht leer/);
   });
 
   it("sanitizeMarkdown() entfernt Script-Tags", () => {
-    expect(sanitizeMarkdown("<script>alert('xss')</script>")).not.toContain(
-      "<script>"
-    );
+    expect(
+      sanitizeMarkdown("<script>alert('xss')</script>")
+    ).not.toContain("<script>");
   });
 
   it("sanitizeMarkdown() entfernt javascript: URLs", () => {
