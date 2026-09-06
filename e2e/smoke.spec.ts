@@ -33,8 +33,13 @@ test("App startet, Haupt-UI lädt, keine Console-Errors", async ({ page }) => {
   expect(pageErrors, pageErrors.join("\n")).toEqual([]);
 
   // Keine echten Console-Errors (favicon 404 u. Ä. erlauben wir).
+  // ERR_CONNECTION_REFUSED erlauben wir ebenfalls: Beim Start fragt die App
+  // Ollama (127.0.0.1:11434) nach Modellen/Health — in CI läuft kein Ollama,
+  // der Browser loggt das als Console-Error. Echte App-Fehler bleiben rot.
   const real = consoleErrors.filter(
-    (e) => !/favicon|DevTools|Failed to load resource.*(404)/i.test(e),
+    (e) =>
+      !/favicon|DevTools|Failed to load resource.*(404)/i.test(e) &&
+      !/ERR_CONNECTION_REFUSED/i.test(e),
   );
   expect(real, real.join("\n")).toEqual([]);
 });

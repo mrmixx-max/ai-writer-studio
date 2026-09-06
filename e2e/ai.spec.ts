@@ -53,12 +53,9 @@ test("Freier Chat im KI-Panel liefert eine Antwort", async ({ page }) => {
   await gotoApp(page);
 
   const panel = page.locator("#app-ai-panel");
-  await panel
-    .locator('.ki-chat-input input[placeholder*="Frage"]')
-    .fill("Was ist ein guter Kapitelanfang?");
-  await panel
-    .locator('.ki-chat-input input[placeholder*="Frage"]')
-    .press("Enter");
+  const chatInput = panel.locator('.ki-chat-input textarea[placeholder*="Frage"]');
+  await chatInput.fill("Was ist ein guter Kapitelanfang?");
+  await chatInput.press("Enter");
 
   const output = panel.locator(".ki-output");
   await expect(output).toContainText(/\S/, { timeout: 30_000 });
