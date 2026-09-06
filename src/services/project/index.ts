@@ -1,6 +1,6 @@
 // Projekt-Service: CRUD für Projekte + Kapitel (sql.js).
 import { getDb, persist } from "@/services/db";
-import type { Project, Chapter } from "@/types/project";
+import type { Project, Chapter, ChapterStatus } from "@/types/project";
 import {
   isManuscriptUnlocked,
   encryptChapterContent,
@@ -59,6 +59,10 @@ export async function createChapter(
   title: string,
   content = "{}",
   orderIndex?: number,
+  // Sprint 8: generierte Inhalte (BookWriter "Kapitel anlegen") dürfen direkt
+  // als "draft" angelegt werden — sonst blockiert das Export-Gate (nur
+  // draft/completed) jedes generierte Buch. Default bleibt "planned".
+  status: ChapterStatus = "planned",
 ): Promise<Chapter> {
   const db = getDb();
   const id = uid("chap");
@@ -73,7 +77,7 @@ export async function createChapter(
   const stored = encryptionActive() && isManuscriptUnlocked() ? await encryptChapterContent(content) : content;
   db.run(
     "INSERT INTO chapters (id, project_id, title, content, order_index, status, target_word_count, minimum_word_count, maximum_word_count, current_word_count, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
-    [id, projectId, title, stored, idx, "planned", 2000, 1600, 2400, 0, now, now],
+    [id, projectId, title, stored, idx, status, 2000, 1600, 2400, 0, now, now],
   );
   await persist();
   return {
@@ -84,7 +88,7 @@ export async function createChapter(
     orderIndex: idx,
     createdAt: now,
     updatedAt: now,
-    status: "planned",
+    status,
     targetWordCount: 2000,
     minimumWordCount: 1600,
     maximumWordCount: 2400,

@@ -1,5 +1,6 @@
 // Blurb-Generator: Panel für verkaufsoptimierte Klappentexte.
 import { useState, useCallback } from "react";
+import { sanitizeHtml } from "@/utils/validation";
 import {
   generateBlurb,
   generateBlurbVariants,
@@ -193,7 +194,8 @@ export function BlurbGenPanel() {
           <p className="blurbgen-blurb">{result.standardBlurb}</p>
 
           <h4>Amazon KDP</h4>
-          <div className="blurbgen-kdp" dangerouslySetInnerHTML={{ __html: result.amazonDescription }} />
+          {/* SEC-HARDENED: LLM-Output wird vor dem Rendering sanitiziert (Stored-XSS via Prompt-Injection) */}
+          <div className="blurbgen-kdp" dangerouslySetInnerHTML={{ __html: sanitizeHtml(result.amazonDescription) }} />
 
           <h4>Back Cover</h4>
           <p className="blurbgen-blurb">{result.backCoverBlurb}</p>
