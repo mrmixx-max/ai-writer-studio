@@ -15,6 +15,7 @@ import type { ProviderId } from "@/types/llm";
 import { useI18n, LANGUAGES, type Lang } from "@/i18n";
 import { setHighContrast, getHighContrastPreference } from "@/i18n/highContrast";
 import { announce } from "@/i18n/a11y";
+import { UpdateCheck } from "./UpdateCheck";
 
 const PROVIDERS: ProviderId[] = ["ollama", "lmstudio", "openai", "openrouter", "gpt2api", "nous"];
 
@@ -354,6 +355,10 @@ export function SettingsPanel() {
           Änderungen verwerfen
         </button>
       </div>
+
+      <section className="update-section" aria-label="App-Updates">
+        <UpdateCheck />
+      </section>
     </div>
   );
 }
