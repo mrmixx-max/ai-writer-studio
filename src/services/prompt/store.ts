@@ -82,6 +82,9 @@ export function listPrompts(opts: {
 
 export function deletePrompt(id: string): void {
   getDb().run("DELETE FROM writing_prompts WHERE id = ?", [id]);
+  // Fire-and-forget wie projectStore: Loeschen muss sofort sichtbar sein,
+  // der Platten-Write darf die UI (onClick, sync) nicht blockieren.
+  void persist();
 }
 
 /** Exportiert alle Favoriten als Markdown. */

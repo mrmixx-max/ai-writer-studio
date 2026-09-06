@@ -21,29 +21,55 @@ export interface SprintStats {
   lastSprintDate: number | null;
 }
 
-const STATS_KEY = "sprint_stats";
+const STATS_KEY = "ai-writer-studio.sprint.v1";
+/** Vorgaenger-Schluessel (ungeprefixt): wird nur noch gelesen/migriert. */
+const LEGACY_STATS_KEY = "sprint_stats";
 
-/** Lädt gespeicherte Statistik. */
+const DEFAULT_STATS: SprintStats = {
+  totalSprints: 0,
+  totalWords: 0,
+  totalMinutes: 0,
+  currentStreak: 0,
+  bestStreak: 0,
+  lastSprintDate: null,
+};
+
+function isValidStats(v: unknown): v is SprintStats {
+  if (typeof v !== "object" || v === null) return false;
+  const s = v as Record<string, unknown>;
+  return (
+    typeof s.totalSprints === "number" &&
+    typeof s.totalWords === "number" &&
+    typeof s.totalMinutes === "number" &&
+    typeof s.currentStreak === "number" &&
+    typeof s.bestStreak === "number" &&
+    (s.lastSprintDate === null || typeof s.lastSprintDate === "number")
+  );
+}
+
+/** Laedt gespeicherte Statistik (mit Legacy-Migration + Formvalidierung). */
 export function loadSprintStats(): SprintStats {
   try {
-    const raw = localStorage.getItem(STATS_KEY);
-    if (raw) return JSON.parse(raw);
+    const raw =
+      localStorage.getItem(STATS_KEY) ?? localStorage.getItem(LEGACY_STATS_KEY);
+    if (raw) {
+      const parsed: unknown = JSON.parse(raw);
+      if (isValidStats(parsed)) return parsed;
+    }
   } catch {
     /* ignore */
   }
-  return {
-    totalSprints: 0,
-    totalWords: 0,
-    totalMinutes: 0,
-    currentStreak: 0,
-    bestStreak: 0,
-    lastSprintDate: null,
-  };
+  return { ...DEFAULT_STATS };
 }
 
-/** Speichert Statistik. */
+/** Speichert Statistik (best-effort; raeumt Legacy-Schluessel weg). */
 export function saveSprintStats(stats: SprintStats): void {
-  localStorage.setItem(STATS_KEY, JSON.stringify(stats));
+  try {
+    localStorage.setItem(STATS_KEY, JSON.stringify(stats));
+    localStorage.removeItem(LEGACY_STATS_KEY);
+  } catch {
+    /* ignore (z. B. Private Mode / Quota) */
+  }
 }
 
 /** Prüft ob heute schon ein Sprint gemacht wurde. */
