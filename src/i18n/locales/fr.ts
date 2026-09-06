@@ -182,5 +182,6 @@ export const fr: TranslationDict = {
   "bookwriter.saveFailed": "Échec de l'enregistrement : {{error}}",
   "bookwriter.exportDone": "✅ Export terminé : {{target}}{{warning}}",
   "bookwriter.progressLabel": "Progression de la génération",
+  "bookwriter.chapterProgress": "Chapitre {{current}} / {{total}}",
   "bookwriter.exportProgressLabel": "Progression de l'export",
 };

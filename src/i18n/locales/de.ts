@@ -184,6 +184,7 @@ export const de = {
   "bookwriter.saveFailed": "Speichern fehlgeschlagen: {{error}}",
   "bookwriter.exportDone": "✅ Export fertig: {{target}}{{warning}}",
   "bookwriter.progressLabel": "Generierungsfortschritt",
+  "bookwriter.chapterProgress": "Kapitel {{current}} / {{total}}",
   "bookwriter.exportProgressLabel": "Exportfortschritt",
 } as const;
 

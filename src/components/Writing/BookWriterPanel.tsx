@@ -556,15 +556,15 @@ export function BookWriterPanel() {
           </div>
           {/* Export-Sektion (C3): Format-Auswahl, Fortschritt, Erfolgs-Meldung. */}
           <div className="bw-export-section" data-testid="bw-export-section">
-            <h4>📦 Export</h4>
+            <h4>{t("bookwriter.exportTitle")}</h4>
             <div className="bw-export-row">
               <label>
-                Format:
+                {t("bookwriter.format")}
                 <select
                   value={exportFormat}
                   onChange={(e) => setExportFormat(e.target.value as ExportFormat)}
                   disabled={isExporting}
-                  aria-label="Exportformat"
+                  aria-label={t("bookwriter.exportFormatLabel")}
                 >
                   <option value="markdown">Markdown (.md)</option>
                   <option value="docx">Word (.docx)</option>
@@ -577,13 +577,13 @@ export function BookWriterPanel() {
                 disabled={isExporting || !activeProjectId}
                 className="bw-export-btn"
                 data-testid="bw-export-btn"
-                title="Export nur bei Entwurf/Abgeschlossen; needs_revision-Warnung"
+                title={t("bookwriter.exportGateTitle")}
               >
-                {isExporting ? "⏳ Exportiere…" : "📦 Buch exportieren"}
+                {isExporting ? t("bookwriter.exporting") : t("bookwriter.exportBtn")}
               </button>
             </div>
             {exportProgress !== null && (
-              <div className="bw-progress" data-testid="bw-export-progress">
+              <div className="bw-progress" data-testid="bw-export-progress" aria-label={t("bookwriter.exportProgressLabel")}>
                 <div className="bw-progress-bar">
                   <div className="bw-progress-fill" style={{ width: `${exportProgress}%` }} />
                 </div>
@@ -607,29 +607,29 @@ export function BookWriterPanel() {
       ) : (
    <div className="bw-fields">
      <label>
-       Thema:
-       <input value={topic} onChange={(e) => setTopic(e.target.value)} placeholder="z.B. KI im Alltag" />
+       {t("bookwriter.topic")}
+       <input value={topic} onChange={(e) => setTopic(e.target.value)} placeholder={t("bookwriter.bookTitlePh")} />
      </label>
      <label>
-       Genre:
+       {t("bookwriter.genre")}
        <select value={genre} onChange={(e) => setGenre(e.target.value)}>
          <option>Sachbuch</option><option>Roman</option><option>Thriller</option>
          <option>Fantasy</option><option>Selbsthilfe</option><option>Business</option>
        </select>
      </label>
      <label>
-       Zielgruppe:
+       {t("bookwriter.audience")}
        <input value={targetAudience} onChange={(e) => setTargetAudience(e.target.value)} />
      </label>
      <label>
-       Stil/Ton:
+       {t("bookwriter.style")}
        <select
-         aria-label="Stil/Ton"
+         aria-label={t("bookwriter.style")}
          value={tone}
          onChange={(e) => setTone(e.target.value)}
          data-testid="bw-style-select"
        >
-         <option value="">Kein Stil-Preset</option>
+         <option value="">{t("bookwriter.noStyle")}</option>
          {STYLE_PRESETS.map((s) => (
            <option key={s.id} value={s.id}>
              {s.label}
@@ -641,7 +641,7 @@ export function BookWriterPanel() {
        )}
      </label>
      <label>
-       Kapitel:
+       {t("bookwriter.chapters")}
        <input type="number" min={3} max={30} value={chapterCount} onChange={(e) => setChapterCount(Number(e.target.value))} />
      </label>
    </div>
@@ -652,22 +652,22 @@ export function BookWriterPanel() {
           <>
             {!isGenerating ? (
               <button onClick={handleGenerate} disabled={!topic.trim()} className="bw-start">
-                📝 Buch generieren
+                {t("bookwriter.generate")}
               </button>
             ) : (
-              <button onClick={handleStop} className="bw-stop" title="Bereits generierte Kapitel bleiben erhalten.">⏹ Stoppen</button>
+              <button onClick={handleStop} className="bw-stop" title={t("bookwriter.stopTitle")}>{t("bookwriter.stop")}</button>
             )}
           </>
         )}
       </div>
 
       {isGenerating && (
-        <div className="bw-progress">
+        <div className="bw-progress" aria-label={t("bookwriter.progressLabel")}>
           <div className="bw-progress-bar">
             <div className="bw-progress-fill" style={{ width: `${(currentChapter / Math.max(1, chapterCount)) * 100}%` }} />
           </div>
           <span className="bw-progress-text">
-            Kapitel {currentChapter} / {chapterCount}
+            {t("bookwriter.chapterProgress", { current: currentChapter, total: chapterCount })}
             {remainingLabel ? ` · geschätzte Restzeit ${remainingLabel}` : ""}
           </span>
         </div>
@@ -677,7 +677,7 @@ export function BookWriterPanel() {
 
       {liveText && (
         <div className="bw-live">
-          <h4>Live:</h4>
+          <h4>{t("bookwriter.live")}</h4>
           <pre>{liveText}</pre>
         </div>
       )}
@@ -738,7 +738,7 @@ export function BookWriterPanel() {
                           })();
                         }}
                       >
-                        erneut versuchen?
+                        {t("bookwriter.retry")}
                       </button>
                     </div>
                   )}
@@ -752,7 +752,7 @@ export function BookWriterPanel() {
               <button
                 onClick={() => {
                   if (!activeProjectId) {
-                    alert("Bitte erst ein Projekt öffnen/anlegen!");
+                    alert(t("bookwriter.openProjectFirst"));
                     return;
                   }
                   for (const ch of chapters) {
@@ -766,7 +766,7 @@ export function BookWriterPanel() {
                 className="bw-export"
                 style={{ background: "#4f46e5", marginRight: "8px" }}
               >
-                📚 Kapitel anlegen ({chapters.length})
+                {t("bookwriter.createChapters", { count: chapters.length })}
               </button>
               <button
                 onClick={() => {
@@ -779,7 +779,7 @@ export function BookWriterPanel() {
                 }}
                 className="bw-export"
               >
-                📥 Als Markdown anzeigen
+                {t("bookwriter.showMarkdown")}
               </button>
             </>
           )}
