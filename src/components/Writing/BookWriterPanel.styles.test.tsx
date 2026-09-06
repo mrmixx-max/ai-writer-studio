@@ -51,9 +51,9 @@ describe("BookWriterPanel Stil-Dropdown (Sprint 7)", () => {
     const user = userEvent.setup();
     render(<BookWriterPanel />);
     const select = screen.getByLabelText(/Stil\/Ton:/) as HTMLSelectElement;
-    const jc = listStyles().find((s) => s.id === "jerry-cotton")!;
-    await user.selectOptions(select, "jerry-cotton");
-    expect(select.value).toBe("jerry-cotton");
+    const jc = listStyles().find((s) => s.id === "thriller")!;
+    await user.selectOptions(select, "thriller");
+    expect(select.value).toBe("thriller");
     // Preset-Beschreibung wird als gewählte Tonalität angezeigt (Transparenz).
     expect(screen.getByText(new RegExp(jc.description.slice(0, 20)))).toBeTruthy();
   });

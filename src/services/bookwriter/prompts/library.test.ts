@@ -55,11 +55,14 @@ describe("Prompt-Library: externe Datei", () => {
     expect(PROMPT_LIBRARY_VERSION).toBe("2.0");
   });
 
-  it("enthält alle 11 Genre-Profile", () => {
+  it("enthält alle 23 Genre-Profile", () => {
     expect(listGenres()).toEqual([
       "sachbuch", "ratgeber", "technik", "roman", "kurzgeschichte",
       "essaybeuch", "krimi", "fantasy",
       "sachbuch-it", "ratgeber-gesundheit", "fiction-thriller",
+      "horror", "romance", "scifi", "philosophie", "wirtschaft",
+      "kinderbuch", "western", "cyberpunk", "maerchen", "doku",
+      "reisebericht", "lyrik",
     ]);
   });
 

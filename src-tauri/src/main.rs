@@ -93,6 +93,8 @@ fn startup_file() -> Option<String> {
 }
 
 
+#[windows_subsystem = "windows"]
+
 fn main() {
     tauri::Builder::default()
         // Single-Instance: zweiter Start wird an die bestehende Instanz weitergeleitet.

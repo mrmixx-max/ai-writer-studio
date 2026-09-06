@@ -160,6 +160,9 @@ describe("Revisionshistorie", () => {
     await updateChapter(chapterId, "Ein Text.");
     mockResponses = ["Ein gestraffter Text."];
     await reviseChapter(chapterId, "straffen");
+    // Sicherstellen, dass die Timestamps unterschiedlich sind
+    // (Date.now() kann im selben Millisekunden-Tick landen)
+    await new Promise((r) => setTimeout(r, 10));
     mockResponses = ["Ein vertiefter Text mit Beispiel."];
     await reviseChapter(chapterId, "vertiefen");
     const revs = listRevisions(chapterId);
