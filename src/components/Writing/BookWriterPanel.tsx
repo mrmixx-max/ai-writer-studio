@@ -754,7 +754,9 @@ export function BookWriterPanel() {
                   }
                   for (const ch of chapters) {
                     const tipTapJson = markdownToTipTap(ch.content);
-                    newChapter(`Kapitel ${ch.number}: ${ch.title}`, tipTapJson);
+                    // Generierter Content ist ein Entwurf — "planned" würde das
+                    // Export-Gate (nur draft/completed) blockieren (Sprint 8).
+                    newChapter(`Kapitel ${ch.number}: ${ch.title}`, tipTapJson, "draft");
                   }
                   setLiveText((prev) => prev + `\n📚 ${chapters.length} Kapitel mit Content angelegt!`);
                 }}

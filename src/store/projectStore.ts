@@ -19,7 +19,7 @@ interface ProjectState {
   openProject: (id: string) => void;
   openChapter: (id: string) => void;
   newProject: (name: string) => void;
-  newChapter: (title: string, content?: string) => void;
+  newChapter: (title: string, content?: string, status?: ChapterStatus) => void;
   /** Erstellt ein Kapitel mit vollständiger Planung (Zielwortzahl etc.). */
   newPlannedChapter: (title: string, targetWordCount: number, purpose?: string, synopsis?: string) => void;
   /** Aktualisiert Felder eines Kapitels (State + DB, inkrementell). */
@@ -64,10 +64,10 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
     // async persist im Hintergrund; State sofort aktualisieren
     Promise.resolve(p).then((proj) => set({ projects: listProjects(), activeProjectId: proj.id, chapters: [] }));
   },
-  newChapter: (title: string, content?: string) => {
+  newChapter: (title: string, content?: string, status?: ChapterStatus) => {
     const pid = get().activeProjectId;
     if (!pid) return;
-    const c = createChapter(pid, title, content);
+    const c = createChapter(pid, title, content, undefined, status);
     Promise.resolve(c).then((chap) => set({ chapters: listChapters(pid), activeChapterId: chap.id, activeContent: chap.content }));
   },
   setActiveContent: (c) => set({ activeContent: c }),

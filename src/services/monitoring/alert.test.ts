@@ -104,3 +104,54 @@ describe("alertManager (Singleton)", () => {
     expect(alertManager).toBeInstanceOf(AlertManager);
   });
 });
+
+describe("AlertManager (Sprint 8 — Edge-Cases)", () => {
+  let manager: AlertManager;
+
+  beforeEach(() => {
+    manager = new AlertManager();
+  });
+
+  it("unsubscribe stoppt Handler-Benachrichtigungen", () => {
+    const handler = vi.fn();
+    const unsubscribe = manager.addHandler(handler);
+    manager.createAlert("a", "info", "eins");
+    unsubscribe();
+    manager.createAlert("b", "info", "zwei");
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it("acknowledge unbekannter ID wirft nicht", () => {
+    expect(() => manager.acknowledge("gibt-es-nicht")).not.toThrow();
+  });
+
+  it("checkProviderAlert löst bei degraded nicht aus", () => {
+    const health: HealthCheckResult = {
+      name: "ollama",
+      status: "degraded",
+      responseTimeMs: 500,
+      message: "HTTP 500",
+    };
+    expect(manager.checkProviderAlert(health)).toBeNull();
+  });
+
+  it("Alert-IDs sind eindeutig", () => {
+    const ids = new Set(
+      Array.from({ length: 50 }, () =>
+        manager.createAlert("x", "info", "msg"),
+      ).map((a) => a.id),
+    );
+    expect(ids.size).toBe(50);
+  });
+
+  it("werfender Handler blockiert weder Alert noch andere Handler", () => {
+    const good = vi.fn();
+    manager.addHandler(() => {
+      throw new Error("handler boom");
+    });
+    manager.addHandler(good);
+    const alert = manager.createAlert("x", "warning", "trotz Fehler");
+    expect(alert.type).toBe("x");
+    expect(good).toHaveBeenCalledTimes(1);
+  });
+});

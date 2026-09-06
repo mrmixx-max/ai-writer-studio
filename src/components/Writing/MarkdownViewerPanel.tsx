@@ -1,5 +1,6 @@
 // MarkdownViewerPanel: Markdown anzeigen, bearbeiten und als Datei speichern.
 import { useState, useCallback, useEffect, useRef } from "react";
+import { sanitizeFilename } from "@/utils/validation";
 
 export function MarkdownViewerPanel() {
   const [markdown, setMarkdown] = useState<string>(localStorage.getItem("md-viewer-content") || "# Willkommen\n\nSchreibe hier dein Markdown...");
@@ -22,7 +23,8 @@ export function MarkdownViewerPanel() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = fileName;
+      // SEC-HARDENED: Dateiname aus User-Input sanitizieren (Traversal/Steuerzeichen)
+      a.download = sanitizeFilename(fileName);
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);

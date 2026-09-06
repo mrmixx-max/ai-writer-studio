@@ -65,3 +65,77 @@ function currentPromptValue(message: string, projectName: string, chapterTitle: 
   if (/Kapitel/i.test(message)) return chapterTitle;
   return projectName;
 }
+
+// ---------------------------------------------------------------------------
+// Sprint 8 / Agent 4: BookWriter-Flow-Helfer (Genre, Stil/Ton, Generation).
+// Die BookWriter-Ansicht lebt im Sidebar-Modus "BookWriter" (Dashboard);
+// das klassische Vollautomatik-Panel ist hinter dem Toggle
+// "Buchgenerierung starten / steuern" eingeklappt.
+// ---------------------------------------------------------------------------
+
+/** Öffnet den BookWriter-Modus und klappt das klassische Generierungs-Panel auf. */
+export async function openBookWriter(page: Page): Promise<void> {
+  await page.locator('.mode-switcher button[aria-label="BookWriter"]').click();
+  const toggle = page.locator(".bw-dash-classic button").first();
+  await toggle.click();
+  await expect(page.locator(".bookwriter-panel")).toBeVisible({ timeout: 10_000 });
+}
+
+/**
+ * Richtet ein Testprojekt ein und öffnet den BookWriter:
+ * gotoApp → Projekt + Kapitel → BookWriter-Modus.
+ */
+export async function setupTestProject(
+  page: Page,
+  projectName = "E2E-Buchprojekt",
+  chapterTitle = "Kapitel 1",
+): Promise<void> {
+  await gotoApp(page);
+  await createProjectWithChapter(page, projectName, chapterTitle);
+  await openBookWriter(page);
+}
+
+/** Wechselt im BookWriter-Panel auf den Klassik-Tab (Vollautomatik mit Start-Button). */
+export async function switchToClassicTab(page: Page): Promise<void> {
+  await page.locator(".bookwriter-panel .bw-tab", { hasText: "Klassisch" }).click();
+}
+
+/**
+ * Wählt ein Genre im BookWriter-Panel (Klassik-Ansicht).
+ * UI-Genres: Sachbuch, Roman, Thriller, Fantasy, Selbsthilfe, Business.
+ */
+export async function selectGenre(page: Page, genre: string): Promise<void> {
+  const select = page.locator('.bookwriter-panel label:has-text("Genre") select').first();
+  await select.selectOption({ label: genre });
+  await expect(select).toHaveValue(genre);
+}
+
+/**
+ * Wählt ein Stil/Ton-Preset (8 Presets aus prompts.json, Sprint 7).
+ * Gibt die angezeigte Preset-Beschreibung zurück.
+ */
+export async function selectStylePreset(page: Page, presetId: string): Promise<string> {
+  const select = page.locator('[data-testid="bw-style-select"]').first();
+  await select.selectOption(presetId);
+  const description = page.locator('[data-testid="bw-style-description"]').first();
+  await expect(description).toBeVisible({ timeout: 5_000 });
+  return (await description.textContent())?.trim() ?? "";
+}
+
+/**
+ * Eigener Ton: Die UI bietet (Sprint 7) ausschließlich die 8 Presets im
+ * Dropdown an — kein Freitextfeld. Der "eigene Ton" ist daher die Wahl eines
+ * Presets per ID; diese Funktion dokumentiert genau diesen Pfad und prüft,
+ * dass die Beschreibung erscheint (Transparenz-Anforderung).
+ */
+export async function enterCustomTone(page: Page, presetId: string): Promise<string> {
+  return selectStylePreset(page, presetId);
+}
+
+/** Wartet auf den Abschluss der Vollautomatik-Generierung ("🎉 Buch fertig!"). */
+export async function waitForGeneration(page: Page, timeout = 120_000): Promise<void> {
+  await expect(page.locator(".bookwriter-panel .bw-live pre")).toContainText(
+    "🎉 Buch fertig!",
+    { timeout },
+  );
+}
