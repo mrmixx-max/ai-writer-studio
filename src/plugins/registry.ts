@@ -5,9 +5,10 @@
 // werden; die Struktur (PluginDefinition) bleibt dieselbe.
 
 import { wordCountBadgePlugin } from "./builtin/word-count-badge";
+import { writingGoalTrackerPlugin } from "./builtin/writing-goal-tracker";
 import type { PluginDefinition } from "./types";
 
-export const LOCAL_REGISTRY: PluginDefinition[] = [wordCountBadgePlugin];
+export const LOCAL_REGISTRY: PluginDefinition[] = [wordCountBadgePlugin, writingGoalTrackerPlugin];
 
 /** Definition anhand der ID aus der lokalen Registry suchen. */
 export function findInRegistry(id: string): PluginDefinition | undefined {

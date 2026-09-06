@@ -164,6 +164,46 @@ export interface PdfLayoutOptions {
   header?: { left?: string; center?: string; right?: string };
   footer?: { left?: string; center?: string; right?: string };
   hfFontSizePt?: number;
+  /** Autor für die PDF-Dokument-Metadaten (Titel kommt aus `title`). */
+  author?: string;
+  /** Dokumentsprache für die PDF-Metadaten (Default "de"). */
+  language?: string;
+}
+
+/**
+ * StandardFonts (Times/Helvetica/Courier) nutzen WinAnsi-Encoding: Zeichen
+ * außerhalb (Emoji, Kyrillisch, CJK, Pfeile …) würden pdf-lib beim Rendern
+ * mit einem Encoding-Fehler abbrechen lassen. Diese Funktion ersetzt sie
+ * deterministisch (Sprint 10, Agent 2). Umlaute/ß und deutsche Typografie
+ * („ “ – … €) sind in WinAnsi enthalten und bleiben erhalten.
+ */
+const WIN_ANSI_FALLBACK: Record<string, string> = {
+  "​": "",
+  "­": "",
+  "→": "->",
+  "←": "<-",
+  "↔": "<->",
+};
+
+export function toWinAnsiSafe(s: string): string {
+  return s.replace(/[\s\S]/g, (ch) => {
+    const code = ch.charCodeAt(0);
+    if (ch === "\n" || ch === "\t") return ch;
+    if (code < 0x20 || code === 0x7f) return "";
+    if (
+      (code >= 0x20 && code <= 0x7e) ||
+      (code >= 0xa0 && code <= 0xff) ||
+      ch === "€" || ch === "‚" || ch === "„" || ch === "…" || ch === "†" ||
+      ch === "‡" || ch === "ˆ" || ch === "‰" || ch === "Š" || ch === "‹" ||
+      ch === "Œ" || ch === "Ž" || ch === "‘" || ch === "’" || ch === "“" ||
+      ch === "”" || ch === "•" || ch === "–" || ch === "—" || ch === "˜" ||
+      ch === "™" || ch === "š" || ch === "›" || ch === "œ" || ch === "ž" ||
+      ch === "Ÿ" || ch === "ƒ"
+    ) {
+      return ch;
+    }
+    return WIN_ANSI_FALLBACK[ch] ?? "?";
+  });
 }
 
 async function toPdf(blocks: Block[], title: string, options: PdfLayoutOptions = {}): Promise<Blob> {
@@ -192,6 +232,14 @@ async function toPdf(blocks: Block[], title: string, options: PdfLayoutOptions =
     hfFontSizePt = 9,
   } = options;
   const pdf = await PDFDocument.create();
+  // Dokument-Metadaten (Sprint 10, Agent 2): Titel/Autor/Sprache setzen —
+  // pdf-lib kodiert sie als UTF-16, daher verlustfrei (auch Umlaute/ß/Emoji).
+  pdf.setTitle(title);
+  if (options.author) pdf.setAuthor(options.author);
+  if (typeof (pdf as unknown as { setLanguage?: (l: string) => void }).setLanguage === "function") {
+    (pdf as unknown as { setLanguage: (l: string) => void }).setLanguage(options.language ?? "de");
+  }
+  const safeTitle = toWinAnsiSafe(title);
   const f = PDF_FONTS[fontFamily];
   const font = await pdf.embedFont(f.regular);
   const bold = await pdf.embedFont(f.bold);
@@ -202,14 +250,14 @@ async function toPdf(blocks: Block[], title: string, options: PdfLayoutOptions =
   let pageNum = 1;
 
   const drawHf = (p: any, num: number) => {
-    const ctx = { title, author: "", page: num };
+    const ctx = { title: safeTitle, author: "", page: num };
     const size = hfFontSizePt;
     const hfY = pageHeightPt - marginPt.top + 14;
     const ftY = marginPt.bottom - 14;
     const color = rgb(0.5, 0.5, 0.5);
     const drawLine = (tpl: string | undefined, x: number, yy: number, align: "l" | "c" | "r") => {
       if (!tpl) return;
-      const s = tpl.replace(/\{title\}/g, ctx.title).replace(/\{author\}/g, ctx.author).replace(/\{page\}/g, String(num));
+      const s = toWinAnsiSafe(tpl.replace(/\{title\}/g, ctx.title).replace(/\{author\}/g, ctx.author).replace(/\{page\}/g, String(num)));
       if (!s.trim()) return;
       let xx = x;
       if (align === "c") xx = pageWidthPt / 2 - font.widthOfTextAtSize(s, size) / 2;
@@ -235,7 +283,7 @@ async function toPdf(blocks: Block[], title: string, options: PdfLayoutOptions =
     pageNum++;
   };
 
-  page.drawText(title, { x: marginPt.left, y: pageHeightPt / 2, size: fontSizePt * 2, font: bold, color: rgb(0, 0, 0) });
+  page.drawText(safeTitle, { x: marginPt.left, y: pageHeightPt / 2, size: fontSizePt * 2, font: bold, color: rgb(0, 0, 0) });
 
   for (const b of blocks) {
     if (y < marginPt.bottom + fontSizePt) newPage();
@@ -251,9 +299,9 @@ async function toPdf(blocks: Block[], title: string, options: PdfLayoutOptions =
     else if (b.type === "quote") { indent = 18; }
 
     const lh = size * lineHeight + (b.type === "p" ? spacing : 0);
-    const textToRender = b.type === "list_item" && b.items
+    const textToRender = toWinAnsiSafe(b.type === "list_item" && b.items
       ? b.items.map((it, i) => (b.ordered ? `${i + 1}. ` : "• ") + it.text).join("\n")
-      : b.text;
+      : b.text);
     const lines = wrap(textToRender, size, fnt, maxWidth - indent);
     const alignJustify = b.type === "p" && paragraphAlign === "justify";
 
