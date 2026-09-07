@@ -89,6 +89,12 @@ nicht gelöscht** (Historie) — dieser Index hält sie auffindbar.
 - `sprint17-agent4-rewrite-abschlussbericht.md` — Sprint 17, Agent 4 (Rewrite-Engine)
 - `sprint17-agent5-rewritepanel-abschlussbericht.md` — Sprint 17, Agent 5 (Rewrite-Panel)
 - `sprint17-agent6-report-abschlussbericht.md` — Sprint 17, Agent 6 (Qualitäts-Report)
+- `sprint18-agent1-apshell-abschlussbericht.md` — Sprint 18, Agent 1 (App-Shell)
+- `sprint18-agent2-sidebar-abschlussbericht.md` — Sprint 18, Agent 2 (Sidebar)
+- `sprint18-agent3-settings-abschlussbericht.md` — Sprint 18, Agent 3 (Settings)
+- `sprint18-agent4-bookwriter-abschlussbericht.md` — Sprint 18, Agent 4 (BookWriter)
+- `sprint18-agent5-windowsui-abschlussbericht.md` — Sprint 18, Agent 5 (Windows-UI)
+- `sprint18-agent6-toast-abschlussbericht.md` — Sprint 18, Agent 6 (Toast-System)
 
 ## Delivery-Logs (Sprint 4–6, Historie — nicht löschen)
 

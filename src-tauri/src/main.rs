@@ -15,6 +15,7 @@ use tauri::Manager;
 
 mod git;
 mod updater;
+mod windows;
 
 const USER_DIRS: [&str; 4] = ["user_data", "logs", "exports", "backups"];
 
@@ -90,7 +91,7 @@ fn user_paths(app: tauri::AppHandle) -> Result<serde_json::Value, String> {
 fn startup_file() -> Option<String> {
     std::env::args().skip(1).find(|a| {
         let l = a.to_lowercase();
-        l.ends_with(".aiwsproj") || l.ends_with(".aiwschapter")
+        l.ends_with(".awproject") || l.ends_with(".aiwsproj") || l.ends_with(".aiwschapter")
     })
 }
 
@@ -125,6 +126,8 @@ fn main() {
             app_info,
             user_paths,
             startup_file,
+            windows::set_taskbar_progress,
+            windows::add_recent_document,
             updater::check_for_updates,
             updater::download_and_install_update,
             updater::relaunch_app,
@@ -137,6 +140,9 @@ fn main() {
 
             // Defensive Fenster-Sichtbarkeit: show() + Fokus.
             if let Some(win) = app.get_webview_window("main") {
+                // Sprint 18/Agent 5: Windows-11-Chrome (Mica + dunkle
+                // Titelleiste + runde Ecken). Additiv, nie fatal.
+                windows::apply_chrome(&win);
                 match win.show() {
                     Ok(_) => log::info!("Window show() OK"),
                     Err(e) => log::error!("Window show() failed: {e}"),

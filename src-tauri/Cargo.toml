@@ -22,6 +22,8 @@ tauri-plugin-updater = "2.2.0"
 # Verhindert parallele Instanzen: ein zweiter Start leitet an die bestehende
 # Instanz weiter (Fokus statt Zombie). Verbraucht die WebView2-UDF nicht.
 tauri-plugin-single-instance = "2"
+# Windows 11 native look: Mica/Acrylic backdrop (Sprint 18, Agent 5).
+window-vibrancy = "0.6"
 # Structured Logging mit Datei-Appender für Release-Diagnostics.
 tauri-plugin-log = "2"
 serde = { version = "1", features = ["derive"] }

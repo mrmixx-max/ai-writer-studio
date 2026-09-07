@@ -16,6 +16,7 @@ import { useI18n, LANGUAGES, type Lang } from "@/i18n";
 import { setHighContrast, getHighContrastPreference } from "@/i18n/highContrast";
 import { announce } from "@/i18n/a11y";
 import { UpdateCheck } from "./UpdateCheck";
+import "./settings.css";
 
 const PROVIDERS: ProviderId[] = ["ollama", "lmstudio", "openai", "openrouter", "gpt2api", "nous"];
 
@@ -243,13 +244,15 @@ export function SettingsPanel() {
   const activeModels = activeDiscovery?.reachable ? activeDiscovery.models : [];
 
   return (
-    <div className="settings-panel">
-      <h3>
+    <div className="settings-panel settings-bloomberg">
+      <h3 className="settings-title">
         Einstellungen
         {dirty && <span className="dirty-dot" title="Ungespeicherte Änderungen" aria-label="Ungespeicherte Änderungen" />}
       </h3>
 
-      <section className="provider-cards" aria-label="Anbieter">
+      <section className="settings-section" aria-label="Anbieter">
+        <h4 className="settings-divider" aria-hidden="true"><span>Anbieter /// Providers</span></h4>
+        <div className="provider-cards">
         {PROVIDERS.map((p) => (
           <ProviderCard
             key={p}
@@ -270,9 +273,12 @@ export function SettingsPanel() {
             onField={(field, value) => update(field, value as never)}
           />
         ))}
+        </div>
       </section>
 
-      <label>Modell
+      <section className="settings-section" aria-label="LLM-Parameter (Modell, Temperatur, Tokens)">
+        <h4 className="settings-divider" aria-hidden="true"><span>Modell /// Parameter</span></h4>
+      <label className="settings-row">Modell
         {activeModels.length > 0 ? (
           <select
             value={activeModels.includes(s.model) ? s.model : ""}
@@ -293,30 +299,33 @@ export function SettingsPanel() {
         </span>
       </label>
 
-      <label>Temperatur: {s.temperature}
+      <label className="settings-row">Temperatur: {s.temperature}
         <input type="range" min={0} max={1} step={0.1} value={s.temperature}
           onChange={(e) => update("temperature", +e.target.value)} />
         <span className="settings-hint">Steuert die Kreativität der Antworten: 0 = exakt, 1 = einfallsreich.</span>
       </label>
 
-      <label>Max Tokens
+      <label className="settings-row">Max Tokens
         <input type="number" min={256} max={8192} value={s.maxTokens} onChange={(e) => update("maxTokens", +e.target.value)} />
         <span className="settings-hint">Maximale Länge einer Antwort in Tokens (256–8192).</span>
       </label>
 
-      <label>System-Prompt
+      <label className="settings-row">System-Prompt
         <textarea value={s.systemPrompt} onChange={(e) => update("systemPrompt", e.target.value)} rows={3} />
         <span className="settings-hint">Grundanweisung an das Modell, z. B. Ton und Rolle festlegen.</span>
       </label>
 
-      <label>{t("settings.theme")}
+      </section>
+      <section className="settings-section" aria-label="Darstellung">
+        <h4 className="settings-divider" aria-hidden="true"><span>Darstellung /// Display</span></h4>
+      <label className="settings-row">{t("settings.theme")}
         <select value={s.theme} onChange={(e) => update("theme", e.target.value as "light" | "dark")}>
           <option value="dark">{t("settings.theme.dark")}</option>
           <option value="light">{t("settings.theme.light")}</option>
         </select>
       </label>
 
-      <label>{t("settings.language")}
+      <label className="settings-row">{t("settings.language")}
         <select
           value={lang}
           onChange={(e) => {
@@ -331,9 +340,10 @@ export function SettingsPanel() {
         </select>
       </label>
 
-      <label>
+      <label className="settings-row toggle-row">
         <input
           type="checkbox"
+          className="toggle-switch"
           checked={contrast}
           onChange={(e) => {
             const on = e.target.checked;
@@ -343,10 +353,11 @@ export function SettingsPanel() {
             announce(on ? t("settings.highContrast") : t("settings.theme"));
           }}
         />
-        {" "}{t("settings.highContrast")}
+        <span className="toggle-label">{" "}{t("settings.highContrast")}</span>
         <span className="settings-hint">{t("settings.highContrast.hint")}</span>
       </label>
 
+      </section>
       <div className="settings-actions">
         <button className="save" onClick={save} disabled={!dirty}>
           Speichern{dirty ? " •" : ""}

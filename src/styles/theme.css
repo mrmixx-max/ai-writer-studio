@@ -1,0 +1,124 @@
+/* ==========================================================================
+   Sprint 18 (Agent 1): Bloomberg-Terminal App-Shell-Theme.
+   Dunkle dichte Arbeitsfläche: bg #000, Amber-Akzent #ffa028, Monospace,
+   subtile Borders #333. Alle Farben AUSSCHLIESSLICH über CSS-Variablen —
+   keine Hardcoded-Farben in Komponenten.
+   Import-Reihenfolge: nach src/theme.css geladen, :root-Werte gewinnen.
+   ========================================================================== */
+
+:root,
+:root[data-theme="bloomberg"] {
+  --bg: #000;
+  --fg: #e0e0e0;
+  --accent: #ffa028;
+  --border: #333;
+  --muted: #888;
+  --success: #4caf50;
+  --warn: #ff9800;
+  --error: #f44336;
+
+  /* Abgeleitete Shell-Token (alle aus den 8 Basis-Variablen / neutral) */
+  --bg-elev: #0d0d0d;
+  --panel: #0d0d0d;
+  --panel-2: #141414;
+  --fg-dim: var(--muted);
+  --fg-faint: #555;
+  --border-strong: #4d4d4d;
+  --accent-dim: #b26a00;
+  --ok: var(--success);
+  --err: var(--error);
+  --editor-bg: #000;
+  --editor-fg: var(--fg);
+
+  --font-mono: ui-monospace, "Cascadia Mono", "JetBrains Mono", Menlo, Consolas,
+    "DejaVu Sans Mono", monospace;
+
+  color-scheme: dark;
+}
+
+/* --- App-Shell: dichte Bloomberg-Panels ---------------------------------- */
+
+.app-root {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.app-header {
+  background: var(--bg);
+  color: var(--fg);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-mono);
+  padding: 4px 8px;
+}
+
+.app-header .logo {
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.app-header button {
+  background: transparent;
+  color: var(--fg);
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  padding: 3px 8px;
+  border-radius: 2px;
+}
+
+.app-header button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.app-main {
+  background: var(--bg);
+}
+
+.editor-pane {
+  background: var(--bg);
+  color: var(--fg);
+}
+
+.ki-pane-placeholder {
+  background: var(--bg);
+  border-left: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.wordcount-bar {
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 2px 8px;
+}
+
+.wordcount-bar .dirty {
+  color: var(--warn);
+}
+
+.wordcount-bar .saved {
+  color: var(--success);
+}
+
+.app-warning {
+  background: var(--bg);
+  border-bottom: 1px solid var(--warn);
+  color: var(--warn);
+  font-family: var(--font-mono);
+}
+
+.modal-backdrop {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.mode-placeholder {
+  color: var(--muted);
+  font-family: var(--font-mono);
+}

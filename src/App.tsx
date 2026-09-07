@@ -86,6 +86,7 @@ import "@/components/Avantgarde/avantgarde.css";
 import "@/components/Analytics/analytics.css";
 import "@/components/Empty/empty.css";
 import "./app.css";
+import "@/styles/theme.css";
 
 /**
  * Fängt Renderfehler ab und zeigt sie in verständlichem Deutsch.
@@ -257,7 +258,12 @@ function AppInner() {
           </Suspense>
         )}
 
-        <div className="app-root">
+        {/* Sprint 18 (Agent 1): Bloomberg-Shell — Farben nur via CSS-Vars. */}
+        <div
+          className="app-root"
+          data-testid="app-root"
+          style={{ background: "var(--bg)", color: "var(--fg)" }}
+        >
           <SkipLink targetId="app-editor" label={t("header.skipToEditor")} />
           <AriaLiveRegion />
           <header className="app-header">

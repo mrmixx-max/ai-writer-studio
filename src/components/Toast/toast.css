@@ -1,0 +1,91 @@
+/* Toast-Benachrichtigungen im Windows-11-Stil (Sprint 18, Agent 6). */
+/* Slide-in von unten rechts, Amber-Akzent, stapelbar, auto-dismiss via JS. */
+
+.toast-container {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 200;
+  max-width: 360px;
+  pointer-events: none;
+}
+
+.toast {
+  --toast-accent: #e8a020; /* Amber-Akzent (Windows-11-Warnton) */
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--bg-elev, #202020);
+  color: var(--fg, #f3f3f3);
+  border: 1px solid var(--border, #3a3a3a);
+  border-left: 4px solid var(--toast-accent);
+  border-radius: 8px;
+  padding: 12px 12px 12px 10px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+  animation: toast-slide-in 0.22s ease-out;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.toast--info { --toast-accent: #e8a020; }
+.toast--success { --toast-accent: #4caf50; }
+.toast--warn { --toast-accent: #e8a020; }
+.toast--error { --toast-accent: #d13438; }
+
+.toast-icon {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--toast-accent);
+  color: #1a1a1a;
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: 1px;
+}
+
+.toast-message {
+  flex: 1 1 auto;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.toast-close {
+  flex: 0 0 auto;
+  background: transparent;
+  border: none;
+  color: var(--fg-dim, #a0a0a0);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.toast-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--fg, #f3f3f3);
+}
+
+@keyframes toast-slide-in {
+  from {
+    transform: translateX(110%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    animation: none;
+  }
+}

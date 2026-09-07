@@ -90,7 +90,7 @@ export function BookWriterDashboardPanel() {
   }, [refreshJobs]);
 
   return (
-    <div className="bookwriter-dashboard" data-testid="bw-dash">
+    <div className="bookwriter-dashboard bw-terminal" data-testid="bw-dash">
       <h3>📖 BookWriter</h3>
       <p className="bw-dash-hint">
         Zentrale Übersicht laufender und unterbrochener Buchgenerierungen —
@@ -163,6 +163,7 @@ function DashboardRow({
         <span
           className="bw-dash-state"
           data-testid={`bw-dash-state-${info.jobId}`}
+          data-state={state}
           style={{ background: JOB_STATE_COLORS[state] }}
         >
           {JOB_STATE_LABELS[state]}
@@ -173,7 +174,7 @@ function DashboardRow({
         <div className="bw-progress-bar">
           <div className="bw-progress-fill" style={{ width: `${percent}%` }} />
         </div>
-        <span className="bw-progress-text">
+        <span className="bw-progress-text bw-wordcount-mono">
           Kapitel {info.currentChapter} / {info.totalChapters} · {percent} %
           {info.resumeAtChapter <= info.totalChapters ? ` · fortsetzbar ab Kapitel ${info.resumeAtChapter}` : ""}
         </span>

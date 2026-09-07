@@ -25,7 +25,7 @@
         "center": true,
         "decorations": true,
         "transparent": false,
-        "theme": null,
+        "theme": "Dark",
         "titleBarStyle": "Visible",
         "visible": true,
         "dragDropEnabled": true
@@ -53,7 +53,7 @@
     "resources": [],
     "fileAssociations": [
       {
-        "ext": ["aiwsproj"],
+        "ext": ["awproject", "aiwsproj"],
         "name": "AIWriterStudio.Project",
         "description": "AI Writer Studio Projekt",
         "role": "Editor"

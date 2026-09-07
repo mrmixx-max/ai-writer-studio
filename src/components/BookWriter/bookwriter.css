@@ -1,139 +1,317 @@
-/* BookWriter-Dashboard + Recovery-Dialog (Sprint 6, Agent 5).
-   Wiederverwendung der bestehenden bw-* Klassen (bw-progress, bw-start,
-   bw-stop) aus dem BookWriterPanel-Styling. */
+/* BookWriter Bloomberg-Terminal-Theme (Sprint 18, Agent 4).
+   Dark terminal bg, amber accents for buttons/headings, monospace for
+   word/progress counts, dense layout, styled progress bars.
+   All pre-existing class names are kept (no behavior/markup breakage);
+   hardcoded colors are replaced by the --bw-* vars below. */
 
-.bookwriter-dashboard {
+.bookwriter-dashboard,
+.bookwriter-dashboard.bw-terminal,
+.bw-terminal {
+  --bw-bg: #0d1117;
+  --bw-panel: #131a24;
+  --bw-panel-2: #18202e;
+  --bw-border: #2a3446;
+  --bw-fg: #e6e9ee;
+  --bw-muted: #8b94a3;
+  --bw-amber: #f5a623;
+  --bw-amber-dim: #b97a14;
+  --bw-amber-bg: rgba(245, 166, 35, 0.12);
+  --bw-green: #25c26e;
+  --bw-red: #e5484d;
+  --bw-blue: #4f9cf9;
+  --bw-mono: ui-monospace, "Cascadia Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  background: var(--bw-bg);
+  color: var(--bw-fg);
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid var(--bw-border);
+  border-radius: 6px;
 }
 
-.bookwriter-dashboard h3 {
+.bookwriter-dashboard h3,
+.bw-terminal h3 {
   margin: 0;
+  color: var(--bw-amber);
+  font-size: 0.9rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--bw-border);
+  padding-bottom: 0.3rem;
+}
+
+.bw-terminal h4 {
+  color: var(--bw-amber);
+  margin: 0 0 0.4rem;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .bw-dash-hint {
   margin: 0;
-  font-size: 0.85rem;
-  opacity: 0.75;
+  font-size: 0.78rem;
+  color: var(--bw-muted);
 }
 
 .bw-dash-empty {
-  padding: 0.75rem;
-  border: 1px dashed var(--border, #ccc);
-  border-radius: 6px;
-  font-size: 0.85rem;
-  opacity: 0.8;
+  padding: 0.5rem 0.625rem;
+  border: 1px dashed var(--bw-border);
+  border-radius: 4px;
+  font-size: 0.8rem;
+  color: var(--bw-muted);
+  background: var(--bw-panel);
 }
 
 .bw-dash-rows {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .bw-dash-row {
-  border: 1px solid var(--border, #ddd);
-  border-radius: 6px;
-  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--bw-border);
+  border-left: 3px solid var(--bw-amber-dim);
+  border-radius: 4px;
+  background: var(--bw-panel);
+  padding: 0.4rem 0.55rem;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.3rem;
 }
 
 .bw-dash-row-head {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
+}
+
+.bw-dash-row-head strong {
+  color: var(--bw-fg);
+  font-size: 0.82rem;
 }
 
 .bw-dash-state {
-  font-size: 0.7rem;
-  color: #fff;
-  border-radius: 999px;
-  padding: 0.1rem 0.5rem;
+  font-size: 0.68rem;
+  font-family: var(--bw-mono);
+  color: #0d1117;
+  border-radius: 3px;
+  padding: 0.08rem 0.45rem;
   white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .bw-dash-ago {
   margin-left: auto;
-  font-size: 0.75rem;
-  opacity: 0.7;
+  font-size: 0.72rem;
+  font-family: var(--bw-mono);
+  color: var(--bw-muted);
   white-space: nowrap;
 }
 
 .bw-dash-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: 0.3rem;
 }
 
 .bw-dash-btn {
-  font-size: 0.8rem;
-  padding: 0.25rem 0.6rem;
+  font-size: 0.76rem;
+  padding: 0.22rem 0.55rem;
   cursor: pointer;
+  background: var(--bw-amber-bg);
+  color: var(--bw-amber);
+  border: 1px solid var(--bw-amber-dim);
+  border-radius: 3px;
+  line-height: 1.3;
+}
+
+.bw-dash-btn:hover:not(:disabled) {
+  background: var(--bw-amber);
+  color: #0d1117;
+}
+
+.bw-dash-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .bw-dash-danger {
-  color: #b91c1c;
+  color: var(--bw-red);
+  border-color: var(--bw-red);
+  background: transparent;
+}
+
+.bw-dash-danger:hover:not(:disabled) {
+  background: var(--bw-red);
+  color: #fff;
 }
 
 .bw-dash-classic {
-  border-top: 1px solid var(--border, #ddd);
-  padding-top: 0.5rem;
+  border-top: 1px solid var(--bw-border);
+  padding-top: 0.4rem;
 }
 
-/* Recovery-Dialog */
+/* Progress bars: dark track, amber gradient fill, mono readout. */
+.bw-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.bw-progress-bar {
+  height: 8px;
+  border-radius: 2px;
+  background: #06090e;
+  border: 1px solid var(--bw-border);
+  overflow: hidden;
+}
+
+.bw-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--bw-amber-dim), var(--bw-amber));
+  box-shadow: 0 0 6px rgba(245, 166, 35, 0.55);
+  transition: width 0.25s ease;
+}
+
+.bw-progress-text,
+.bw-wordcount,
+.bw-wordcount-mono {
+  font-family: var(--bw-mono);
+  font-size: 0.74rem;
+  color: var(--bw-amber);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Recovery dialog: terminal card on dimmed backdrop. */
+.modal-backdrop {
+  background: rgba(4, 6, 10, 0.72);
+}
+
 .bw-recovery-dialog {
-  background: var(--bg, #fff);
-  color: var(--fg, #111);
-  border-radius: 8px;
-  padding: 1rem 1.25rem;
+  background: var(--bw-panel, #131a24);
+  color: var(--bw-fg, #e6e9ee);
+  border: 1px solid var(--bw-amber-dim);
+  border-radius: 6px;
+  padding: 0.8rem 1rem;
   max-width: 560px;
   width: min(560px, 90vw);
   max-height: 80vh;
   overflow: auto;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(245, 166, 35, 0.15);
 }
 
 .bw-recovery-dialog h4 {
-  margin: 0 0 0.5rem;
+  margin: 0 0 0.4rem;
+  color: var(--bw-amber);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.85rem;
 }
 
 .bw-recovery-list {
   list-style: none;
-  margin: 0.5rem 0;
+  margin: 0.4rem 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .bw-recovery-list li {
-  border: 1px solid var(--border, #ddd);
-  border-radius: 6px;
-  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--bw-border, #2a3446);
+  background: var(--bw-panel-2, #18202e);
+  border-radius: 4px;
+  padding: 0.4rem 0.6rem;
 }
 
 .bw-recovery-item-head {
   display: flex;
   flex-direction: column;
   gap: 0.15rem;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.35rem;
 }
 
 .bw-recovery-item-meta {
-  font-size: 0.8rem;
-  opacity: 0.75;
+  font-size: 0.76rem;
+  font-family: var(--bw-mono);
+  color: var(--bw-amber);
 }
 
 .bw-recovery-item-actions {
   display: flex;
-  gap: 0.4rem;
+  gap: 0.35rem;
+}
+
+.bw-recovery-item-actions .bw-start,
+.bw-start {
+  background: var(--bw-amber);
+  color: #0d1117;
+  border: 1px solid var(--bw-amber);
+  border-radius: 3px;
+  padding: 0.22rem 0.6rem;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.bw-recovery-item-actions .bw-stop,
+.bw-stop {
+  background: transparent;
+  color: var(--bw-red);
+  border: 1px solid var(--bw-red);
+  border-radius: 3px;
+  padding: 0.22rem 0.6rem;
+  font-size: 0.78rem;
+  cursor: pointer;
 }
 
 .bw-recovery-footer {
   display: flex;
   justify-content: flex-end;
-  margin-top: 0.5rem;
+  margin-top: 0.4rem;
+}
+
+.bw-recovery-footer button {
+  background: transparent;
+  color: var(--bw-muted);
+  border: 1px solid var(--bw-border);
+  border-radius: 3px;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.76rem;
+  cursor: pointer;
+}
+
+/* Legacy bw-* classes reused from the classic panel (Sprint 6 note):
+   terminal-tinted so dashboard + embedded classic panel look uniform. */
+.bw-export-btn,
+.cp-gen-btn {
+  background: var(--bw-amber-bg);
+  color: var(--bw-amber);
+  border: 1px solid var(--bw-amber-dim);
+  border-radius: 3px;
+  font-size: 0.78rem;
+  padding: 0.22rem 0.6rem;
+  cursor: pointer;
+}
+
+.bw-export-btn:hover:not(:disabled),
+.cp-gen-btn:hover:not(:disabled) {
+  background: var(--bw-amber);
+  color: #0d1117;
+}
+
+.bw-error,
+.bw-chapter-error {
+  font-family: var(--bw-mono);
+  font-size: 0.76rem;
+  color: var(--bw-red);
+}
+
+.bw-export-success {
+  font-size: 0.78rem;
+  color: var(--bw-green);
 }

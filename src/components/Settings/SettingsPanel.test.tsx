@@ -177,3 +177,51 @@ describe("SettingsPanel", () => {
     expect(screen.getByText(/Temperatur: 0.9/)).toBeInTheDocument();
   });
 });
+
+describe("SettingsPanel Bloomberg-Theme (Sprint 18, Agent 3)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+  });
+
+  it("Root trägt die Bloomberg-Signaturklasse", () => {
+    const { container } = render(<SettingsPanel />);
+    const panel = container.querySelector(".settings-panel");
+    expect(panel).not.toBeNull();
+    expect(panel).toHaveClass("settings-bloomberg");
+  });
+
+  it("rendert Sektionen mit Dividern (Anbieter / Modell & Parameter / Darstellung)", () => {
+    render(<SettingsPanel />);
+    expect(screen.getByRole("region", { name: "Anbieter" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "LLM-Parameter (Modell, Temperatur, Tokens)" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Darstellung" })).toBeInTheDocument();
+    expect(document.querySelectorAll(".settings-panel .settings-divider").length).toBeGreaterThanOrEqual(3);
+  });
+
+  it("Toggle-Switch: Klasse vorhanden, Klick schaltet Hochkontrast (Behavior ok)", async () => {
+    const user = userEvent.setup();
+    const { setHighContrast } = await import("@/i18n/highContrast");
+    render(<SettingsPanel />);
+    const toggle = screen.getByRole("checkbox") as HTMLInputElement;
+    expect(toggle).toHaveClass("toggle-switch");
+    expect(toggle.checked).toBe(false);
+    await user.click(toggle);
+    expect(setHighContrast).toHaveBeenCalledWith(true);
+    expect(toggle.checked).toBe(true);
+    expect(toggle.closest("label")).toHaveClass("toggle-row");
+  });
+
+  it("dense Form-Rows: alle Kontroll-Labels tragen .settings-row", () => {
+    render(<SettingsPanel />);
+    const rows = document.querySelectorAll(".settings-panel .settings-row");
+    // Modell, Temperatur, Max Tokens, System-Prompt, Theme, Sprache, Toggle
+    expect(rows.length).toBeGreaterThanOrEqual(7);
+  });
+
+  it("aktive Anbieter-Karte behält .active — kein Behavior-Bruch durch Styling", () => {
+    render(<SettingsPanel />);
+    expect(cardOf("ollama")).toHaveClass("active");
+    expect(cardOf("openai")).not.toHaveClass("active");
+  });
+});

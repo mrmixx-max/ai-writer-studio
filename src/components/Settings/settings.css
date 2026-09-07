@@ -1,10 +1,38 @@
-/* Settings-Panel: Modal über der App. */
+/* ==========================================================================
+   Settings-Panel: Bloomberg-Terminal-Ästhetik (Sprint 18, Agent 3).
+   Dunkler Grund, Amber-Akzente, Monospace, dichte Form-Rows,
+   Sektions-Divider, gestylte Toggle-Switches.
+   Alle Farben laufen über Vars (keine Hardcodes), damit Light/Dark
+   und ModelManager (teilt sich diese Datei) konsistent bleiben.
+   ========================================================================== */
+
 .settings-panel {
+  /* Bloomberg-Palette als lokale Token (Dark-first, Terminal-Look) */
+  --set-bg: #0a0e13;
+  --set-panel: #0e1319;
+  --set-row: #111823;
+  --set-inset: #070a0e;
+  --set-amber: #ffb000;
+  --set-amber-dim: #8a6400;
+  --set-amber-faint: #4a3d1e;
+  --set-text: #e8e2d4;
+  --set-dim: #96907f;
+  --set-faint: #5d594e;
+  --set-line: #2b2417;
+  --set-line-strong: #4a3d1e;
+  --set-up: #00d664;
+  --set-up-bg: #06281a;
+  --set-down: #ff5147;
+  --set-down-bg: #33100e;
+  --set-mono: "IBM Plex Mono", "JetBrains Mono", ui-monospace, SFMono-Regular,
+    Menlo, Consolas, "Liberation Mono", monospace;
+
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 460px;
+  width: 520px;
+  max-width: calc(100vw - 32px);
   max-height: 86vh;
   overflow-y: auto;
   background: var(--bg-elev);
@@ -15,15 +43,109 @@
   z-index: 100;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
 }
+
+/* Bloomberg-Signatur: Terminal-Fläche + Monospace überall */
+.settings-panel.settings-bloomberg {
+  background: var(--set-bg);
+  border: 1px solid var(--set-line-strong);
+  border-top: 3px solid var(--set-amber);
+  border-radius: 4px;
+  color: var(--set-text);
+  font-family: var(--set-mono);
+  box-shadow: 0 0 0 1px #000, 0 12px 48px rgba(0, 0, 0, 0.7),
+    0 0 24px rgba(255, 176, 0, 0.06);
+}
+
+.settings-panel.settings-bloomberg::before {
+  content: "SETUP /// EINSTELLUNGEN";
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: var(--set-amber);
+  opacity: 0.85;
+  margin-bottom: 4px;
+}
+
 .settings-panel h3 {
   margin-top: 0;
 }
+
+.settings-panel.settings-bloomberg .settings-title {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--set-amber);
+}
+
+/* ---- Sektionen + Divider (Amber-Regel, Ticker-Stil) ---- */
+.settings-panel.settings-bloomberg .settings-section {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.settings-panel.settings-bloomberg .settings-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--set-amber);
+}
+
+.settings-panel.settings-bloomberg .settings-divider::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  background: var(--set-amber);
+  flex-shrink: 0;
+}
+
+.settings-panel.settings-bloomberg .settings-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--set-line-strong), transparent);
+}
+
+.settings-panel.settings-bloomberg .settings-divider span {
+  white-space: nowrap;
+}
+
+/* ---- Dichte Form-Rows ---- */
 .settings-panel label {
   display: block;
   font-size: 13px;
   margin: 10px 0 2px;
   color: var(--fg-dim);
 }
+
+.settings-panel.settings-bloomberg .settings-row {
+  display: block;
+  font-size: 12px;
+  line-height: 1.35;
+  margin: 0;
+  padding: 6px 8px;
+  color: var(--set-dim);
+  background: var(--set-row);
+  border-bottom: 1px solid var(--set-line);
+}
+
+.settings-panel.settings-bloomberg .settings-row:first-of-type {
+  border-top: 1px solid var(--set-line);
+}
+
+.settings-panel.settings-bloomberg .settings-row:focus-within {
+  background: #151c28;
+  box-shadow: inset 2px 0 0 var(--set-amber);
+  color: var(--set-text);
+}
+
 .settings-panel input, .settings-panel select, .settings-panel textarea {
   width: 100%;
   padding: 6px;
@@ -33,11 +155,51 @@
   border-radius: 4px;
   font-family: inherit;
 }
+
+.settings-panel.settings-bloomberg input,
+.settings-panel.settings-bloomberg select,
+.settings-panel.settings-bloomberg textarea {
+  margin-top: 4px;
+  padding: 5px 7px;
+  font-size: 12px;
+  background: var(--set-inset);
+  color: var(--set-text);
+  border: 1px solid var(--set-line);
+  border-radius: 2px;
+  font-family: var(--set-mono);
+}
+
+.settings-panel.settings-bloomberg input:focus,
+.settings-panel.settings-bloomberg select:focus,
+.settings-panel.settings-bloomberg textarea:focus {
+  outline: none;
+  border-color: var(--set-amber);
+  box-shadow: 0 0 0 1px var(--set-amber);
+}
+
+.settings-panel.settings-bloomberg input[type="range"] {
+  accent-color: var(--set-amber);
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.settings-panel.settings-bloomberg input[type="number"] {
+  max-width: 160px;
+}
+
 .settings-actions {
   display: flex;
   gap: 8px;
   margin-top: 16px;
 }
+
+.settings-panel.settings-bloomberg .settings-actions {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--set-line-strong);
+}
+
 .settings-actions button {
   flex: 1;
   padding: 8px;
@@ -47,24 +209,55 @@
   border-radius: 4px;
   cursor: pointer;
 }
+
+.settings-panel.settings-bloomberg .settings-actions button {
+  padding: 7px 10px;
+  font-family: var(--set-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: transparent;
+  color: var(--set-dim);
+  border: 1px solid var(--set-line-strong);
+  border-radius: 2px;
+}
+
+.settings-panel.settings-bloomberg .settings-actions button:hover:not(:disabled) {
+  color: var(--set-amber);
+  border-color: var(--set-amber);
+}
+
 .settings-actions .save {
   background: var(--accent);
   color: #000;
   border: none;
 }
+
+.settings-panel.settings-bloomberg .settings-actions .save {
+  background: var(--set-amber);
+  color: #0a0e13;
+  border: 1px solid var(--set-amber);
+}
+
+.settings-panel.settings-bloomberg .settings-actions .save:hover:not(:disabled) {
+  background: #ffc133;
+  color: #0a0e13;
+}
+
 .conn-ok {
   margin-top: 12px;
   padding: 8px;
-  background: #143d14;
-  color: #7CFC7C;
+  background: var(--set-up-bg, #143d14);
+  color: var(--set-up, #7CFC7C);
   border-radius: 4px;
   font-size: 13px;
 }
 .conn-err {
   margin-top: 12px;
   padding: 8px;
-  background: #3d1414;
-  color: #fc7c7c;
+  background: var(--set-down-bg, #3d1414);
+  color: var(--set-down, #fc7c7c);
   border-radius: 4px;
   font-size: 13px;
 }
@@ -81,10 +274,22 @@
   overflow-y: auto;
 }
 
+.settings-panel.settings-bloomberg .conn-ok,
+.settings-panel.settings-bloomberg .conn-err {
+  border-radius: 2px;
+  font-size: 12px;
+  border: 1px solid currentColor;
+}
+
 .settings-hint {
   display: block;
   font-size: 0.8em;
   opacity: 0.75;
+}
+
+.settings-panel.settings-bloomberg .settings-hint {
+  color: var(--set-faint);
+  opacity: 1;
 }
 
 /* ---- Anbieter-Karten ---- */
@@ -94,15 +299,37 @@
   gap: 10px;
   margin: 12px 0;
 }
+
+.settings-panel.settings-bloomberg .provider-cards {
+  gap: 6px;
+  margin: 0;
+}
+
 .provider-card {
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 10px;
   background: var(--bg);
 }
-.provider-card.active {
-  border: 2px solid #2ecc71;
+
+.settings-panel.settings-bloomberg .provider-card {
+  padding: 7px 9px;
+  background: var(--set-panel);
+  border: 1px solid var(--set-line);
+  border-left: 3px solid var(--set-line-strong);
+  border-radius: 2px;
 }
+
+.provider-card.active {
+  border: 2px solid var(--set-up, #2ecc71);
+}
+
+.settings-panel.settings-bloomberg .provider-card.active {
+  border: 1px solid var(--set-up);
+  border-left: 3px solid var(--set-up);
+  box-shadow: 0 0 12px rgba(0, 214, 100, 0.12);
+}
+
 .provider-card-head {
   display: flex;
   align-items: center;
@@ -112,11 +339,24 @@
   font-weight: 600;
   flex: 1;
 }
+
+.settings-panel.settings-bloomberg .provider-card-title {
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
 .provider-card-meta {
   font-size: 12px;
   opacity: 0.75;
   margin-top: 2px;
 }
+
+.settings-panel.settings-bloomberg .provider-card-meta {
+  color: var(--set-dim);
+  opacity: 1;
+}
+
 .status-dot {
   width: 10px;
   height: 10px;
@@ -124,23 +364,50 @@
   display: inline-block;
   flex-shrink: 0;
 }
-.status-dot.status-ok { background: #2ecc71; }
-.status-dot.status-err { background: #e74c3c; }
-.status-dot.status-unknown { background: #888; }
+.status-dot.status-ok { background: var(--set-up, #2ecc71); }
+.status-dot.status-err { background: var(--set-down, #e74c3c); }
+.status-dot.status-unknown { background: var(--set-faint, #888); }
+
+.settings-panel.settings-bloomberg .status-dot.status-ok {
+  box-shadow: 0 0 6px var(--set-up);
+}
+.settings-panel.settings-bloomberg .status-dot.status-err {
+  box-shadow: 0 0 6px var(--set-down);
+}
+
 .active-badge {
   font-size: 11px;
-  background: #143d14;
-  color: #7CFC7C;
+  background: var(--set-up-bg, #143d14);
+  color: var(--set-up, #7CFC7C);
   padding: 1px 6px;
   border-radius: 8px;
 }
+
+.settings-panel.settings-bloomberg .active-badge {
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border: 1px solid var(--set-up);
+  border-radius: 2px;
+  background: transparent;
+}
+
 .dirty-dot {
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: #f1c40f;
+  background: var(--set-amber, #f1c40f);
   display: inline-block;
 }
+
+.settings-panel.settings-bloomberg .dirty-dot {
+  animation: set-blink 1.1s steps(2, start) infinite;
+  box-shadow: 0 0 6px var(--set-amber);
+}
+
+@keyframes set-blink {
+  50% { opacity: 0.35; }
+}
+
 .provider-card-fields {
   margin-top: 8px;
 }
@@ -149,9 +416,28 @@
   font-size: 13px;
   opacity: 0.8;
 }
+
+.settings-panel.settings-bloomberg .provider-card-fields summary {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--set-amber);
+  opacity: 1;
+}
+
 .provider-card-fields label {
   margin-top: 8px;
 }
+
+.settings-panel.settings-bloomberg .provider-card-fields label {
+  margin-top: 6px;
+  padding: 5px 7px;
+  background: var(--set-row);
+  border-bottom: 1px solid var(--set-line);
+  color: var(--set-dim);
+  font-size: 12px;
+}
+
 .provider-card-actions {
   display: flex;
   gap: 8px;
@@ -167,6 +453,24 @@
   cursor: pointer;
   font-size: 12px;
 }
+
+.settings-panel.settings-bloomberg .provider-card-actions button {
+  font-family: var(--set-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: transparent;
+  color: var(--set-dim);
+  border: 1px solid var(--set-line-strong);
+  border-radius: 2px;
+}
+
+.settings-panel.settings-bloomberg .provider-card-actions button:hover:not(:disabled) {
+  color: var(--set-amber);
+  border-color: var(--set-amber);
+}
+
 .provider-card-actions .use-active:disabled {
   opacity: 0.6;
   cursor: default;
@@ -174,7 +478,7 @@
 .field-error {
   display: block;
   font-size: 0.8em;
-  color: #fc7c7c;
+  color: var(--set-down, #fc7c7c);
   margin-top: 2px;
 }
 .conn-ok, .conn-err {
@@ -184,4 +488,71 @@
 .settings-actions button:disabled {
   opacity: 0.5;
   cursor: default;
+}
+
+/* ---- Toggle-Switch (Hochkontrast) ---- */
+.settings-panel.settings-bloomberg .toggle-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 10px;
+  align-items: center;
+}
+
+/* Native Checkbox als Switch: Behavior bleibt, nur Optik ändert sich */
+.settings-panel.settings-bloomberg input.toggle-switch {
+  appearance: none;
+  -webkit-appearance: none;
+  grid-row: 1;
+  width: 34px;
+  height: 18px;
+  margin: 0;
+  padding: 0;
+  background: var(--set-inset);
+  border: 1px solid var(--set-line-strong);
+  border-radius: 10px;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.settings-panel.settings-bloomberg input.toggle-switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--set-dim);
+  transition: left 0.12s linear, background 0.12s linear;
+}
+
+.settings-panel.settings-bloomberg input.toggle-switch:checked {
+  background: var(--set-amber-faint);
+  border-color: var(--set-amber);
+}
+
+.settings-panel.settings-bloomberg input.toggle-switch:checked::after {
+  left: 18px;
+  background: var(--set-amber);
+  box-shadow: 0 0 8px var(--set-amber);
+}
+
+.settings-panel.settings-bloomberg input.toggle-switch:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--set-amber);
+}
+
+/* Dekor-Knopfspur (aria-hidden): echte Interaktion läuft über die Checkbox */
+.settings-panel.settings-bloomberg .toggle-track {
+  display: none;
+}
+
+.settings-panel.settings-bloomberg .toggle-label {
+  grid-row: 1;
+  color: var(--set-text);
+}
+
+.settings-panel.settings-bloomberg .toggle-row .settings-hint {
+  grid-column: 2;
 }

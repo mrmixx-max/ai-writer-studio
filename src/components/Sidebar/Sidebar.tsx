@@ -1,4 +1,6 @@
 // Sidebar mit Avantgarde-Modus-Switcher + Projekt-Baum.
+// Bloomberg-Terminal-Thema (Sprint 18, Agent 2): Stile in sidebar.css.
+import "./sidebar.css";
 import { memo, useCallback, useMemo, useState, useEffect, useRef, lazy, Suspense } from "react";
 import type { Project, Chapter } from "@/types/project";
 import { useProjectStore } from "@/store/projectStore";
@@ -110,44 +112,47 @@ import {
 } from "@/services/project";
 import type { EditorMode } from "@/types/mode";
 
-const MODES: { id: EditorMode; key: `sidebar.mode.${EditorMode}`; icon: string }[] = [
-  { id: "editor", key: "sidebar.mode.editor", icon: "📝" },
-  { id: "prompts", key: "sidebar.mode.prompts", icon: "💡" },
-  { id: "knowledge", key: "sidebar.mode.knowledge", icon: "📚" },
-  { id: "diagnostics", key: "sidebar.mode.diagnostics", icon: "🔍" },
-  { id: "preflight", key: "sidebar.mode.preflight", icon: "✅" },
-  { id: "snapshots", key: "sidebar.mode.snapshots", icon: "📂" },
-  { id: "kdp", key: "sidebar.mode.kdp", icon: "🚀" },
-  { id: "publishing", key: "sidebar.mode.publishing", icon: "📦" },
-  { id: "fragments", key: "sidebar.mode.fragments", icon: "🧩" },
-  { id: "voices", key: "sidebar.mode.voices", icon: "🎭" },
-  { id: "map", key: "sidebar.mode.map", icon: "🗺️" },
-  { id: "dialogue", key: "sidebar.mode.dialogue", icon: "💬" },
-  { id: "versions", key: "sidebar.mode.versions", icon: "🕐" },
-  { id: "obstruction", key: "sidebar.mode.obstruction", icon: "⛓️" },
-  { id: "dream", key: "sidebar.mode.dream", icon: "🌙" },
-  { id: "imagegen", key: "sidebar.mode.imagegen", icon: "🖼️" },
-  { id: "covergen", key: "sidebar.mode.covergen", icon: "📚" },
-  { id: "blurbgen", key: "sidebar.mode.blurbgen", icon: "📝" },
-  { id: "scientificwriting", key: "sidebar.mode.scientificwriting", icon: "🎓" },
-  { id: "timeline", key: "sidebar.mode.timeline", icon: "📅" },
-  { id: "characters", key: "sidebar.mode.characters", icon: "👥" },
-  { id: "worldbuilding", key: "sidebar.mode.worldbuilding", icon: "🌍" },
-  { id: "research", key: "sidebar.mode.research", icon: "🔎" },
-  { id: "investigate", key: "sidebar.mode.investigate", icon: "🕵️" },
-  { id: "watermark", key: "sidebar.mode.watermark", icon: "💧" },
-  { id: "tts", key: "sidebar.mode.tts", icon: "🔊" },
-  { id: "bookwriter", key: "sidebar.mode.bookwriter", icon: "📖" },
-  { id: "markdown", key: "sidebar.mode.markdown", icon: "📝" },
-  { id: "wordstats", key: "sidebar.mode.wordstats", icon: "📊" },
-  { id: "ideas", key: "sidebar.mode.ideas", icon: "💡" },
-  { id: "consistency", key: "sidebar.mode.consistency", icon: "✅" },
+const MODES: { id: EditorMode; key: `sidebar.mode.${EditorMode}`; icon: string; shortcut: string }[] = [
+  { id: "editor", key: "sidebar.mode.editor", icon: "📝", shortcut: "Ctrl+1" },
+  { id: "prompts", key: "sidebar.mode.prompts", icon: "💡", shortcut: "Ctrl+2" },
+  { id: "knowledge", key: "sidebar.mode.knowledge", icon: "📚", shortcut: "Ctrl+3" },
+  { id: "diagnostics", key: "sidebar.mode.diagnostics", icon: "🔍", shortcut: "Ctrl+4" },
+  { id: "preflight", key: "sidebar.mode.preflight", icon: "✅", shortcut: "Ctrl+5" },
+  { id: "snapshots", key: "sidebar.mode.snapshots", icon: "📂", shortcut: "Ctrl+6" },
+  { id: "kdp", key: "sidebar.mode.kdp", icon: "🚀", shortcut: "Ctrl+7" },
+  { id: "publishing", key: "sidebar.mode.publishing", icon: "📦", shortcut: "Ctrl+8" },
+  { id: "fragments", key: "sidebar.mode.fragments", icon: "🧩", shortcut: "Ctrl+9" },
+  { id: "voices", key: "sidebar.mode.voices", icon: "🎭", shortcut: "Ctrl+0" },
+  { id: "map", key: "sidebar.mode.map", icon: "🗺️", shortcut: "Alt+1" },
+  { id: "dialogue", key: "sidebar.mode.dialogue", icon: "💬", shortcut: "Alt+2" },
+  { id: "versions", key: "sidebar.mode.versions", icon: "🕐", shortcut: "Alt+3" },
+  { id: "obstruction", key: "sidebar.mode.obstruction", icon: "⛓️", shortcut: "Alt+4" },
+  { id: "dream", key: "sidebar.mode.dream", icon: "🌙", shortcut: "Alt+5" },
+  { id: "imagegen", key: "sidebar.mode.imagegen", icon: "🖼️", shortcut: "Alt+6" },
+  { id: "covergen", key: "sidebar.mode.covergen", icon: "📚", shortcut: "Alt+7" },
+  { id: "blurbgen", key: "sidebar.mode.blurbgen", icon: "📝", shortcut: "Alt+8" },
+  { id: "scientificwriting", key: "sidebar.mode.scientificwriting", icon: "🎓", shortcut: "Alt+9" },
+  { id: "timeline", key: "sidebar.mode.timeline", icon: "📅", shortcut: "Alt+0" },
+  { id: "characters", key: "sidebar.mode.characters", icon: "👥", shortcut: "Ctrl+Alt+1" },
+  { id: "worldbuilding", key: "sidebar.mode.worldbuilding", icon: "🌍", shortcut: "Ctrl+Alt+2" },
+  { id: "research", key: "sidebar.mode.research", icon: "🔎", shortcut: "Ctrl+Alt+3" },
+  { id: "investigate", key: "sidebar.mode.investigate", icon: "🕵️", shortcut: "Ctrl+Alt+4" },
+  { id: "watermark", key: "sidebar.mode.watermark", icon: "💧", shortcut: "Ctrl+Alt+5" },
+  { id: "tts", key: "sidebar.mode.tts", icon: "🔊", shortcut: "Ctrl+Alt+6" },
+  { id: "bookwriter", key: "sidebar.mode.bookwriter", icon: "📖", shortcut: "Ctrl+Alt+7" },
+  { id: "markdown", key: "sidebar.mode.markdown", icon: "📝", shortcut: "Ctrl+Alt+8" },
+  { id: "wordstats", key: "sidebar.mode.wordstats", icon: "📊", shortcut: "Ctrl+Alt+9" },
+  { id: "ideas", key: "sidebar.mode.ideas", icon: "💡", shortcut: "Ctrl+Alt+0" },
+  { id: "consistency", key: "sidebar.mode.consistency", icon: "✅", shortcut: "Ctrl+Shift+C" },
 ];
 
 export function Sidebar() {
   const { t, lang } = useI18n();
   const [tab, setTab] = useState<"projects" | "prompts">("projects");
   const [mode, setMode] = useState<EditorMode>("editor");
+  // Bloomberg-Terminal (Sprint 18, Agent 2): Modi-Sektion ist kollabierbar.
+  // Standard: aufgeklappt — bestehende Navigation bleibt unverändert.
+  const [modesCollapsed, setModesCollapsed] = useState(false);
   const activeProjectId = useProjectStore((s) => s.activeProjectId);
   const activeChapterId = useProjectStore((s) => s.activeChapterId);
   const projects = useProjectStore((s) => s.projects);
@@ -219,28 +224,41 @@ export function Sidebar() {
   // Spezialbereiche (Projektwissen, Fragmente, Stimmen …) unerreichbar.
   // Genau dieser Fehler hat alle acht Modi unbenutzbar gemacht.
   const switcher = (
-    <nav className="mode-switcher" aria-label={t("sidebar.modesLabel")}>
-      {MODES.map((m) => {
-        const label = t(m.key);
-        return (
-          <button
-            key={m.id}
-            title={label}
-            aria-label={label}
-            aria-pressed={mode === m.id}
-            className={mode === m.id ? "active" : ""}
-            onClick={() => {
-              setMode(m.id);
-              // Editor und Prompts sind gleichzeitig Tabs — synchron halten.
-              if (m.id === "editor") setTab("projects");
-              if (m.id === "prompts") setTab("prompts");
-            }}
-          >
-            {m.icon}
-          </button>
-        );
-      })}
-    </nav>
+    <section className="sb-modes">
+      <button
+        className="sb-section-toggle"
+        aria-expanded={!modesCollapsed}
+        onClick={() => setModesCollapsed((v) => !v)}
+      >
+        <span aria-hidden="true">{modesCollapsed ? "▸" : "▾"}</span> MODES
+      </button>
+      {!modesCollapsed && (
+        <nav className="mode-switcher" aria-label={t("sidebar.modesLabel")}>
+          {MODES.map((m) => {
+            const label = t(m.key);
+            return (
+              <button
+                key={m.id}
+                title={label}
+                aria-label={label}
+                aria-pressed={mode === m.id}
+                data-shortcut={m.shortcut}
+                className={mode === m.id ? "active" : ""}
+                onClick={() => {
+                  setMode(m.id);
+                  // Editor und Prompts sind gleichzeitig Tabs — synchron halten.
+                  if (m.id === "editor") setTab("projects");
+                  if (m.id === "prompts") setTab("prompts");
+                }}
+              >
+                <span aria-hidden="true">{m.icon}</span>
+                <kbd className="sb-kbd" aria-hidden="true">{m.shortcut}</kbd>
+              </button>
+            );
+          })}
+        </nav>
+      )}
+    </section>
   );
 
   if (inSpecialMode) {
