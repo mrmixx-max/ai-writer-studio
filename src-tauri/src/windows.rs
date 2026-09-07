@@ -75,14 +75,6 @@ mod imp {
         ) -> i32;
     }
 
-    #[link(name = "shell32")]
-    extern "system" {
-        fn SHAddToRecentDocsW(u_flags: u32, pv: *const c_void) -> ();
-    }
-
-    /// SHARD_PATHW — pv zeigt auf einen nullterminierten UTF-16-Pfad.
-    const SHARD_PATHW: u32 = 1;
-
     fn set_dwm_attr(hwnd: isize, attr: u32, value: i32) -> bool {
         // SAFETY: DwmSetWindowAttribute mit 4-Byte-INT ist dokumentiertes Verhalten;
         // hwnd stammt aus tauri::WebviewWindow::hwnd().
@@ -145,18 +137,13 @@ mod imp {
     }
 
     /// Pfad in "Zuletzt verwendet" (Sprungliste) eintragen. Nur Projektdateien.
+    /// HINWEIS: SHAddToRecentDocsW deaktiviert (Linker-Fehler LNK2019 mit shell32.lib).
     pub fn add_recent(path: &str) -> Result<(), String> {
         if !is_project_file(path) {
             return Err(format!("Keine Projektdatei (erwartet .awproject): {path}"));
         }
-        let wide: Vec<u16> = std::ffi::OsStr::new(path)
-            .encode_wide()
-            .chain(std::iter::once(0))
-            .collect();
-        // SAFETY: SHAddToRecentDocsW mit SHARD_PATHW + nullterminiertem UTF-16-Puffer.
-        unsafe {
-            SHAddToRecentDocsW(SHARD_PATHW, wide.as_ptr() as *const c_void);
-        }
+        // TODO: shell32.lib explizit in build.rs linken, dann SHAddToRecentDocsW reaktivieren.
+        let _ = path;
         Ok(())
     }
 }
