@@ -98,6 +98,7 @@ nicht gelöscht** (Historie) — dieser Index hält sie auffindbar.
 - `sprint19-agent1-prospekt-abschlussbericht.md` — Sprint 19, Agent 1 (PDF-Werbeprospekt DE/EN)
 - `sprint19-agent2-uilabels-abschlussbericht.md` — Sprint 19, Agent 2 (UI-Labels ohne Tastenkürzel)
 - `sprint19-agent3-rewrite-options-abschlussbericht.md` — Sprint 19, Agent 3 (Umschreib-Optionen)
+- `sprint19c-agent1-senddebug-abschlussbericht.md` — Sprint 19c, Agent 1 (Senden/Ollama-Debug)
 
 ## Delivery-Logs (Sprint 4–6, Historie — nicht löschen)
 

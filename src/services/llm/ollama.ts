@@ -12,12 +12,22 @@ import { ProviderError } from "@/types/llm";
 import { assertOk, parseNdjson, fetchWithTimeout } from "./stream";
 import { getOllamaPool } from "@/services/ollama/connectionPool";
 import { getPromptCache, promptCacheKey } from "@/services/ollama/promptCache";
+import { normalizeLocalBaseUrl } from "./baseUrl";
 
-const HEALTH_TIMEOUT = 5000;
+// Sprint 19c (Send-Debug): 3s statt 5s — der healthCheck läuft synchron vor
+// jedem KI-Aufruf (runKIAction) und blockiert solange den Senden-Button
+// (busy=true). Jede Sekunde weniger Wartezeit zählt; Ollama antwortet auf
+// /api/tags lokal in Millisekunden, 3s reicht als Erreichbarkeits-Signal.
+const HEALTH_TIMEOUT = 3000;
 const FETCH_TIMEOUT = 30000;
 
 export class OllamaProvider implements LLMProvider {
-  constructor(private readonly baseUrl: string) {}
+  private readonly baseUrl: string;
+
+  constructor(baseUrl: string) {
+    // Sprint 19c: localhost → 127.0.0.1 (IPv6-::1-Falle umgehen).
+    this.baseUrl = normalizeLocalBaseUrl(baseUrl);
+  }
 
   describe(): string {
     return `Ollama (lokal: ${this.baseUrl})`;

@@ -7,8 +7,12 @@
 import type { ChatMessage, ChatOptions, LLMProvider, LLMProviderCapabilities } from "@/types/llm";
 import { ProviderError } from "@/types/llm";
 import { assertOk, parseSse, fetchWithTimeout } from "./stream";
+import { normalizeLocalBaseUrl } from "./baseUrl";
 
-const HEALTH_TIMEOUT = 5000;
+// Sprint 19c (Send-Debug): 3s statt 5s — healthCheck blockiert den
+// Senden-Button (busy=true) bis zum Ergebnis; lokale Endpunkte antworten
+// in Millisekunden, 3s reicht als Erreichbarkeits-Signal.
+const HEALTH_TIMEOUT = 3000;
 const FETCH_TIMEOUT = 30000;
 
 export class OpenAICompatibleProvider implements LLMProvider {
@@ -19,7 +23,7 @@ export class OpenAICompatibleProvider implements LLMProvider {
    * @param capabilities Override für Subklassen (Default: Cloud-Profile)
    */
   constructor(
-    private readonly baseUrl: string,
+    private baseUrl: string,
     private readonly apiKey: string | undefined,
     private readonly label: string,
     protected readonly caps: LLMProviderCapabilities = {
@@ -28,7 +32,12 @@ export class OpenAICompatibleProvider implements LLMProvider {
       jsonMode: true,
       maxContextTokens: null,
     },
-  ) {}
+  ) {
+    // Sprint 19c: localhost → 127.0.0.1 (IPv6-::1-Falle umgehen).
+    // Betrifft nur lokale Endpunkte (LM Studio, gpt2api); Cloud-URLs
+    // (api.openai.com etc.) bleiben unverändert.
+    this.baseUrl = normalizeLocalBaseUrl(baseUrl);
+  }
 
   /** B1: Fähigkeiten des Providers. */
   capabilities(): LLMProviderCapabilities {
