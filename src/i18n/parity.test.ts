@@ -55,6 +55,39 @@ describe("i18n Parität: keine Orphans, keine leeren Werte", () => {
   });
 });
 
+describe("i18n KDP-Panels (Sprint 13, Agent 6): kdp.*-Namensraum", () => {
+  const KDP_KEYS = deKeys.filter((k) => k.startsWith("kdp."));
+
+  it("kdp.*-Namensraum existiert (Pre-Upload-Checkliste + Package-Panel)", () => {
+    expect(KDP_KEYS.length).toBeGreaterThan(0);
+    for (const prefix of ["kdp.preupload.", "kdp.package."]) {
+      expect(
+        KDP_KEYS.some((k) => k.startsWith(prefix)),
+        `kein Schlüssel mit Präfix ${prefix}`,
+      ).toBe(true);
+    }
+  });
+
+  it("alle kdp.*-Schlüssel sind in en/fr/es übersetzt (kein deutsches Fallback nötig)", () => {
+    // Identische Werte sind nur für diese sprachunabhängigen Schlüssel ok
+    // (Produktname, technische Kürzel, Einheiten, en ≈ de bei "optional").
+    const IDENTICAL_OK = new Set([
+      "kdp.preupload.optional",
+      "kdp.package.title",
+      "kdp.package.col.sha",
+      "kdp.package.sizeKb",
+    ]);
+    const bad: string[] = [];
+    for (const lang of Object.keys(LOCALES) as Lang[]) {
+      const dict = LOCALES[lang] as Record<string, string>;
+      for (const key of KDP_KEYS) {
+        if (!(key in dict)) bad.push(`${lang}:${key} fehlt`);
+        else if (dict[key] === de[key] && !IDENTICAL_OK.has(key)) bad.push(`${lang}:${key} unübersetzt`);
+      }
+    }
+    expect(bad, bad.join("\n")).toEqual([]);
+  });
+});
 describe("i18n Parität: Interpolation und Registrierung", () => {
   it("{{Platzhalter}} stimmen in allen Locales mit de überein", () => {
     const mismatches: string[] = [];

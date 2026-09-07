@@ -59,6 +59,12 @@ nicht gelöscht** (Historie) — dieser Index hält sie auffindbar.
 - `sprint12-agent5-e2e-abschlussbericht.md` — Sprint 12, Agent 5 (E2E Runde 2)
 - `sprint12-agent6-settings-abschlussbericht.md` — Sprint 12, Agent 6 (Settings-Persistenz)
 - `sprint12-agent7-release-abschlussbericht.md` — Sprint 12, Agent 7 (Release-Readiness v1.1.0)
+- `sprint13-agent1-ollama-abschlussbericht.md` — Sprint 13, Agent 1 (Ollama-Resilienz)
+- `sprint13-agent2-router-abschlussbericht.md` — Sprint 13, Agent 2 (LLM-Router)
+- `sprint13-agent3-errorux-abschlussbericht.md` — Sprint 13, Agent 3 (Error-Boundaries)
+- `sprint13-agent4-chapterlist-abschlussbericht.md` — Sprint 13, Agent 4 (Kapitel-Listen-Perf)
+- `sprint13-agent5-cover-abschlussbericht.md` — Sprint 13, Agent 5 (KDP-Cover)
+- `sprint13-agent6-i18n-abschlussbericht.md` — Sprint 13, Agent 6 (i18n KDP)
 
 ## Delivery-Logs (Sprint 4–6, Historie — nicht löschen)
 

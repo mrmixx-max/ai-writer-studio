@@ -1,5 +1,5 @@
 // Sidebar mit Avantgarde-Modus-Switcher + Projekt-Baum.
-import { memo, useCallback, useMemo, useState, useEffect, lazy, Suspense } from "react";
+import { memo, useCallback, useMemo, useState, useEffect, useRef, lazy, Suspense } from "react";
 import type { Project, Chapter } from "@/types/project";
 import { useProjectStore } from "@/store/projectStore";
 import { usePromptStore } from "@/store/promptStore";
@@ -145,7 +145,7 @@ const MODES: { id: EditorMode; key: `sidebar.mode.${EditorMode}`; icon: string }
 ];
 
 export function Sidebar() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [tab, setTab] = useState<"projects" | "prompts">("projects");
   const [mode, setMode] = useState<EditorMode>("editor");
   const activeProjectId = useProjectStore((s) => s.activeProjectId);
@@ -161,23 +161,31 @@ export function Sidebar() {
 
   // Stabilisierte Handler: Nur so kann memoized ProjectRow auf Rerenders
   // der Sidebar verzichten, wenn sich Projekt-/Kapitelliste nicht geändert hat.
+  // tRef-Trick (Sprint 13): useI18n() ohne Provider liefert pro Render eine
+  // neue t-Identität — Deps auf `t` würden rowActions bei jedem Render
+  // invalidieren und das Row-Memo aushebeln. `lang` als Dep genügt, weil sich
+  // Labels nur beim Sprachwechsel ändern; die aktuelle t-Funktion wird per Ref
+  // zum Event-Zeitpunkt gelesen.
+  const tRef = useRef(t);
+  tRef.current = t;
+
   const handleRenameProject = useCallback((id: string, name: string) => {
-    const n = renamePrompt(t("sidebar.promptNewName"), name);
+    const n = renamePrompt(tRef.current("sidebar.promptNewName"), name);
     if (n) { renameProject(id, n); refresh(); }
-  }, [refresh, t]);
+  }, [refresh, lang]);
 
   const handleDeleteProject = useCallback((id: string) => {
-    if (confirm(t("sidebar.confirmDeleteProject"))) { deleteProject(id); refresh(); }
-  }, [refresh, t]);
+    if (confirm(tRef.current("sidebar.confirmDeleteProject"))) { deleteProject(id); refresh(); }
+  }, [refresh, lang]);
 
   const handleRenameChapter = useCallback((pid: string, id: string, title: string) => {
-    const n = renamePrompt(t("sidebar.promptNewName"), title);
+    const n = renamePrompt(tRef.current("sidebar.promptNewName"), title);
     if (n) { renameChapter(id, n); openProject(pid); }
-  }, [openProject, t]);
+  }, [openProject, lang]);
 
   const handleDeleteChapter = useCallback((pid: string, id: string) => {
-    if (confirm(t("sidebar.confirmDeleteChapter"))) { deleteChapter(id); openProject(pid); }
-  }, [openProject, t]);
+    if (confirm(tRef.current("sidebar.confirmDeleteChapter"))) { deleteChapter(id); openProject(pid); }
+  }, [openProject, lang]);
 
   const rowActions = useMemo<RowActions>(() => ({
     onOpenProject: openProject,
@@ -303,7 +311,7 @@ export function Sidebar() {
 
 const EMPTY_CHAPTERS: Chapter[] = [];
 
-type RowActions = {
+export type RowActions = {
   onOpenProject: (id: string) => void;
   onOpenChapter: (id: string) => void;
   onRenameProject: (id: string, name: string) => void;
@@ -312,7 +320,7 @@ type RowActions = {
   onDeleteChapter: (projectId: string, id: string) => void;
 };
 
-const ChapterRow = memo(function ChapterRow({
+export const ChapterRow = memo(function ChapterRow({
   chapter, projectId, active, actions,
 }: {
   chapter: Chapter;
@@ -343,7 +351,7 @@ const ChapterRow = memo(function ChapterRow({
   );
 });
 
-const ProjectRow = memo(function ProjectRow({
+export const ProjectRow = memo(function ProjectRow({
   project, active, activeChapterId, chapters, actions,
 }: {
   project: Project;

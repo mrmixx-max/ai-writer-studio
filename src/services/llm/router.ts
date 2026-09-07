@@ -11,6 +11,9 @@ import { ProviderError } from "@/types/llm";
 import { OllamaProvider } from "./ollama";
 import { OpenRouterProvider } from "./openrouter";
 import { classifyError } from "@/services/writing/retry";
+import { RouterRequestLog } from "./requestLog";
+import { isTimeoutError, resolveDowngradeModel } from "./timeoutDowngrade";
+import type { PromptTaskKind } from "@/services/prompts/templates";
 
 // --- B3: Modell-Matrix -------------------------------------------------------
 
@@ -159,6 +162,12 @@ export interface BookwriterRouterConfig {
   timeoutQuotaPercent?: number;
   /** Anzahl Retry-Endfehler, bevor gefallbackt wird (B2). Default 2. */
   retryErrorLimit?: number;
+  /** Kapazität des per-Request-Ringpuffers (Sprint 13). Default 100. */
+  requestLogCapacity?: number;
+  /** Explizite Downgrade-Kandidaten für Timeout-Downgrade (Sprint 13). Default []. */
+  downgradeModels?: string[];
+  /** Automatischer Downgrade bei Timeout an/aus (Sprint 13). Default true. */
+  enableTimeoutDowngrade?: boolean;
 }
 
 export const DEFAULT_ROUTER_CONFIG: BookwriterRouterConfig = {
@@ -185,6 +194,10 @@ export interface RouterCallMeta {
   /** Sprint 3: Aufgaben-Klasse (logic= Faktencheck/Reparatur, creative= Generierung). */
   task_class?: TaskClass;
   ok: boolean;
+  /** Sprint 13: true = Timeout-Downgrade auf ein kleineres Modell wurde benutzt. */
+  downgraded?: boolean;
+  /** Sprint 13: Ausgangsmodell vor dem Downgrade (nur wenn downgraded). */
+  downgradedFrom?: string;
 }
 
 export interface RouterResult {
@@ -220,11 +233,18 @@ export class BookwriterRouter {
   private readonly timeoutQuotaPercent: number;
   private readonly retryErrorLimit: number;
   private readonly onCall?: (meta: RouterCallMeta) => void;
+  /** Sprint 13: per-Request-Ringpuffer (Modell, Task, Dauer, Fallback). */
+  readonly requestLog: RouterRequestLog;
+  private readonly downgradeModels: string[];
+  private readonly enableTimeoutDowngrade: boolean;
 
   constructor(config: BookwriterRouterConfig, hooks?: { onCall?: (meta: RouterCallMeta) => void }) {
     this.timeoutQuotaPercent = config.timeoutQuotaPercent ?? 50;
     this.retryErrorLimit = config.retryErrorLimit ?? 2;
     this.onCall = hooks?.onCall;
+    this.requestLog = new RouterRequestLog(config.requestLogCapacity ?? 100);
+    this.downgradeModels = config.downgradeModels ?? [];
+    this.enableTimeoutDowngrade = config.enableTimeoutDowngrade ?? true;
     for (const spec of config.chain) {
       const inst = instantiateChainSpec(spec);
       if (!inst) continue; // z.B. OpenRouter ohne Key
@@ -237,6 +257,30 @@ export class BookwriterRouter {
   timeoutQuota(idx: number): number {
     const s = this.state[idx];
     return s.calls === 0 ? 0 : Math.round((s.timeouts / s.calls) * 100);
+  }
+
+  /** Die n neuesten Request-Log-Einträge (Sprint 13, neueste zuletzt). */
+  recentRequests(n: number): import("./requestLog").RouterRequestLogEntry[] {
+    return this.requestLog.last(n);
+  }
+
+  /**
+   * Sprint 13: Brücke Prompt-Template-Task → Bookwriter-Task.
+   * Die Template-Library (system/chapter/outline/revise) kennt andere
+   * Task-Namen als der Router — dieses Mapping wählt die
+   * qualitätsäquivalente Router-Aufgabe (revise→repair, system→metadata).
+   */
+  static bookwriterTaskForPromptTask(task: PromptTaskKind): BookwriterTaskKind {
+    switch (task) {
+      case "chapter":
+        return "chapter";
+      case "outline":
+        return "outline";
+      case "revise":
+        return "repair";
+      case "system":
+        return "metadata";
+    }
   }
 
   /** Modelle eines Chain-Eintrags (Hauptmodell = spec.models.main oder Fallback). Sprint 3: inkl. logic-Rolle. */
@@ -270,6 +314,12 @@ export class BookwriterRouter {
 
     const errors: unknown[] = [];
     let fallbackReason: FallbackReason | null = null;
+    // Sprint 13: Gesamt-Dauer des Requests (über alle Provider) für den Ringpuffer.
+    const requestStartedAt = Date.now();
+    // Sprint 13: zuletzt benutztes Modell (für Fehler-Log am Kettenende).
+    let lastModel = opts.model ?? "";
+    let lastProvider = "";
+    let lastDowngraded = false;
 
     for (let idx = 0; idx < this.entries.length; idx++) {
       const entry = this.entries[idx];
@@ -296,7 +346,12 @@ export class BookwriterRouter {
       const models = this.modelsFor(idx, opts.model ?? "");
       // Sprint 3: Logik-/Faktencheck-Aufgaben bevorzugt an spezialisierte
       // Logik-Modelle, Kreativ-Aufgaben an das Matrix-Modell.
-      const model = pickModelWithTaskClass(task, models, []);
+      // Sprint 13: mutable — Timeout-Downgrade schaltet auf ein kleineres Modell um.
+      let model = pickModelWithTaskClass(task, models, []);
+      const downgradeFrom = model;
+      let downgraded = false;
+      lastModel = model;
+      lastProvider = entry.id;
       const chatOpts: ChatOptions = {
         model,
         temperature: opts.temperature,
@@ -311,6 +366,10 @@ export class BookwriterRouter {
       const attempts = Math.max(1, this.retryErrorLimit);
       for (let round = 0; round < attempts; round++) {
         if (signal?.aborted) {
+          this.requestLog.push({
+            model, task, durationMs: Date.now() - requestStartedAt,
+            fallbackUsed: fallbackReason !== null || downgraded, ok: false, provider: entry.id,
+          });
           throw new DOMException("Aborted", "AbortError");
         }
         try {
@@ -331,26 +390,78 @@ export class BookwriterRouter {
             task,
             task_class: taskClassOf(task),
             ok: true,
+            downgraded: downgraded || undefined,
+            downgradedFrom: downgraded ? downgradeFrom : undefined,
           };
           this.onCall?.(meta);
+          // Sprint 13: per-Request-Ringpuffer (Modell, Task, Dauer, Fallback).
+          this.requestLog.push({
+            model,
+            task,
+            durationMs: Date.now() - requestStartedAt,
+            fallbackUsed: fallbackReason !== null || downgraded,
+            ok: true,
+            provider: entry.id,
+          });
           return { text, meta };
         } catch (e: unknown) {
           const kind = classifyError(e);
           // KEIN Fallback bei Abort — Abbruch gehört zum Vertrag.
           // (TimeoutError ist KEIN Abort: Timeouts sind retry-/fallbackbar.)
-          if (kind === "abort") throw e;
+          if (kind === "abort") {
+            this.requestLog.push({
+              model, task, durationMs: Date.now() - requestStartedAt,
+              fallbackUsed: fallbackReason !== null || downgraded, ok: false, provider: entry.id,
+            });
+            throw e;
+          }
           // KEIN Fallback bei 4xx — Client-Fehler, anderer Provider hilft nicht.
-          if (kind === "http4xx") throw e;
+          if (kind === "http4xx") {
+            this.requestLog.push({
+              model, task, durationMs: Date.now() - requestStartedAt,
+              fallbackUsed: fallbackReason !== null || downgraded, ok: false, provider: entry.id,
+            });
+            throw e;
+          }
           state.calls += 1;
           if (kind === "timeout") state.timeouts += 1;
           state.consecutiveRetryFailures += 1;
           errors.push(e);
+          // Sprint 13: automatischer Downgrade NUR bei Timeout — einmal pro
+          // Provider-Besuch auf ein kleineres/schnelleres Modell umschalten
+          // (log + switch, no crash). Andere Fehler: unverändert Retry/Fallback.
+          if (!downgraded && this.enableTimeoutDowngrade && (kind === "timeout" || isTimeoutError(e))) {
+            const pool = [
+              ...this.downgradeModels,
+              ...(models.fast && models.fast !== model ? [models.fast] : []),
+            ];
+            const candidate = resolveDowngradeModel(model, pool);
+            if (candidate !== model) {
+              downgraded = true;
+              lastDowngraded = true;
+              model = candidate;
+              lastModel = candidate;
+              chatOpts.model = candidate;
+              console.warn(
+                `[Bookwriter-Router] ${entry.id} Timeout — Downgrade ${downgradeFrom} → ${candidate}.`,
+              );
+            }
+          }
         }
       }
       // Versuche aufgebraucht → Fallback auf den nächsten Provider.
       fallbackReason = "retry_exhausted";
     }
 
+    // Sprint 13: terminaler Fehler ebenfalls in den Ringpuffer (ok:false).
+    this.requestLog.push({
+      model: lastModel,
+      task,
+      durationMs: Date.now() - requestStartedAt,
+      fallbackUsed: fallbackReason !== null || lastDowngraded,
+      ok: false,
+      provider: lastProvider || undefined,
+    });
     throw new ProviderError(
       `Alle Provider fehlgeschlagen (${this.entries.length} in der Kette). Letzter Fehler: ${
         errors.length

@@ -234,6 +234,43 @@ export const de = {
   "updatecheck.readyWithoutVersion": "Update ist installiert. Bitte die App neu starten, um es zu verwenden.",
   "updatecheck.restarting": "Starte neu …",
   "updatecheck.restart": "Jetzt neu starten",
+
+  // KDP Pre-Upload-Checkliste
+  "kdp.preupload.title": "Pre-Upload-Check",
+  "kdp.preupload.summary": "{{done}}/{{total}} erfüllt",
+  "kdp.preupload.label.format": "Dateiformat DOCX/EPUB",
+  "kdp.preupload.label.size": "Dateigröße im Limit",
+  "kdp.preupload.label.metadata": "Metadaten vollständig (Titel, Klappentext, Keywords)",
+  "kdp.preupload.label.price": "Preis gesetzt (0,99–200 USD)",
+  "kdp.preupload.label.cover": "Cover vorhanden",
+  "kdp.preupload.label.isbnValid": "ISBN gültig",
+  "kdp.preupload.label.isbnOptional": "ISBN (optional — KDP vergibt eigene)",
+  "kdp.preupload.coverMissingHint": "Kein Cover hinterlegt — KDP lehnt Bücher ohne Cover im Review ab.",
+  "kdp.preupload.priceAskedLater": "KDP fragt den Preis beim Setup ab",
+  "kdp.preupload.optional": " (optional)",
+  "kdp.preupload.blocking": "{{count}} Pflichtpunkt(e) offen — Upload blockiert.",
+  "kdp.preupload.upload": "Zu KDP hochladen",
+  "kdp.preupload.fulfillFirst": "Pflichtpunkte zuerst erfüllen",
+  "kdp.preupload.uploading": "Upload läuft…",
+
+  // KDP Upload-Bundle-Panel
+  "kdp.package.coverMissingNoProof": "Kein Cover nachgewiesen — KDP lehnt Buecher ohne Cover im Review ab.",
+  "kdp.package.bundleBlocked": "Bundle blockiert: {{reasons}}",
+  "kdp.package.downloaded": "Bundle heruntergeladen: {{filename}} ({{kb}} KB) — Dateien manuell unter kdp.amazon.com hochladen.",
+  "kdp.package.empty": "Noch kein Manuskript exportiert — bitte zuerst den Export (DOCX/EPUB) ausfuehren.",
+  "kdp.package.building": "Bundle wird geprueft und gehasht…",
+  "kdp.package.title": "KDP-Upload-Bundle",
+  "kdp.package.hint": "KDP bietet keine Upload-API — dieses Paket wird als ZIP heruntergeladen und manuell im KDP-Webformular hochgeladen. Das Manifest belegt die Integritaet (SHA256).",
+  "kdp.package.ready": "Uploadbereit — {{errors}} Fehler, {{warnings}} Warnungen",
+  "kdp.package.blocked": "Blockiert — {{errors}} Fehler, {{warnings}} Warnungen",
+  "kdp.package.col.file": "Datei",
+  "kdp.package.col.role": "Rolle",
+  "kdp.package.col.size": "Groesse",
+  "kdp.package.col.sha": "SHA256",
+  "kdp.package.sizeKb": "{{kb}} KB",
+  "kdp.package.download": "Bundle als ZIP herunterladen",
+  "kdp.package.downloadBlockedTitle": "Bundle ist blockiert — erst Fehler beheben",
+  "kdp.package.creatingZip": "ZIP wird erstellt…",
 } as const;
 
 export type TranslationKey = keyof typeof de;

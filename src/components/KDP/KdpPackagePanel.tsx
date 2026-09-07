@@ -1,4 +1,4 @@
-// KDP-Package-Panel (Sprint 11, Agent 3).
+// KDP-Package-Panel (Sprint 11, Agent 3; i18n Sprint 13, Agent 6).
 //
 // Vorschau des manuellen Upload-Bundles: Dateien, SHA256-Hashes,
 // Validierungsstand + Download-als-ZIP. Reine Sicht auf buildKdpBundle()
@@ -16,6 +16,7 @@ import {
   type KdpBundle,
   type KdpBundleInputFile,
 } from "@/services/bookwriter/kdpPackage";
+import { useI18n } from "@/i18n";
 import "./kdp.css";
 
 export interface KdpPackagePanelProps {
@@ -44,6 +45,7 @@ export function KdpPackagePanel({
   manuscript,
   cover,
 }: KdpPackagePanelProps) {
+  const { t } = useI18n();
   const [bundle, setBundle] = useState<KdpBundle | null>(null);
   const [building, setBuilding] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -63,8 +65,8 @@ export function KdpPackagePanel({
           const reasons = b.manifest.validation.issues
             .filter((i) => i.severity === "error")
             .map((i) => i.message);
-          if (!b.manifest.coverPresent) reasons.push("Kein Cover nachgewiesen — KDP lehnt Buecher ohne Cover im Review ab.");
-          setNotice({ text: `Bundle blockiert: ${reasons.join("; ")}`, kind: "err" });
+          if (!b.manifest.coverPresent) reasons.push(t("kdp.package.coverMissingNoProof"));
+          setNotice({ text: t("kdp.package.bundleBlocked", { reasons: reasons.join("; ") }), kind: "err" });
         }
       })
       .catch((e) => {
@@ -76,7 +78,7 @@ export function KdpPackagePanel({
     return () => {
       cancelled = true;
     };
-  }, [title, author, language, isbn, metadata, manuscript, cover]);
+  }, [title, author, language, isbn, metadata, manuscript, cover, t]);
 
   async function downloadZip() {
     if (!bundle || !bundle.canUpload) return;
@@ -84,7 +86,10 @@ export function KdpPackagePanel({
     try {
       const { filename, sizeBytes } = await downloadBundleAsZip(bundle);
       setNotice({
-        text: `Bundle heruntergeladen: ${filename} (${Math.max(1, Math.round(sizeBytes / 1024))} KB) — Dateien manuell unter kdp.amazon.com hochladen.`,
+        text: t("kdp.package.downloaded", {
+          filename,
+          kb: Math.max(1, Math.round(sizeBytes / 1024)),
+        }),
         kind: "ok",
       });
     } catch (e) {
@@ -97,7 +102,7 @@ export function KdpPackagePanel({
   if (!manuscript) {
     return (
       <div className="kdp mode-placeholder" data-testid="kdp-package-empty">
-        Noch kein Manuskript exportiert — bitte zuerst den Export (DOCX/EPUB) ausfuehren.
+        {t("kdp.package.empty")}
       </div>
     );
   }
@@ -105,7 +110,7 @@ export function KdpPackagePanel({
   if (building || !bundle) {
     return (
       <div className="kdp mode-placeholder" data-testid="kdp-package-building">
-        Bundle wird geprueft und gehasht…
+        {t("kdp.package.building")}
       </div>
     );
   }
@@ -114,10 +119,9 @@ export function KdpPackagePanel({
 
   return (
     <div className="kdp kdp-package" data-testid="kdp-package-panel">
-      <h3>KDP-Upload-Bundle</h3>
+      <h3>{t("kdp.package.title")}</h3>
       <p className="kdp-hint">
-        KDP bietet keine Upload-API — dieses Paket wird als ZIP heruntergeladen und manuell im
-        KDP-Webformular hochgeladen. Das Manifest belegt die Integritaet (SHA256).
+        {t("kdp.package.hint")}
       </p>
 
       <div
@@ -125,17 +129,17 @@ export function KdpPackagePanel({
         data-testid="kdp-package-status"
       >
         {bundle.canUpload
-          ? `Uploadbereit — ${validation.errorCount} Fehler, ${validation.warningCount} Warnungen`
-          : `Blockiert — ${validation.errorCount} Fehler, ${validation.warningCount} Warnungen`}
+          ? t("kdp.package.ready", { errors: validation.errorCount, warnings: validation.warningCount })
+          : t("kdp.package.blocked", { errors: validation.errorCount, warnings: validation.warningCount })}
       </div>
 
       <table className="kdp-files" data-testid="kdp-package-files">
         <thead>
           <tr>
-            <th>Datei</th>
-            <th>Rolle</th>
-            <th>Groesse</th>
-            <th>SHA256</th>
+            <th>{t("kdp.package.col.file")}</th>
+            <th>{t("kdp.package.col.role")}</th>
+            <th>{t("kdp.package.col.size")}</th>
+            <th>{t("kdp.package.col.sha")}</th>
           </tr>
         </thead>
         <tbody>
@@ -143,7 +147,7 @@ export function KdpPackagePanel({
             <tr key={f.name}>
               <td>{f.name}</td>
               <td>{f.role}</td>
-              <td>{Math.max(1, Math.round(f.sizeBytes / 1024))} KB</td>
+              <td>{t("kdp.package.sizeKb", { kb: Math.max(1, Math.round(f.sizeBytes / 1024)) })}</td>
               <td title={f.sha256}>{shortHash(f.sha256)}</td>
             </tr>
           ))}
@@ -179,9 +183,9 @@ export function KdpPackagePanel({
         onClick={downloadZip}
         disabled={!bundle.canUpload || busy}
         data-testid="kdp-package-download"
-        title={bundle.canUpload ? "Bundle als ZIP herunterladen" : "Bundle ist blockiert — erst Fehler beheben"}
+        title={bundle.canUpload ? t("kdp.package.download") : t("kdp.package.downloadBlockedTitle")}
       >
-        {busy ? "ZIP wird erstellt…" : "Bundle als ZIP herunterladen"}
+        {busy ? t("kdp.package.creatingZip") : t("kdp.package.download")}
       </button>
     </div>
   );

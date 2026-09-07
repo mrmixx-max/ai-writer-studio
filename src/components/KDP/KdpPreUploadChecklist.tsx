@@ -1,4 +1,4 @@
-// KDP-Pre-Upload-Checkliste (Sprint 9, Agent 3).
+// KDP-Pre-Upload-Checkliste (Sprint 9, Agent 3; i18n Sprint 13, Agent 6).
 //
 // Präsentations-Komponente für den Upload-Dialog: zeigt vor dem Transport,
 // ob Dateiformat, Metadaten-Vollständigkeit und Cover den KDP-Vertrag
@@ -11,7 +11,17 @@ import {
   validateUploadArtefact,
   type UploadFile,
 } from "@/services/bookwriter/kdpUploadValidation";
+import { useI18n, type Interpolation, type TranslationKey } from "@/i18n";
+import { de } from "@/i18n/locales/de";
 import "./kdp.css";
+
+/** Übersetzungsfunktion (t aus useI18n) — als optionaler Parameter der reinen Builder-Funktion. */
+export type PreUploadTranslator = (key: TranslationKey, vars?: Interpolation) => string;
+
+/** Fallback ohne Provider/Testkontext: deutsche Referenztexte. */
+function germanFallback(key: TranslationKey): string {
+  return de[key] ?? String(key);
+}
 
 /** Ein Checklistenpunkt der Pre-Upload-Prüfung. */
 export interface PreUploadCheckItem {
@@ -33,8 +43,12 @@ export interface PreUploadChecklistInput {
 /**
  * Baut die Checkliste als reine Funktion (testbar ohne DOM):
  * Dateiformat, Dateigröße, Metadaten-Vollständigkeit, Preis, Cover, ISBN.
+ * Ohne `t` fallen Labels/Hinweise auf Deutsch zurück (bestehende Tests).
  */
-export function buildPreUploadChecklist(input: PreUploadChecklistInput): PreUploadCheckItem[] {
+export function buildPreUploadChecklist(
+  input: PreUploadChecklistInput,
+  t: PreUploadTranslator = germanFallback,
+): PreUploadCheckItem[] {
   const { file, metadata, isbn = null } = input;
   const validation = validateUploadArtefact(file, metadata, { isbn });
   const issues = validation.issues;
@@ -57,42 +71,42 @@ export function buildPreUploadChecklist(input: PreUploadChecklistInput): PreUplo
   return [
     {
       id: "format",
-      label: "Dateiformat DOCX/EPUB",
+      label: t("kdp.preupload.label.format"),
       ok: formatOk,
       required: true,
       hint: formatOk ? (file ? file.name : null) : fileHint,
     },
     {
       id: "size",
-      label: "Dateigröße im Limit",
+      label: t("kdp.preupload.label.size"),
       ok: sizeOk,
       required: true,
       hint: sizeOk ? null : fileHint,
     },
     {
       id: "metadata",
-      label: "Metadaten vollständig (Titel, Klappentext, Keywords)",
+      label: t("kdp.preupload.label.metadata"),
       ok: metadataOk,
       required: true,
       hint: metadataOk ? null : metaErrors.map((i) => i.message).join("; "),
     },
     {
       id: "price",
-      label: "Preis gesetzt (0,99–200 USD)",
+      label: t("kdp.preupload.label.price"),
       ok: priceOk,
       required: false,
-      hint: priceOk ? (metadata.priceUsd != null ? `${metadata.priceUsd.toFixed(2)} USD` : "KDP fragt den Preis beim Setup ab") : issues.find((i) => /preis/i.test(i.message))?.message ?? null,
+      hint: priceOk ? (metadata.priceUsd != null ? `${metadata.priceUsd.toFixed(2)} USD` : t("kdp.preupload.priceAskedLater")) : issues.find((i) => /preis/i.test(i.message))?.message ?? null,
     },
     {
       id: "cover",
-      label: "Cover vorhanden",
+      label: t("kdp.preupload.label.cover"),
       ok: coverOk,
       required: true,
-      hint: coverOk ? null : "Kein Cover hinterlegt — KDP lehnt Bücher ohne Cover im Review ab.",
+      hint: coverOk ? null : t("kdp.preupload.coverMissingHint"),
     },
     {
       id: "isbn",
-      label: isbn ? "ISBN gültig" : "ISBN (optional — KDP vergibt eigene)",
+      label: isbn ? t("kdp.preupload.label.isbnValid") : t("kdp.preupload.label.isbnOptional"),
       ok: isbnOk,
       required: false,
       hint: isbnOk ? null : isbnErrors.map((i) => i.message).join("; "),
@@ -104,7 +118,7 @@ export function buildPreUploadChecklist(input: PreUploadChecklistInput): PreUplo
 export interface KdpPreUploadChecklistProps extends PreUploadChecklistInput {
   /** Upload-Callback (nur bei erfüllten Pflichtpunkten klickbar). */
   onUpload?: () => void;
-  /** Button-Label. Default: "Zu KDP hochladen". */
+  /** Button-Label. Default: t("kdp.preupload.upload"). */
   uploadLabel?: string;
   /** Deaktiviert den Button zusätzlich (z. B. während ein Upload läuft). */
   busy?: boolean;
@@ -117,12 +131,14 @@ export function KdpPreUploadChecklist({
   metadata,
   isbn = null,
   onUpload,
-  uploadLabel = "Zu KDP hochladen",
+  uploadLabel,
   busy = false,
 }: KdpPreUploadChecklistProps) {
+  const { t } = useI18n();
+  const label = uploadLabel ?? t("kdp.preupload.upload");
   const items = useMemo(
-    () => buildPreUploadChecklist({ file, metadata, isbn }),
-    [file, metadata, isbn],
+    () => buildPreUploadChecklist({ file, metadata, isbn }, t),
+    [file, metadata, isbn, t],
   );
   const blocking = items.filter((i) => i.required && !i.ok);
   const ready = blocking.length === 0;
@@ -131,9 +147,9 @@ export function KdpPreUploadChecklist({
   return (
     <div className="kdp kdp-preupload" data-testid="kdp-preupload-checklist">
       <div className="kdp-head">
-        <h3>Pre-Upload-Check</h3>
+        <h3>{t("kdp.preupload.title")}</h3>
         <span className="kdp-summary" data-testid="kdp-preupload-summary">
-          {doneCount}/{items.length} erfüllt
+          {t("kdp.preupload.summary", { done: doneCount, total: items.length })}
         </span>
       </div>
 
@@ -149,7 +165,7 @@ export function KdpPreUploadChecklist({
             <span className="kdp-item-body">
               <span className="kdp-item-label">
                 {item.label}
-                {!item.required && <span className="kdp-item-optional"> (optional)</span>}
+                {!item.required && <span className="kdp-item-optional">{t("kdp.preupload.optional")}</span>}
               </span>
               {item.hint && <span className="kdp-item-hint">{item.hint}</span>}
             </span>
@@ -159,7 +175,7 @@ export function KdpPreUploadChecklist({
 
       {!ready && (
         <div className="kdp-notice kdp-notice-err" data-testid="kdp-preupload-blocking">
-          {blocking.length} Pflichtpunkt(e) offen — Upload blockiert.
+          {t("kdp.preupload.blocking", { count: blocking.length })}
         </div>
       )}
 
@@ -169,9 +185,9 @@ export function KdpPreUploadChecklist({
           data-testid="kdp-preupload-upload-btn"
           onClick={onUpload}
           disabled={busy || !ready}
-          title={ready ? uploadLabel : "Pflichtpunkte zuerst erfüllen"}
+          title={ready ? label : t("kdp.preupload.fulfillFirst")}
         >
-          {busy ? "Upload läuft…" : uploadLabel}
+          {busy ? t("kdp.preupload.uploading") : label}
         </button>
       )}
     </div>

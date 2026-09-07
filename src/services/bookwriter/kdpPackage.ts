@@ -27,6 +27,7 @@ import {
   type UploadValidationResult,
 } from "./kdpUploadValidation";
 import { buildUploadPackage } from "./kdpUpload";
+import { mergeCoverIntoValidation, validateKdpCover } from "./kdpCover";
 
 /** Version des Manifest-Schemas (Breaking Changes → Major hochzaehlen). */
 export const KDP_BUNDLE_VERSION = "1.0";
@@ -177,6 +178,20 @@ export async function buildKdpBundle(input: KdpBundleInput): Promise<KdpBundle> 
       sha256: await sha256Hex(coverBytes),
     });
     cover = input.cover;
+    // Sprint 13, Agent 5 (additiv): Cover-Bytes gegen die KDP-Cover-Specs
+    // pruefen und das Ergebnis in das bestehende Pre-Flight-Ergebnis
+    // mischen. Nur Fehler kippen isValid/canUpload — Warnungen (PNG,
+    // unter Idealmaß, TIFF, unlesbar) lassen bestehende Bundles zu.
+    // Unlesbare/Platzhalter-Bytes (z. B. Testdaten) erzeugen hoechstens
+    // Warnungen, nie Fehler — ausser bei leerer Datei oder > 50 MB.
+    mergeCoverIntoValidation(
+      validation,
+      validateKdpCover(coverBytes, {
+        name: input.cover.name,
+        mimeType: input.cover.mimeType,
+        sizeBytes: coverBytes.length,
+      }),
+    );
   }
 
   const coverPresent = cover !== null || (input.metadata.coverImage?.trim() ?? "") !== "";

@@ -69,6 +69,10 @@ import { runHookSafe, emitPluginEvent } from "@/plugins";
 // Zentrale ErrorBoundary (Fallback-UI, Reset, Crash-Report) — ersetzt die
 // früher hier lokal definierte Minimalversion.
 import { ErrorBoundary } from "@/components/ErrorBoundary/ErrorBoundary";
+// Sprint 13 (Agent 3): Panel-Fehlergrenze um das KI-Panel — ein Panel-Crash
+// (z. B. KI-Stack) reisst nicht mehr den Editor mit; Fallback mit Retry +
+// PII-bereinigtem Fehlerreport statt weisser Fläche.
+import { ErrorBoundary as PanelErrorBoundary } from "@/components/Error/ErrorBoundary";
 import { initDb, isPersistent } from "@/services/db";
 import { updateChapter } from "@/services/project";
 import { isSetupCompleted, resetSetup } from "@/services/setup/state";
@@ -322,9 +326,11 @@ function AppInner() {
               </Suspense>
             )}
           </section>
-          <Suspense fallback={<div className="mode-placeholder">KI-Panel lädt…</div>}>
-            <KIPanel />
-          </Suspense>
+          <PanelErrorBoundary panelName="KI-Panel">
+            <Suspense fallback={<div className="mode-placeholder">KI-Panel lädt…</div>}>
+              <KIPanel />
+            </Suspense>
+          </PanelErrorBoundary>
         </main>
 
         {showSettings && (

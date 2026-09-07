@@ -212,3 +212,61 @@ describe("bundleToZip", () => {
     expect(Object.keys(zip.files)).toHaveLength(2);
   });
 });
+
+// Pre-Flight-Cover-Validierung (Sprint 13, Agent 5 — additiv).
+// Minimal-JPEG per Hand gebaut (SOI + APP0 + SOF0 + EOI), auf 6 KB
+// aufgefuellt, damit die Platzhalter-Warnung (< 5 KB) nicht greift.
+function coverJpegBytes(width: number, height: number): Uint8Array {
+  const head = [
+    0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01,
+    0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00, 0xff, 0xc0, 0x00, 0x0b,
+    0x08, (height >>> 8) & 0xff, height & 0xff, (width >>> 8) & 0xff,
+    width & 0xff, 0x01, 0x01, 0x11, 0x00, 0xff, 0xd9,
+  ];
+  const out = new Uint8Array(6000);
+  out.set(head, 0);
+  return out;
+}
+
+function coverInput(width: number, height: number): KdpBundleInput {
+  return input({
+    cover: {
+      name: "cover.jpg",
+      mimeType: "image/jpeg",
+      blob: new Blob([coverJpegBytes(width, height) as BlobPart], {
+        type: "image/jpeg",
+      }),
+    },
+  });
+}
+
+describe("buildKdpBundle (Cover-Pre-Flight, additiv)", () => {
+  it("ideales Cover (1600×2560 JPEG) bleibt uploadfaehig", async () => {
+    const bundle = await buildKdpBundle(coverInput(1600, 2560));
+    expect(bundle.validation.isValid).toBe(true);
+    expect(bundle.canUpload).toBe(true);
+  });
+
+  it("zu kleines Cover (800×600) blockiert den Upload", async () => {
+    const bundle = await buildKdpBundle(coverInput(800, 600));
+    expect(bundle.validation.isValid).toBe(false);
+    expect(bundle.canUpload).toBe(false);
+    expect(bundle.validation.errorCount).toBeGreaterThan(0);
+    expect(
+      bundle.validation.issues.some((i) => i.message.includes("800×600")),
+    ).toBe(true);
+  });
+
+  it("Cover unter Idealmaß (1200×1920) warnt nur und bleibt uploadfaehig", async () => {
+    const bundle = await buildKdpBundle(coverInput(1200, 1920));
+    expect(bundle.validation.isValid).toBe(true);
+    expect(bundle.canUpload).toBe(true);
+    expect(bundle.validation.warningCount).toBeGreaterThan(0);
+  });
+
+  it("Querformat-Cover (2560×1600) blockiert den Upload", async () => {
+    const bundle = await buildKdpBundle(coverInput(2560, 1600));
+    expect(bundle.validation.isValid).toBe(false);
+    expect(bundle.canUpload).toBe(false);
+  });
+});
