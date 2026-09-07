@@ -1,6 +1,6 @@
 [package]
 name = "ai-writer-studio"
-version = "1.2.3"
+version = "1.2.4"
 description = "AI Writer Studio - Lokales Manuskriptstudio mit KI"
 authors = ["Erik Gieske"]
 edition = "2021"
