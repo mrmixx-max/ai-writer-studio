@@ -30,4 +30,6 @@ export type EditorMode =
   | "markdown"
   | "wordstats"
   | "ideas"
-  | "consistency";
+  | "consistency"
+  | "newspaper"
+  | "textquality";

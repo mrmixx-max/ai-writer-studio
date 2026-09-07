@@ -136,6 +136,8 @@ export const en: TranslationDict = {
   "sidebar.mode.wordstats": "Statistics",
   "sidebar.mode.ideas": "Ideas",
   "sidebar.mode.consistency": "Check",
+  "sidebar.mode.newspaper": "News Generator",
+  "sidebar.mode.textquality": "Text Improvement",
 
   "bookwriter.title": "📖 Automatic book author",
   "bookwriter.resumeTitle": "Resume generation?",

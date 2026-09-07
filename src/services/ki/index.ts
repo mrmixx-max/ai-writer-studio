@@ -11,8 +11,13 @@ const ACTION_PROMPTS: Record<string, (req: KIRequest) => string> = {
   weiterschreiben: (req) =>
     `Schreibe den folgenden Text natürlich und im gleichen Stil weiter. Füge keinen Kommentar hinzu, nur den Fortsetzungstext.\n\nKONTEXT (bisheriges Dokument):\n${req.context}\n\nMARKIERTER TEXT (dort ansetzen):\n${req.selection}`,
 
-  umschreiben: (req) =>
-    `Schreibe den markierten Text im Stil "${req.style ?? "sachlich"}" um. Behalte die Bedeutung bei. Nur den umgeschriebenen Text ausgeben.\n\nTEXT:\n${req.selection}`,
+  umschreiben: (req) => {
+    const opts = req.rewriteOpts;
+    const style = opts?.style ?? req.style ?? "sachlich";
+    const lengthHint = opts?.length === "kürzer" ? "Fasse deutlich zusammen (ca. 50% der Länge)." : opts?.length === "länger" ? "Erweitere mit mehr Details und Beispielen." : "Behalte die ungefähre Länge bei.";
+    const langHint = opts?.target === "en" ? "Schreibe die Antwort auf Englisch." : "Schreibe die Antwort auf Deutsch.";
+    return `Schreibe den folgenden Text im Stil "${style}" um. ${lengthHint} ${langHint} Nur den umgeschriebenen Text ausgeben.\n\nTEXT:\n${req.selection}`;
+  },
 
   zusammenfassen: (req) =>
     `Fasse den folgenden Text prägnant zusammen (max. 1/3 der Länge). Nur die Zusammenfassung ausgeben.\n\nTEXT:\n${req.selection || req.context}`,

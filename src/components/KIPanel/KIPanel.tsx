@@ -19,7 +19,7 @@ import { useActiveModel } from "@/components/KIPanel/useActiveModel";
 import { useEditorStore } from "@/store/editorStore";
 import { useProjectStore } from "@/store/projectStore";
 import { WhisperButton } from "@/components/Whisper/WhisperButton";
-import type { KIAction, RewriteStyle } from "@/services/ki/types";
+import type { KIAction, RewriteStyle, RewriteLength, RewriteTarget, RewriteOptions } from "@/services/ki/types";
 import {
   listMemory,
   saveMemory,
@@ -50,6 +50,11 @@ const ACTIONS: { id: KIAction; label: string }[] = [
 ];
 
 const STYLES: RewriteStyle[] = ["formell", "locker", "dramatisch", "sachlich"];
+const LENGTHS: RewriteLength[] = ["kürzer", "gleich", "länger"];
+const TARGETS: { value: RewriteTarget; label: string }[] = [
+  { value: "de", label: "Deutsch" },
+  { value: "en", label: "Englisch" },
+];
 
 export function KIPanel() {
   const [output, setOutput] = useState("");
@@ -58,7 +63,12 @@ export function KIPanel() {
   const [offline, setOffline] = useState(false);
   // Anzeige des bei der letzten Aktion verwendeten Modells ("→ ollama · llama3.2").
   const [usedModel, setUsedModel] = useState("");
-  const [style, setStyle] = useState<RewriteStyle>("sachlich");
+  const [activeAction, setActiveAction] = useState<KIAction | null>(null);
+  const [rewriteOptions, setRewriteOptions] = useState<RewriteOptions>({
+    style: "sachlich",
+    length: "gleich",
+    target: "de",
+  });
   const [chatInput, setChatInput] = useState("");
   // Chatverlauf (persistiert in SQLite)
   const [history, setHistory] = useState<StoredChatMessage[]>([]);
@@ -146,6 +156,8 @@ export function KIPanel() {
   }
 
   async function run(action: KIAction) {
+    // Dropdown-Steuerung: nur bei "umschreiben" Optionen zeigen
+    setActiveAction(action === "umschreiben" ? "umschreiben" : null);
     setBusy(true);
     setOutput("");
     setStreaming("");
@@ -172,7 +184,17 @@ export function KIPanel() {
     await saveMsg("user", action === "chat" ? chatInput : `[${action}] ${selection.slice(0, 200) || ctx.slice(-200)}`);
     const res = await runKIAction(
       settings,
-      { action, selection, context: ctx, style, chatMessage: chatInput, slotId, history: llmHistory, memoryContext: memoryBlock || undefined },
+      {
+        action,
+        selection,
+        context: ctx,
+        style: rewriteOptions.style,
+        rewriteOpts: action === "umschreiben" ? rewriteOptions : undefined,
+        chatMessage: chatInput,
+        slotId,
+        history: llmHistory,
+        memoryContext: memoryBlock || undefined,
+      },
       (t) => setStreaming((s) => s + t),
     );
     setOutput(res.text);
@@ -270,6 +292,45 @@ export function KIPanel() {
 
       {/* Modell-Dropdown entfernt — redundant mit ModelPicker */}
 
+      {/* Erweiterte Umschreib-Optionen: nur bei activeAction === "umschreiben" */}
+      {activeAction === "umschreiben" && (
+        <div className="ki-rewrite-options">
+          <label className="ki-style">
+            Stil:
+            <select
+              aria-label="Stil"
+              value={rewriteOptions.style}
+              onChange={(e) => {
+                const v = e.target.value as RewriteStyle;
+                setRewriteOptions((o) => ({ ...o, style: v }));
+              }}
+            >
+              {STYLES.map((s) => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </label>
+          <label className="ki-length">
+            Länge:
+            <select
+              aria-label="Länge"
+              value={rewriteOptions.length}
+              onChange={(e) => setRewriteOptions((o) => ({ ...o, length: e.target.value as RewriteLength }))}
+            >
+              {LENGTHS.map((l) => <option key={l} value={l}>{l}</option>)}
+            </select>
+          </label>
+          <label className="ki-target">
+            Zielsprache:
+            <select
+              aria-label="Zielsprache"
+              value={rewriteOptions.target}
+              onChange={(e) => setRewriteOptions((o) => ({ ...o, target: e.target.value as RewriteTarget }))}
+            >
+              {TARGETS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+            </select>
+          </label>
+        </div>
+      )}
+
       <div className="ki-actions">
         {ACTIONS.map((a) => (
           <button key={a.id} onClick={() => run(a.id)} disabled={busy}>
@@ -277,15 +338,6 @@ export function KIPanel() {
           </button>
         ))}
       </div>
-
-      {busy && (
-        <label className="ki-style">
-          Stil (Umschreiben):
-          <select value={style} onChange={(e) => setStyle(e.target.value as RewriteStyle)}>
-            {STYLES.map((s) => <option key={s} value={s}>{s}</option>)}
-          </select>
-        </label>
-      )}
 
       <div className="ki-chat-input">
         <textarea

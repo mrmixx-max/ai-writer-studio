@@ -12,6 +12,7 @@ import { useI18n } from "@/i18n";
 const WIDE_EXTRA_MODES = new Set<string>([
   "research", "publishing", "investigate", "watermark", "tts",
   "bookwriter", "markdown", "wordstats", "ideas", "consistency",
+  "newspaper", "textquality",
 ]);
 
 // Lazy-loaded Panels — werden erst beim ersten Zugriff geladen
@@ -101,6 +102,12 @@ const IdeasPanel = lazy(() =>
 const ConsistencyPanel = lazy(() =>
   import("@/components/Writing/ConsistencyPanel").then((m) => ({ default: m.ConsistencyPanel }))
 );
+const NewsGeneratorPanel = lazy(() =>
+  import("@/components/News/NewsGeneratorPanel").then((m) => ({ default: m.NewsGeneratorPanel }))
+);
+const TextQualityPanel = lazy(() =>
+  import("@/components/BookWriter/TextQualityPanel").then((m) => ({ default: m.TextQualityPanel }))
+);
 const ResearchPanel = lazy(() =>
   import("@/components/Research/ResearchPanel").then((m) => ({ default: m.ResearchPanel }))
 );
@@ -144,6 +151,8 @@ const MODES: { id: EditorMode; key: `sidebar.mode.${EditorMode}`; icon: string; 
   { id: "wordstats", key: "sidebar.mode.wordstats", icon: "📊", description: "Wortstatistik ansehen" },
   { id: "ideas", key: "sidebar.mode.ideas", icon: "💡", description: "Ideen sammeln" },
   { id: "consistency", key: "sidebar.mode.consistency", icon: "✅", description: "Konsistenz prüfen" },
+  { id: "newspaper", key: "sidebar.mode.newspaper", icon: "📰", description: "Zeitung aus Web-Recherche erstellen" },
+  { id: "textquality", key: "sidebar.mode.textquality", icon: "📊", description: "Text verbessern: Lektorat und Qualität" },
 ];
 
 export function Sidebar() {
@@ -452,6 +461,8 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
       case "wordstats": return <WordStatsPanel />;
       case "ideas": return <IdeasPanel />;
       case "consistency": return <ConsistencyPanel />;
+      case "newspaper": return <NewsGeneratorPanel />;
+      case "textquality": return <TextQualityPanel projectId={projectId} chapterId={chapterId} />;
       default: return null;
     }
   })();

@@ -220,6 +220,70 @@ describe("KIPanel", () => {
     render(<KIPanel />);
     expect(screen.getByText("Noch keine Nachrichten.")).toBeInTheDocument();
   });
+
+  it("'Umschreiben' Button existiert", () => {
+    render(<KIPanel />);
+    expect(screen.getByRole("button", { name: "Umschreiben" })).toBeInTheDocument();
+  });
+
+  it("Klick auf 'Umschreiben' zeigt Dropdown mit Stil/Länge/Zielsprache", async () => {
+    const user = userEvent.setup();
+    render(<KIPanel />);
+    // Vorher kein Dropdown
+    expect(screen.queryByLabelText("Stil")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Umschreiben" }));
+    expect(await screen.findByLabelText("Stil")).toBeInTheDocument();
+    expect(screen.getByLabelText("Länge")).toBeInTheDocument();
+    expect(screen.getByLabelText("Zielsprache")).toBeInTheDocument();
+    // rewriteOpts werden bei 'umschreiben' übergeben
+    expect(runKIAction).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        action: "umschreiben",
+        rewriteOpts: expect.objectContaining({ style: "sachlich", length: "gleich", target: "de" }),
+      }),
+      expect.any(Function),
+    );
+  });
+
+  it("Klick auf andere Aktionen zeigt KEIN Dropdown", async () => {
+    const user = userEvent.setup();
+    render(<KIPanel />);
+    await user.click(screen.getByRole("button", { name: "Umschreiben" }));
+    expect(await screen.findByLabelText("Stil")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Zusammenfassen" }));
+    await screen.findAllByText("KI-Antwort: Es war einmal.");
+    expect(screen.queryByLabelText("Stil")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Länge")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Zielsprache")).not.toBeInTheDocument();
+    // Bei anderen Aktionen kein rewriteOpts
+    expect(runKIAction).toHaveBeenLastCalledWith(
+      expect.anything(),
+      expect.objectContaining({ action: "zusammenfassen", rewriteOpts: undefined }),
+      expect.any(Function),
+    );
+  });
+
+  it("Dropdown-Änderung aktualisiert rewriteOptions", async () => {
+    const user = userEvent.setup();
+    render(<KIPanel />);
+    await user.click(screen.getByRole("button", { name: "Umschreiben" }));
+    const stil = await screen.findByLabelText("Stil");
+    await user.selectOptions(stil, "dramatisch");
+    await user.selectOptions(screen.getByLabelText("Länge"), "kürzer");
+    await user.selectOptions(screen.getByLabelText("Zielsprache"), "en");
+    vi.mocked(runKIAction).mockClear();
+    await user.click(screen.getByRole("button", { name: "Umschreiben" }));
+    await screen.findAllByText("KI-Antwort: Es war einmal.");
+    expect(runKIAction).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        action: "umschreiben",
+        rewriteOpts: { style: "dramatisch", length: "kürzer", target: "en" },
+      }),
+      expect.any(Function),
+    );
+  });
 });
 
 // ---------------------------------------------------------------------------

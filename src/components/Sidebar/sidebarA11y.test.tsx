@@ -67,8 +67,10 @@ describe("Sidebar A11y", () => {
     const buttons = within(switcher as HTMLElement).getAllByRole("button");
     expect(buttons.length).toBeGreaterThan(10);
     for (const b of buttons) {
-      expect(b.getAttribute("aria-label"), `Button ${b.getAttribute("title")}`).toBeTruthy();
-      expect(b.getAttribute("aria-label")).toBe(b.getAttribute("title"));
+      const label = b.getAttribute("aria-label") ?? "";
+      expect(label, `Button ${b.getAttribute("title")}`).toBeTruthy();
+      // aria-label = "Name – Beschreibung" (ausgeschrieben, Sprint 19); title = Name.
+      expect(label.startsWith(b.getAttribute("title") ?? ""), `aria-label "${label}" muss mit title "${b.getAttribute("title")}" beginnen`).toBe(true);
       expect(b.hasAttribute("aria-pressed")).toBe(true);
     }
   });

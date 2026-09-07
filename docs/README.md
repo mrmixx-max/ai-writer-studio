@@ -95,6 +95,9 @@ nicht gelöscht** (Historie) — dieser Index hält sie auffindbar.
 - `sprint18-agent4-bookwriter-abschlussbericht.md` — Sprint 18, Agent 4 (BookWriter)
 - `sprint18-agent5-windowsui-abschlussbericht.md` — Sprint 18, Agent 5 (Windows-UI)
 - `sprint18-agent6-toast-abschlussbericht.md` — Sprint 18, Agent 6 (Toast-System)
+- `sprint19-agent1-prospekt-abschlussbericht.md` — Sprint 19, Agent 1 (PDF-Werbeprospekt DE/EN)
+- `sprint19-agent2-uilabels-abschlussbericht.md` — Sprint 19, Agent 2 (UI-Labels ohne Tastenkürzel)
+- `sprint19-agent3-rewrite-options-abschlussbericht.md` — Sprint 19, Agent 3 (Umschreib-Optionen)
 
 ## Delivery-Logs (Sprint 4–6, Historie — nicht löschen)
 
