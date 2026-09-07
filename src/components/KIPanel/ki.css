@@ -54,6 +54,43 @@
   border-color: var(--border);
   color: var(--muted, var(--fg-dim, #888));
 }
+/* Busy-Zustand für langsame lokale Modelle */
+.ki-busy {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: #111;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 12px;
+}
+.ki-busy-label {
+  color: var(--accent);
+  font-weight: 600;
+}
+.ki-slow-hint {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted, var(--fg-dim, #888));
+  font-size: 11px;
+  font-style: italic;
+}
+.ki-cancel {
+  padding: 4px 10px;
+  background: var(--bg);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+.ki-cancel:hover {
+  background: var(--accent);
+  color: var(--bg);
+}
 .ki-style {
   font-size: 12px;
   color: var(--fg-dim);

@@ -52,22 +52,176 @@ function countWords(text: string): number {
   return (text.match(/[\p{L}\p{N}]+(?:[-'’][\p{L}\p{N}]+)*/gu) ?? []).length;
 }
 
-/** Parst JSON aus einer LLM-Antwort. */
-function parseJson<T>(raw: string): T | null {
+/** Versucht, einen String als JSON zu parsen (null statt Throw). */
+function tryParse<T>(text: string): T | null {
   try {
-    return JSON.parse(raw) as T;
+    return JSON.parse(text) as T;
   } catch {
-    /* weiter */
+    return null;
   }
-  const m = raw.match(/```(?:json)?\s*([\s\S]*?)```/i);
-  if (m) {
-    try {
-      return JSON.parse(m[1].trim()) as T;
-    } catch {
-      /* weiter */
+}
+
+/**
+ * Extrahiert Markdown-Code-Blöcke (```json ... ``` oder ``` ... ```).
+ * Gibt alle Block-Inhalte zurück (innere zuerst, dann äußere).
+ */
+function extractCodeBlocks(raw: string): string[] {
+  const out: string[] = [];
+  const re = /```(?:json)?\s*([\s\S]*?)```/gi;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(raw)) !== null) {
+    const inner = m[1].trim();
+    if (inner) out.push(inner);
+  }
+  return out;
+}
+
+/**
+ * Isoliert die erste [...] oder {...}-Sequenz aus freiem Text.
+ * Klammer-Matching ist string-sensitiv (ignoriert Klammern in Strings
+ * und escaped Quotes). Gibt null zurück, wenn nichts Balanciertes da ist.
+ */
+function isolateJsonSequence(raw: string): string | null {
+  const startIdx = (() => {
+    const a = raw.indexOf("[");
+    const b = raw.indexOf("{");
+    if (a === -1) return b;
+    if (b === -1) return a;
+    return Math.min(a, b);
+  })();
+  if (startIdx === -1) return null;
+  const pairs: Record<string, string> = { "[": "]", "{": "}" };
+  const stack: string[] = [];
+  let inStr: string | null = null;
+  for (let i = startIdx; i < raw.length; i++) {
+    const ch = raw[i];
+    if (inStr) {
+      if (ch === "\\") {
+        i++; // escaped Zeichen überspringen
+      } else if (ch === inStr) {
+        inStr = null;
+      }
+      continue;
+    }
+    if (ch === '"' || ch === "'") {
+      inStr = ch;
+    } else if (ch === "[" || ch === "{") {
+      stack.push(ch);
+    } else if (ch === "]" || ch === "}") {
+      const open = stack.pop();
+      if (!open || pairs[open] !== ch) return null; // unbalanciert
+      if (stack.length === 0) return raw.slice(startIdx, i + 1);
     }
   }
   return null;
+}
+
+/**
+ * Repariert häufige LLM-JSON-Fehler:
+ * - Single-Quotes → Double-Quotes
+ * - unquotete Keys ({title: ...} → {"title": ...})
+ * - unquotete String-Werte (: Anfang, → : "Anfang",; Zahlen/bool/null bleiben)
+ * - Trailing Commas vor ] oder }
+ * - Steuerzeichen entfernen, Whitespace normalisieren
+ */
+function repairJson(text: string): string {
+  let s = text
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")
+    .trim();
+  // Single-quoted Strings → double-quoted (simple Fälle: '...' ohne Innen-Quotes).
+  s = s.replace(/'([^'\\]*(?:\\.[^'\\]*)*)'/g, (_, inner: string) => `"${(inner as string).replace(/"/g, '\\"')}"`);
+  // Unquotete Keys quoten.
+  s = s.replace(/([{,]\s*)([A-Za-z_][A-Za-z0-9_-]*)\s*:/g, '$1"$2":');
+  // Unquotete String-Werte quoten (Zahlen, true/false/null auslassen).
+  s = s.replace(/:\s*([A-Za-zÄÖÜäöüß][^,{}[]"]*?)\s*([,}])/g, (m, val: string, end: string) => {
+    const v = (val as string).trim();
+    if (/^(true|false|null)$/.test(v) || /^-?\d+(\.\d+)?$/.test(v) || v.startsWith('"')) return m;
+    return `: "${v}"${end}`;
+  });
+  // Trailing Commas entfernen.
+  s = s.replace(/,(\s*[}\]])/g, "$1");
+  return s;
+}
+
+/**
+ * Parst JSON aus einer LLM-Antwort (Sprint 19e: LFM2-24B Wort-Salat-robust).
+ *
+ * Strategie (der Reihe nach, erster Treffer gewinnt):
+ *  1. Direkt parsen (bereits valides JSON).
+ *  2. Markdown-Code-Blöcke extrahieren und parsen.
+ *  3. JSON-Sequenz ([...]/ {...}) aus Fließtext isolieren und parsen.
+ *  4. Reparaturversuch (Quotes, Kommas, Keys) auf 1.–3.
+ *
+ * Gibt null zurück, wenn nichts davon valides JSON liefert
+ * (z. B. reiner Wort-Salat ohne JSON-Struktur).
+ */
+export function parseJson<T>(raw: string): T | null {
+  if (!raw || !raw.trim()) return null;
+  const clean = raw.replace(/^\uFEFF/, "").trim();
+
+  const candidates: string[] = [clean, ...extractCodeBlocks(clean)];
+  const isolated = isolateJsonSequence(clean);
+  if (isolated && !candidates.includes(isolated)) candidates.push(isolated);
+
+  for (const c of candidates) {
+    const direct = tryParse<T>(c);
+    if (direct !== null) return direct;
+  }
+  for (const c of candidates) {
+    const repaired = tryParse<T>(repairJson(c));
+    if (repaired !== null) return repaired;
+  }
+  return null;
+}
+
+/** Max. Versuche für die Outline-Generierung (Erstversuch + 2 Retries). */
+export const OUTLINE_MAX_ATTEMPTS = 3;
+/** Deterministische Temperatur für Retries (statt z. B. 0.7). */
+export const OUTLINE_RETRY_TEMPERATURE = 0.1;
+
+/**
+ * Härtet den Outline-Prompt (Sprint 19e): explizite NUR-JSON-Forderung mit
+ * Struktur-Beispiel-Hinweis. Wenig Token, keine Erklärungsspielräume —
+ * LFM2-24B und ähnliche CPU-Modelle brauchen harte Format-Schranken.
+ */
+export function appendJsonOnlyInstruction(prompt: string, chapterCount: number): string {
+  return (
+    `${prompt}\n\n` +
+    `WICHTIG — Ausgabeformat (verbindlich):\n` +
+    `Gib NUR valides JSON zurück: ein JSON-Array mit genau ${chapterCount} Einträgen, ` +
+    `im Format des obigen Beispiels. Keine Erklärung, keine Einleitung, kein Markdown, ` +
+    `keine Code-Fences, keine Wortwiederholungen. Beginne direkt mit [ und ende mit ].`
+  );
+}
+
+/**
+ * Outline-Resolve mit Retry (Sprint 19e, Fallback für Wort-Salat-Modelle):
+ * Erstversuch mit Basis-Temperatur, danach bis zu 2 Retries mit
+ * OUTLINE_RETRY_TEMPERATURE (0.1, deterministisch).
+ *
+ * `fetchRaw` injiziert den LLM-Call (produktiv: completeOnce mit
+ * überschriebener Temperatur) — dadurch ohne LLM-Mock testbar.
+ *
+ * Wirft bei Total-Fehlschlag einen Error mit Modell-Hinweis.
+ */
+export async function resolveOutlineJson<T>(
+  fetchRaw: (attempt: number, temperature: number | undefined) => Promise<string>,
+  baseTemperature?: number,
+): Promise<{ value: T; attempts: number }> {
+  let lastRaw = "";
+  for (let attempt = 1; attempt <= OUTLINE_MAX_ATTEMPTS; attempt++) {
+    const temperature = attempt === 1 ? baseTemperature : OUTLINE_RETRY_TEMPERATURE;
+    lastRaw = await fetchRaw(attempt, temperature);
+    const parsed = parseJson<T>(lastRaw);
+    if (parsed !== null && parsed !== undefined) return { value: parsed, attempts: attempt };
+  }
+  const anfang = lastRaw.slice(0, 120);
+  throw new Error(
+    `Gliederung konnte nicht als JSON gelesen werden. Anfang: ${anfang}… ` +
+      `Modell liefert kein valides JSON. Bitte in den Einstellungen ein ` +
+      `kleineres/anderes Modell wählen (z. B. llama3.2).`,
+  );
 }
 
 /** Startet einen neuen Bookwriter-Lauf. */
@@ -331,22 +485,33 @@ async function generateGliederung(
   const system = systemForGenre(briefing.genre, briefing.tone, briefing.language, getStyle(briefing.tone) ? briefing.tone : null);
 
   onProgress(0.2, "Gliederung wird erstellt…");
-  const raw = await completeOnce(
-    settings,
-    hitl ? hitl.applyInjects(promptOutline(briefing)) : promptOutline(briefing),
-    [{ role: "system", content: system }],
-    signal,
+  const basePrompt = hitl ? hitl.applyInjects(promptOutline(briefing)) : promptOutline(briefing);
+  // Sprint 19e: harte NUR-JSON-Schranke für Wort-Salat-Modelle (LFM2-24B).
+  const outlinePrompt = appendJsonOnlyInstruction(basePrompt, briefing.chapterCount);
+  const { value: parsed } = await resolveOutlineJson<BookOutline["chapters"]>(
+    (_attempt, temperature) =>
+      completeOnce(
+        temperature === undefined ? settings : { ...settings, temperature },
+        outlinePrompt,
+        [{ role: "system", content: system }],
+        signal,
+      ),
+    settings.temperature,
   );
 
-  const parsed = parseJson<BookOutline["chapters"]>(raw);
-  if (!parsed) {
-    throw new Error("Gliederung konnte nicht als JSON gelesen werden.");
-  }
-
   const outline: BookOutline = {
-    chapters: parsed,
-    totalWords: parsed.reduce((sum, c) => sum + (c.estimatedWords ?? 0), 0),
+    chapters: Array.isArray(parsed)
+      ? parsed
+      : ((parsed as unknown as { chapters?: BookOutline["chapters"] })?.chapters ?? parsed),
+    totalWords: 0,
   };
+  if (!Array.isArray(outline.chapters)) {
+    throw new Error(
+      "Gliederung konnte nicht als JSON gelesen werden. Modell liefert kein valides JSON. " +
+        "Bitte in den Einstellungen ein kleineres/anderes Modell wählen (z. B. llama3.2).",
+    );
+  }
+  outline.totalWords = outline.chapters.reduce((sum, c) => sum + (c.estimatedWords ?? 0), 0);
 
   await saveArtifact(runId, "gliederung", "outline", outline);
   onProgress(1, "Gliederung fertig.");
