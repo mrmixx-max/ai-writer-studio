@@ -89,6 +89,9 @@ export async function generateChapter(
     model: settings.model,
     temperature: settings.temperature,
     maxTokens: settings.maxTokens,
+    // Sprint 19d: Großes Modell (LFM2-24B, 14GB) braucht >120s für Kaltstart
+    // (Modell-Load). Ohne langen Timeout würde der Stream nach ~60s abbrechen.
+    timeoutMs: 600_000,
   })) {
     if (signal?.aborted) {
       throw new Error("Generierung abgebrochen.");
@@ -228,6 +231,8 @@ async function generateSummary(
     model: settings.model,
     temperature: 0.3,
     maxTokens: 500,
+    // Sprint 19d: Großes Modell braucht bis zu 120s für den Kaltstart.
+    timeoutMs: 600_000,
   })) {
     summary += token;
   }
