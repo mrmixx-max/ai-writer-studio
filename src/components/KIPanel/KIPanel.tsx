@@ -1,6 +1,6 @@
 // KI-Panel: rechte Seitenleiste mit Aktionen + Streaming-Ausgabe.
 // Erweitert: Chatverlauf (persistiert), Multi-Modell-Auswahl, KI-Analysen.
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { runKIAction } from "@/services/ki";
 import { getDocumentContext } from "@/services/ki/context";
 import { analyzeText, formatAnalysis, type AnalysisResult } from "@/services/ki/analyze";
@@ -61,6 +61,10 @@ export function KIPanel() {
   const [streaming, setStreaming] = useState("");
   const [busy, setBusy] = useState(false);
   const [offline, setOffline] = useState(false);
+  // Sprint 19d (Agent 2): Warte-Anzeige für langsame lokale Modelle.
+  // elapsed zählt Sekunden seit Run-Start; der AbortController erlaubt Abbrechen.
+  const [elapsed, setElapsed] = useState(0);
+  const abortRef = useRef<AbortController | null>(null);
   // Anzeige des bei der letzten Aktion verwendeten Modells ("→ ollama · llama3.2").
   const [usedModel, setUsedModel] = useState("");
   const [activeAction, setActiveAction] = useState<KIAction | null>(null);
@@ -155,7 +159,28 @@ export function KIPanel() {
     useEditorStore.getState().insertAtEnd(output);
   }
 
+  // Elapsed-Timer: läuft nur während busy, Reset bei Ende.
+  useEffect(() => {
+    if (!busy) {
+      setElapsed(0);
+      return;
+    }
+    setElapsed(0);
+    const id = window.setInterval(() => setElapsed((s) => s + 1), 1000);
+    return () => window.clearInterval(id);
+  }, [busy]);
+
+  // Bricht den laufenden Stream ab (Button bleibt während busy klickbar).
+  function cancelRun() {
+    abortRef.current?.abort();
+  }
+
   async function run(action: KIAction) {
+    // Keine überlappenden Runs (z. B. Return-Taste während busy) — sonst
+    // würden zwei Streams um output/streaming konkurrieren.
+    if (busy) return;
+    const controller = new AbortController();
+    abortRef.current = controller;
     // Dropdown-Steuerung: nur bei "umschreiben" Optionen zeigen
     setActiveAction(action === "umschreiben" ? "umschreiben" : null);
     setBusy(true);
@@ -164,21 +189,28 @@ export function KIPanel() {
     setOffline(false);
     setAnalysis(null);
     try {
-      await runActionInner(action);
+      await runActionInner(action, controller.signal);
     } catch (e) {
-      // Fehler sichtbar machen statt still zu verschlucken (unhandled rejection).
-      const msg = `Fehler: ${e instanceof Error ? e.message : String(e)}`;
-      setOutput(msg);
-      setStreaming("");
-      await autoRemember("").catch(() => {}); // no-op Guard
+      // Abbruch ist kein Fehler: kurze Rückmeldung statt Fehlertext.
+      if (controller.signal.aborted || (e instanceof DOMException && e.name === "AbortError")) {
+        setOutput("Abgebrochen.");
+        setStreaming("");
+      } else {
+        // Fehler sichtbar machen statt still zu verschlucken (unhandled rejection).
+        const msg = `Fehler: ${e instanceof Error ? e.message : String(e)}`;
+        setOutput(msg);
+        setStreaming("");
+        await autoRemember("").catch(() => {}); // no-op Guard
+      }
     } finally {
       // KRITISCH: busy immer zurücksetzen — sonst bleiben nach einem Fehler
       // alle Buttons (inkl. Senden) dauerhaft disabled.
       setBusy(false);
+      abortRef.current = null;
     }
   }
 
-  async function runActionInner(action: KIAction) {
+  async function runActionInner(action: KIAction, signal?: AbortSignal) {
     const ctx = getDocumentContext();
     // Verwendetes Modell am Antwort-Beginn anzeigen ("→ ollama · llama3.2").
     setUsedModel(`${labelFor(settings.provider)} · ${settings.model}`);
@@ -212,6 +244,7 @@ export function KIPanel() {
         memoryContext: memoryBlock || undefined,
       },
       (t) => setStreaming((s) => s + t),
+      { signal },
     );
     setOutput(res.text);
     setStreaming("");
@@ -414,6 +447,23 @@ export function KIPanel() {
       </div>
 
       <div className="ki-output">
+        {/* Sprint 19d: klarer busy-Zustand statt eingefrorener Buttons.
+            Aktionen/Senden bleiben während busy disabled, aber Abbrechen
+            ist jederzeit klickbar; Elapsed-Timer + Lade-Hinweis nach 10 s
+            ohne erstes Token (große lokale Modelle brauchen 1–2 Min). */}
+        {busy && (
+          <div className="ki-busy" role="status" aria-live="polite">
+            <span className="ki-busy-label">KI arbeitet… {elapsed}s</span>
+            {elapsed >= 10 && !streaming && !output && (
+              <span className="ki-slow-hint">
+                Großes Modell lädt — erste Antwort kann 1-2 Min dauern
+              </span>
+            )}
+            <button className="ki-cancel" onClick={cancelRun}>
+              Abbrechen
+            </button>
+          </div>
+        )}
         {(streaming || output) && usedModel && (
           <p className="ki-response-model">
             → {usedModel}

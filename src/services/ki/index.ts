@@ -35,11 +35,12 @@ const ACTION_PROMPTS: Record<string, (req: KIRequest) => string> = {
 const SYSTEM_PROMPT =
   "Du bist ein hilfreicher Schreibassistent für Autoren. Antworte auf Deutsch, präzise, im Ton des Textes. Keine Einleitungsfloskel.";
 
-/** Führt eine KI-Aktion aus. Streamt Token via onToken. */
+/** Führt eine KI-Aktion aus. Streamt Token via onToken. opts.signal bricht den Stream ab. */
 export async function runKIAction(
   settings: AppSettings,
   req: KIRequest,
   onToken: (t: string) => void,
+  opts?: { signal?: AbortSignal },
 ): Promise<KIResult> {
   // Multi-Modell: wenn ein Slot mit slotId existiert, diesen Provider + sein Modell nutzen
   const slot = req.slotId && settings.kiModelSlots?.length
@@ -69,15 +70,19 @@ export async function runKIAction(
 
   let raw = "";
   try {
+    if (opts?.signal?.aborted) throw new DOMException("Abgebrochen", "AbortError");
     for await (const token of provider.chat(messages, {
       model: activeModel,
       temperature: req.action === "korrektur" || req.action === "zusammenfassen" ? 0.3 : 0.8,
       maxTokens: settings.maxTokens,
-    })) {
+    }, opts?.signal)) {
       raw += token;
       onToken(token);
     }
   } catch (e) {
+    if ((e as Error)?.name === "AbortError" || opts?.signal?.aborted) {
+      throw e;
+    }
     const msg = `Fehler bei KI-Aufruf: ${(e as Error).message}`;
     onToken(msg);
     return { text: msg, offline: true };

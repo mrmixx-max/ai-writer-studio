@@ -162,6 +162,7 @@ describe("KIPanel", () => {
       expect.anything(),
       expect.objectContaining({ action: "zusammenfassen", context: "Dokumentenkontext" }),
       expect.any(Function),
+      expect.anything(),
     );
     expect(saveChatMessage).toHaveBeenCalledWith(
       expect.anything(),
@@ -187,6 +188,7 @@ describe("KIPanel", () => {
       expect.anything(),
       expect.objectContaining({ action: "chat", chatMessage: "Was ist ein Plot-Twist?" }),
       expect.any(Function),
+      expect.anything(),
     );
   });
 
@@ -243,6 +245,7 @@ describe("KIPanel", () => {
         rewriteOpts: expect.objectContaining({ style: "sachlich", length: "gleich", target: "de" }),
       }),
       expect.any(Function),
+      expect.anything(),
     );
   });
 
@@ -261,6 +264,7 @@ describe("KIPanel", () => {
       expect.anything(),
       expect.objectContaining({ action: "zusammenfassen", rewriteOpts: undefined }),
       expect.any(Function),
+      expect.anything(),
     );
   });
 
@@ -282,6 +286,7 @@ describe("KIPanel", () => {
         rewriteOpts: { style: "dramatisch", length: "kürzer", target: "en" },
       }),
       expect.any(Function),
+      expect.anything(),
     );
   });
 });

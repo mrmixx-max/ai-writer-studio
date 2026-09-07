@@ -99,6 +99,9 @@ nicht gelöscht** (Historie) — dieser Index hält sie auffindbar.
 - `sprint19-agent2-uilabels-abschlussbericht.md` — Sprint 19, Agent 2 (UI-Labels ohne Tastenkürzel)
 - `sprint19-agent3-rewrite-options-abschlussbericht.md` — Sprint 19, Agent 3 (Umschreib-Optionen)
 - `sprint19c-agent1-senddebug-abschlussbericht.md` — Sprint 19c, Agent 1 (Senden/Ollama-Debug)
+- `sprint19d-agent1-timeouts-abschlussbericht.md` — Sprint 19d, Agent 1 (Timeout-Architektur)
+- `sprint19d-agent2-ux-abschlussbericht.md` — Sprint 19d, Agent 2 (KI-Panel UX: Abbrechen + Timer)
+- `sprint19d-agent3-ollama-benchmark.md` — Sprint 19d, Agent 3 (Ollama-Benchmark LFM2-24B)
 
 ## Delivery-Logs (Sprint 4–6, Historie — nicht löschen)
 

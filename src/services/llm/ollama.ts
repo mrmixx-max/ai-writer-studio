@@ -19,7 +19,43 @@ import { normalizeLocalBaseUrl } from "./baseUrl";
 // (busy=true). Jede Sekunde weniger Wartezeit zählt; Ollama antwortet auf
 // /api/tags lokal in Millisekunden, 3s reicht als Erreichbarkeits-Signal.
 const HEALTH_TIMEOUT = 3000;
-const FETCH_TIMEOUT = 30000;
+/** Sprint 19d: Modellliste — reine Metadaten, 10s reichen immer. */
+const LIST_TIMEOUT = 10000;
+
+/**
+ * Sprint 19d (Timeout-Architektur für große lokale Modelle):
+ * Empfohlene Obergrenze für /api/chat (10min). Große CPU-Modelle
+ * (z.B. 14-GB-GGUF) brauchen >60s bis zum ersten Token (Model-Load +
+ * Inferenz) — der alte Whole-Request-Timeout von 30s hat sie abgewürgt
+ * ("Fehler bei KI-Aufruf"). chat() selbst setzt KEINEN internen Timeout
+ * mehr (Abort kommt von außen über `signal`); Aufrufer, die eine harte
+ * Obergrenze wollen, brechen per AbortController nach diesem Wert ab.
+ * Explizites `options.timeoutMs` aktiviert weiterhin fetchWithTimeout.
+ */
+export const OLLAMA_CHAT_TIMEOUT_MS = 600_000;
+/**
+ * Sprint 19d: Default-Kontextfenster für /api/chat. Ollamas Server-Default
+ * (131072) sprengt bei großen Modellen den CPU-RAM — 8192 reicht für
+ * Schreib-Use-Cases und hält Model-Load + Inferenz bezahlbar.
+ * Überschreibbar pro Call via `(options as { numCtx?: number }).numCtx`.
+ */
+export const OLLAMA_DEFAULT_NUM_CTX = 8192;
+/**
+ * Sprint 19d: Default für `keep_alive` im /api/chat-Payload. "keep" hält
+ * das Modell nach dem Request im VRAM/RAM geladen — kein 14-GB-Reload
+ * nach 5min Idle mehr. Überschreibbar pro Call via
+ * `(options as { keepAlive?: string | number }).keepAlive`
+ * (z.B. "15m", 0 = sofort entladen).
+ */
+export const OLLAMA_DEFAULT_KEEP_ALIVE = "keep";
+
+/** Optionale, Ollama-spezifische Chat-Extras (kein Eingriff in ChatOptions nötig). */
+export interface OllamaChatExtras {
+  /** keep_alive für /api/chat (Default: "keep"). */
+  keepAlive?: string | number;
+  /** num_ctx für /api/chat (Default: 8192). */
+  numCtx?: number;
+}
 
 export class OllamaProvider implements LLMProvider {
   private readonly baseUrl: string;
@@ -49,7 +85,7 @@ export class OllamaProvider implements LLMProvider {
 
   async listModels(): Promise<string[]> {
     try {
-      const res = await fetchWithTimeout(`${this.baseUrl}/api/tags`, {}, FETCH_TIMEOUT);
+      const res = await fetchWithTimeout(`${this.baseUrl}/api/tags`, {}, LIST_TIMEOUT);
       await assertOk(res, "Ollama listModels");
       const data = await res.json();
       // Ollama liefert { models: [{ name: "llama3.2" }, ...] }
@@ -98,13 +134,19 @@ export class OllamaProvider implements LLMProvider {
     options: ChatOptions,
     signal?: AbortSignal,
   ): AsyncGenerator<string> {
+    // Sprint 19d: keep_alive hält das Modell geladen (kein 14-GB-Reload nach
+    // Idle), num_ctx deckelt das Kontextfenster (Server-Default 131k killt
+    // den CPU-RAM). Beide pro Call überschreibbar via OllamaChatExtras.
+    const extras = options as ChatOptions & OllamaChatExtras;
     const payload = {
       model: options.model,
       messages: messages.map((m) => ({ role: m.role, content: m.content })),
       stream: true,
+      keep_alive: extras.keepAlive ?? OLLAMA_DEFAULT_KEEP_ALIVE,
       options: {
         temperature: options.temperature ?? 0.7,
         num_predict: options.maxTokens ?? 2048,
+        num_ctx: extras.numCtx ?? OLLAMA_DEFAULT_NUM_CTX,
       },
     };
     // Slot VOR dem fetch belegen und erst nach komplettem Stream-Verbrauch
@@ -114,11 +156,19 @@ export class OllamaProvider implements LLMProvider {
     let res: Response;
     try {
       try {
-        res = await fetchWithTimeout(`${this.baseUrl}/api/chat`, {
+        // Sprint 19d: KEIN Whole-Request-Timeout für /api/chat — große
+        // Modelle brauchen >60s bis zum ersten Token. fetch läuft ohne
+        // internen Timer; Abort kommt von außen über `signal`. Nur ein
+        // explizites options.timeoutMs aktiviert fetchWithTimeout.
+        const init: RequestInit = {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
-        }, options.timeoutMs ?? FETCH_TIMEOUT);
+          ...(signal ? { signal } : {}),
+        };
+        res = options.timeoutMs != null
+          ? await fetchWithTimeout(`${this.baseUrl}/api/chat`, init, options.timeoutMs)
+          : await fetch(`${this.baseUrl}/api/chat`, init);
       } catch (e) {
         release();
         throw new ProviderError(
