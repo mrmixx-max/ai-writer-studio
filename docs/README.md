@@ -71,6 +71,12 @@ nicht gelöscht** (Historie) — dieser Index hält sie auffindbar.
 - `sprint14-agent4-imageui-abschlussbericht.md` — Sprint 14, Agent 4 (Bildgenerierung-UI)
 - `sprint14-agent5-imagebackup-abschlussbericht.md` — Sprint 14, Agent 5 (Bilder-Backup)
 - `sprint14-agent6-promptbuilder-abschlussbericht.md` — Sprint 14, Agent 6 (Prompt-Builder)
+- `sprint15-agent1-bilingual-abschlussbericht.md` — Sprint 15, Agent 1 (Bilingual-Engine)
+- `sprint15-agent2-bilingualui-abschlussbericht.md` — Sprint 15, Agent 2 (Bilingual-Panel)
+- `sprint15-agent3-i18n-abschlussbericht.md` — Sprint 15, Agent 3 (i18n Bilingual)
+- `sprint15-agent4-bilingualexport-abschlussbericht.md` — Sprint 15, Agent 4 (Bilingual-Export)
+- `sprint15-agent5-prompts-abschlussbericht.md` — Sprint 15, Agent 5 (Bilingual-Prompts)
+- `sprint15-agent6-settings-abschlussbericht.md` — Sprint 15, Agent 6 (Bilingual-Settings)
 
 ## Delivery-Logs (Sprint 4–6, Historie — nicht löschen)
 

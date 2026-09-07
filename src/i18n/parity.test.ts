@@ -88,6 +88,45 @@ describe("i18n KDP-Panels (Sprint 13, Agent 6): kdp.*-Namensraum", () => {
     expect(bad, bad.join("\n")).toEqual([]);
   });
 });
+describe("i18n Bilingual-Features (Sprint 15, Agent 3): bilingual.*-Namensraum", () => {
+  const BILINGUAL_KEYS = [
+    "bilingual.title",
+    "bilingual.detectLanguage",
+    "bilingual.translateTo",
+    "bilingual.original",
+    "bilingual.translated",
+    "bilingual.apply",
+    "bilingual.detected",
+    "bilingual.thinking",
+  ] as const;
+
+  it("alle bilingual.*-Schlüssel sind in de definiert", () => {
+    const missing = (BILINGUAL_KEYS as readonly string[]).filter((k) => !(k in de));
+    expect(missing, `in de fehlt: ${missing.join(", ")}`).toEqual([]);
+  });
+
+  it("alle bilingual.*-Schlüssel sind in en/fr/es vorhanden und nicht leer", () => {
+    // Hinweis: kein Untranslated-Check wie bei kdp.* — "bilingual.original"
+    // heisst in allen vier Sprachen genuin "Original".
+    const bad: string[] = [];
+    for (const lang of Object.keys(LOCALES) as Lang[]) {
+      const dict = LOCALES[lang] as Record<string, string>;
+      for (const key of BILINGUAL_KEYS) {
+        if (!(key in dict)) bad.push(`${lang}:${key} fehlt`);
+        else if (typeof dict[key] !== "string" || dict[key].trim() === "")
+          bad.push(`${lang}:${key} leer`);
+      }
+    }
+    expect(bad, bad.join("\n")).toEqual([]);
+  });
+
+  it("bilingual.detected behält den {{lang}}-Platzhalter in allen Locales", () => {
+    for (const lang of Object.keys(LOCALES) as Lang[]) {
+      const dict = LOCALES[lang] as Record<string, string>;
+      expect(dict["bilingual.detected"]).toContain("{{lang}}");
+    }
+  });
+});
 describe("i18n Parität: Interpolation und Registrierung", () => {
   it("{{Platzhalter}} stimmen in allen Locales mit de überein", () => {
     const mismatches: string[] = [];

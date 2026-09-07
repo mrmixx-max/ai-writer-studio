@@ -271,6 +271,16 @@ export const de = {
   "kdp.package.download": "Bundle als ZIP herunterladen",
   "kdp.package.downloadBlockedTitle": "Bundle ist blockiert — erst Fehler beheben",
   "kdp.package.creatingZip": "ZIP wird erstellt…",
+
+  // Bilingual-Features (Sprint 15, Agent 3)
+  "bilingual.title": "Zweisprachig",
+  "bilingual.detectLanguage": "Sprache erkennen",
+  "bilingual.translateTo": "Übersetzen nach",
+  "bilingual.original": "Original",
+  "bilingual.translated": "Übersetzt",
+  "bilingual.apply": "Übernehmen",
+  "bilingual.detected": "Erkannt: {{lang}}",
+  "bilingual.thinking": "Denke nach…",
 } as const;
 
 export type TranslationKey = keyof typeof de;

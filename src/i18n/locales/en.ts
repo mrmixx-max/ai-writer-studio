@@ -266,4 +266,14 @@ export const en: TranslationDict = {
   "kdp.package.download": "Download bundle as ZIP",
   "kdp.package.downloadBlockedTitle": "Bundle is blocked — fix errors first",
   "kdp.package.creatingZip": "Creating ZIP…",
+
+  // Bilingual features (Sprint 15, Agent 3)
+  "bilingual.title": "Bilingual",
+  "bilingual.detectLanguage": "Detect language",
+  "bilingual.translateTo": "Translate to",
+  "bilingual.original": "Original",
+  "bilingual.translated": "Translated",
+  "bilingual.apply": "Apply",
+  "bilingual.detected": "Detected: {{lang}}",
+  "bilingual.thinking": "Thinking…",
 };
