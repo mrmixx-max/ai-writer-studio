@@ -83,6 +83,12 @@ nicht gelöscht** (Historie) — dieser Index hält sie auffindbar.
 - `sprint16-agent4-layout-abschlussbericht.md` — Sprint 16, Agent 4 (Zeitungs-Layout)
 - `sprint16-agent5-newsui-abschlussbericht.md` — Sprint 16, Agent 5 (Zeitungs-UI)
 - `sprint16-agent6-preview-abschlussbericht.md` — Sprint 16, Agent 6 (Zeitungs-Vorschau)
+- `sprint17-agent1-quality-abschlussbericht.md` — Sprint 17, Agent 1 (Qualitäts-Engine)
+- `sprint17-agent2-dashboard-abschlussbericht.md` — Sprint 17, Agent 2 (Qualitäts-Dashboard)
+- `sprint17-agent3-styleguide-abschlussbericht.md` — Sprint 17, Agent 3 (Style-Guide)
+- `sprint17-agent4-rewrite-abschlussbericht.md` — Sprint 17, Agent 4 (Rewrite-Engine)
+- `sprint17-agent5-rewritepanel-abschlussbericht.md` — Sprint 17, Agent 5 (Rewrite-Panel)
+- `sprint17-agent6-report-abschlussbericht.md` — Sprint 17, Agent 6 (Qualitäts-Report)
 
 ## Delivery-Logs (Sprint 4–6, Historie — nicht löschen)
 
