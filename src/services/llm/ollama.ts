@@ -41,17 +41,19 @@ export const OLLAMA_CHAT_TIMEOUT_MS = 600_000;
  */
 export const OLLAMA_DEFAULT_NUM_CTX = 8192;
 /**
- * Sprint 19d: Default für `keep_alive` im /api/chat-Payload. "keep" hält
- * das Modell nach dem Request im VRAM/RAM geladen — kein 14-GB-Reload
- * nach 5min Idle mehr. Überschreibbar pro Call via
+ * Sprint 19d: Default für `keep_alive` im /api/chat-Payload. -1 = Modell bleibt
+ * nach dem Request dauerhaft geladen — kein 14-GB-Reload nach 5min Idle mehr.
+ * (Hinweis: Das String-Literal "keep" wird von älteren Ollama-Versionen mit
+ * `time: invalid duration "keep"` (HTTP 400) abgelehnt — daher numerisch -1.)
+ * Überschreibbar pro Call via
  * `(options as { keepAlive?: string | number }).keepAlive`
  * (z.B. "15m", 0 = sofort entladen).
  */
-export const OLLAMA_DEFAULT_KEEP_ALIVE = "keep";
+export const OLLAMA_DEFAULT_KEEP_ALIVE = -1;
 
 /** Optionale, Ollama-spezifische Chat-Extras (kein Eingriff in ChatOptions nötig). */
 export interface OllamaChatExtras {
-  /** keep_alive für /api/chat (Default: "keep"). */
+  /** keep_alive für /api/chat (Default: -1 = dauerhaft geladen). */
   keepAlive?: string | number;
   /** num_ctx für /api/chat (Default: 8192). */
   numCtx?: number;

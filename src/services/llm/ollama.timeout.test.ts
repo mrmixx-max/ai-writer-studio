@@ -97,11 +97,11 @@ describe("OllamaProvider Sprint 19d: keep_alive + num_ctx im Payload", () => {
     const text = await collect(p.chat(MSGS, OPTS));
 
     expect(text).toBe("Teil1 Teil2");
-    expect(OLLAMA_DEFAULT_KEEP_ALIVE).toBe("keep");
+    expect(OLLAMA_DEFAULT_KEEP_ALIVE).toBe(-1);
     expect(OLLAMA_DEFAULT_NUM_CTX).toBe(8192);
     const chatCall = captured.find((c) => c.url.endsWith("/api/chat"));
     expect(chatCall).toBeDefined();
-    expect(chatCall!.body.keep_alive).toBe("keep");
+    expect(chatCall!.body.keep_alive).toBe(-1);
     expect(chatCall!.body.options.num_ctx).toBe(8192);
     // bestehende Felder unverändert
     expect(chatCall!.body.stream).toBe(true);
