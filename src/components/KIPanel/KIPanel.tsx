@@ -163,6 +163,22 @@ export function KIPanel() {
     setStreaming("");
     setOffline(false);
     setAnalysis(null);
+    try {
+      await runActionInner(action);
+    } catch (e) {
+      // Fehler sichtbar machen statt still zu verschlucken (unhandled rejection).
+      const msg = `Fehler: ${e instanceof Error ? e.message : String(e)}`;
+      setOutput(msg);
+      setStreaming("");
+      await autoRemember("").catch(() => {}); // no-op Guard
+    } finally {
+      // KRITISCH: busy immer zurücksetzen — sonst bleiben nach einem Fehler
+      // alle Buttons (inkl. Senden) dauerhaft disabled.
+      setBusy(false);
+    }
+  }
+
+  async function runActionInner(action: KIAction) {
     const ctx = getDocumentContext();
     // Verwendetes Modell am Antwort-Beginn anzeigen ("→ ollama · llama3.2").
     setUsedModel(`${labelFor(settings.provider)} · ${settings.model}`);
