@@ -2,6 +2,32 @@
 
 Alle nennenswerten Änderungen dieses Projekts werden in dieser Datei dokumentiert.
 
+## [1.1.0] - 2026-09-07
+
+### Neu: Textformatierung & Bildgenerierung (Sprint 14)
+- Textformatierung: Smart Quotes, Auto-Paragraph, Dash-Korrektur, Kapitel-Überschriften-Erkennung
+- Bildgenerierung: Lokale Bilder über Ollama Vision oder SD WebUI
+
+### Neu: Bilingual DE/EN (Sprint 15)
+- Bilingual-Buch-Engine: Kapitel DE→EN übersetzen (LLM-basiert)
+- Bilingual-Panel: Side-by-Side Vorschau
+- Bilingual-Export: DE+EN nebeneinander
+- Einstellungen: Standard-Zielsprache, Auto-Übersetzung
+
+### Neu: Illustrierter Zeitungsgenerator (Sprint 16)
+- Websearch: Nachrichten-Suche (DuckDuckGo, DE/EN)
+- Artikel-Generator: LLM-generierte Artikel (3 Stile)
+- News-Bilder: Artikel-Illustrationen + Social-Media-Cards
+- Zeitungs-Layout: Automatisches Layout mit Seiten, TOC, Bild-Slots
+- Zeitungs-Vorschau: Seiten-Navigation, Drucken, DE/EN
+
+### Technik & Zuverlässigkeit (Sprints 12–16)
+- Whisper-Härtung, TTS-Queue, Prompt-Template-Library (23 Genres)
+- Backup/Restore mit Schema-Version, Settings-Persistenz-Audit
+- Ollama-Resilienz, LLM-Router, Error-Boundaries
+- Kapitel-Liste Memoize, KDP-Cover-Validierung
+- Tests: 2627 grün, Typecheck/Lint sauber
+
 ## [1.0.0] - 2026-09-06
 
 ### Features
