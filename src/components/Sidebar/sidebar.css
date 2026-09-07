@@ -88,6 +88,15 @@
   border-color: var(--sb-amber);
   color: var(--sb-amber);
 }
+/* Modus-Label im Button: ausgeschriebener deutscher Aktionsname.
+   (Früher Tastaturkürzel-Chip — ersetzt durch sichtbaren Text.) */
+.sb-label {
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 /* Tastaturkürzel-Chip im Modus-Button. */
 .sb-kbd {
   font-family: var(--sb-mono);

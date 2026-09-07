@@ -289,7 +289,7 @@ export function KIPanel() {
 
       <div className="ki-chat-input">
         <textarea
-          placeholder="Freie Frage an die KI… (Shift+Enter = neue Zeile)"
+          placeholder="Freie Frage an die KI… (Umschalt+Eingabe = neue Zeile)"
           value={chatInput}
           onChange={(e) => setChatInput(e.target.value)}
           onKeyDown={(e) => {

@@ -253,14 +253,14 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
         <button onClick={() => editor.chain().focus().setHorizontalRule().run()} title="Trennlinie">
           ―
         </button>
-        <button onClick={() => editor.chain().focus().setHardBreak().run()} title="Zeilenumbruch (Shift+Enter)">
+        <button onClick={() => editor.chain().focus().setHardBreak().run()} title="Zeilenumbruch" aria-label="Zeilenumbruch">
           ↵
         </button>
         <span className="toolbar-divider" />
-        <button onClick={() => editor.chain().focus().undo().run()} title="Rückgängig (Ctrl+Z)">
+        <button onClick={() => editor.chain().focus().undo().run()} title="Rückgängig" aria-label="Rückgängig">
           ↩
         </button>
-        <button onClick={() => editor.chain().focus().redo().run()} title="Wiederholen (Ctrl+Y)">
+        <button onClick={() => editor.chain().focus().redo().run()} title="Wiederholen" aria-label="Wiederholen">
           ↪
         </button>
         <span className="toolbar-divider" />
@@ -284,7 +284,8 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
             const text = selection?.toString() || "";
             if (text) navigator.clipboard.writeText(text);
           }}
-          title="Markierten Text kopieren (Ctrl+C)"
+          title="Markierten Text kopieren"
+          aria-label="Markierten Text kopieren"
         >
           📋
         </button>

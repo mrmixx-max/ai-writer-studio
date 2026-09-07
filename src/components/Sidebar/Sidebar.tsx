@@ -112,38 +112,38 @@ import {
 } from "@/services/project";
 import type { EditorMode } from "@/types/mode";
 
-const MODES: { id: EditorMode; key: `sidebar.mode.${EditorMode}`; icon: string; shortcut: string }[] = [
-  { id: "editor", key: "sidebar.mode.editor", icon: "📝", shortcut: "Ctrl+1" },
-  { id: "prompts", key: "sidebar.mode.prompts", icon: "💡", shortcut: "Ctrl+2" },
-  { id: "knowledge", key: "sidebar.mode.knowledge", icon: "📚", shortcut: "Ctrl+3" },
-  { id: "diagnostics", key: "sidebar.mode.diagnostics", icon: "🔍", shortcut: "Ctrl+4" },
-  { id: "preflight", key: "sidebar.mode.preflight", icon: "✅", shortcut: "Ctrl+5" },
-  { id: "snapshots", key: "sidebar.mode.snapshots", icon: "📂", shortcut: "Ctrl+6" },
-  { id: "kdp", key: "sidebar.mode.kdp", icon: "🚀", shortcut: "Ctrl+7" },
-  { id: "publishing", key: "sidebar.mode.publishing", icon: "📦", shortcut: "Ctrl+8" },
-  { id: "fragments", key: "sidebar.mode.fragments", icon: "🧩", shortcut: "Ctrl+9" },
-  { id: "voices", key: "sidebar.mode.voices", icon: "🎭", shortcut: "Ctrl+0" },
-  { id: "map", key: "sidebar.mode.map", icon: "🗺️", shortcut: "Alt+1" },
-  { id: "dialogue", key: "sidebar.mode.dialogue", icon: "💬", shortcut: "Alt+2" },
-  { id: "versions", key: "sidebar.mode.versions", icon: "🕐", shortcut: "Alt+3" },
-  { id: "obstruction", key: "sidebar.mode.obstruction", icon: "⛓️", shortcut: "Alt+4" },
-  { id: "dream", key: "sidebar.mode.dream", icon: "🌙", shortcut: "Alt+5" },
-  { id: "imagegen", key: "sidebar.mode.imagegen", icon: "🖼️", shortcut: "Alt+6" },
-  { id: "covergen", key: "sidebar.mode.covergen", icon: "📚", shortcut: "Alt+7" },
-  { id: "blurbgen", key: "sidebar.mode.blurbgen", icon: "📝", shortcut: "Alt+8" },
-  { id: "scientificwriting", key: "sidebar.mode.scientificwriting", icon: "🎓", shortcut: "Alt+9" },
-  { id: "timeline", key: "sidebar.mode.timeline", icon: "📅", shortcut: "Alt+0" },
-  { id: "characters", key: "sidebar.mode.characters", icon: "👥", shortcut: "Ctrl+Alt+1" },
-  { id: "worldbuilding", key: "sidebar.mode.worldbuilding", icon: "🌍", shortcut: "Ctrl+Alt+2" },
-  { id: "research", key: "sidebar.mode.research", icon: "🔎", shortcut: "Ctrl+Alt+3" },
-  { id: "investigate", key: "sidebar.mode.investigate", icon: "🕵️", shortcut: "Ctrl+Alt+4" },
-  { id: "watermark", key: "sidebar.mode.watermark", icon: "💧", shortcut: "Ctrl+Alt+5" },
-  { id: "tts", key: "sidebar.mode.tts", icon: "🔊", shortcut: "Ctrl+Alt+6" },
-  { id: "bookwriter", key: "sidebar.mode.bookwriter", icon: "📖", shortcut: "Ctrl+Alt+7" },
-  { id: "markdown", key: "sidebar.mode.markdown", icon: "📝", shortcut: "Ctrl+Alt+8" },
-  { id: "wordstats", key: "sidebar.mode.wordstats", icon: "📊", shortcut: "Ctrl+Alt+9" },
-  { id: "ideas", key: "sidebar.mode.ideas", icon: "💡", shortcut: "Ctrl+Alt+0" },
-  { id: "consistency", key: "sidebar.mode.consistency", icon: "✅", shortcut: "Ctrl+Shift+C" },
+const MODES: { id: EditorMode; key: `sidebar.mode.${EditorMode}`; icon: string; description: string }[] = [
+  { id: "editor", key: "sidebar.mode.editor", icon: "📝", description: "Text schreiben und bearbeiten" },
+  { id: "prompts", key: "sidebar.mode.prompts", icon: "💡", description: "Ideen und Prompts erzeugen" },
+  { id: "knowledge", key: "sidebar.mode.knowledge", icon: "📚", description: "Projektwissen verwalten" },
+  { id: "diagnostics", key: "sidebar.mode.diagnostics", icon: "🔍", description: "Manuskript prüfen" },
+  { id: "preflight", key: "sidebar.mode.preflight", icon: "✅", description: "Export prüfen und freigeben" },
+  { id: "snapshots", key: "sidebar.mode.snapshots", icon: "📂", description: "Versionen sichern und vergleichen" },
+  { id: "kdp", key: "sidebar.mode.kdp", icon: "🚀", description: "KDP-Paket erstellen" },
+  { id: "publishing", key: "sidebar.mode.publishing", icon: "📦", description: "Veröffentlichung vorbereiten" },
+  { id: "fragments", key: "sidebar.mode.fragments", icon: "🧩", description: "Textfragmente sammeln" },
+  { id: "voices", key: "sidebar.mode.voices", icon: "🎭", description: "Stimmen und Stile verwalten" },
+  { id: "map", key: "sidebar.mode.map", icon: "🗺️", description: "Semantische Karte ansehen" },
+  { id: "dialogue", key: "sidebar.mode.dialogue", icon: "💬", description: "Dialoge prüfen und verbessern" },
+  { id: "versions", key: "sidebar.mode.versions", icon: "🕐", description: "Versionsgeschichte ansehen" },
+  { id: "obstruction", key: "sidebar.mode.obstruction", icon: "⛓️", description: "Schreibblockaden überwinden" },
+  { id: "dream", key: "sidebar.mode.dream", icon: "🌙", description: "Traumlogik erkunden" },
+  { id: "imagegen", key: "sidebar.mode.imagegen", icon: "🖼️", description: "Bilder erzeugen" },
+  { id: "covergen", key: "sidebar.mode.covergen", icon: "📚", description: "Cover entwerfen" },
+  { id: "blurbgen", key: "sidebar.mode.blurbgen", icon: "📝", description: "Klappentext schreiben" },
+  { id: "scientificwriting", key: "sidebar.mode.scientificwriting", icon: "🎓", description: "Wissenschaftlich schreiben" },
+  { id: "timeline", key: "sidebar.mode.timeline", icon: "📅", description: "Zeitstrahl verwalten" },
+  { id: "characters", key: "sidebar.mode.characters", icon: "👥", description: "Figuren verwalten" },
+  { id: "worldbuilding", key: "sidebar.mode.worldbuilding", icon: "🌍", description: "Welt entwerfen" },
+  { id: "research", key: "sidebar.mode.research", icon: "🔎", description: "Recherche starten" },
+  { id: "investigate", key: "sidebar.mode.investigate", icon: "🕵️", description: "Investigativ prüfen" },
+  { id: "watermark", key: "sidebar.mode.watermark", icon: "💧", description: "KI-Spuren waschen" },
+  { id: "tts", key: "sidebar.mode.tts", icon: "🔊", description: "Text vorlesen lassen" },
+  { id: "bookwriter", key: "sidebar.mode.bookwriter", icon: "📖", description: "Buch automatisch schreiben" },
+  { id: "markdown", key: "sidebar.mode.markdown", icon: "📝", description: "Markdown ansehen und exportieren" },
+  { id: "wordstats", key: "sidebar.mode.wordstats", icon: "📊", description: "Wortstatistik ansehen" },
+  { id: "ideas", key: "sidebar.mode.ideas", icon: "💡", description: "Ideen sammeln" },
+  { id: "consistency", key: "sidebar.mode.consistency", icon: "✅", description: "Konsistenz prüfen" },
 ];
 
 export function Sidebar() {
@@ -240,9 +240,9 @@ export function Sidebar() {
               <button
                 key={m.id}
                 title={label}
-                aria-label={label}
+                aria-label={`${label} – ${m.description}`}
                 aria-pressed={mode === m.id}
-                data-shortcut={m.shortcut}
+                data-mode={m.id}
                 className={mode === m.id ? "active" : ""}
                 onClick={() => {
                   setMode(m.id);
@@ -252,7 +252,7 @@ export function Sidebar() {
                 }}
               >
                 <span aria-hidden="true">{m.icon}</span>
-                <kbd className="sb-kbd" aria-hidden="true">{m.shortcut}</kbd>
+                <span className="sb-label">{label}</span>
               </button>
             );
           })}

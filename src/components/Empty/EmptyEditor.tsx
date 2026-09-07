@@ -62,8 +62,8 @@ export function EmptyEditor({ hasProjects, onShowSetup }: Props) {
       text="Wähle links ein Kapitel aus, um zu schreiben, oder lege ein neues an."
       hint={
         <>
-          <kbd>Strg</kbd> + <kbd>S</kbd> speichert von Hand · <kbd>F11</kbd>{" "}
-          Fokusmodus · <kbd>F1</kbd> Über diese Anwendung
+          Strg+S speichert von Hand. F11 schaltet den Fokusmodus um. F1 öffnet
+          die Hilfe zu dieser Anwendung.
         </>
       }
     />

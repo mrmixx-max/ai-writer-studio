@@ -149,7 +149,7 @@ describe("KIPanel", () => {
     expect(screen.getByRole("heading", { name: "KI-Assistent" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Weiterschreiben" })).toBeInTheDocument();
     expect(
-      screen.getByPlaceholderText("Freie Frage an die KI… (Shift+Enter = neue Zeile)"),
+      screen.getByPlaceholderText("Freie Frage an die KI… (Umschalt+Eingabe = neue Zeile)"),
     ).toBeInTheDocument();
   });
 
@@ -180,7 +180,7 @@ describe("KIPanel", () => {
   it("Enter in der Chat-Eingabe startet eine Chat-Aktion", async () => {
     const user = userEvent.setup();
     render(<KIPanel />);
-    const input = screen.getByPlaceholderText("Freie Frage an die KI… (Shift+Enter = neue Zeile)");
+    const input = screen.getByPlaceholderText("Freie Frage an die KI… (Umschalt+Eingabe = neue Zeile)");
     await user.type(input, "Was ist ein Plot-Twist?{enter}");
     expect((await screen.findAllByText("KI-Antwort: Es war einmal.")).length).toBeGreaterThanOrEqual(1);
     expect(runKIAction).toHaveBeenCalledWith(

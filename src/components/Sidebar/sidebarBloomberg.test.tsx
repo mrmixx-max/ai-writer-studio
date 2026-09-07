@@ -103,13 +103,14 @@ describe("Sidebar Bloomberg-Thema", () => {
     expect(container.querySelectorAll(".project-tree > li.active").length).toBe(1);
   });
 
-  it("Tastaturkürzel werden als kbd-Chips mit data-shortcut angezeigt", () => {
+  it("Modi zeigen ausgeschriebene deutsche Labels mit data-mode statt Kürzel-Chips", () => {
     render(<Sidebar />);
     const editor = screen.getByTitle("Editor");
-    expect(editor).toHaveAttribute("data-shortcut", "Ctrl+1");
-    const kbd = within(editor).getByText("Ctrl+1");
-    expect(kbd.tagName.toLowerCase()).toBe("kbd");
-    expect(kbd).toHaveClass("sb-kbd");
+    expect(editor).toHaveAttribute("data-mode", "editor");
+    // Sichtbarer deutscher Aktionsname im Button, kein "Ctrl+…"-Kürzel.
+    expect(within(editor).getByText("Editor")).toBeInTheDocument();
+    expect(editor.textContent).not.toMatch(/Ctrl\+|Alt\+|Shift\+/);
+    expect(editor.querySelector("kbd")).toBeNull();
   });
 
   it("Monospace + dichtes Layout sind als CSS-Vars verankert", () => {
