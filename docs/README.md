@@ -77,6 +77,12 @@ nicht gelöscht** (Historie) — dieser Index hält sie auffindbar.
 - `sprint15-agent4-bilingualexport-abschlussbericht.md` — Sprint 15, Agent 4 (Bilingual-Export)
 - `sprint15-agent5-prompts-abschlussbericht.md` — Sprint 15, Agent 5 (Bilingual-Prompts)
 - `sprint15-agent6-settings-abschlussbericht.md` — Sprint 15, Agent 6 (Bilingual-Settings)
+- `sprint16-agent1-websearch-abschlussbericht.md` — Sprint 16, Agent 1 (Websearch)
+- `sprint16-agent2-articlegen-abschlussbericht.md` — Sprint 16, Agent 2 (Artikel-Generator)
+- `sprint16-agent3-newsimages-abschlussbericht.md` — Sprint 16, Agent 3 (News-Bilder)
+- `sprint16-agent4-layout-abschlussbericht.md` — Sprint 16, Agent 4 (Zeitungs-Layout)
+- `sprint16-agent5-newsui-abschlussbericht.md` — Sprint 16, Agent 5 (Zeitungs-UI)
+- `sprint16-agent6-preview-abschlussbericht.md` — Sprint 16, Agent 6 (Zeitungs-Vorschau)
 
 ## Delivery-Logs (Sprint 4–6, Historie — nicht löschen)
 

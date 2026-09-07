@@ -1,0 +1,10 @@
+.newspaper-preview { max-width: 720px; margin: 0 auto; font-family: Georgia, serif; }
+.newspaper-toolbar { display: flex; justify-content: space-between; margin-bottom: 1rem; }
+.newspaper-lang-toggle button.active { font-weight: bold; }
+.newspaper-masthead h1 { text-align: center; border-bottom: 2px solid #000; padding-bottom: 0.5rem; }
+.newspaper-articles article { margin-bottom: 1.5rem; }
+.newspaper-article-image { max-width: 100%; height: auto; }
+.newspaper-pagination { display: flex; justify-content: space-between; align-items: center; }
+@media print {
+  .newspaper-toolbar, .newspaper-pagination { display: none; }
+}
