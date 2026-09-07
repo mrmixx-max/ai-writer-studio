@@ -65,6 +65,12 @@ nicht gelöscht** (Historie) — dieser Index hält sie auffindbar.
 - `sprint13-agent4-chapterlist-abschlussbericht.md` — Sprint 13, Agent 4 (Kapitel-Listen-Perf)
 - `sprint13-agent5-cover-abschlussbericht.md` — Sprint 13, Agent 5 (KDP-Cover)
 - `sprint13-agent6-i18n-abschlussbericht.md` — Sprint 13, Agent 6 (i18n KDP)
+- `sprint14-agent1-formatting-abschlussbericht.md` — Sprint 14, Agent 1 (Textformatierung)
+- `sprint14-agent2-formatui-abschlussbericht.md` — Sprint 14, Agent 2 (Textformatierung-UI)
+- `sprint14-agent3-imagegen-abschlussbericht.md` — Sprint 14, Agent 3 (Bildgenerierung-Service)
+- `sprint14-agent4-imageui-abschlussbericht.md` — Sprint 14, Agent 4 (Bildgenerierung-UI)
+- `sprint14-agent5-imagebackup-abschlussbericht.md` — Sprint 14, Agent 5 (Bilder-Backup)
+- `sprint14-agent6-promptbuilder-abschlussbericht.md` — Sprint 14, Agent 6 (Prompt-Builder)
 
 ## Delivery-Logs (Sprint 4–6, Historie — nicht löschen)
 
