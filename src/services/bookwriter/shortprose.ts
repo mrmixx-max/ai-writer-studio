@@ -109,23 +109,23 @@ export const WORDS_PER_MINUTE = 200;
 
 const GENRE_TEMPLATES: Record<ShortproseGenre, string> = {
   "flash-fiction":
-    "Write a complete story with beginning, middle, end in under {maxWords} words. Twist ending preferred.",
+    "Schreibe eine kurze Geschichte mit Anfang, Mitte und Ende. Maximal {maxWords} Worte. Keine Erklärung, nur die Geschichte.",
   "micro-story":
-    "A single scene, a single moment. Show, don't tell. Under {maxWords} words.",
+    "Schreibe eine einzige Szene, ein einziger Moment. Maximal {maxWords} Worte. Zeige, nicht erzähle.",
   kurzgeschichte:
-    "Deutsche Kurzgeschichte. Literarischer Stil, {maxWords} Worte. Point of View: {perspective}.",
+    "Deutsche Kurzgeschichte, {maxWords} Worte. Point of View: {perspective}.",
   snapshot:
-    "A frozen moment in time. Sensory details. Under {maxWords} words.",
+    "Ein eingefrorener Moment. Sinnliche Details. Maximal {maxWords} Worte.",
   fable:
-    "A short tale with a moral. Simple language. Under {maxWords} words.",
+    "Eine kurze Fabel mit Moral. Einfache Sprache. Maximal {maxWords} Worte.",
 };
 
 const STYLE_INSTRUCTIONS: Record<ShortproseStyle, string> = {
-  literary: "Literary style: rich language, subtext, careful imagery.",
-  minimalist: "Minimalist style: short sentences, sparse adjectives, much left unsaid.",
-  noir: "Noir style: hard-boiled tone, shadows, moral ambiguity.",
-  lyrical: "Lyrical style: musical sentences, rhythm, poetic imagery.",
-  experimental: "Experimental style: unusual structure, fragmented or playful form.",
+  literary: "Literarischer Stil: reiche Sprache, Subtext, sorgfältige Bilder.",
+  minimalist: "Minimalistischer Stil: kurze Sätze, wenige Adjektive.",
+  noir: "Noir-Stil: harter Ton, Schatten, moralische Ambiguität.",
+  lyrical: "Lyrischer Stil: musikalische Sätze, Rhythmus, poetische Bilder.",
+  experimental: "Experimenteller Stil: ungewöhnliche Struktur.",
 };
 
 const PERSPECTIVE_INSTRUCTIONS: Record<ShortprosePerspective, string> = {
@@ -181,15 +181,22 @@ export function buildShortprosePrompt(request: ShortproseRequest): string {
     request.language === "de"
       ? "Schreibe auf Deutsch."
       : "Write in English.";
+  // Sprint 24: Vereinfachtes Prompt-Design — weniger Tokens, striktere
+  // Vorgaben. LFM2-24B degenerierte sonst zu endlosen Reim-Wiederhol-Ketten
+  // ("marg marg marg..."). Explizites "Kein Reimen, keine Wiederholungen"
+  // stoppt das Modell.
   const lines = [
-    `Genre: ${request.genre}.`,
-    genreInstruction,
-    `Style: ${STYLE_INSTRUCTIONS[request.style]}`,
-    `Perspective: ${PERSPECTIVE_INSTRUCTIONS[request.perspective]}`,
-    `Length: at most ${maxWords} words.`,
+    `${genreInstruction}`,
+    `${STYLE_INSTRUCTIONS[request.style]}`,
+    `${PERSPECTIVE_INSTRUCTIONS[request.perspective]}`,
+    `Maximal ${maxWords} Worte.`,
     langLine,
-    `Seed/Topic: „${request.prompt.trim()}“`,
-    "Gib NUR die Geschichte zurueck, ohne Erklaerung, ohne Einleitung.",
+    `Thema: „${request.prompt.trim()}“`,
+    "",
+    "WICHTIG:",
+    "- Kein Reimen, keine Wortwiederholungen, keine abschweifenden Ketten.",
+    "- Gib NUR die Geschichte zurück, keine Einleitung, keine Erklärung.",
+    "- Schreibe in klarem, direktem Stil.",
   ];
   return lines.join("\n");
 }
@@ -209,6 +216,46 @@ export interface GenerateShortproseOptions {
  * - Leere/Whitespace-Antwort des LLM -> wirft (Fehlverhalten, kein Fallback).
  * - `complete` wirft -> Fehler wird mit Kontext weitergegeben.
  */
+/**
+ * Erkennt degenerierten Output: Wiederholungen von Woertern (z.B. "marg marg
+ * marg") oder von Phrasen. LFM2-24B erzeugt solche Ketten bei offenen
+ * Prompts. Gibt `true` zurueck, wenn der Output wiederholungsfrei ist.
+ * - `maxWordRepeat`: Max. Vorkommen desselben Wortes (case-insensitive) pro
+ *   100 Worte. Standard 3 (z.B. "marg" x20 -> verworfen).
+ * - `maxPhraseRepeat`: Max. Vorkommen derselben Phrase (>=3 Worte). Standard 2.
+ */
+export function isOutputDegenerate(
+  text: string,
+  maxWordRepeat = 3,
+  maxPhraseRepeat = 2,
+): boolean {
+  const words = text.toLowerCase().split(/\s+/).filter((w) => w.length > 0);
+  if (words.length === 0) return true;
+
+  // Wort-Wiederholung checken
+  const wordCounts = new Map<string, number>();
+  for (const w of words) {
+    const cleaned = w.replace(/[^a-zäöüß0-9]/g, "");
+    if (cleaned.length === 0) continue;
+    const n = (wordCounts.get(cleaned) ?? 0) + 1;
+    wordCounts.set(cleaned, n);
+    // Erlaubte Wiederholungen skalieren mit Textlaenge (pro 100 Worte)
+    const allowed = Math.max(maxWordRepeat, Math.ceil(words.length / 100) * maxWordRepeat);
+    if (n > allowed) return true;
+  }
+
+  // Phrasen-Wiederholung checken (3-Wort-Phrasen)
+  const phraseCounts = new Map<string, number>();
+  for (let i = 0; i < words.length - 2; i++) {
+    const phrase = `${words[i]} ${words[i + 1]} ${words[i + 2]}`;
+    const n = (phraseCounts.get(phrase) ?? 0) + 1;
+    phraseCounts.set(phrase, n);
+    if (n > maxPhraseRepeat) return true;
+  }
+
+  return false;
+}
+
 export async function generateShortprose(
   request: ShortproseRequest,
   options?: GenerateShortproseOptions,
@@ -220,7 +267,7 @@ export async function generateShortprose(
   const completeFn =
     options?.complete ??
     createShortproseComplete(
-      { model: request.model, temperature: request.temperature },
+      { model: request.model, temperature: request.temperature ?? 0.3 },
       options?.signal,
     );
 
@@ -239,6 +286,16 @@ export async function generateShortprose(
     );
   }
   const text = raw.trim();
+
+  // Sprint 24: Degeneraten Output abweisen (LFM2-24B erzeugt sonst
+  // "marg marg marg..."-Ketten). Fehler mit Erlaeuterung -> User kann
+  // Prompt/Temperatur anpassen.
+  if (isOutputDegenerate(text)) {
+    throw new Error(
+      "generateShortprose: Output enthaelt Wortwiederholungen (Modell-Degeneration). Bitte Temperatur senken oder Prompt praezisieren.",
+    );
+  }
+
   const wordCount = countWords(text);
   return {
     text,
