@@ -341,6 +341,7 @@ export interface TextQualityReport {
   tenseConsistency: TextMetric;
   povConsistency: TextMetric;
   pacing: TextMetric;
+  directness: TextMetric;
   overallScore: number;
   overallLevel: TextQualityLevel;
 }
@@ -684,9 +685,166 @@ export function analyzePacing(text: string, opts: TextQualityOptions = {}): Text
   return { score, level: toLevel(score), suggestions };
 }
 
+// --- 9) Mannered Prose / Direkter Stil (Sprint 20, Agent 1) ----------------------
+//
+// „Mannered prose substitutes metaphor and flourish for direct statement."
+// Erkennt manierierte Floskeln regex-basiert (kein LLM nötig) und schlägt
+// jeweils die direkte Formulierung vor. Konvention: beginnt `suggestion`
+// mit „[", ist der Treffer nur manuell zu beheben (Streichen/Umbau) und wird
+// von `applyManneredFixes` übersprungen.
+
+/** Einzelner manierierter Fund mit direkter Alternative. */
+export interface ManneredHit {
+  original: string;
+  suggestion: string;
+  reason: string;
+  index: number;
+}
+
+/** Ergebnis der Mannered-Prose-Prüfung. */
+export interface ManneredProseResult {
+  /** 0 (überall mannered) bis 100 (komplett direkt). */
+  score: number;
+  flourishes: ManneredHit[];
+  summary: string;
+}
+
+interface ManneredPattern {
+  re: RegExp;
+  suggestion: string;
+  reason: string;
+}
+
+const MANNERED_METAPHOR =
+  "Metapher statt direkter Aussage — zeigt den Autor, nicht die Idee. Direkt sagen, was gemeint ist.";
+const MANNERED_FILLER =
+  "Floskel ohne Inhalt — trägt nichts bei und lässt sich ersatzlos streichen.";
+const MANNERED_DOUBLET =
+  "Wortpaar-Dopplung — ein Wort genügt, der Rest ist Verzierung.";
+
+const MANNERED_PATTERNS: readonly ManneredPattern[] = [
+  { re: /\bdial worth turning\b/gi, suggestion: "parameter worth varying", reason: MANNERED_METAPHOR },
+  { re: /\bearns? its keep\b/gi, suggestion: "still matters", reason: MANNERED_METAPHOR },
+  { re: /\bat the end of the day\b/gi, suggestion: "ultimately", reason: MANNERED_FILLER },
+  { re: /\bit goes without saying\b(?:\s*,?\s*that)?/gi, suggestion: "[entfernen — implizit]", reason: MANNERED_FILLER },
+  { re: /\bneedless to say\b(?:\s*,?\s*that)?/gi, suggestion: "[entfernen]", reason: MANNERED_FILLER },
+  { re: /\bthe fact of the matter is\b(?:\s+that)?/gi, suggestion: "in fact", reason: MANNERED_FILLER },
+  { re: /\bin this day and age\b/gi, suggestion: "today", reason: MANNERED_FILLER },
+  { re: /\beach and every\b/gi, suggestion: "every", reason: MANNERED_DOUBLET },
+  { re: /\bfirst and foremost\b/gi, suggestion: "first", reason: MANNERED_DOUBLET },
+  { re: /\bby leaps and bounds\b/gi, suggestion: "significantly", reason: MANNERED_METAPHOR },
+  { re: /\bit is worth noting that\b/gi, suggestion: "notably", reason: MANNERED_FILLER },
+  { re: /\blast but not least\b/gi, suggestion: "finally", reason: MANNERED_FILLER },
+  { re: /\bthe bottom line is\b(?:\s+that)?/gi, suggestion: "in summary", reason: MANNERED_FILLER },
+  { re: /\bin the grand scheme of things\b/gi, suggestion: "overall", reason: MANNERED_FILLER },
+];
+
+/** Generisches Muster für „worth …ing"-Metaphern (z. B. „worth varying"). */
+const WORTH_ING_RE = /\bworth\s+[a-z]+\w*ing\b/gi;
+const WORTH_ING_SUGGESTION = "[manuell direkt formulieren, z. B. „relevant“]";
+const WORTH_ING_REASON =
+  "„worth …ing“-Metapher — die direkte Aussage (z. B. „relevant“, „wichtig“) ist präziser.";
+
+/** Passt die Großschreibung des Vorschlags an das Original an. */
+function matchCase(original: string, suggestion: string): string {
+  if (suggestion.startsWith("[")) return suggestion;
+  if (/^[A-ZÄÖÜ]/.test(original) && /^[a-zäöü]/.test(suggestion)) {
+    return suggestion.charAt(0).toUpperCase() + suggestion.slice(1);
+  }
+  return suggestion;
+}
+
+/**
+ * Erkennt manierierte Floskeln (Metaphern/Schnörkel statt direkter Aussage).
+ * Score: 100 − (Flourishes / Sätze × 100); leerer Text = 100 (keine Hits).
+ */
+export function detectManneredProse(text: string): ManneredProseResult {
+  if (text.trim().length === 0) {
+    return { score: 100, flourishes: [], summary: "Kein Text — nichts zu prüfen." };
+  }
+  const flourishes: ManneredHit[] = [];
+  const claimed: Array<[number, number]> = [];
+  const overlaps = (s: number, e: number) => claimed.some(([a, b]) => s < b && e > a);
+
+  for (const p of MANNERED_PATTERNS) {
+    p.re.lastIndex = 0;
+    let m: RegExpExecArray | null;
+    while ((m = p.re.exec(text)) !== null) {
+      const start = m.index;
+      const end = start + m[0].length;
+      if (overlaps(start, end)) continue;
+      if (m[0].length === 0) break;
+      claimed.push([start, end]);
+      flourishes.push({
+        original: m[0],
+        suggestion: matchCase(m[0], p.suggestion),
+        reason: p.reason,
+        index: start,
+      });
+    }
+  }
+
+  // Generisches „worth …ing" — nur dort, wo kein spezielles Muster griff.
+  WORTH_ING_RE.lastIndex = 0;
+  let w: RegExpExecArray | null;
+  while ((w = WORTH_ING_RE.exec(text)) !== null) {
+    const start = w.index;
+    const end = start + w[0].length;
+    if (w[0].length === 0) break;
+    if (overlaps(start, end)) continue;
+    claimed.push([start, end]);
+    flourishes.push({
+      original: w[0],
+      suggestion: WORTH_ING_SUGGESTION,
+      reason: WORTH_ING_REASON,
+      index: start,
+    });
+  }
+
+  flourishes.sort((a, b) => a.index - b.index);
+
+  const sentences = splitQualitySentences(text);
+  const total = sentences.length === 0 ? 1 : sentences.length;
+  const score = clampScore(100 - (flourishes.length / total) * 100);
+  const summary =
+    flourishes.length === 0
+      ? "Direkter Stil — keine manierierten Floskeln gefunden."
+      : `${flourishes.length} manierierte ${flourishes.length === 1 ? "Formulierung" : "Formulierungen"} ` +
+        `in ${total} ${total === 1 ? "Satz" : "Sätzen"} — direkt sagen, was gemeint ist.`;
+  return { score, flourishes, summary };
+}
+
+/**
+ * Wendet automatisch behebbare Vorschläge auf den Text an (von hinten nach
+ * vorne, damit Indizes stabil bleiben). Manuelle Treffer („[…]") werden
+ * übersprungen; danach wird überschüssiger Whitespace geglättet.
+ */
+export function applyManneredFixes(text: string, hits: ManneredHit[]): string {
+  let out = text;
+  const applicable = hits
+    .filter((h) => !h.suggestion.startsWith("["))
+    .sort((a, b) => b.index - a.index);
+  for (const h of applicable) {
+    out = out.slice(0, h.index) + h.suggestion + out.slice(h.index + h.original.length);
+  }
+  return out.replace(/[ \t]{2,}/g, " ");
+}
+
+/** Mannered-Prose als TextMetric (für den Gesamt-Report). */
+export function analyzeDirectness(text: string): TextMetric {
+  if (text.trim().length === 0) {
+    return { score: 100, level: "good", suggestions: [] };
+  }
+  const r = detectManneredProse(text);
+  const suggestions = r.flourishes.map(
+    (h) => `„${h.original}“ → „${h.suggestion}“ — ${h.reason}`,
+  );
+  return { score: r.score, level: toLevel(r.score), suggestions };
+}
+
 // --- Gesamtanalyse ---------------------------------------------------------------
 
-/** Führt alle 8 Metriken aus und aggregiert Score/Level. */
+/** Führt alle 9 Metriken aus und aggregiert Score/Level. */
 export function analyzeTextQuality(text: string, opts: TextQualityOptions = {}): TextQualityReport {
   const readability = analyzeReadability(text, opts);
   const sentenceVariety = analyzeSentenceVariety(text, opts);
@@ -696,15 +854,16 @@ export function analyzeTextQuality(text: string, opts: TextQualityOptions = {}):
   const tenseConsistency = analyzeTenseConsistency(text, opts);
   const povConsistency = analyzePovConsistency(text, opts);
   const pacing = analyzePacing(text, opts);
+  const directness = analyzeDirectness(text);
   const scores = [
     readability.score, sentenceVariety.score, dialogueRatio.score,
     adverbDensity.score, cliches.score, tenseConsistency.score,
-    povConsistency.score, pacing.score,
+    povConsistency.score, pacing.score, directness.score,
   ];
   const overallScore = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
   return {
     readability, sentenceVariety, dialogueRatio, adverbDensity,
-    cliches, tenseConsistency, povConsistency, pacing,
+    cliches, tenseConsistency, povConsistency, pacing, directness,
     overallScore, overallLevel: toLevel(overallScore),
   };
 }

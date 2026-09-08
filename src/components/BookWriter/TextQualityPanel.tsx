@@ -4,9 +4,11 @@
 // aus dem Project-Store + analyzeTextQuality (rein lokal, kein LLM nötig).
 import { useMemo } from "react";
 import { useProjectStore } from "@/store/projectStore";
-import { analyzeTextQuality } from "@/services/bookwriter/quality";
+import { useI18n } from "@/i18n";
+import { analyzeTextQuality, detectManneredProse, applyManneredFixes } from "@/services/bookwriter/quality";
 import {
   QualityDashboard,
+  DirectnessSection,
   type QualityMetric,
   type QualitySuggestion,
   type ChapterQualityPoint,
@@ -22,6 +24,7 @@ const METRIC_LABELS: { key: string; label: string }[] = [
   { key: "tenseConsistency", label: "Tempus" },
   { key: "povConsistency", label: "Perspektive" },
   { key: "pacing", label: "Tempo" },
+  { key: "directness", label: "Direkter Stil" },
 ];
 
 export interface TextQualityPanelProps {
@@ -31,6 +34,8 @@ export interface TextQualityPanelProps {
 
 export function TextQualityPanel({ projectId, chapterId }: TextQualityPanelProps) {
   const chapters = useProjectStore((s) => s.chapters);
+  const updateChapter = useProjectStore((s) => s.updateChapter);
+  const { t } = useI18n();
   void projectId;
 
   const activeChapter = useMemo(
@@ -43,6 +48,17 @@ export function TextQualityPanel({ projectId, chapterId }: TextQualityPanelProps
     () => (text.trim() ? analyzeTextQuality(text) : null),
     [text],
   );
+
+  const mannered = useMemo(
+    () => (text.trim() ? detectManneredProse(text) : null),
+    [text],
+  );
+
+  const handleCorrectAll = () => {
+    if (!activeChapter || !mannered) return;
+    const fixed = applyManneredFixes(text, mannered.flourishes);
+    if (fixed !== text) updateChapter(activeChapter.id, { content: fixed });
+  };
 
   const metrics: QualityMetric[] = useMemo(() => {
     if (!report) return [];
@@ -85,6 +101,16 @@ export function TextQualityPanel({ projectId, chapterId }: TextQualityPanelProps
   return (
     <div className="textquality-panel" data-testid="textquality-panel">
       <QualityDashboard metrics={metrics} suggestions={suggestions} chapters={chapterPoints} />
+      {mannered && (
+        <DirectnessSection
+          score={mannered.score}
+          flourishes={mannered.flourishes}
+          summary={mannered.summary}
+          onCorrectAll={handleCorrectAll}
+          title={t("quality.directness")}
+          fixAllLabel={t("quality.directness.fixAll")}
+        />
+      )}
       <LektoratPanel chapters={[{ id: activeChapter.id, content: text }]} />
       <p className="mode-placeholder" data-testid="textquality-rewrite-hint">
         Für gezieltes Umschreiben: Text markieren und im KI-Panel „Umschreiben“ wählen.

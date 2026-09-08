@@ -170,3 +170,67 @@ describe("runQualityLoop", () => {
     expect(artifact?.length).toBe(1);
   });
 });
+
+// Mannered Prose (Sprint 20, Agent 1): rein regelbasiert, kein LLM.
+describe("detectManneredProse", () => {
+  it("findet 'earns its keep' mit direkter Alternative", async () => {
+    const { detectManneredProse } = await import("@/services/bookwriter/quality");
+    const r = detectManneredProse("This point earns its keep.");
+    expect(r.flourishes.length).toBeGreaterThan(0);
+    expect(r.flourishes.some((h) => h.original.toLowerCase().includes("earns its keep"))).toBe(true);
+    expect(r.flourishes[0].suggestion).toBe("still matters");
+    expect(r.score).toBeLessThan(100);
+  });
+
+  it("findet 'Each and every' (Großschreibung am Satzanfang)", async () => {
+    const { detectManneredProse } = await import("@/services/bookwriter/quality");
+    const r = detectManneredProse("Each and every parameter matters.");
+    expect(r.flourishes.some((h) => h.original.toLowerCase() === "each and every")).toBe(true);
+    expect(r.flourishes[0].suggestion.toLowerCase()).toBe("every");
+  });
+
+  it("bewertet direkten Text mit 100 (keine Flourishes)", async () => {
+    const { detectManneredProse } = await import("@/services/bookwriter/quality");
+    const r = detectManneredProse("The parameter is relevant.");
+    expect(r.flourishes).toEqual([]);
+    expect(r.score).toBe(100);
+  });
+
+  it("behandelt Leerstring mit Score 100 ohne Hits", async () => {
+    const { detectManneredProse } = await import("@/services/bookwriter/quality");
+    const r = detectManneredProse("");
+    expect(r.score).toBe(100);
+    expect(r.flourishes).toEqual([]);
+  });
+
+  it("erkennt 'dial worth turning' ohne Doppelzählung durch das generische worth-Muster", async () => {
+    const { detectManneredProse } = await import("@/services/bookwriter/quality");
+    const r = detectManneredProse("A dial worth turning is not a parameter worth varying.");
+    const dial = r.flourishes.filter((h) => h.original.toLowerCase().includes("dial worth turning"));
+    expect(dial).toHaveLength(1);
+    expect(dial[0].suggestion).toBe("parameter worth varying");
+    // „worth varying" allein wird als generischer Treffer markiert (manuell).
+    expect(r.flourishes.some((h) => h.original.toLowerCase() === "worth varying")).toBe(true);
+  });
+
+  it("applyManneredFixes ersetzt automatisch Behebbares und lässt Manuelles stehen", async () => {
+    const { detectManneredProse, applyManneredFixes } = await import("@/services/bookwriter/quality");
+    const text = "This point earns its keep. At the end of the day, it is fine.";
+    const r = detectManneredProse(text);
+    const fixed = applyManneredFixes(text, r.flourishes);
+    expect(fixed).toContain("still matters");
+    expect(fixed).not.toContain("earns its keep");
+    const again = detectManneredProse(fixed);
+    expect(again.flourishes.some((h) => h.original.toLowerCase().includes("earns its keep"))).toBe(false);
+  });
+
+  it("analyzeTextQuality enthält die 9. Metrik directness", async () => {
+    const { analyzeTextQuality } = await import("@/services/bookwriter/quality");
+    const clean = analyzeTextQuality("The parameter is relevant. It stays stable.");
+    expect(clean.directness.score).toBe(100);
+    expect(clean.directness.level).toBe("good");
+    const mannered = analyzeTextQuality("This point earns its keep. At the end of the day, each and every dial is fine.");
+    expect(mannered.directness.score).toBeLessThan(100);
+    expect(mannered.directness.suggestions.length).toBeGreaterThan(0);
+  });
+});

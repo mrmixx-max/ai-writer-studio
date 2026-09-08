@@ -281,4 +281,10 @@ export const es: TranslationDict = {
   "bilingual.apply": "Aplicar",
   "bilingual.detected": "Detectado: {{lang}}",
   "bilingual.thinking": "Pensando…",
+
+  // Estilo directo / prosa afectada (Sprint 20, Agent 1)
+  "quality.directness": "Estilo directo",
+  "quality.directness.fixAll": "Corregir todo",
+  "quality.directness.clean": "Estilo directo — sin florituras afectadas.",
+  "quality.directness.found": "{{count}} formulaciones afectadas — di lo que quieres decir.",
 };

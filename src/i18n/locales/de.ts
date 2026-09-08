@@ -285,6 +285,11 @@ export const de = {
   "bilingual.apply": "Übernehmen",
   "bilingual.detected": "Erkannt: {{lang}}",
   "bilingual.thinking": "Denke nach…",
+  // Direkter Stil / Mannered Prose (Sprint 20, Agent 1)
+  "quality.directness": "Direkter Stil",
+  "quality.directness.fixAll": "Alle korrigieren",
+  "quality.directness.clean": "Direkter Stil — keine manierierten Floskeln gefunden.",
+  "quality.directness.found": "{{count}} manierierte Formulierungen — direkt sagen, was gemeint ist.",
 } as const;
 
 export type TranslationKey = keyof typeof de;

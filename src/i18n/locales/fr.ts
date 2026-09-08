@@ -281,4 +281,10 @@ export const fr: TranslationDict = {
   "bilingual.apply": "Appliquer",
   "bilingual.detected": "Détecté : {{lang}}",
   "bilingual.thinking": "Réflexion…",
+
+  // Style direct / manière affectée (Sprint 20, Agent 1)
+  "quality.directness": "Style direct",
+  "quality.directness.fixAll": "Tout corriger",
+  "quality.directness.clean": "Style direct — aucune fioriture maniérée détectée.",
+  "quality.directness.found": "{{count}} formulations maniérées — dites ce que vous pensez.",
 };

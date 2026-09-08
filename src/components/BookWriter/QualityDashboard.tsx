@@ -67,6 +67,94 @@ function barColor(score: number): string {
   return "#c62828";
 }
 
+/** Ampelfarbe für „Direkter Stil": grün (>70), gelb (40–70), rot (<40). */
+export function directnessColor(score: number): string {
+  if (score > 70) return "#2e7d32";
+  if (score >= 40) return "#f9a825";
+  return "#c62828";
+}
+
+export interface DirectnessFlourish {
+  original: string;
+  suggestion: string;
+  reason: string;
+  index: number;
+}
+
+export interface DirectnessSectionProps {
+  score: number;
+  flourishes?: DirectnessFlourish[];
+  summary?: string;
+  onCorrectAll?: () => void;
+  title?: string;
+  fixAllLabel?: string;
+  className?: string;
+}
+
+/**
+ * Abschnitt „Direkter Stil" (Sprint 20, Agent 1): Ampel-Score für
+ * Mannered-Prose plus Liste erkannter Floskeln (Original → Vorschlag).
+ * Präsentational — Daten und Korrektur kommen über Props.
+ */
+export function DirectnessSection({
+  score,
+  flourishes = [],
+  summary,
+  onCorrectAll,
+  title = "Direkter Stil",
+  fixAllLabel = "Alle korrigieren",
+  className,
+}: DirectnessSectionProps) {
+  const s = clampScore(score);
+  const autoFixable = flourishes.filter((f) => !f.suggestion.startsWith("[")).length;
+  return (
+    <div className={className ?? "quality-directness"} data-testid="directness-section">
+      <h4 data-testid="directness-title">{title}</h4>
+      <p data-testid="directness-score">
+        <span
+          data-testid="directness-traffic-light"
+          data-level={s > 70 ? "green" : s >= 40 ? "yellow" : "red"}
+          style={{
+            display: "inline-block",
+            width: 12,
+            height: 12,
+            borderRadius: "50%",
+            background: directnessColor(s),
+            marginRight: 8,
+          }}
+        />
+        {s}/100
+        {summary ? <span className="ws-muted"> — {summary}</span> : null}
+      </p>
+      {flourishes.length > 0 && (
+        <>
+          <ul data-testid="directness-flourishes">
+            {flourishes.map((f, i) => (
+              <li
+                key={`${f.index}-${i}`}
+                data-testid="directness-flourish"
+                data-original={f.original}
+              >
+                <span>„{f.original}“ → „{f.suggestion}“</span>
+                {f.reason ? <span className="ws-muted"> — {f.reason}</span> : null}
+              </li>
+            ))}
+          </ul>
+          {onCorrectAll && autoFixable > 0 && (
+            <button
+              className="ws-btn"
+              data-testid="directness-fix-all"
+              onClick={onCorrectAll}
+            >
+              {fixAllLabel} ({autoFixable})
+            </button>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
 export function QualityDashboard({
   metrics = [],
   suggestions = [],

@@ -280,4 +280,9 @@ export const en: TranslationDict = {
   "bilingual.apply": "Apply",
   "bilingual.detected": "Detected: {{lang}}",
   "bilingual.thinking": "Thinking…",
+  // Direct style / mannered prose (Sprint 20, Agent 1)
+  "quality.directness": "Direct style",
+  "quality.directness.fixAll": "Fix all",
+  "quality.directness.clean": "Direct style — no mannered flourishes found.",
+  "quality.directness.found": "{{count}} mannered phrases — say what you mean.",
 };
