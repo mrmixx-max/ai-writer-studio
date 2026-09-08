@@ -30,7 +30,9 @@ export function ModelPicker({ settings, onSelect, variant = "default", toggleId 
   // refreshing: stiller Hintergrund-Poll (10 s), Liste bleibt sichtbar.
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const rootRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const load = useCallback(
     async (force: boolean, signal?: AbortSignal) => {
@@ -137,6 +139,28 @@ export function ModelPicker({ settings, onSelect, variant = "default", toggleId 
 
       {open && (
         <div className="ki-model-menu" role="listbox" aria-label="Verfügbare Modelle">
+          {/* Sprint 24: Suchfeld für schnelle Modell-Filterung */}
+          <div className="ki-model-menu-search">
+            <input
+              ref={searchInputRef}
+              type="text"
+              className="ki-model-menu-search-input"
+              placeholder="Modell suchen…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              aria-label="Modell suchen"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                className="ki-model-menu-search-clear"
+                onClick={() => setSearchQuery("")}
+                aria-label="Suche löschen"
+              >
+                ×
+              </button>
+            )}
+          </div>
           {/* Ladezustand: Spinner statt veraltete Liste (Öffnen/Aktualisieren). */}
           {loading && (
             <p className="ki-model-menu-hint" role="status" aria-live="polite">
@@ -163,32 +187,40 @@ export function ModelPicker({ settings, onSelect, variant = "default", toggleId 
           {!loading &&
             results
               ?.filter((r) => r.reachable && r.models.length > 0)
-              .map((r) => (
-              <div key={r.provider} className="ki-model-group">
-                <p className="ki-model-group-label">
-                  {r.label}
-                  {typeof r.latencyMs === "number" ? ` · ${r.latencyMs} ms` : ""}
-                </p>
-                {r.models.map((m) => {
-                  const isActive = r.provider === settings.provider && m === settings.model;
-                  return (
-                    <button
-                      key={`${r.provider}:${m}`}
-                      type="button"
-                      role="option"
-                      aria-selected={isActive}
-                      className={`ki-model-option${isActive ? " active" : ""}`}
-                      onClick={() => {
-                        onSelect(r.provider, m);
-                        setOpen(false);
-                      }}
-                    >
-                      {m}
-                    </button>
-                  );
-                })}
-              </div>
-            ))}
+              .map((r) => {
+                // Sprint 24: Modell-Filterung nach Suchquery
+                const filteredModels = r.models.filter((m) =>
+                  searchQuery.trim() === "" ||
+                  m.toLowerCase().includes(searchQuery.toLowerCase())
+                );
+                if (filteredModels.length === 0) return null;
+                return (
+                  <div key={r.provider} className="ki-model-group">
+                    <p className="ki-model-group-label">
+                      {r.label}
+                      {typeof r.latencyMs === "number" ? ` · ${r.latencyMs} ms` : ""}
+                    </p>
+                    {filteredModels.map((m) => {
+                      const isActive = r.provider === settings.provider && m === settings.model;
+                      return (
+                        <button
+                          key={`${r.provider}:${m}`}
+                          type="button"
+                          role="option"
+                          aria-selected={isActive}
+                          className={`ki-model-option${isActive ? " active" : ""}`}
+                          onClick={() => {
+                            onSelect(r.provider, m);
+                            setOpen(false);
+                          }}
+                        >
+                          {m}
+                        </button>
+                      );
+                    })}
+                  </div>
+                );
+              })}
         </div>
       )}
     </div>
