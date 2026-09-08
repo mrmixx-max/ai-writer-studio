@@ -168,9 +168,17 @@ const FormattingPanel = lazy(() =>
 const BackupPanel = lazy(() =>
   import("@/components/Backup/BackupPanel").then((m) => ({ default: m.BackupPanel }))
 );
+// Sprint 24 (Agent 3): Sitzungs-Manager — Sessions speichern/laden, standalone.
+const SessionPanel = lazy(() =>
+  import("@/components/Session/SessionPanel").then((m) => ({ default: m.SessionPanel }))
+);
 // Sprint 25 (Agent 4): Lesbarkeits-Metriken — 6 Metriken + Radar, standalone.
 const ReadabilityPanel = lazy(() =>
   import("@/components/Readability/ReadabilityPanel").then((m) => ({ default: m.ReadabilityPanel }))
+);
+// Sprint 24 (Agent 2): Volltextsuche + Ersetzen — projektuebergreifend, standalone.
+const SearchPanel = lazy(() =>
+  import("@/components/Search/SearchPanel").then((m) => ({ default: m.SearchPanel }))
 );
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
@@ -544,8 +552,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "formatting") return <FormattingPanel />;
     // Sprint 24 (Agent 6): Backup arbeitet projektuebergreifend (standalone).
     if (mode === "backup") return <BackupPanel />;
+    // Sprint 24 (Agent 3): Sitzungs-Manager arbeitet projektuebergreifend (standalone).
+    if (mode === "sessions") return <SessionPanel />;
     // Sprint 24 (Agent 1): Cloud-Sync arbeitet projektuebergreifend (standalone).
     // Sprint 24 (Agent 2): Volltextsuche arbeitet projektuebergreifend (standalone).
+    if (mode === "search") return <SearchPanel />;
     // Sprint 25 (Agent 4): Lesbarkeit arbeitet auf freiem Text (standalone).
     if (mode === "readability") return <ReadabilityPanel />;
     if (!projectId || !chapterId) {

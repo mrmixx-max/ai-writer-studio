@@ -1,225 +1,236 @@
-// SessionPanel (Sprint 24, Agent 3): Sitzungen speichern/laden.
-// Bloomberg-Terminal-Stil (Inline-Styles — kein neues CSS-Asset nötig).
-// Service-Funktionen sind per Props injizierbar (Tests), Defaults: sessionManager.
+// Session-Panel (Sprint 24, Agent 3): Session-Liste, Speichern (mit
+// Name-Dialog), Laden, Loeschen, Umbenennen, Session-Vorschau
+// (Projekt, offene Tabs) und letzte Sessions (Quick-Load).
+// Bloomberg-Terminal-Stil (Inline-Styles — kein neues CSS-Asset noetig).
+// Der Manager ist per Prop injizierbar (Tests/Storybook), Default: echter Manager.
 import { useCallback, useEffect, useState } from "react";
 import {
-  deleteSession as defaultDelete,
-  getSessions as defaultList,
-  loadSession as defaultLoad,
-  renameSession as defaultRename,
-  restoreState as defaultRestore,
-  saveSession as defaultSave,
+  saveSession,
+  loadSession,
+  getSessions,
+  deleteSession,
+  renameSession,
+  restoreState,
   type Session,
 } from "@/services/session/sessionManager";
 
+export interface SessionManagerClient {
+  saveSession: (name: string) => Promise<Session>;
+  loadSession: (id: string) => Promise<Session>;
+  getSessions: () => Promise<Session[]>;
+  deleteSession: (id: string) => Promise<void>;
+  renameSession: (id: string, name: string) => Promise<void>;
+  restoreState: (session: Session) => Promise<void>;
+}
+
+const DEFAULT_CLIENT: SessionManagerClient = {
+  saveSession,
+  loadSession,
+  getSessions,
+  deleteSession,
+  renameSession,
+  restoreState,
+};
+
 const TERM: React.CSSProperties = {
-  background: "#0a0e14",
-  color: "#ffb000",
-  fontFamily: "ui-monospace, Menlo, Consolas, monospace",
+  background: "#000",
+  color: "#ffa028",
+  fontFamily: "'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace",
   fontSize: 13,
   padding: 12,
   borderRadius: 6,
-  border: "1px solid #2a3340",
+  border: "1px solid #333",
 };
 
 const BTN: React.CSSProperties = {
-  background: "#131a24",
-  color: "#ffb000",
-  border: "1px solid #ffb000",
+  background: "#000",
+  color: "#ffa028",
+  border: "1px solid #ffa028",
   borderRadius: 4,
   padding: "4px 10px",
   cursor: "pointer",
-  fontSize: 12,
   fontFamily: "inherit",
+  fontSize: 12,
 };
 
-export interface SessionPanelDeps {
-  list?: () => Promise<Session[]>;
-  save?: (name: string) => Promise<Session>;
-  load?: (id: string) => Promise<Session>;
-  remove?: (id: string) => Promise<void>;
-  rename?: (id: string, name: string) => Promise<void>;
-  restore?: (s: Session) => Promise<void>;
-  promptName?: (label: string, initial?: string) => string | null;
+const BTN_GHOST: React.CSSProperties = {
+  ...BTN,
+  border: "1px solid #333",
+  color: "#ffa028",
+  opacity: 0.85,
+};
+
+const INPUT: React.CSSProperties = {
+  background: "#000",
+  color: "#ffa028",
+  border: "1px solid #333",
+  borderRadius: 4,
+  padding: "4px 8px",
+  fontFamily: "inherit",
+  fontSize: 12,
+  minWidth: 0,
+  flex: 1,
+};
+
+const ITEM: React.CSSProperties = {
+  border: "1px solid #333",
+  borderRadius: 4,
+  padding: "6px 8px",
+  display: "flex",
+  flexDirection: "column",
+  gap: 4,
+};
+
+const ITEM_ACTIVE: React.CSSProperties = {
+  ...ITEM,
+  border: "1px solid #ffa028",
+};
+
+function formatTime(ts: number): string {
+  try {
+    return new Date(ts).toLocaleString();
+  } catch {
+    return String(ts);
+  }
 }
 
-export function SessionPanel(deps: SessionPanelDeps = {}) {
-  const {
-    list = defaultList,
-    save = defaultSave,
-    load = defaultLoad,
-    remove = defaultDelete,
-    rename = defaultRename,
-    restore = defaultRestore,
-    promptName = (label, initial) =>
-      typeof window !== "undefined" && typeof window.prompt === "function"
-        ? window.prompt(label, initial ?? "")
-        : null,
-  } = deps;
+export interface SessionPanelProps {
+  manager?: SessionManagerClient;
+}
 
+export function SessionPanel({ manager = DEFAULT_CLIENT }: SessionPanelProps) {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [nameInput, setNameInput] = useState("");
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [renameInput, setRenameInput] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     try {
-      const all = await list();
+      const all = await manager.getSessions();
       setSessions(all);
-      if (all.length > 0 && !selectedId) setSelectedId(all[0].id);
-      if (selectedId && !all.some((s) => s.id === selectedId)) {
-        setSelectedId(all.length > 0 ? all[0].id : null);
-      }
+      setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [list]);
+  }, [manager]);
 
   useEffect(() => {
     void refresh();
   }, [refresh]);
 
   const selected = sessions.find((s) => s.id === selectedId) ?? null;
-  const recent = sessions.slice(0, 3);
+  const quickLoad = sessions.slice(0, 3);
 
-  async function run(fn: () => Promise<void>) {
-    setBusy(true);
-    setError(null);
+  async function handleSave() {
+    const name = nameInput.trim();
+    if (!name) {
+      setError("Bitte einen Session-Namen eingeben.");
+      return;
+    }
     try {
-      await fn();
+      const created = await manager.saveSession(name);
+      setNameInput("");
+      setShowSaveDialog(false);
+      setSelectedId(created.id);
+      setNotice(`Gespeichert: ${created.name}`);
+      setError(null);
       await refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setBusy(false);
+    }
+  }
+
+  async function handleLoad(id: string) {
+    try {
+      const session = await manager.loadSession(id);
+      await manager.restoreState(session);
+      setSelectedId(id);
+      setNotice(`Geladen: ${session.name}`);
+      setError(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
+  }
+
+  async function handleDelete(id: string) {
+    try {
+      await manager.deleteSession(id);
+      if (selectedId === id) setSelectedId(null);
+      setNotice(null);
+      setError(null);
+      await refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
+  }
+
+  async function handleRename() {
+    if (!selected) return;
+    const name = renameInput.trim();
+    if (!name) {
+      setError("Bitte einen neuen Namen eingeben.");
+      return;
+    }
+    try {
+      await manager.renameSession(selected.id, name);
+      setRenameInput("");
+      setError(null);
+      await refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
     }
   }
 
   return (
     <div style={TERM} data-testid="session-panel">
-      <div style={{ fontWeight: 700, marginBottom: 8 }} data-testid="session-title">
-        💾 SESSIONS
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+        <strong data-testid="session-title">💾 Sessions</strong>
+        <span data-testid="session-count" style={{ opacity: 0.8 }}>
+          {sessions.length}
+        </span>
+        <span style={{ flex: 1 }} />
+        <button
+          type="button"
+          style={BTN}
+          data-testid="session-save-open"
+          onClick={() => setShowSaveDialog((v) => !v)}
+        >
+          Speichern
+        </button>
       </div>
 
-      {error && (
-        <div style={{ color: "#ff5555", marginBottom: 8 }} data-testid="session-error">
-          {error}
+      {showSaveDialog && (
+        <div style={{ display: "flex", gap: 6, marginBottom: 8 }} data-testid="session-save-dialog">
+          <input
+            style={INPUT}
+            data-testid="session-name-input"
+            placeholder="Session-Name…"
+            value={nameInput}
+            onChange={(e) => setNameInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") void handleSave();
+            }}
+          />
+          <button type="button" style={BTN} data-testid="session-save-confirm" onClick={() => void handleSave()}>
+            OK
+          </button>
         </div>
       )}
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
-        <button
-          style={BTN}
-          data-testid="session-save"
-          disabled={busy}
-          onClick={() =>
-            run(async () => {
-              const name = promptName("Session-Name:", `Session ${sessions.length + 1}`);
-              if (!name || !name.trim()) return;
-              const created = await save(name.trim());
-              setSelectedId(created.id);
-            })
-          }
-        >
-          💾 Speichern
-        </button>
-        <button
-          style={BTN}
-          data-testid="session-load"
-          disabled={busy || !selected}
-          onClick={() =>
-            run(async () => {
-              if (!selected) return;
-              const s = await load(selected.id);
-              await restore(s);
-            })
-          }
-        >
-          📂 Laden
-        </button>
-        <button
-          style={BTN}
-          data-testid="session-delete"
-          disabled={busy || !selected}
-          onClick={() =>
-            run(async () => {
-              if (!selected) return;
-              await remove(selected.id);
-              setSelectedId(null);
-            })
-          }
-        >
-          🗑 Löschen
-        </button>
-        <button
-          style={BTN}
-          data-testid="session-rename"
-          disabled={busy || !selected}
-          onClick={() =>
-            run(async () => {
-              if (!selected) return;
-              const name = promptName("Neuer Name:", selected.name);
-              if (!name || !name.trim()) return;
-              await rename(selected.id, name.trim());
-            })
-          }
-        >
-          ✎ Umbenennen
-        </button>
-      </div>
-
-      <div style={{ marginBottom: 6, color: "#5fff87" }} data-testid="session-count">
-        {sessions.length} Sitzung(en)
-      </div>
-
-      {sessions.length === 0 ? (
-        <div style={{ opacity: 0.8 }} data-testid="session-empty">
-          Keine Sessions — oben speichern.
-        </div>
-      ) : (
-        <ul style={{ listStyle: "none", padding: 0, margin: 0 }} data-testid="session-list">
-          {sessions.map((s) => (
-            <li
-              key={s.id}
-              data-testid={`session-item-${s.id}`}
-              onClick={() => setSelectedId(s.id)}
-              style={{
-                padding: "6px 8px",
-                marginBottom: 4,
-                border: s.id === selectedId ? "1px solid #ffb000" : "1px solid #2a3340",
-                borderRadius: 4,
-                background: s.id === selectedId ? "#1a1405" : "transparent",
-                cursor: "pointer",
-              }}
-            >
-              <span data-testid={`session-name-${s.id}`}>{s.name}</span>{" "}
-              <span style={{ opacity: 0.7, fontSize: 11 }}>
-                · {s.openTabs.length} Tab(s) · {new Date(s.updatedAt).toLocaleString()}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {recent.length > 0 && (
-        <div style={{ marginTop: 10 }}>
-          <div style={{ marginBottom: 4, color: "#5fff87" }} data-testid="session-recent-title">
-            ⚡ Letzte Sessions (Quick-Load)
-          </div>
+      {quickLoad.length > 0 && (
+        <div style={{ marginBottom: 8 }} data-testid="session-quickload">
+          <div style={{ opacity: 0.7, marginBottom: 4 }}>Zuletzt:</div>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            {recent.map((s) => (
+            {quickLoad.map((s) => (
               <button
                 key={s.id}
-                style={BTN}
+                type="button"
+                style={BTN_GHOST}
                 data-testid={`session-quick-${s.id}`}
-                disabled={busy}
-                onClick={() =>
-                  run(async () => {
-                    const full = await load(s.id);
-                    await restore(full);
-                  })
-                }
+                onClick={() => void handleLoad(s.id)}
               >
                 {s.name}
               </button>
@@ -228,22 +239,96 @@ export function SessionPanel(deps: SessionPanelDeps = {}) {
         </div>
       )}
 
+      {sessions.length === 0 ? (
+        <div style={{ opacity: 0.7 }} data-testid="session-empty">
+          Keine Sessions — oben speichern.
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }} data-testid="session-list">
+          {sessions.map((s) => (
+            <div
+              key={s.id}
+              style={s.id === selectedId ? ITEM_ACTIVE : ITEM}
+              data-testid={`session-item-${s.id}`}
+              onClick={() => setSelectedId(s.id)}
+            >
+              <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                <strong>{s.name}</strong>
+                <span style={{ flex: 1 }} />
+                <button
+                  type="button"
+                  style={BTN}
+                  data-testid={`session-load-${s.id}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    void handleLoad(s.id);
+                  }}
+                >
+                  Laden
+                </button>
+                <button
+                  type="button"
+                  style={BTN_GHOST}
+                  data-testid={`session-delete-${s.id}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    void handleDelete(s.id);
+                  }}
+                >
+                  Löschen
+                </button>
+              </div>
+              <div style={{ opacity: 0.7, fontSize: 11 }}>
+                {formatTime(s.updatedAt)} · {s.openTabs.length} Tab(s)
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {selected && (
-        <div
-          style={{ marginTop: 10, borderTop: "1px solid #2a3340", paddingTop: 8 }}
-          data-testid="session-preview"
-        >
-          <div style={{ fontWeight: 700 }} data-testid="session-preview-title">
-            Vorschau: {selected.name}
+        <div style={{ marginTop: 8, ...ITEM }} data-testid="session-preview">
+          <div>
+            <strong>Vorschau: {selected.name}</strong>
           </div>
-          <div data-testid="session-preview-project">Projekt: {selected.projectId || "—"}</div>
+          <div data-testid="session-preview-project">
+            Projekt: {selected.projectId || "—"}
+          </div>
           <div data-testid="session-preview-tabs">
-            Tabs ({selected.openTabs.length}):{" "}
-            {selected.openTabs.length > 0 ? selected.openTabs.join(", ") : "—"}
+            Tabs: {selected.openTabs.length > 0 ? selected.openTabs.join(", ") : "—"}
           </div>
-          {selected.activeTab && (
-            <div data-testid="session-preview-active">Aktiv: {selected.activeTab}</div>
-          )}
+          {selected.activeTab && <div>Aktiv: {selected.activeTab}</div>}
+          <div style={{ display: "flex", gap: 6, marginTop: 4 }}>
+            <input
+              style={INPUT}
+              data-testid="session-rename-input"
+              placeholder="Neuer Name…"
+              value={renameInput}
+              onChange={(e) => setRenameInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void handleRename();
+              }}
+            />
+            <button
+              type="button"
+              style={BTN}
+              data-testid="session-rename-confirm"
+              onClick={() => void handleRename()}
+            >
+              Umbenennen
+            </button>
+          </div>
+        </div>
+      )}
+
+      {notice && (
+        <div style={{ marginTop: 8, opacity: 0.9 }} data-testid="session-notice">
+          {notice}
+        </div>
+      )}
+      {error && (
+        <div style={{ marginTop: 8, color: "#ff5f56" }} data-testid="session-error">
+          {error}
         </div>
       )}
     </div>

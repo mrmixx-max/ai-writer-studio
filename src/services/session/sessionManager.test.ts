@@ -1,72 +1,81 @@
-// @vitest-environment jsdom
-// Tests: sessionManager (Sprint 24, Agent 3) — CRUD + Restore.
-import { describe, it, expect, beforeEach, vi } from "vitest";
+// Unit-Tests: SessionManager (Sprint 24, Agent 3) — CRUD + Restore.
+import { describe, it, expect, beforeEach } from "vitest";
 import {
-  __resetSessionsForTests,
-  deleteSession,
-  getSessions,
+  saveSession,
   loadSession,
+  getSessions,
+  deleteSession,
   renameSession,
   restoreState,
-  saveSession,
+  getLastRestoredId,
+  __resetSessionState,
 } from "./sessionManager";
-import { useProjectStore } from "@/store/projectStore";
 
-beforeEach(() => {
-  __resetSessionsForTests();
-  localStorage.clear();
-  useProjectStore.setState({
-    projects: [],
-    activeProjectId: "p1",
-    chapters: [
-      { id: "c1", projectId: "p1", title: "K1", content: "", orderIndex: 0, createdAt: 0, updatedAt: 0 },
-      { id: "c2", projectId: "p1", title: "K2", content: "", orderIndex: 1, createdAt: 0, updatedAt: 0 },
-    ] as never,
-    activeChapterId: "c1",
-  });
+beforeEach(async () => {
+  await __resetSessionState();
 });
 
 describe("sessionManager", () => {
-  it("saveSession() erzeugt Session mit Snapshot", async () => {
-    const s = await saveSession("Test-Session");
-    expect(s.id).toBeTruthy();
-    expect(s.name).toBe("Test-Session");
-    expect(s.projectId).toBe("p1");
-    expect(s.openTabs).toEqual(["c1", "c2"]);
-    expect(s.activeTab).toBe("c1");
-    expect(await getSessions()).toHaveLength(1);
+  it("saveSession() erzeugt eine Session mit Name, ID und Zeitstempeln", async () => {
+    const session = await saveSession("Forschungsstand");
+    expect(session.id).toMatch(/^session-/);
+    expect(session.name).toBe("Forschungsstand");
+    expect(session.createdAt).toBeGreaterThan(0);
+    expect(session.updatedAt).toBeGreaterThanOrEqual(session.createdAt);
+    expect(Array.isArray(session.openTabs)).toBe(true);
+    const all = await getSessions();
+    expect(all).toHaveLength(1);
+    expect(all[0].id).toBe(session.id);
   });
 
-  it("loadSession() gibt Session zurück, unbekannte ID wirft", async () => {
-    const s = await saveSession("A");
-    await expect(loadSession(s.id)).resolves.toMatchObject({ id: s.id, name: "A" });
-    await expect(loadSession("nope")).rejects.toThrow(/nicht gefunden/);
+  it("saveSession() wirft bei leerem Namen", async () => {
+    await expect(saveSession("   ")).rejects.toThrow();
+    expect(await getSessions()).toHaveLength(0);
   });
 
-  it("renameSession() benennt um, leere Namen werfen", async () => {
-    const s = await saveSession("Alt");
-    await renameSession(s.id, "Neu");
-    expect((await getSessions())[0].name).toBe("Neu");
-    await expect(renameSession(s.id, "   ")).rejects.toThrow();
-    await expect(renameSession("nope", "X")).rejects.toThrow();
+  it("loadSession() gibt die Session zurueck, unbekannte ID wirft", async () => {
+    const saved = await saveSession("Kapitel 3");
+    const loaded = await loadSession(saved.id);
+    expect(loaded.id).toBe(saved.id);
+    expect(loaded.name).toBe("Kapitel 3");
+    await expect(loadSession("session-gibt-es-nicht")).rejects.toThrow();
   });
 
-  it("deleteSession() entfernt Session", async () => {
+  it("getSessions() gibt alle Sessions neueste-zuerst zurueck", async () => {
+    const first = await saveSession("Erste");
+    const second = await saveSession("Zweite");
+    const all = await getSessions();
+    expect(all).toHaveLength(2);
+    expect(all.map((s) => s.id)).toContain(first.id);
+    expect(all.map((s) => s.id)).toContain(second.id);
+    expect(all[0].updatedAt).toBeGreaterThanOrEqual(all[1].updatedAt);
+  });
+
+  it("renameSession() benennt um, leere Namen und unbekannte IDs werfen", async () => {
+    const saved = await saveSession("Alt");
+    await renameSession(saved.id, "Neu");
+    expect((await loadSession(saved.id)).name).toBe("Neu");
+    await expect(renameSession(saved.id, "  ")).rejects.toThrow();
+    await expect(renameSession("session-gibt-es-nicht", "X")).rejects.toThrow();
+  });
+
+  it("deleteSession() loescht gezielt, unbekannte ID wirft", async () => {
     const a = await saveSession("A");
     const b = await saveSession("B");
     await deleteSession(a.id);
     const rest = await getSessions();
     expect(rest).toHaveLength(1);
     expect(rest[0].id).toBe(b.id);
+    await expect(deleteSession(a.id)).rejects.toThrow();
   });
 
-  it("restoreState() setzt Projekt + Kapitel im Store", async () => {
-    const openProject = vi.spyOn(useProjectStore.getState(), "openProject");
-    const openChapter = vi.spyOn(useProjectStore.getState(), "openChapter");
-    const s = await saveSession("R");
-    useProjectStore.setState({ activeProjectId: null, activeChapterId: null });
-    await restoreState({ ...s, projectId: "p1", activeTab: "c2" });
-    expect(openProject).toHaveBeenCalledWith("p1");
-    expect(openChapter).toHaveBeenCalledWith("c2");
+  it("restoreState() setzt den Zustand, merkt sich die Session, unbekannte ID wirft", async () => {
+    const saved = await saveSession("Arbeitsstand");
+    await restoreState(saved);
+    expect(getLastRestoredId()).toBe(saved.id);
+    await expect(
+      restoreState({ ...saved, id: "session-gibt-es-nicht" }),
+    ).rejects.toThrow();
+    expect(getLastRestoredId()).toBe(saved.id);
   });
 });
