@@ -143,6 +143,9 @@ export const de = {
   "sidebar.mode.textquality": "Textverbesserung",
   "sidebar.mode.amazon": "Amazon",
   "sidebar.mode.shortprose": "Kurzprosa",
+  "sidebar.mode.voice": "Voice Lab",
+  "sidebar.mode.templates": "Templates",
+  "sidebar.mode.collab": "Collab",
 
   // BookWriter
   "bookwriter.title": "📖 Automatischer Buchautor",

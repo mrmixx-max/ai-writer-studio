@@ -14,6 +14,7 @@ const WIDE_EXTRA_MODES = new Set<string>([
   "research", "publishing", "investigate", "watermark", "tts",
   "bookwriter", "markdown", "wordstats", "ideas", "consistency",
   "newspaper", "textquality", "bilingual", "amazon", "shortprose",
+  "templates", "voice",
 ]);
 
 // Lazy-loaded Panels — werden erst beim ersten Zugriff geladen
@@ -115,6 +116,12 @@ const BilingualPanel = lazy(() =>
 const ShortprosePanel = lazy(() =>
   import("@/components/BookWriter/ShortprosePanel").then((m) => ({ default: m.ShortprosePanel }))
 );
+const CollabPanel = lazy(() =>
+  import("@/components/Collab/CollabPanel").then((m) => ({ default: m.CollabPanel }))
+);
+const TemplatePanel = lazy(() =>
+  import("@/components/Templates/TemplatePanel").then((m) => ({ default: m.TemplatePanel }))
+);
 const ResearchPanel = lazy(() =>
   import("@/components/Research/ResearchPanel").then((m) => ({ default: m.ResearchPanel }))
 );
@@ -123,6 +130,9 @@ const AmazonPanel = lazy(() =>
 );
 const CharactersPanel = lazy(() =>
   import("@/components/Characters/CharactersPanel").then((m) => ({ default: m.CharactersPanel }))
+);
+const VoiceLabPanel = lazy(() =>
+  import("@/components/VoiceLab/VoiceLabPanel").then((m) => ({ default: m.VoiceLabPanel }))
 );
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
@@ -166,6 +176,9 @@ const MODES: { id: EditorMode; key: `sidebar.mode.${EditorMode}`; icon: string; 
   { id: "bilingual", key: "sidebar.mode.bilingual", icon: "🌐", description: "Deutsch↔Englisch Übersetzung" },
   { id: "amazon", key: "sidebar.mode.amazon", icon: "🛒", description: "Buchsuche + Preis-Monitoring" },
   { id: "shortprose", key: "sidebar.mode.shortprose", icon: "✍️", description: "Flash Fiction + Micro-Stories" },
+  { id: "templates", key: "sidebar.mode.templates", icon: "📝", description: "Text-Vorlagen + Generator" },
+  { id: "collab", key: "sidebar.mode.collab", icon: "👥", description: "Kommentare + Reviews" },
+  { id: "voice", key: "sidebar.mode.voice", icon: "🎙️", description: "Sprachaufnahme + Transkription" },
 ];
 
 export function Sidebar() {
@@ -456,6 +469,12 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "amazon") return <AmazonPanel />;
     // Sprint 20 (Agent 2): Kurzprosa-Generator braucht kein offenes Kapitel.
     if (mode === "shortprose") return <ShortprosePanel projectId={projectId ?? undefined} chapterId={chapterId ?? undefined} />;
+    // Sprint 20 (Agent 2): Voice-Lab braucht kein offenes Kapitel (Aufnahme + Transkription standalone).
+    if (mode === "voice") return <VoiceLabPanel />;
+    // Sprint 20 (Agent 3): Collab-Panel braucht kein offenes Kapitel (projektbezogen).
+    if (mode === "collab") return <CollabPanel projectId={projectId ?? undefined} />;
+    // Sprint 20 (Agent 5): Template-Panel braucht kein offenes Kapitel (projektübergreifend).
+    if (mode === "templates") return <TemplatePanel />;
     if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }

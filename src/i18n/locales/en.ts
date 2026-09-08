@@ -141,6 +141,9 @@ export const en: TranslationDict = {
   "sidebar.mode.textquality": "Text Improvement",
   "sidebar.mode.amazon": "Amazon",
   "sidebar.mode.shortprose": "Short Prose",
+  "sidebar.mode.voice": "Voice Lab",
+  "sidebar.mode.templates": "Templates",
+  "sidebar.mode.collab": "Collab",
 
   "bookwriter.title": "📖 Automatic book author",
   "bookwriter.resumeTitle": "Resume generation?",

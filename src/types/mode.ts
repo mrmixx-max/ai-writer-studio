@@ -35,4 +35,7 @@ export type EditorMode =
   | "newspaper"
   | "textquality"
   | "amazon"
-  | "shortprose";
+  | "shortprose"
+  | "voice"
+  | "templates"
+  | "collab";
