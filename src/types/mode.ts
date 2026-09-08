@@ -38,4 +38,8 @@ export type EditorMode =
   | "shortprose"
   | "voice"
   | "templates"
-  | "collab";
+  | "collab"
+  | "outliner"
+  | "style-analyzer"
+  | "importer"
+  | "websearch";

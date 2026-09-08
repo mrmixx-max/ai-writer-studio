@@ -14,7 +14,7 @@ const WIDE_EXTRA_MODES = new Set<string>([
   "research", "publishing", "investigate", "watermark", "tts",
   "bookwriter", "markdown", "wordstats", "ideas", "consistency",
   "newspaper", "textquality", "bilingual", "amazon", "shortprose",
-  "templates", "voice",
+  "templates", "voice", "style-analyzer", "websearch", "outliner",
 ]);
 
 // Lazy-loaded Panels — werden erst beim ersten Zugriff geladen
@@ -125,14 +125,27 @@ const TemplatePanel = lazy(() =>
 const ResearchPanel = lazy(() =>
   import("@/components/Research/ResearchPanel").then((m) => ({ default: m.ResearchPanel }))
 );
+const OutlinerPanel = lazy(() =>
+  import("@/components/Outliner/OutlinerPanel").then((m) => ({ default: m.OutlinerPanel }))
+);
 const AmazonPanel = lazy(() =>
   import("@/components/Amazon/AmazonPanel").then((m) => ({ default: m.AmazonPanel }))
 );
 const CharactersPanel = lazy(() =>
   import("@/components/Characters/CharactersPanel").then((m) => ({ default: m.CharactersPanel }))
 );
+// Sprint 22 (Agent 6): Stil-Analyse — Autoren-Vergleich, standalone (kein Kapitel nötig).
+const StyleAnalyzerPanel = lazy(() =>
+  import("@/components/StyleAnalyzer/StyleAnalyzerPanel").then((m) => ({ default: m.StyleAnalyzerPanel }))
+);
 const VoiceLabPanel = lazy(() =>
   import("@/components/VoiceLab/VoiceLabPanel").then((m) => ({ default: m.VoiceLabPanel }))
+);
+const WebsearchPanel = lazy(() =>
+  import("@/components/Websearch/WebsearchPanel").then((m) => ({ default: m.WebsearchPanel }))
+);
+const ImporterPanel = lazy(() =>
+  import("@/components/Importer/ImporterPanel").then((m) => ({ default: m.ImporterPanel }))
 );
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
@@ -179,6 +192,10 @@ const MODES: { id: EditorMode; key: `sidebar.mode.${EditorMode}`; icon: string; 
   { id: "templates", key: "sidebar.mode.templates", icon: "📝", description: "Text-Vorlagen + Generator" },
   { id: "collab", key: "sidebar.mode.collab", icon: "👥", description: "Kommentare + Reviews" },
   { id: "voice", key: "sidebar.mode.voice", icon: "🎙️", description: "Sprachaufnahme + Transkription" },
+  { id: "style-analyzer", key: "sidebar.mode.style-analyzer", icon: "🎨", description: "Vergleich mit Autoren" },
+  { id: "importer", key: "sidebar.mode.importer", icon: "📥", description: "DOCX/EPUB/PDF/TXT" },
+  { id: "websearch", key: "sidebar.mode.websearch", icon: "🔍", description: "SerpAPI + DDG + Brave" },
+  { id: "outliner", key: "sidebar.mode.outliner", icon: "🌳", description: "Strukturierte Gliederung" },
 ];
 
 export function Sidebar() {
@@ -475,6 +492,14 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "collab") return <CollabPanel projectId={projectId ?? undefined} />;
     // Sprint 20 (Agent 5): Template-Panel braucht kein offenes Kapitel (projektübergreifend).
     if (mode === "templates") return <TemplatePanel />;
+    // Sprint 22 (Agent 5): Outliner braucht kein offenes Kapitel (eigene Gliederung).
+    if (mode === "outliner") return <OutlinerPanel />;
+    // Sprint 22 (Agent 1): Importer arbeitet dateibasiert (projektübergreifend).
+    if (mode === "importer") return <ImporterPanel />;
+    // Sprint 22 (Agent 6): Stil-Analyse arbeitet auf freiem Text (standalone).
+    if (mode === "style-analyzer") return <StyleAnalyzerPanel />;
+    // Sprint 22 (Agent 3): Web-Recherche braucht kein offenes Kapitel (projektuebergreifend).
+    if (mode === "websearch") return <WebsearchPanel />;
     if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }
