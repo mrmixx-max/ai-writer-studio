@@ -45,4 +45,11 @@ export type EditorMode =
   | "websearch"
   | "advanced-export"
   | "scene-breakdown"
-  | "feedback";
+  | "feedback"
+  | "prompt-library"
+  | "search"
+  | "cloud-sync"
+  | "sessions"
+  | "backup"
+  | "formatting"
+  | "readability";

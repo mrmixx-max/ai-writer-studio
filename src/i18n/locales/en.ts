@@ -164,6 +164,24 @@ export const en: TranslationDict = {
   "sidebar.mode.websearch": "Web Research",
   "sidebar.mode.scene-breakdown": "Scene Breakdown",
   "sidebar.mode.feedback": "AI Review",
+  "sidebar.mode.cloud-sync": "Cloud Sync",
+  "sidebar.mode.sessions": "Sessions",
+  "sidebar.mode.prompt-library": "Prompt Library",
+  "sidebar.mode.formatting": "Format",
+  "sidebar.mode.backup": "Backup",
+  "sidebar.mode.search": "Search",
+
+  // Backup (Sprint 24, Agent 6)
+  "backup.title": "🔒 Backup",
+  "backup.now": "⬇ Back up now",
+  "backup.restore": "Restore",
+  "backup.delete": "Delete",
+  "backup.autoBackup": "Auto backup",
+  "backup.interval": "Interval (h):",
+  "backup.maxBackups": "Max backups:",
+  "backup.totalSize": "Total: {{size}}",
+  "backup.lastBackup": "Last: {{date}}",
+  "backup.empty": "No backups yet — “Back up now” creates the first one.",
 
   // SceneBreakdown (Sprint 23, Agent 3)
   "scene.title": "Scene Breakdown",

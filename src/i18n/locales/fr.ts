@@ -311,6 +311,20 @@ export const fr: TranslationDict = {
   "sidebar.mode.websearch": "Recherche web",
   "sidebar.mode.scene-breakdown": "Analyse de scènes",
   "sidebar.mode.feedback": "Révision IA",
+  "sidebar.mode.formatting": "Format",
+  "sidebar.mode.backup": "Sauvegarde",
+
+  // Backup (Sprint 24, Agent 6)
+  "backup.title": "🔒 Sauvegarde",
+  "backup.now": "⬇ Sauvegarder maintenant",
+  "backup.restore": "Restaurer",
+  "backup.delete": "Supprimer",
+  "backup.autoBackup": "Sauvegarde auto",
+  "backup.interval": "Intervalle (h) :",
+  "backup.maxBackups": "Max. sauvegardes :",
+  "backup.totalSize": "Total : {{size}}",
+  "backup.lastBackup": "Dernière : {{date}}",
+  "backup.empty": "Aucune sauvegarde — « Sauvegarder maintenant » crée la première.",
 
   // SceneBreakdown (Sprint 23, Agent 3)
   "scene.title": "Analyse de scènes",

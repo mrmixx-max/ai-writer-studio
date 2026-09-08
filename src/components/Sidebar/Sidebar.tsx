@@ -15,7 +15,8 @@ const WIDE_EXTRA_MODES = new Set<string>([
   "bookwriter", "markdown", "wordstats", "ideas", "consistency",
   "newspaper", "textquality", "bilingual", "amazon", "shortprose",
   "templates", "voice", "style-analyzer", "websearch", "outliner",
-  "scene-breakdown", "feedback",
+  "scene-breakdown", "feedback", "sessions", "backup", "search", "prompt-library",
+  "readability",
 ]);
 
 // Lazy-loaded Panels — werden erst beim ersten Zugriff geladen
@@ -155,6 +156,30 @@ const SceneBreakdownPanel = lazy(() =>
 const FeedbackPanel = lazy(() =>
   import("@/components/Feedback/FeedbackPanel").then((m) => ({ default: m.FeedbackPanel }))
 );
+// Sprint 24 (Agent 4): Prompt-Bibliothek — eigene Sammlung, standalone (kein Kapitel nötig).
+const PromptLibraryPanel = lazy(() =>
+  import("@/components/PromptLibrary/PromptLibraryPanel").then((m) => ({ default: m.PromptLibraryPanel }))
+);
+// Sprint 24 (Agent 5): Erweiterte Formatierung — Markdown-Toolbar + Shortcuts, standalone.
+const FormattingPanel = lazy(() =>
+  import("@/components/Formatting/FormattingPanel").then((m) => ({ default: m.FormattingPanel }))
+);
+// Sprint 24 (Agent 6): Automatisches Backup — Backup-Liste + Zeitplan, standalone.
+const BackupPanel = lazy(() =>
+  import("@/components/Backup/BackupPanel").then((m) => ({ default: m.BackupPanel }))
+);
+// Sprint 24 (Agent 1): Cloud-Sync — Dropbox/GDrive/OneDrive/WebDAV, standalone.
+const CloudSyncPanel = lazy(() =>
+  import("@/components/CloudSync/CloudSyncPanel").then((m) => ({ default: m.CloudSyncPanel }))
+);
+// Sprint 24 (Agent 2): Volltextsuche + Ersetzen — projektübergreifend, standalone.
+const SearchPanel = lazy(() =>
+  import("@/components/Search/SearchPanel").then((m) => ({ default: m.SearchPanel }))
+);
+// Sprint 25 (Agent 4): Lesbarkeits-Metriken — 6 Metriken + Radar, standalone.
+const ReadabilityPanel = lazy(() =>
+  import("@/components/Readability/ReadabilityPanel").then((m) => ({ default: m.ReadabilityPanel }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -206,6 +231,13 @@ const MODES: { id: EditorMode; key: `sidebar.mode.${EditorMode}`; icon: string; 
   { id: "outliner", key: "sidebar.mode.outliner", icon: "🌳", description: "Strukturierte Gliederung" },
   { id: "scene-breakdown", key: "sidebar.mode.scene-breakdown", icon: "🎬", description: "Drehbuch/Roman Szenen-Analyse" },
   { id: "feedback", key: "sidebar.mode.feedback", icon: "🔍", description: "LLM-gestützte Verbesserungsvorschläge" },
+  { id: "cloud-sync", key: "sidebar.mode.cloud-sync", icon: "☁️", description: "Dropbox/GDrive/OneDrive" },
+  { id: "sessions", key: "sidebar.mode.sessions", icon: "💾", description: "Sitzungen speichern/laden" },
+  { id: "formatting", key: "sidebar.mode.formatting", icon: "✨", description: "Markdown-Toolbar + Shortcuts" },
+  { id: "backup", key: "sidebar.mode.backup", icon: "🔒", description: "Automatische Backups" },
+  { id: "search", key: "sidebar.mode.search", icon: "🔎", description: "Volltextsuche + Ersetzen" },
+  { id: "prompt-library", key: "sidebar.mode.prompt-library", icon: "💡", description: "Prompt-Bibliothek" },
+  { id: "readability", key: "sidebar.mode.readability", icon: "📊", description: "Flesch + Gunning Fog + Coleman-Liau" },
 ];
 
 export function Sidebar() {
@@ -514,6 +546,18 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "scene-breakdown") return <SceneBreakdownPanel />;
     // Sprint 23 (Agent 2): KI-Review arbeitet auf freiem Text (standalone).
     if (mode === "feedback") return <FeedbackPanel />;
+    // Sprint 24 (Agent 4): Prompt-Bibliothek arbeitet auf eigener Sammlung (standalone).
+    if (mode === "prompt-library") return <PromptLibraryPanel />;
+    // Sprint 24 (Agent 5): Formatierung arbeitet auf freiem Text (standalone).
+    if (mode === "formatting") return <FormattingPanel />;
+    // Sprint 24 (Agent 6): Backup arbeitet projektuebergreifend (standalone).
+    if (mode === "backup") return <BackupPanel />;
+    // Sprint 24 (Agent 1): Cloud-Sync arbeitet projektuebergreifend (standalone).
+    if (mode === "cloud-sync") return <CloudSyncPanel />;
+    // Sprint 24 (Agent 2): Volltextsuche arbeitet projektuebergreifend (standalone).
+    if (mode === "search") return <SearchPanel />;
+    // Sprint 25 (Agent 4): Lesbarkeit arbeitet auf freiem Text (standalone).
+    if (mode === "readability") return <ReadabilityPanel />;
     if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }
