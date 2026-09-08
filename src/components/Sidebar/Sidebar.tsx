@@ -16,7 +16,7 @@ const WIDE_EXTRA_MODES = new Set<string>([
   "newspaper", "textquality", "bilingual", "amazon", "shortprose",
   "templates", "voice", "style-analyzer", "websearch", "outliner",
   "scene-breakdown", "feedback", "sessions", "backup", "search", "prompt-library",
-  "readability",
+  "readability", "cloud-sync",
 ]);
 
 // Lazy-loaded Panels — werden erst beim ersten Zugriff geladen
@@ -175,6 +175,10 @@ const SessionPanel = lazy(() =>
 // Sprint 25 (Agent 4): Lesbarkeits-Metriken — 6 Metriken + Radar, standalone.
 const ReadabilityPanel = lazy(() =>
   import("@/components/Readability/ReadabilityPanel").then((m) => ({ default: m.ReadabilityPanel }))
+);
+// Sprint 24 (Agent 1): Cloud-Sync — Dropbox/GDrive/OneDrive/WebDAV, standalone.
+const CloudSyncPanel = lazy(() =>
+  import("@/components/CloudSync/CloudSyncPanel").then((m) => ({ default: m.CloudSyncPanel }))
 );
 // Sprint 24 (Agent 2): Volltextsuche + Ersetzen — projektuebergreifend, standalone.
 const SearchPanel = lazy(() =>
@@ -555,6 +559,7 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     // Sprint 24 (Agent 3): Sitzungs-Manager arbeitet projektuebergreifend (standalone).
     if (mode === "sessions") return <SessionPanel />;
     // Sprint 24 (Agent 1): Cloud-Sync arbeitet projektuebergreifend (standalone).
+    if (mode === "cloud-sync") return <CloudSyncPanel />;
     // Sprint 24 (Agent 2): Volltextsuche arbeitet projektuebergreifend (standalone).
     if (mode === "search") return <SearchPanel />;
     // Sprint 25 (Agent 4): Lesbarkeit arbeitet auf freiem Text (standalone).
