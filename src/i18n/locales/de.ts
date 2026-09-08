@@ -138,8 +138,10 @@ export const de = {
   "sidebar.mode.wordstats": "Statistik",
   "sidebar.mode.ideas": "Ideen",
   "sidebar.mode.consistency": "Check",
+  "sidebar.mode.bilingual": "Bilingual",
   "sidebar.mode.newspaper": "Zeitungsgenerator",
   "sidebar.mode.textquality": "Textverbesserung",
+  "sidebar.mode.amazon": "Amazon",
 
   // BookWriter
   "bookwriter.title": "📖 Automatischer Buchautor",

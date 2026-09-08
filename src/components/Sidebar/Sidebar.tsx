@@ -3,6 +3,7 @@
 import "./sidebar.css";
 import { memo, useCallback, useMemo, useState, useEffect, useRef, lazy, Suspense } from "react";
 import type { Project, Chapter } from "@/types/project";
+import type { TranslationChapter } from "@/services/bookwriter/translatorService";
 import { useProjectStore } from "@/store/projectStore";
 import { usePromptStore } from "@/store/promptStore";
 import { useI18n } from "@/i18n";
@@ -12,7 +13,7 @@ import { useI18n } from "@/i18n";
 const WIDE_EXTRA_MODES = new Set<string>([
   "research", "publishing", "investigate", "watermark", "tts",
   "bookwriter", "markdown", "wordstats", "ideas", "consistency",
-  "newspaper", "textquality",
+  "newspaper", "textquality", "bilingual", "amazon",
 ]);
 
 // Lazy-loaded Panels — werden erst beim ersten Zugriff geladen
@@ -108,8 +109,14 @@ const NewsGeneratorPanel = lazy(() =>
 const TextQualityPanel = lazy(() =>
   import("@/components/BookWriter/TextQualityPanel").then((m) => ({ default: m.TextQualityPanel }))
 );
+const BilingualPanel = lazy(() =>
+  import("@/components/BookWriter/BilingualPanel").then((m) => ({ default: m.BilingualPanel }))
+);
 const ResearchPanel = lazy(() =>
   import("@/components/Research/ResearchPanel").then((m) => ({ default: m.ResearchPanel }))
+);
+const AmazonPanel = lazy(() =>
+  import("@/components/Amazon/AmazonPanel").then((m) => ({ default: m.AmazonPanel }))
 );
 const CharactersPanel = lazy(() =>
   import("@/components/Characters/CharactersPanel").then((m) => ({ default: m.CharactersPanel }))
@@ -153,6 +160,8 @@ const MODES: { id: EditorMode; key: `sidebar.mode.${EditorMode}`; icon: string; 
   { id: "consistency", key: "sidebar.mode.consistency", icon: "✅", description: "Konsistenz prüfen" },
   { id: "newspaper", key: "sidebar.mode.newspaper", icon: "📰", description: "Zeitung aus Web-Recherche erstellen" },
   { id: "textquality", key: "sidebar.mode.textquality", icon: "📊", description: "Text verbessern: Lektorat und Qualität" },
+  { id: "bilingual", key: "sidebar.mode.bilingual", icon: "🌐", description: "Deutsch↔Englisch Übersetzung" },
+  { id: "amazon", key: "sidebar.mode.amazon", icon: "🛒", description: "Buchsuche + Preis-Monitoring" },
 ];
 
 export function Sidebar() {
@@ -425,6 +434,9 @@ export const ProjectRow = memo(function ProjectRow({
 
 function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId: string | null; chapterId: string | null }) {
   const { t } = useI18n();
+  const chapter = useProjectStore((s) => 
+    s.chapters.find((c) => c.id === s.activeChapterId) as TranslationChapter | undefined
+  );
   const panel = (() => {
     if (mode === "knowledge") return <KnowledgePanel projectId={projectId} />;
     if (mode === "research") return <ResearchPanel projectId={projectId} />;
@@ -436,6 +448,8 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     // Sprint 6 (Agent 5): BookWriter-Dashboard braucht kein offenes Kapitel —
     // es arbeitet projektübergreifend auf dem Job-Store.
     if (mode === "bookwriter") return <BookWriterDashboardPanel />;
+    // Sprint 19f: Amazon-Panel braucht kein offenes Kapitel (projektübergreifend).
+    if (mode === "amazon") return <AmazonPanel />;
     if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }
@@ -463,6 +477,7 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
       case "consistency": return <ConsistencyPanel />;
       case "newspaper": return <NewsGeneratorPanel />;
       case "textquality": return <TextQualityPanel projectId={projectId} chapterId={chapterId} />;
+      case "bilingual": return chapter ? <BilingualPanel chapter={chapter} /> : <div className="mode-placeholder">Bitte ein Kapitel auswählen</div>;
       default: return null;
     }
   })();

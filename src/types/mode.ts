@@ -31,5 +31,7 @@ export type EditorMode =
   | "wordstats"
   | "ideas"
   | "consistency"
+  | "bilingual"
   | "newspaper"
-  | "textquality";
+  | "textquality"
+  | "amazon";

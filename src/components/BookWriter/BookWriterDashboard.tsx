@@ -35,6 +35,11 @@ const ClassicBookWriterPanel = lazy(() =>
   import("@/components/Writing/BookWriterPanel").then((m) => ({ default: m.BookWriterPanel }))
 );
 
+/** Lazy-Link auf das Bilingual-Panel (DE↔EN Übersetzung, Sprint 15). */
+const BilingualPanelLazy = lazy(() =>
+  import("@/components/BookWriter/BilingualPanel").then((m) => ({ default: m.BilingualPanel }))
+);
+
 /** Fenster-Event: Sidebar soll in den BookWriter-Modus wechseln. */
 export const OPEN_BOOKWRITER_MODE_EVENT = "bookwriter:open-mode";
 
@@ -99,6 +104,8 @@ export function BookWriterDashboardPanel() {
 
       <ClassicBookWriterSection />
 
+      <BilingualSection />
+
       {/* Recovery-Dialog auch panel-intern anbieten (z.B. direkter Tab-Sprung). */}
       <BookWriterRecoveryDialog />
 
@@ -139,6 +146,39 @@ function ClassicBookWriterSection() {
       {showClassic && (
         <Suspense fallback={<div className="mode-placeholder">Lädt…</div>}>
           <ClassicBookWriterPanel />
+        </Suspense>
+      )}
+    </div>
+  );
+}
+
+/** Einklappbarer Abschnitt mit dem Bilingual-Panel (DE↔EN Übersetzung). */
+function BilingualSection() {
+  const [showBilingual, setShowBilingual] = useState(false);
+  // Aktives Kapitel aus dem Store — BilingualPanel erwartet ein
+  // TranslationChapter (id/title/content), das Store-Chapter erfüllt das.
+  const chapter = useProjectStore((s) =>
+    s.chapters.find((c) => c.id === s.activeChapterId) ?? null
+  );
+  return (
+    <div className="bw-dash-classic">
+      <button
+        className="bw-dash-btn"
+        data-testid="bw-dash-bilingual-toggle"
+        onClick={() => setShowBilingual((v) => !v)}
+        aria-expanded={showBilingual}
+      >
+        {showBilingual ? "▾" : "▸"} 🌐 Bilingual (DE↔EN)
+      </button>
+      {showBilingual && (
+        <Suspense fallback={<div className="mode-placeholder">Lädt…</div>}>
+          {chapter ? (
+            <BilingualPanelLazy chapter={chapter} />
+          ) : (
+            <div className="mode-placeholder" data-testid="bw-dash-bilingual-no-chapter">
+              Kein Kapitel ausgewählt — bitte zuerst ein Kapitel öffnen.
+            </div>
+          )}
         </Suspense>
       )}
     </div>
