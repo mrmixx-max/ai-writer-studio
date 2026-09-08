@@ -15,6 +15,7 @@ const WIDE_EXTRA_MODES = new Set<string>([
   "bookwriter", "markdown", "wordstats", "ideas", "consistency",
   "newspaper", "textquality", "bilingual", "amazon", "shortprose",
   "templates", "voice", "style-analyzer", "websearch", "outliner",
+  "scene-breakdown", "feedback",
 ]);
 
 // Lazy-loaded Panels — werden erst beim ersten Zugriff geladen
@@ -147,6 +148,13 @@ const WebsearchPanel = lazy(() =>
 const ImporterPanel = lazy(() =>
   import("@/components/Importer/ImporterPanel").then((m) => ({ default: m.ImporterPanel }))
 );
+const SceneBreakdownPanel = lazy(() =>
+  import("@/components/SceneBreakdown/SceneBreakdownPanel").then((m) => ({ default: m.SceneBreakdownPanel }))
+);
+// Sprint 23 (Agent 2): KI-Review — freier Text, standalone (kein Kapitel nötig).
+const FeedbackPanel = lazy(() =>
+  import("@/components/Feedback/FeedbackPanel").then((m) => ({ default: m.FeedbackPanel }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -172,7 +180,7 @@ const MODES: { id: EditorMode; key: `sidebar.mode.${EditorMode}`; icon: string; 
   { id: "covergen", key: "sidebar.mode.covergen", icon: "📚", description: "Cover entwerfen" },
   { id: "blurbgen", key: "sidebar.mode.blurbgen", icon: "📝", description: "Klappentext schreiben" },
   { id: "scientificwriting", key: "sidebar.mode.scientificwriting", icon: "🎓", description: "Wissenschaftlich schreiben" },
-  { id: "timeline", key: "sidebar.mode.timeline", icon: "📅", description: "Zeitstrahl verwalten" },
+  { id: "timeline", key: "sidebar.mode.timeline", icon: "📅", description: "Zeitleiste für Handlung" },
   { id: "characters", key: "sidebar.mode.characters", icon: "👥", description: "Figuren verwalten" },
   { id: "worldbuilding", key: "sidebar.mode.worldbuilding", icon: "🌍", description: "Welt entwerfen" },
   { id: "research", key: "sidebar.mode.research", icon: "🔎", description: "Recherche starten" },
@@ -196,6 +204,8 @@ const MODES: { id: EditorMode; key: `sidebar.mode.${EditorMode}`; icon: string; 
   { id: "importer", key: "sidebar.mode.importer", icon: "📥", description: "DOCX/EPUB/PDF/TXT" },
   { id: "websearch", key: "sidebar.mode.websearch", icon: "🔍", description: "SerpAPI + DDG + Brave" },
   { id: "outliner", key: "sidebar.mode.outliner", icon: "🌳", description: "Strukturierte Gliederung" },
+  { id: "scene-breakdown", key: "sidebar.mode.scene-breakdown", icon: "🎬", description: "Drehbuch/Roman Szenen-Analyse" },
+  { id: "feedback", key: "sidebar.mode.feedback", icon: "🔍", description: "LLM-gestützte Verbesserungsvorschläge" },
 ];
 
 export function Sidebar() {
@@ -500,6 +510,10 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "style-analyzer") return <StyleAnalyzerPanel />;
     // Sprint 22 (Agent 3): Web-Recherche braucht kein offenes Kapitel (projektuebergreifend).
     if (mode === "websearch") return <WebsearchPanel />;
+    // Sprint 23 (Agent 3): Szenen-Analyse arbeitet auf freiem Text (standalone).
+    if (mode === "scene-breakdown") return <SceneBreakdownPanel />;
+    // Sprint 23 (Agent 2): KI-Review arbeitet auf freiem Text (standalone).
+    if (mode === "feedback") return <FeedbackPanel />;
     if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }

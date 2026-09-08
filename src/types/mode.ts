@@ -42,4 +42,7 @@ export type EditorMode =
   | "outliner"
   | "style-analyzer"
   | "importer"
-  | "websearch";
+  | "websearch"
+  | "advanced-export"
+  | "scene-breakdown"
+  | "feedback";
