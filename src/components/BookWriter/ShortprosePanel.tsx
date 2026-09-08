@@ -180,6 +180,19 @@ export function ShortprosePanel({
     }
   };
 
+  const handleDelete = () => {
+    setResult(null);
+    setSavedNote(null);
+    setError(null);
+  };
+
+  const handleClearAll = () => {
+    setSeed("");
+    setResult(null);
+    setSavedNote(null);
+    setError(null);
+  };
+
   void projectId;
   void chapterId;
 
@@ -384,6 +397,22 @@ export function ShortprosePanel({
               className="ws-btn"
             >
               {saving ? "Speichert …" : "Als Projekt speichern"}
+            </button>
+            <button
+              data-testid="shortprose-delete-btn"
+              onClick={handleDelete}
+              className="ws-btn"
+              style={{ marginLeft: "auto", color: "#f44", borderColor: "#f44" }}
+            >
+              Löschen
+            </button>
+            <button
+              data-testid="shortprose-clear-btn"
+              onClick={handleClearAll}
+              className="ws-btn"
+              style={{ color: "#f44", borderColor: "#f44" }}
+            >
+              Alles löschen
             </button>
           </div>
         </>
