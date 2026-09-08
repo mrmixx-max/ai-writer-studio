@@ -28,6 +28,8 @@ window-vibrancy = "0.6"
 tauri-plugin-log = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+# Force schemars to 0.8.22 to fix "struct takes 3 generic arguments" error
+schemars = "=0.8.22"
 chrono = "0.4"
 log = "0.4"
 

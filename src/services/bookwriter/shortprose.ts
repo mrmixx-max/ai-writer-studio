@@ -219,32 +219,35 @@ export interface GenerateShortproseOptions {
 /**
  * Erkennt degenerierten Output: Wiederholungen von Woertern (z.B. "marg marg
  * marg") oder von Phrasen. LFM2-24B erzeugt solche Ketten bei offenen
- * Prompts. Gibt `true` zurueck, wenn der Output wiederholungsfrei ist.
- * - `maxWordRepeat`: Max. Vorkommen desselben Wortes (case-insensitive) pro
- *   100 Worte. Standard 3 (z.B. "marg" x20 -> verworfen).
- * - `maxPhraseRepeat`: Max. Vorkommen derselben Phrase (>=3 Worte). Standard 2.
+ * Prompts. Gibt `true` zurueck, wenn der Output degeneriert ist.
+ *
+ * - `maxWordRepeat`: Absolutes Max. Vorkommen desselben Wortes
+ *   (case-insensitive). Standard 5. "marg" x12 -> verworfen.
+ * - `maxPhraseRepeat`: Absolutes Max. Vorkommen derselben Phrase (>=3 Worte).
+ *   Standard 2.
+ *
+ * Keine Skalierung mit Textlaenge — ein Wort, das 10x vorkommt, ist IMMER
+ * degeneriert, egal wie lang der Text ist.
  */
 export function isOutputDegenerate(
   text: string,
-  maxWordRepeat = 3,
+  maxWordRepeat = 5,
   maxPhraseRepeat = 2,
 ): boolean {
   const words = text.toLowerCase().split(/\s+/).filter((w) => w.length > 0);
   if (words.length === 0) return true;
 
-  // Wort-Wiederholung checken
+  // Wort-Wiederholung checken (absolutes Limit)
   const wordCounts = new Map<string, number>();
   for (const w of words) {
     const cleaned = w.replace(/[^a-zäöüß0-9]/g, "");
     if (cleaned.length === 0) continue;
     const n = (wordCounts.get(cleaned) ?? 0) + 1;
     wordCounts.set(cleaned, n);
-    // Erlaubte Wiederholungen skalieren mit Textlaenge (pro 100 Worte)
-    const allowed = Math.max(maxWordRepeat, Math.ceil(words.length / 100) * maxWordRepeat);
-    if (n > allowed) return true;
+    if (n > maxWordRepeat) return true;
   }
 
-  // Phrasen-Wiederholung checken (3-Wort-Phrasen)
+  // Phrasen-Wiederholung checken (3-Wort-Phrasen, absolutes Limit)
   const phraseCounts = new Map<string, number>();
   for (let i = 0; i < words.length - 2; i++) {
     const phrase = `${words[i]} ${words[i + 1]} ${words[i + 2]}`;

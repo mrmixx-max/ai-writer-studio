@@ -354,4 +354,9 @@ export const es: TranslationDict = {
 
   "sidebar.mode.citations": "Citas",
   "sidebar.mode.advanced-export": "Exportación",
+
+  "sidebar.mode.cloud-sync": "Sincronización en la nube",
+  "sidebar.mode.sessions": "Sesiones",
+  "sidebar.mode.prompt-library": "Biblioteca de prompts",
+  "sidebar.mode.search": "Búsqueda",
 };

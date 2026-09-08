@@ -168,14 +168,6 @@ const FormattingPanel = lazy(() =>
 const BackupPanel = lazy(() =>
   import("@/components/Backup/BackupPanel").then((m) => ({ default: m.BackupPanel }))
 );
-// Sprint 24 (Agent 1): Cloud-Sync — Dropbox/GDrive/OneDrive/WebDAV, standalone.
-const CloudSyncPanel = lazy(() =>
-  import("@/components/CloudSync/CloudSyncPanel").then((m) => ({ default: m.CloudSyncPanel }))
-);
-// Sprint 24 (Agent 2): Volltextsuche + Ersetzen — projektübergreifend, standalone.
-const SearchPanel = lazy(() =>
-  import("@/components/Search/SearchPanel").then((m) => ({ default: m.SearchPanel }))
-);
 // Sprint 25 (Agent 4): Lesbarkeits-Metriken — 6 Metriken + Radar, standalone.
 const ReadabilityPanel = lazy(() =>
   import("@/components/Readability/ReadabilityPanel").then((m) => ({ default: m.ReadabilityPanel }))
@@ -185,7 +177,7 @@ import {
 } from "@/services/project";
 import type { EditorMode } from "@/types/mode";
 
-const MODES: { id: EditorMode; key: `sidebar.mode.${EditorMode}`; icon: string; description: string }[] = [
+const MODES: { id: EditorMode; key: string; icon: string; description: string }[] = [
   { id: "editor", key: "sidebar.mode.editor", icon: "📝", description: "Text schreiben und bearbeiten" },
   { id: "prompts", key: "sidebar.mode.prompts", icon: "💡", description: "Ideen und Prompts erzeugen" },
   { id: "knowledge", key: "sidebar.mode.knowledge", icon: "📚", description: "Projektwissen verwalten" },
@@ -329,7 +321,7 @@ export function Sidebar() {
       {!modesCollapsed && (
         <nav className="mode-switcher" aria-label={t("sidebar.modesLabel")}>
           {MODES.map((m) => {
-            const label = t(m.key);
+            const label = t(m.key as any);
             return (
               <button
                 key={m.id}
@@ -553,9 +545,7 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     // Sprint 24 (Agent 6): Backup arbeitet projektuebergreifend (standalone).
     if (mode === "backup") return <BackupPanel />;
     // Sprint 24 (Agent 1): Cloud-Sync arbeitet projektuebergreifend (standalone).
-    if (mode === "cloud-sync") return <CloudSyncPanel />;
     // Sprint 24 (Agent 2): Volltextsuche arbeitet projektuebergreifend (standalone).
-    if (mode === "search") return <SearchPanel />;
     // Sprint 25 (Agent 4): Lesbarkeit arbeitet auf freiem Text (standalone).
     if (mode === "readability") return <ReadabilityPanel />;
     if (!projectId || !chapterId) {
