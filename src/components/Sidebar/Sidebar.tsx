@@ -13,7 +13,7 @@ import { useI18n } from "@/i18n";
 const WIDE_EXTRA_MODES = new Set<string>([
   "research", "publishing", "investigate", "watermark", "tts",
   "bookwriter", "markdown", "wordstats", "ideas", "consistency",
-  "newspaper", "textquality", "bilingual", "amazon",
+  "newspaper", "textquality", "bilingual", "amazon", "shortprose",
 ]);
 
 // Lazy-loaded Panels — werden erst beim ersten Zugriff geladen
@@ -112,6 +112,9 @@ const TextQualityPanel = lazy(() =>
 const BilingualPanel = lazy(() =>
   import("@/components/BookWriter/BilingualPanel").then((m) => ({ default: m.BilingualPanel }))
 );
+const ShortprosePanel = lazy(() =>
+  import("@/components/BookWriter/ShortprosePanel").then((m) => ({ default: m.ShortprosePanel }))
+);
 const ResearchPanel = lazy(() =>
   import("@/components/Research/ResearchPanel").then((m) => ({ default: m.ResearchPanel }))
 );
@@ -162,6 +165,7 @@ const MODES: { id: EditorMode; key: `sidebar.mode.${EditorMode}`; icon: string; 
   { id: "textquality", key: "sidebar.mode.textquality", icon: "📊", description: "Text verbessern: Lektorat und Qualität" },
   { id: "bilingual", key: "sidebar.mode.bilingual", icon: "🌐", description: "Deutsch↔Englisch Übersetzung" },
   { id: "amazon", key: "sidebar.mode.amazon", icon: "🛒", description: "Buchsuche + Preis-Monitoring" },
+  { id: "shortprose", key: "sidebar.mode.shortprose", icon: "✍️", description: "Flash Fiction + Micro-Stories" },
 ];
 
 export function Sidebar() {
@@ -450,6 +454,8 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "bookwriter") return <BookWriterDashboardPanel />;
     // Sprint 19f: Amazon-Panel braucht kein offenes Kapitel (projektübergreifend).
     if (mode === "amazon") return <AmazonPanel />;
+    // Sprint 20 (Agent 2): Kurzprosa-Generator braucht kein offenes Kapitel.
+    if (mode === "shortprose") return <ShortprosePanel projectId={projectId ?? undefined} chapterId={chapterId ?? undefined} />;
     if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }

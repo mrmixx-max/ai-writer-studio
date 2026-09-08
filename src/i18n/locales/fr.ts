@@ -141,6 +141,7 @@ export const fr: TranslationDict = {
   "sidebar.mode.newspaper": "Générateur de journaux",
   "sidebar.mode.textquality": "Amélioration du texte",
   "sidebar.mode.amazon": "Amazon",
+  "sidebar.mode.shortprose": "Prose courte",
 
   "bookwriter.title": "📖 Auteur de livres automatique",
   "bookwriter.resumeTitle": "Reprendre la génération ?",

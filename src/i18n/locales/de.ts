@@ -142,6 +142,7 @@ export const de = {
   "sidebar.mode.newspaper": "Zeitungsgenerator",
   "sidebar.mode.textquality": "Textverbesserung",
   "sidebar.mode.amazon": "Amazon",
+  "sidebar.mode.shortprose": "Kurzprosa",
 
   // BookWriter
   "bookwriter.title": "📖 Automatischer Buchautor",

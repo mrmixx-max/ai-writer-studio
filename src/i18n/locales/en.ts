@@ -140,6 +140,7 @@ export const en: TranslationDict = {
   "sidebar.mode.newspaper": "Newspaper Generator",
   "sidebar.mode.textquality": "Text Improvement",
   "sidebar.mode.amazon": "Amazon",
+  "sidebar.mode.shortprose": "Short Prose",
 
   "bookwriter.title": "📖 Automatic book author",
   "bookwriter.resumeTitle": "Resume generation?",

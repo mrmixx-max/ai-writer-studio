@@ -34,4 +34,5 @@ export type EditorMode =
   | "bilingual"
   | "newspaper"
   | "textquality"
-  | "amazon";
+  | "amazon"
+  | "shortprose";
