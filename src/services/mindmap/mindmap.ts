@@ -415,3 +415,83 @@ export function importFromJSON(json: string): Mindmap {
   }
   return parsed as Mindmap;
 }
+
+// ---------------------------------------------------------------------------
+// Interaktive Operationen (CRUD auf Knoten)
+// ---------------------------------------------------------------------------
+
+/** Fügt einen neuen Knoten als Kind des Elternknotens hinzu. */
+export function addNode(map: Mindmap, parentId: string, label: string): MindmapNode {
+  const parent = findNode(map, parentId);
+  if (!parent) throw new Error(`Elternknoten ${parentId} nicht gefunden`);
+  const node: MindmapNode = { id: genId("mm"), label, children: [] };
+  parent.children.push(node);
+  map.edges.push({ from: parentId, to: node.id });
+  return node;
+}
+
+/** Entfernt einen Knoten (rekursive Unterknoten und Kanten). */
+export function removeNode(map: Mindmap, nodeId: string): void {
+  const parent = findParent(map, nodeId);
+  if (parent) {
+    parent.children = parent.children.filter((c) => c.id !== nodeId);
+  } else {
+    map.nodes = map.nodes.filter((n) => n.id !== nodeId);
+  }
+  map.edges = map.edges.filter((e) => e.from !== nodeId && e.to !== nodeId);
+  // Rekursive Unterknoten entfernen
+  const collectIds = (id: string): string[] => {
+    const node = findNode(map, id);
+    if (!node) return [id];
+    return [id, ...node.children.flatMap((c) => collectIds(c.id))];
+  };
+  const toRemove = collectIds(nodeId);
+  map.edges = map.edges.filter((e) => !toRemove.includes(e.from) && !toRemove.includes(e.to));
+}
+
+/** Ändert das Label eines Knotens. */
+export function updateNode(map: Mindmap, nodeId: string, label: string): void {
+  const node = findNode(map, nodeId);
+  if (!node) throw new Error(`Knoten ${nodeId} nicht gefunden`);
+  node.label = label;
+}
+
+function findNode(map: Mindmap, id: string): MindmapNode | null {
+  const search = (nodes: MindmapNode[]): MindmapNode | null => {
+    for (const n of nodes) {
+      if (n.id === id) return n;
+      const found = search(n.children);
+      if (found) return found;
+    }
+    return null;
+  };
+  return search(map.nodes);
+}
+
+function findParent(map: Mindmap, id: string): MindmapNode | null {
+  const search = (nodes: MindmapNode[]): MindmapNode | null => {
+    for (const n of nodes) {
+      if (n.children.some((c) => c.id === id)) return n;
+      const found = search(n.children);
+      if (found) return found;
+    }
+    return null;
+  };
+  return search(map.nodes);
+}
+
+/** Exportiert die Mindmap als Mermaid-Code. */
+export function exportToMermaid(map: Mindmap): string {
+  const lines: string[] = ["mindmap"];
+  const visit = (node: MindmapNode, depth: number): void => {
+    const indent = "  ".repeat(depth + 1);
+    lines.push(`${indent}${node.label}`);
+    for (const child of node.children) {
+      visit(child, depth + 1);
+    }
+  };
+  for (const root of map.nodes) {
+    visit(root, 0);
+  }
+  return lines.join("\n");
+}

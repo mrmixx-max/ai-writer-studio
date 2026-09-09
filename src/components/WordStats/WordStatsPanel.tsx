@@ -5,14 +5,18 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   analyze,
   compareWordUsage,
+  getProgressOverTime,
+  getStats,
+  recordProgressPoint,
   searchKWIC,
+  type WordStats as WordStatsData,
   type WordStatsResult,
 } from "@/services/wordstats/wordstats";
 
-const BG = "#0a0e14";
-const PANEL = "#11161f";
-const BORDER = "#2a3342";
-const AMBER = "#ffb000";
+const BG = "#000";
+const PANEL = "#0a0a0a";
+const BORDER = "#333";
+const AMBER = "#ffa028";
 const GREEN = "#33ff99";
 const CYAN = "#4dd0e1";
 const DIM = "#8b98a9";
@@ -21,7 +25,7 @@ const TEXT = "#e6edf3";
 const box: React.CSSProperties = {
   background: BG,
   color: TEXT,
-  fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+  fontFamily: "'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
   fontSize: 12,
   padding: 12,
   display: "flex",
@@ -129,6 +133,8 @@ function WordCloud({ stats }: { stats: WordStatsResult | null }) {
 export function WordStatsPanel({ initialText = "" }: { initialText?: string }) {
   const [text, setText] = useState(initialText);
   const [analyzed, setAnalyzed] = useState<string | null>(null);
+  const [flat, setFlat] = useState<WordStatsData | null>(null);
+  const [progress, setProgress] = useState<{ date: number; wordCount: number }[]>([]);
   const [kwicTerm, setKwicTerm] = useState("");
   const [kwicHits, setKwicHits] = useState<ReturnType<typeof searchKWIC> | null>(null);
   const [compareText, setCompareText] = useState("");
@@ -145,6 +151,12 @@ export function WordStatsPanel({ initialText = "" }: { initialText?: string }) {
     setText(src);
     setAnalyzed(src);
     setKwicHits(null);
+    // Auftrags-API (async, LLM-frei) + Fortschritt aufzeichnen.
+    void getStats(src).then((s) => {
+      setFlat(s);
+      recordProgressPoint("default", s.totalWords);
+      void getProgressOverTime("default").then(setProgress);
+    });
   };
   const doKwic = () => {
     if (analyzed === null || !kwicTerm.trim()) return;
@@ -262,6 +274,58 @@ export function WordStatsPanel({ initialText = "" }: { initialText?: string }) {
             <div style={{ color: AMBER, marginBottom: 6 }}>Wort-Wolke</div>
             <WordCloud stats={stats} />
           </div>
+
+          {flat && (
+            <>
+              <div style={{ ...card, flex: "none" }} data-testid="ws-frequency-bars">
+                <div style={{ color: AMBER, marginBottom: 6 }}>
+                  Worthäufigkeit · Dialog {flat.dialoguePercentage}% / Beschreibung{" "}
+                  {flat.descriptionPercentage}%
+                </div>
+                <div
+                  role="img"
+                  aria-label={`Dialog ${flat.dialoguePercentage} Prozent, Beschreibung ${flat.descriptionPercentage} Prozent`}
+                  style={{ display: "flex", height: 12, border: `1px solid ${BORDER}`, borderRadius: 3, overflow: "hidden" }}
+                >
+                  <div style={{ width: `${flat.dialoguePercentage}%`, background: AMBER }} />
+                  <div style={{ width: `${flat.descriptionPercentage}%`, background: "#33ff99" }} />
+                </div>
+                <ul style={{ listStyle: "none", margin: "8px 0 0", padding: 0 }}>
+                  {flat.topWords.slice(0, 8).map((w) => {
+                    const max = flat.topWords[0]?.count ?? 1;
+                    return (
+                      <li key={w.word} style={{ display: "flex", alignItems: "center", gap: 8, padding: "2px 0" }}>
+                        <span style={{ color: "#e6edf3", width: 110, overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {w.word}
+                        </span>
+                        <div style={{ flex: 1, height: 8, background: "#05070b", border: `1px solid ${BORDER}` }}>
+                          <div style={{ width: `${Math.round((w.count / max) * 100)}%`, height: "100%", background: AMBER }} />
+                        </div>
+                        <span style={{ color: DIM }}>{w.count}×</span>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+
+              <div style={{ ...card, flex: "none" }} data-testid="ws-progress">
+                <div style={{ color: AMBER, marginBottom: 6 }}>
+                  Fortschritt · Lesbarkeit {flat.readabilityScore} · Ø-Satz {flat.averageSentenceLength}
+                </div>
+                {progress.length === 0 ? (
+                  <div style={{ color: DIM }}>1 Punkt gespeichert (diese Analyse).</div>
+                ) : (
+                  <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+                    {progress.slice(-5).map((p, i) => (
+                      <li key={`${p.date}-${i}`} style={{ color: DIM, padding: "2px 0" }}>
+                        {new Date(p.date).toLocaleDateString("de-DE")} · {p.wordCount} Wörter
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </>
+          )}
 
           {compareOpen && (
             <div style={{ ...card, flex: "none" }} data-testid="ws-compare">

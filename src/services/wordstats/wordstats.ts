@@ -199,3 +199,185 @@ export function compareWordUsage(
 ): { text1: WordStatsResult; text2: WordStatsResult } {
   return { text1: analyze(text1), text2: analyze(text2) };
 }
+
+// ---------------------------------------------------------------------------
+// Sprint-25-Agent-6-Auftrags-API: async Fassaden (kein LLM, reine Analyse).
+// Die bestehenden synchronen Funktionen oben bleiben unverändert; diese
+// Wrapper erfüllen die im Sprint-Auftrag geforderten Signaturen.
+// ---------------------------------------------------------------------------
+
+/** Auftrags-Interface: Kern-Statistiken eines Textes. */
+export interface WordStats {
+  totalWords: number;
+  uniqueWords: number;
+  averageWordLength: number;
+  averageSentenceLength: number;
+  readabilityScore: number;
+  topWords: { word: string; count: number }[];
+  wordFrequency: Record<string, number>;
+  characterFrequency: Record<string, number>;
+  dialoguePercentage: number;
+  descriptionPercentage: number;
+}
+
+/** Auftrags-Interface: Vorher/Nachher-Vergleich zweier Texte. */
+export interface WordStatsComparison {
+  before: WordStats;
+  after: WordStats;
+  changes: { metric: string; before: number; after: number; change: number }[];
+}
+
+function splitSentences(text: string): string[] {
+  return text.split(/(?<=[.!?…])\s+|\n+/).map((s) => s.trim()).filter((s) => s.length > 0);
+}
+
+/** Sehr einfache Flesch-nahe Lesbarkeit (DE-Kalibrierung), 0–100. */
+function fleschApprox(avgSentenceLen: number, avgWordLen: number): number {
+  const score = 180 - avgSentenceLen * 1.2 - avgWordLen * 28;
+  return Math.round(Math.max(0, Math.min(100, score)) * 10) / 10;
+}
+
+/** Dialog-Anteil: Zeichen in Anführungszeichen + Gedankenstrich-Zeilen. */
+function dialogueShare(text: string): number {
+  if (!text.trim()) return 0;
+  const quoted = text.match(/[„“"»«]([^„“"»«]*?)[“"»«]/g) ?? [];
+  const quotedChars = quoted.join("").length;
+  const dashLines = text
+    .split(/\n+/)
+    .filter((l) => /^\s*[–—-]/.test(l))
+    .join("").length;
+  return Math.max(
+    0,
+    Math.min(100, Math.round(((quotedChars + dashLines) / text.length) * 1000) / 10),
+  );
+}
+
+function toWordStats(text: string): WordStats {
+  const tokens = tokenize(text);
+  const totalWords = tokens.length;
+  const uniqueWords = new Set(tokens).size;
+  const averageWordLength =
+    totalWords > 0
+      ? Math.round((tokens.reduce((s, t) => s + t.length, 0) / totalWords) * 10) / 10
+      : 0;
+  const sentences = splitSentences(text);
+  const averageSentenceLength =
+    sentences.length > 0
+      ? Math.round((totalWords / sentences.length) * 10) / 10
+      : 0;
+  const readabilityScore =
+    totalWords > 0 ? fleschApprox(averageSentenceLength, averageWordLength) : 0;
+  const counts = new Map<string, number>();
+  for (const t of tokens) counts.set(t, (counts.get(t) ?? 0) + 1);
+  const wordFrequency: Record<string, number> = {};
+  for (const [w, c] of counts) wordFrequency[w] = c;
+  const characterFrequency: Record<string, number> = {};
+  for (const ch of text.toLowerCase()) {
+    if (/\s/.test(ch)) continue;
+    characterFrequency[ch] = (characterFrequency[ch] ?? 0) + 1;
+  }
+  const topWords = getTopWords(text, TOP_LIMIT).map(({ word, count }) => ({ word, count }));
+  const dialoguePercentage = dialogueShare(text);
+  const descriptionPercentage = Math.round((100 - dialoguePercentage) * 10) / 10;
+  return {
+    totalWords,
+    uniqueWords,
+    averageWordLength,
+    averageSentenceLength,
+    readabilityScore,
+    topWords,
+    wordFrequency,
+    characterFrequency,
+    dialoguePercentage,
+    descriptionPercentage,
+  };
+}
+
+/** Statistiken berechnen (async-Hülle, keine LLM-Abhängigkeit). */
+export async function getStats(text: string): Promise<WordStats> {
+  return toWordStats(text);
+}
+
+/**
+ * Top-Wörter, async (Auftrags-Signatur).
+ * Die synchrone `getTopWords(text, n)` bleibt aus Kompatibilität bestehen.
+ */
+export async function getTopWordsAsync(
+  text: string,
+  limit: number,
+): Promise<{ word: string; count: number }[]> {
+  return getTopWords(text, limit).map(({ word, count }) => ({ word, count }));
+}
+
+/** Worthäufigkeit (alle Tokens, inkl. Stopwords). */
+export async function getWordFrequency(text: string): Promise<Record<string, number>> {
+  const counts = new Map<string, number>();
+  for (const t of tokenize(text)) counts.set(t, (counts.get(t) ?? 0) + 1);
+  return Object.fromEntries(counts);
+}
+
+/** Vorher/Nachher-Vergleich inkl. Delta-Prozentpunkten je Metrik. */
+export async function compareStats(
+  before: string,
+  after: string,
+): Promise<WordStatsComparison> {
+  const b = toWordStats(before);
+  const a = toWordStats(after);
+  const metrics = [
+    "totalWords",
+    "uniqueWords",
+    "averageWordLength",
+    "averageSentenceLength",
+    "readabilityScore",
+    "dialoguePercentage",
+    "descriptionPercentage",
+  ] as const;
+  const changes = metrics.map((metric) => ({
+    metric,
+    before: b[metric],
+    after: a[metric],
+    change: Math.round((a[metric] - b[metric]) * 10) / 10,
+  }));
+  return { before: b, after: a, changes };
+}
+
+const PROGRESS_KEY = "wordstats-progress";
+
+/** Fortschritt: gespeicherte (Datum, Wortzahl)-Punkte eines Projekts. */
+export async function getProgressOverTime(
+  projectId: string,
+): Promise<{ date: number; wordCount: number }[]> {
+  try {
+    const raw =
+      typeof localStorage !== "undefined"
+        ? localStorage.getItem(`${PROGRESS_KEY}-${projectId}`)
+        : null;
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
+      (p): p is { date: number; wordCount: number } =>
+        typeof p === "object" &&
+        p !== null &&
+        typeof (p as { date: number }).date === "number" &&
+        typeof (p as { wordCount: number }).wordCount === "number",
+    );
+  } catch {
+    return [];
+  }
+}
+
+/** Einen Fortschrittspunkt anhängen (vom Panel nach jeder Analyse genutzt). */
+export function recordProgressPoint(projectId: string, wordCount: number): void {
+  try {
+    if (typeof localStorage === "undefined") return;
+    const key = `${PROGRESS_KEY}-${projectId}`;
+    const raw = localStorage.getItem(key);
+    const arr: { date: number; wordCount: number }[] =
+      raw !== null ? (JSON.parse(raw) as { date: number; wordCount: number }[]) : [];
+    arr.push({ date: Date.now(), wordCount });
+    localStorage.setItem(key, JSON.stringify(arr.slice(-100)));
+  } catch {
+    /* ignore */
+  }
+}

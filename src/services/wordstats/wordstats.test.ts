@@ -1,11 +1,18 @@
 // Tests für die WordStats Engine (Sprint 25, Agent 6).
-import { describe, it, expect } from "vitest";
+// @vitest-environment jsdom
+import { describe, it, expect, beforeEach } from "vitest";
 import {
   analyze,
+  compareStats,
   compareWordUsage,
   getNGrams,
+  getProgressOverTime,
+  getStats,
   getTopWords,
+  getTopWordsAsync,
   getVocabularyRichness,
+  getWordFrequency,
+  recordProgressPoint,
   searchKWIC,
   GERMAN_STOPWORDS,
   ENGLISH_STOPWORDS,
@@ -117,5 +124,65 @@ describe("compareWordUsage / getVocabularyRichness", () => {
     expect(getVocabularyRichness(0, 0)).toBe(0);
     expect(getVocabularyRichness(5, 0)).toBe(0);
     expect(getVocabularyRichness(12, 10)).toBe(1); // geclippt
+  });
+});
+
+describe("Auftrags-API (Sprint 25, Agent 6): getStats / getTopWords / Frequenz / Vergleich / Fortschritt", () => {
+  const SAMPLE = "Der Hund bellt. Der Hund rennt schnell.";
+
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("getStats() gibt Statistiken zurück", async () => {
+    const s = await getStats(SAMPLE);
+    expect(s.totalWords).toBe(7);
+    expect(s.uniqueWords).toBe(5);
+    expect(s.averageWordLength).toBeGreaterThan(0);
+    expect(s.averageSentenceLength).toBeGreaterThan(0);
+    expect(s.readabilityScore).toBeGreaterThanOrEqual(0);
+    expect(s.readabilityScore).toBeLessThanOrEqual(100);
+    expect(s.topWords[0]).toMatchObject({ word: "hund", count: 2 });
+    expect(s.wordFrequency["hund"]).toBe(2);
+    expect(Object.keys(s.characterFrequency).length).toBeGreaterThan(0);
+    expect(s.dialoguePercentage + s.descriptionPercentage).toBeCloseTo(100, 5);
+  });
+
+  it("getStats() bei leerem Text: Nullwerte", async () => {
+    const s = await getStats("   ");
+    expect(s).toMatchObject({ totalWords: 0, uniqueWords: 0, dialoguePercentage: 0 });
+  });
+
+  it("getTopWordsAsync() gibt limitierte Liste zurück", async () => {
+    const top = await getTopWordsAsync("Apfel Birne Apfel Kirsche Birne Apfel", 2);
+    expect(top).toEqual([
+      { word: "apfel", count: 3 },
+      { word: "birne", count: 2 },
+    ]);
+  });
+
+  it("getWordFrequency() zählt alle Tokens inkl. Stopwords", async () => {
+    const freq = await getWordFrequency("Der Hund und der Hund");
+    expect(freq["der"]).toBe(2);
+    expect(freq["hund"]).toBe(2);
+    expect(freq["und"]).toBe(1);
+  });
+
+  it("compareStats() gibt Vergleich mit Deltas zurück", async () => {
+    const cmp = await compareStats("Hund Hund", "Hund Katze Maus Vogel");
+    expect(cmp.before.totalWords).toBe(2);
+    expect(cmp.after.totalWords).toBe(4);
+    const total = cmp.changes.find((c) => c.metric === "totalWords");
+    expect(total).toMatchObject({ before: 2, after: 4, change: 2 });
+    expect(cmp.changes.length).toBeGreaterThanOrEqual(7);
+  });
+
+  it("getProgressOverTime() rundet localStorage robust ab", async () => {
+    expect(await getProgressOverTime("unbekanntes-projekt-xyz")).toEqual([]);
+    recordProgressPoint("test-projekt-xyz", 42);
+    const points = await getProgressOverTime("test-projekt-xyz");
+    expect(points.length).toBeGreaterThanOrEqual(1);
+    expect(points[points.length - 1].wordCount).toBe(42);
+    localStorage.removeItem("wordstats-progress-test-projekt-xyz");
   });
 });

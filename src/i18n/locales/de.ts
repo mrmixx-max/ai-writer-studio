@@ -172,6 +172,11 @@ export const de = {
   "sidebar.mode.formatting": "Format",
   "sidebar.mode.backup": "Backup",
   "sidebar.mode.search": "Suche",
+  "sidebar.mode.readability": "Lesbarkeit",
+  "sidebar.mode.translator": "Übersetzer",
+  "sidebar.mode.plot-analyzer": "Plot-Analyse",
+  "sidebar.mode.mindmap": "Mindmap",
+  "sidebar.mode.summarizer": "Zusammenfasser",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",

@@ -359,4 +359,7 @@ export const fr: TranslationDict = {
   "sidebar.mode.sessions": "Sessions",
   "sidebar.mode.prompt-library": "Bibliothèque de prompts",
   "sidebar.mode.search": "Recherche",
+  "sidebar.mode.readability": "Lisibilité",
+  "sidebar.mode.translator": "Traducteur",
+  "sidebar.mode.plot-analyzer": "Analyse d'intrigue",
 };

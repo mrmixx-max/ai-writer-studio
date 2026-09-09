@@ -52,4 +52,8 @@ export type EditorMode =
   | "sessions"
   | "backup"
   | "formatting"
-  | "readability";
+  | "readability"
+  | "translator"
+  | "plot-analyzer"
+  | "mindmap"
+  | "summarizer";

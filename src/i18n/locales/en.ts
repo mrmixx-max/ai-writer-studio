@@ -170,6 +170,11 @@ export const en: TranslationDict = {
   "sidebar.mode.formatting": "Format",
   "sidebar.mode.backup": "Backup",
   "sidebar.mode.search": "Search",
+  "sidebar.mode.readability": "Readability",
+  "sidebar.mode.translator": "Translator",
+  "sidebar.mode.plot-analyzer": "Plot Analysis",
+  "sidebar.mode.mindmap": "Mindmap",
+  "sidebar.mode.summarizer": "Summarizer",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",

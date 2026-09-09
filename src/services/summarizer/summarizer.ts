@@ -21,8 +21,10 @@ export type SummaryLanguage = "de" | "en";
 export interface SummaryRequest {
   text: string;
   length: SummaryLength;
-  style: SummaryStyle;
+  style?: SummaryStyle;
   language: SummaryLanguage;
+  /** Optionaler Fokus-Schwerpunkt (Sprint 25, Agent 3): fliesst in den Prompt ein. */
+  focus?: string;
 }
 
 export interface SummaryResult {
@@ -89,10 +91,18 @@ export function buildSummaryPrompt(req: SummaryRequest): string {
     req.language === "de"
       ? "Antworte auf Deutsch."
       : "Answer in English.";
+  const style = req.style ?? "paragraph";
+  const focusLine =
+    req.focus && req.focus.trim()
+      ? req.language === "de"
+        ? `Schwerpunkt: ${req.focus.trim()}\n`
+        : `Focus: ${req.focus.trim()}\n`
+      : "";
   return (
     `Du bist eine präzise Lektorats-KI. Fasse den folgenden Text zusammen.\n` +
     `${LENGTH_HINT[req.language][req.length]}\n` +
-    `${STYLE_HINT[req.language][req.style]}\n` +
+    `${STYLE_HINT[req.language][style]}\n` +
+    focusLine +
     `${langInstruction}\n\nTEXT:\n${req.text}\n\nNur die Zusammenfassung, sonst nichts.`
   );
 }

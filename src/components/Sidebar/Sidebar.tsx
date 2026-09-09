@@ -16,7 +16,7 @@ const WIDE_EXTRA_MODES = new Set<string>([
   "newspaper", "textquality", "bilingual", "amazon", "shortprose",
   "templates", "voice", "style-analyzer", "websearch", "outliner",
   "scene-breakdown", "feedback", "sessions", "backup", "search", "prompt-library",
-  "readability", "cloud-sync",
+  "readability", "cloud-sync", "translator", "plot-analyzer", "mindmap", "summarizer",
 ]);
 
 // Lazy-loaded Panels — werden erst beim ersten Zugriff geladen
@@ -184,6 +184,22 @@ const CloudSyncPanel = lazy(() =>
 const SearchPanel = lazy(() =>
   import("@/components/Search/SearchPanel").then((m) => ({ default: m.SearchPanel }))
 );
+// Sprint 25 (Agent 1): Translator — DE↔EN mit Glossar, standalone.
+const TranslatorPanel = lazy(() =>
+  import("@/components/Translator/TranslatorPanel").then((m) => ({ default: m.TranslatorPanel }))
+);
+// Sprint 25 (Agent 2): Mindmap — interaktive Mindmap aus Text.
+const MindmapPanel = lazy(() =>
+  import("@/components/Mindmap/MindmapPanel").then((m) => ({ default: m.MindmapPanel }))
+);
+// Sprint 25 (Agent 3): Summarizer — Zusammenfassung mit Länge-Stufen.
+const SummarizerPanel = lazy(() =>
+  import("@/components/Summarizer/SummarizerPanel").then((m) => ({ default: m.SummarizerPanel }))
+);
+// Sprint 25 (Agent 5): Plot-Analyse — Handlungsstruktur + Konflikte, standalone.
+const PlotAnalyzerPanel = lazy(() =>
+  import("@/components/PlotAnalyzer/PlotAnalyzerPanel").then((m) => ({ default: m.PlotAnalyzerPanel }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -218,7 +234,7 @@ const MODES: { id: EditorMode; key: string; icon: string; description: string }[
   { id: "tts", key: "sidebar.mode.tts", icon: "🔊", description: "Text vorlesen lassen" },
   { id: "bookwriter", key: "sidebar.mode.bookwriter", icon: "📖", description: "Buch automatisch schreiben" },
   { id: "markdown", key: "sidebar.mode.markdown", icon: "📝", description: "Markdown ansehen und exportieren" },
-  { id: "wordstats", key: "sidebar.mode.wordstats", icon: "📊", description: "Wortstatistik ansehen" },
+  { id: "wordstats", key: "sidebar.mode.wordstats", icon: "📊", description: "Häufigkeit + Fortschritt" },
   { id: "ideas", key: "sidebar.mode.ideas", icon: "💡", description: "Ideen sammeln" },
   { id: "consistency", key: "sidebar.mode.consistency", icon: "✅", description: "Konsistenz prüfen" },
   { id: "newspaper", key: "sidebar.mode.newspaper", icon: "📰", description: "Zeitung aus Web-Recherche erstellen" },
@@ -242,6 +258,10 @@ const MODES: { id: EditorMode; key: string; icon: string; description: string }[
   { id: "search", key: "sidebar.mode.search", icon: "🔎", description: "Volltextsuche + Ersetzen" },
   { id: "prompt-library", key: "sidebar.mode.prompt-library", icon: "💡", description: "Prompt-Bibliothek" },
   { id: "readability", key: "sidebar.mode.readability", icon: "📊", description: "Flesch + Gunning Fog + Coleman-Liau" },
+  { id: "translator", key: "sidebar.mode.translator", icon: "🌐", description: "DE↔EN mit Glossar" },
+  { id: "plot-analyzer", key: "sidebar.mode.plot-analyzer", icon: "📈", description: "Handlung + Konflikte" },
+  { id: "mindmap", key: "sidebar.mode.mindmap", icon: "🧠", description: "Interaktive Mindmap" },
+  { id: "summarizer", key: "sidebar.mode.summarizer", icon: "📝", description: "Zusammenfassung + Kernpunkte" },
 ];
 
 export function Sidebar() {
@@ -564,6 +584,14 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "search") return <SearchPanel />;
     // Sprint 25 (Agent 4): Lesbarkeit arbeitet auf freiem Text (standalone).
     if (mode === "readability") return <ReadabilityPanel />;
+    // Sprint 25 (Agent 1): Translator arbeitet auf freiem Text (standalone).
+    if (mode === "translator") return <TranslatorPanel />;
+    // Sprint 25 (Agent 2): Mindmap — interaktive Mindmap aus Text.
+    if (mode === "mindmap") return <MindmapPanel />;
+    // Sprint 25 (Agent 3): Summarizer — Zusammenfassung mit Länge-Stufen.
+    if (mode === "summarizer") return <SummarizerPanel />;
+    // Sprint 25 (Agent 5): Plot-Analyse — Handlungsstruktur + Konflikte, standalone.
+    if (mode === "plot-analyzer") return <PlotAnalyzerPanel />;
     if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }

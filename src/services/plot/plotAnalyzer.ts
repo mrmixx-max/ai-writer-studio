@@ -278,7 +278,7 @@ function classifySentence(sentence: string, index: number, total: number): PlotP
 
 function tensionOf(sentence: string, type: PlotPointType): number {
   const lower = sentence.toLowerCase();
-  let t = 4;
+  let t: number;
   if (type === "climax") t = 8;
   else if (type === "rising-action") t = 6;
   else if (type === "falling-action") t = 5;
@@ -569,4 +569,203 @@ export async function extractPlotPoints(
     });
   });
   return sortByPosition(out);
+}
+
+// --- Kapitel-API: Handlungsstruktur + Konflikte (Sprint 25, Agent 5) -------------
+// Oeffentliche Fassade auf Kapitel-Listen (id/title/content), wie sie der
+// Projekt-Store liefert. Nutzt LLM via Provider (opts.client injizierbar,
+// Tests mocken ihn), mit deterministischer Heuristik als Offline-Fallback.
+
+/** Kapitel-Eingabe fuer die strukturbezogene Analyse. */
+export interface PlotChapter {
+  id: string;
+  title: string;
+  content: string;
+}
+
+/** Erkannter Konflikt: Typ, Beschreibung, betroffene Kapitel (1-basiert). */
+export interface Conflict {
+  type: string;
+  description: string;
+  chapters: number[];
+}
+
+type ChapterLike = { id?: string; title: string; content: string };
+
+function nonEmptyChapters<T extends ChapterLike>(chapters: T[]): (T & { index: number })[] {
+  return chapters
+    .map((c, index) => ({ ...c, index }))
+    .filter((c) => (c.title + c.content).trim().length > 0);
+}
+
+/**
+ * Spannungskurve pro Kapitel: ein Tension-Wert (0-10) je Kapitel (1-basiert).
+ * LLM-Plot-Points (via extractPlotPoints) werden je Kapitel gemittelt;
+ * Kapitel ohne Points fallen auf die lokale Heuristik zurueck.
+ */
+export async function getTensionCurve(
+  chapters: ChapterLike[],
+  opts?: PlotOptions,
+): Promise<{ chapter: number; tension: number }[]> {
+  const nonEmpty = nonEmptyChapters(chapters);
+  if (nonEmpty.length === 0) return [];
+  const points = await extractPlotPoints(
+    nonEmpty.map((c) => ({ title: c.title, content: c.content })),
+    opts,
+  );
+  const n = nonEmpty.length;
+  return nonEmpty.map((ch, i) => {
+    const lo = (i / n) * 100;
+    const hi = ((i + 1) / n) * 100;
+    const bucket = points.filter((p) =>
+      i === n - 1 ? p.position >= lo && p.position <= hi : p.position >= lo && p.position < hi,
+    );
+    let tension: number;
+    if (bucket.length > 0) {
+      tension = bucket.reduce((s, p) => s + p.tension, 0) / bucket.length;
+    } else {
+      const local = localPlotPoints(ch.content);
+      tension =
+        local.length > 0
+          ? local.reduce((s, p) => s + p.tension, 0) / local.length
+          : 5;
+    }
+    return { chapter: i + 1, tension: Math.round(tension * 10) / 10 };
+  });
+}
+
+const CONFLICT_TYPES: { type: string; hint: string; words: string[] }[] = [
+  {
+    type: "Person vs. Person",
+    hint: "Zwischenmenschlicher Konflikt (Streit, Kampf, Konfrontation)",
+    words: ["streit", "kampf", "feind", "gegner", "rival", "konfrontation", "angriff", "griff", "droh", "hass", "widersprach"],
+  },
+  {
+    type: "Person vs. Selbst",
+    hint: "Innerer Konflikt (Zweifel, Angst, Schuld, Entscheidung)",
+    words: ["zweifel", "angst", "schuld", "gewissen", "entscheidung", "zerrissen", "reue", "scham", "furcht"],
+  },
+  {
+    type: "Person vs. Gesellschaft",
+    hint: "Konflikt mit Normen und Macht (Gesetz, Verbot, Herrschaft)",
+    words: ["gesetz", "verbot", "herrscher", "koenig", "könig", "strafe", "verbannt", "aufstand", "regel", "gericht"],
+  },
+  {
+    type: "Person vs. Natur",
+    hint: "Kampf gegen Naturgewalten (Sturm, Feuer, Wildnis)",
+    words: ["sturm", "unwetter", "feuer", "flut", "wildnis", "duerre", "dürre", "kaelte", "kälte", "lawine", "wueste", "wüste"],
+  },
+  {
+    type: "Person vs. Schicksal",
+    hint: "Schicksalhaftes/uebernatuerliches Wirken (Fluch, Prophezeiung, Magie)",
+    words: ["fluch", "prophezeiung", "schicksal", "magie", "orakel", "verdammnis", "gott", "goetter", "götter", "geist"],
+  },
+];
+
+function escapeRegExp(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * Heuristische Konflikt-Erkennung (rein, synchron): Schlüsselwort-Suche je
+ * Konflikttyp und Kapitel. Direkte Rede („...") zaehlt zusaetzlich als
+ * zwischenmenschliches Signal. Kapitelnummern sind 1-basiert relativ zur
+ * uebergebenen Liste.
+ */
+export function heuristicConflicts<T extends ChapterLike>(chapters: T[]): Conflict[] {
+  const nonEmpty = nonEmptyChapters(chapters);
+  const out: Conflict[] = [];
+  for (const ct of CONFLICT_TYPES) {
+    const re = new RegExp(`\\b(${ct.words.map(escapeRegExp).join("|")})\\w*`, "i");
+    const hits: { chapter: number; word: string }[] = [];
+    nonEmpty.forEach((ch, i) => {
+      const m = ch.content.match(re);
+      const dialogue = ct.type === "Person vs. Person" && /[„"»«]/.test(ch.content);
+      if (m && m[1]) hits.push({ chapter: i + 1, word: m[1].toLowerCase() });
+      else if (dialogue) hits.push({ chapter: i + 1, word: "Dialog" });
+    });
+    if (hits.length > 0) {
+      const evidence = [...new Set(hits.map((h) => h.word))].slice(0, 3).join(", ");
+      const where = [...new Set(hits.map((h) => h.chapter))].sort((a, b) => a - b);
+      out.push({
+        type: ct.type,
+        description: `${ct.hint}. Spuren in Kapitel ${where.join(", ")} (z.B. \u201E${evidence}\u201C).`,
+        chapters: where,
+      });
+    }
+  }
+  return out;
+}
+
+/** Baut den Konflikt-Prompt fuers LLM (inkl. JSON-Antwortschema). */
+export function buildConflictPrompt<T extends ChapterLike>(chapters: T[]): string {
+  const body = chapters
+    .map((c, i) => `KAPITEL ${i + 1} („${c.title}“):\n${c.content}`)
+    .join("\n\n");
+  return (
+    `Du bist ein erfahrener Dramaturg. Erkenne die zentralen Konflikte in den folgenden Kapiteln. ` +
+    `Typische Konflikttypen: Person vs. Person, Person vs. Selbst, Person vs. Gesellschaft, ` +
+    `Person vs. Natur, Person vs. Schicksal.\n\n${body}\n\nAntworte AUSSCHLIESSLICH mit einem JSON-Objekt ` +
+    `(kein Markdown, kein Vorwort) im Format:\n{"conflicts": [{"type": "...", "description": "...", "chapters": [1, 2]}]}`
+  );
+}
+
+function normalizeConflicts(raw: unknown, chapterCount: number): Conflict[] {
+  if (!Array.isArray(raw)) return [];
+  const out: Conflict[] = [];
+  for (const entry of raw) {
+    if (typeof entry !== "object" || entry === null) continue;
+    const r = entry as Record<string, unknown>;
+    const type = typeof r.type === "string" ? r.type.trim().slice(0, 80) : "";
+    if (!type) continue;
+    const description =
+      typeof r.description === "string" && r.description.trim()
+        ? r.description.trim().slice(0, 500)
+        : type;
+    const list = Array.isArray(r.chapters) ? r.chapters : [];
+    const chapters = [...new Set(
+      list.flatMap((c: unknown): number[] => {
+        const n = typeof c === "string" ? Number(c) : c;
+        return typeof n === "number" && Number.isInteger(n) && n >= 1 && n <= chapterCount ? [n] : [];
+      }),
+    )].sort((a, b) => a - b);
+    out.push({ type, description, chapters });
+  }
+  return out;
+}
+
+/**
+ * Erkennt Konflikte in Kapiteln. Nutzt opts.client oder den konfigurierten
+ * Provider (Ollama-Pattern wie analyzePlot); bei Fehlern oder leeren
+ * LLM-Treffern greift die lokale Heuristik. Kapitelnummern im Ergebnis
+ * beziehen sich auf die uebergebene Liste (1-basiert).
+ */
+export async function detectConflicts(
+  chapters: ChapterLike[],
+  opts?: PlotOptions,
+): Promise<Conflict[]> {
+  const nonEmpty = nonEmptyChapters(chapters);
+  if (nonEmpty.length === 0) return [];
+  // Original-Nummerierung (leere Kapitel herausgefiltert) wiederherstellen.
+  const remap = (nums: number[]): number[] =>
+    nums.map((n) => (nonEmpty[n - 1] ? nonEmpty[n - 1].index + 1 : n));
+  const client = opts?.client ?? providerClient;
+  try {
+    if (opts?.signal?.aborted) throw new DOMException("Abgebrochen", "AbortError");
+    const raw = await client(buildConflictPrompt(nonEmpty), opts?.signal);
+    const parsed = extractJsonObject(raw);
+    if (parsed && typeof parsed === "object") {
+      const norm = normalizeConflicts(
+        (parsed as Record<string, unknown>).conflicts,
+        nonEmpty.length,
+      );
+      if (norm.length > 0) {
+        return norm.map((c) => ({ ...c, chapters: remap(c.chapters) }));
+      }
+    }
+  } catch (e) {
+    if (isAbort(e, opts?.signal)) throw e;
+    // Fallthrough zur Heuristik
+  }
+  return heuristicConflicts(nonEmpty).map((c) => ({ ...c, chapters: remap(c.chapters) }));
 }
