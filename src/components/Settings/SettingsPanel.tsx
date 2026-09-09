@@ -16,6 +16,7 @@ import { useI18n, LANGUAGES, type Lang } from "@/i18n";
 import { setHighContrast, getHighContrastPreference } from "@/i18n/highContrast";
 import { announce } from "@/i18n/a11y";
 import { UpdateCheck } from "./UpdateCheck";
+import { importHermesKeys } from "@/services/settings/hermesImport";
 import "./settings.css";
 
 const PROVIDERS: ProviderId[] = ["ollama", "lmstudio", "openai", "openrouter", "gpt2api", "nous"];
@@ -364,6 +365,21 @@ export function SettingsPanel() {
         </button>
         <button onClick={discard} disabled={!dirty} title="Alle ungespeicherten Änderungen zurücksetzen">
           Änderungen verwerfen
+        </button>
+        <button onClick={async () => {
+          try {
+            const keys = await importHermesKeys();
+            if (keys.openrouter_api_key) update("openrouterApiKey", keys.openrouter_api_key);
+            if (keys.openai_api_key) update("openaiApiKey", keys.openai_api_key);
+            if (keys.gpt2api_api_key) update("gpt2apiApiKey", keys.gpt2api_api_key);
+            if (keys.nous_api_key) update("nousApiKey", keys.nous_api_key);
+            if (keys.deepseek_api_key) update("deepseekApiKey", keys.deepseek_api_key);
+            announce("Hermes-Keys importiert");
+          } catch {
+            announce("Hermes-Import fehlgeschlagen");
+          }
+        }}>
+          Import from Hermes
         </button>
       </div>
 

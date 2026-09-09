@@ -19,6 +19,8 @@ export interface AppSettings {
   gpt2apiApiKey: string;
   nousApiKey: string;
   nousBaseUrl: string;
+  deepseekApiKey: string;
+  deepseekBaseUrl: string;
   // Bildgenerierung
   imageProvider: "openai-dalle" | "openrouter-flux" | "sd-webui" | "none";
   sdWebuiUrl: string;
@@ -57,6 +59,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   gpt2apiApiKey: "",
   nousApiKey: "",
   nousBaseUrl: "https://inference-api.nousresearch.com/v1",
+  deepseekApiKey: "",
+  deepseekBaseUrl: "https://api.deepseek.com/v1",
   imageProvider: "none",
   sdWebuiUrl: "http://localhost:7860",
   sdWebuiUsername: "",

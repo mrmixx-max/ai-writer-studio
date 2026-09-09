@@ -16,6 +16,7 @@ use tauri::Manager;
 mod git;
 mod updater;
 mod windows;
+mod hermes_import;
 
 const USER_DIRS: [&str; 4] = ["user_data", "logs", "exports", "backups"];
 
@@ -127,6 +128,7 @@ fn main() {
             user_paths,
             startup_file,
             windows::set_taskbar_progress,
+            hermes_import::import_hermes_keys,
             windows::add_recent_document,
             updater::check_for_updates,
             updater::download_and_install_update,
