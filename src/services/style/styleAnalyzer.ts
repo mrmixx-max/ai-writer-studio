@@ -1,324 +1,189 @@
-// StyleAnalyzer-Engine (Sprint 22, Agent 6): Stil-Metriken + Autoren-Vergleich.
-//
-// Rein deterministisch, keine LLM-Abhaengigkeit, keine neuen Dependencies.
-// Ergaenzt `styleGuide.ts` (Basis-Stilanalyse) um den Vergleich mit
-// bekannten Autoren-Profilen.
+// Style Analyzer (Sprint 27, Agent 5): Stil-Analyse für Texte.
+// Lokal, kein LLM nötig, deterministisch.
 
-export interface StyleProfile {
-  author: string;
-  period: string;
-  avgSentenceLength: number;
-  vocabularyRichness: number; // Type-Token-Ratio, 0..1
-  dialogueRatio: number; // 0..1
-  descriptionRatio: number; // 0..1
-  commonWords: string[];
-  signaturePhrases: string[];
-  pacing: "slow" | "medium" | "fast";
+export interface StyleMetrics {
+  vocabularyRichness: number;
+  averageWordLength: number;
+  averageSentenceLength: number;
+  passiveVoiceRatio: number;
+  dialogueRatio: number;
+  descriptionRatio: number;
+  actionRatio: number;
+  emotionRatio: number;
+  readabilityScore: number;
 }
 
-export interface AuthorComparison {
-  author: string;
-  similarity: number; // 0..100 (Prozent)
-  profile: StyleProfile;
+export interface StyleAnalysis {
+  metrics: StyleMetrics;
+  style: "formal" | "informal" | "literary" | "technical" | "journalistic" | "conversational";
+  tone: "positive" | "negative" | "neutral" | "mixed";
+  audience: "general" | "educated" | "expert" | "young";
+  suggestions: string[];
+  strengths: string[];
+  weaknesses: string[];
 }
 
-export interface StyleComparison {
-  textProfile: StyleProfile;
-  comparisons: AuthorComparison[];
-  verdict: string;
-}
-
-// ---------------------------------------------------------------------------
-// Vordefinierte Autoren-Profile (10). Die Kennzahlen sind stilisierte,
-// redaktionsseitig festgelegte Referenzwerte (keine Korpus-Messung) und
-// dienen als Vergleichsanker, nicht als literaturwissenschaftliche Aussage.
-// ---------------------------------------------------------------------------
-
-export const AUTHOR_PROFILES: StyleProfile[] = [
-  {
-    author: "Ernest Hemingway",
-    period: "1920–1960",
-    avgSentenceLength: 9,
-    vocabularyRichness: 0.42,
-    dialogueRatio: 0.35,
-    descriptionRatio: 0.25,
-    commonWords: ["und", "sagte", "ging", "sah", "gut"],
-    signaturePhrases: ["Er sagte nichts", "Es war gut"],
-    pacing: "fast",
-  },
-  {
-    author: "Virginia Woolf",
-    period: "1915–1941",
-    avgSentenceLength: 24,
-    vocabularyRichness: 0.62,
-    dialogueRatio: 0.08,
-    descriptionRatio: 0.75,
-    commonWords: ["moment", "light", "time", "life", "mind"],
-    signaturePhrases: ["the moment", "life itself"],
-    pacing: "slow",
-  },
-  {
-    author: "Franz Kafka",
-    period: "1912–1924",
-    avgSentenceLength: 18,
-    vocabularyRichness: 0.55,
-    dialogueRatio: 0.15,
-    descriptionRatio: 0.55,
-    commonWords: ["tür", "mann", "plötzlich", "angst", "zimmer"],
-    signaturePhrases: ["Eines Morgens", "Es war, als ob"],
-    pacing: "medium",
-  },
-  {
-    author: "Thomas Mann",
-    period: "1901–1955",
-    avgSentenceLength: 28,
-    vocabularyRichness: 0.58,
-    dialogueRatio: 0.12,
-    descriptionRatio: 0.7,
-    commonWords: ["zeit", "geist", "leben", "bürger", "kunst"],
-    signaturePhrases: ["Die Zeit", "Bekanntlich"],
-    pacing: "slow",
-  },
-  {
-    author: "Edgar Wallace",
-    period: "1905–1932",
-    avgSentenceLength: 12,
-    vocabularyRichness: 0.48,
-    dialogueRatio: 0.4,
-    descriptionRatio: 0.4,
-    commonWords: ["nacht", "tür", "schrei", "mann", "polizei"],
-    signaturePhrases: ["Plötzlich", "In diesem Augenblick"],
-    pacing: "fast",
-  },
-  {
-    author: "Stefan Zweig",
-    period: "1901–1942",
-    avgSentenceLength: 20,
-    vocabularyRichness: 0.6,
-    dialogueRatio: 0.18,
-    descriptionRatio: 0.6,
-    commonWords: ["seele", "herz", "leidenschaft", "schicksal", "gefühl"],
-    signaturePhrases: ["Zum ersten Mal", "Mit einem Mal"],
-    pacing: "medium",
-  },
-  {
-    author: "Bertolt Brecht",
-    period: "1922–1956",
-    avgSentenceLength: 10,
-    vocabularyRichness: 0.45,
-    dialogueRatio: 0.3,
-    descriptionRatio: 0.3,
-    commonWords: ["herr", "sagt", "frage", "antwort", "leute"],
-    signaturePhrases: ["Herr K.", "Was sind das"],
-    pacing: "fast",
-  },
-  {
-    author: "Ingeborg Bachmann",
-    period: "1953–1973",
-    avgSentenceLength: 16,
-    vocabularyRichness: 0.63,
-    dialogueRatio: 0.1,
-    descriptionRatio: 0.65,
-    commonWords: ["nacht", "wort", "schweigen", "liebe", "tod"],
-    signaturePhrases: ["Die Wahrheit", "Kein Wort"],
-    pacing: "medium",
-  },
-  {
-    author: "Max Frisch",
-    period: "1943–1991",
-    avgSentenceLength: 13,
-    vocabularyRichness: 0.52,
-    dialogueRatio: 0.28,
-    descriptionRatio: 0.45,
-    commonWords: ["frage", "bildnis", "erfahrung", "zeit", "ich"],
-    signaturePhrases: ["Man mache sich", "Ich stelle mir vor"],
-    pacing: "medium",
-  },
-  {
-    author: "Friedrich Dürrenmatt",
-    period: "1947–1990",
-    avgSentenceLength: 15,
-    vocabularyRichness: 0.54,
-    dialogueRatio: 0.32,
-    descriptionRatio: 0.5,
-    commonWords: ["welt", "zufall", "spiel", "richter", "mord"],
-    signaturePhrases: ["Die Welt", "Was einmal gedacht"],
-    pacing: "medium",
-  },
-];
-
-const clamp01 = (v: number): number =>
-  Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : 0;
-
-function tokenize(text: string): string[] {
-  return (
-    text
-      .toLowerCase()
-      .match(/[a-zäöüß]+(?:['’][a-zäöüß]+)?/g) ?? []
-  );
-}
-
-function splitSentences(text: string): string[] {
-  return text
-    .split(/[.!?…]+["»”)]?/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0);
-}
-
-function topWords(tokens: string[], count: number): string[] {
-  const freq = new Map<string, number>();
-  for (const t of tokens) {
-    if (t.length < 4) continue;
-    freq.set(t, (freq.get(t) ?? 0) + 1);
-  }
-  return [...freq.entries()]
-    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-    .slice(0, count)
-    .map(([w]) => w);
-}
-
-function topBigrams(tokens: string[], count: number): string[] {
-  const freq = new Map<string, number>();
-  for (let i = 0; i + 1 < tokens.length; i++) {
-    const a = tokens[i];
-    const b = tokens[i + 1];
-    if (a.length < 3 || b.length < 3) continue;
-    const key = `${a} ${b}`;
-    freq.set(key, (freq.get(key) ?? 0) + 1);
-  }
-  return [...freq.entries()]
-    .filter(([, n]) => n > 1)
-    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-    .slice(0, count)
-    .map(([w]) => w);
-}
-
-// ---------------------------------------------------------------------------
-// analyzeStyle: berechnet das Stil-Profil eines beliebigen Textes.
-// Leerer Text ergibt ein neutrales Null-Profil (keine Division durch Null).
-// ---------------------------------------------------------------------------
-
-export function analyzeStyle(text: string): StyleProfile {
-  const tokens = tokenize(text);
-  const sentences = splitSentences(text);
-
-  if (tokens.length === 0) {
+/**
+ * Analysiert den Stil eines Textes.
+ */
+export function analyzeStyle(text: string): StyleAnalysis {
+  const words = text.split(/\s+/).filter(Boolean);
+  const sentences = text.split(/(?<=[.!?])\s+/).filter((s) => s.trim().length > 0);
+  const uniqueWords = new Set(words.map((w) => w.toLowerCase()));
+  
+  if (words.length === 0) {
     return {
-      author: "Eigener Text",
-      period: "Gegenwart",
-      avgSentenceLength: 0,
-      vocabularyRichness: 0,
-      dialogueRatio: 0,
-      descriptionRatio: 0,
-      commonWords: [],
-      signaturePhrases: [],
-      pacing: "medium",
+      metrics: {
+        vocabularyRichness: 0,
+        averageWordLength: 0,
+        averageSentenceLength: 0,
+        passiveVoiceRatio: 0,
+        dialogueRatio: 0,
+        descriptionRatio: 0,
+        actionRatio: 0,
+        emotionRatio: 0,
+        readabilityScore: 50,
+      },
+      style: "conversational",
+      tone: "neutral",
+      audience: "general",
+      suggestions: ["Text ist leer"],
+      strengths: [],
+      weaknesses: [],
     };
   }
 
-  const avgSentenceLength =
-    sentences.length > 0 ? tokens.length / sentences.length : tokens.length;
+  const avgWordLength = words.reduce((s, w) => s + w.length, 0) / words.length;
+  const avgSentenceLength = words.length / Math.max(1, sentences.length);
+  const vocabularyRichness = uniqueWords.size / words.length;
 
-  const unique = new Set(tokens).size;
-  const vocabularyRichness = clamp01(unique / tokens.length);
-
-  // Dialog-Anteil: Zeichen in Anführungszeichen + Dialogstrich-Zeilen.
-  let dialogueChars = 0;
-  const quoted = text.match(/[„“"»«'‘’]([^„“"»«'‘’]{1,500})[„“"»«'‘’]/g) ?? [];
-  for (const q of quoted) dialogueChars += q.length;
-  const dashLines = text
-    .split(/\n/)
-    .filter((l) => /^\s*[–—-]/.test(l))
-    .join("").length;
-  dialogueChars += dashLines;
-  const dialogueRatio = clamp01(dialogueChars / Math.max(1, text.length));
-
-  // Beschreibungs-Anteil: lange Wörter + Komma-Dichte als Heuristik.
-  const longWords = tokens.filter((t) => t.length > 6).length;
-  const commas = (text.match(/,/g) ?? []).length;
-  const commaPerSentence = sentences.length > 0 ? commas / sentences.length : 0;
-  const descriptionRatio = clamp01(
-    (longWords / tokens.length) * 1.4 + commaPerSentence * 0.08,
-  );
-
-  const pacing: StyleProfile["pacing"] =
-    avgSentenceLength < 11 ? "fast" : avgSentenceLength < 21 ? "medium" : "slow";
-
-  return {
-    author: "Eigener Text",
-    period: "Gegenwart",
-    avgSentenceLength: Math.round(avgSentenceLength * 10) / 10,
-    vocabularyRichness: Math.round(vocabularyRichness * 1000) / 1000,
-    dialogueRatio: Math.round(dialogueRatio * 1000) / 1000,
-    descriptionRatio: Math.round(descriptionRatio * 1000) / 1000,
-    commonWords: topWords(tokens, 5),
-    signaturePhrases: topBigrams(tokens, 3),
-    pacing,
-  };
-}
-
-// ---------------------------------------------------------------------------
-// Ähnlichkeit: gewichtete Merkmalsdistanz, normiert auf 0..100 Prozent.
-// ---------------------------------------------------------------------------
-
-function similarityScore(a: StyleProfile, b: StyleProfile): number {
-  const sentence = 1 - Math.min(1, Math.abs(a.avgSentenceLength - b.avgSentenceLength) / 25);
-  const vocab = 1 - Math.abs(a.vocabularyRichness - b.vocabularyRichness);
-  const dialogue = 1 - Math.abs(a.dialogueRatio - b.dialogueRatio);
-  const description = 1 - Math.abs(a.descriptionRatio - b.descriptionRatio);
-  const pace = a.pacing === b.pacing ? 1 : 0.5;
-  const score =
-    sentence * 0.3 + vocab * 0.25 + dialogue * 0.15 + description * 0.15 + pace * 0.15;
-  return Math.round(clamp01(score) * 1000) / 10;
-}
-
-function findProfile(author: string): StyleProfile {
-  const norm = author.trim().toLowerCase();
-  const found = AUTHOR_PROFILES.find((p) => p.author.toLowerCase() === norm);
-  if (!found) {
-    throw new Error(
-      `Unbekannter Autor: "${author}". Verfügbar: ${getAvailableAuthors().join(", ")}`,
-    );
+  // Erkenne Passivkonstruktionen
+  const passivePatterns = [
+    /wurde\s+\w+/gi,
+    /wurden\s+\w+/gi,
+    /wird\s+\w+/gi,
+    /werden\s+\w+/gi,
+    /ist\s+\w+/gi,
+    /sind\s+\w+/gi,
+  ];
+  let passiveCount = 0;
+  for (const pattern of passivePatterns) {
+    const matches = text.match(pattern);
+    if (matches) passiveCount += matches.length;
   }
-  return found;
-}
+  const passiveVoiceRatio = passiveCount / Math.max(1, sentences.length);
 
-export function getAvailableAuthors(): string[] {
-  return AUTHOR_PROFILES.map((p) => p.author);
-}
+  // Erkenne Dialoge
+  const dialogueLines = sentences.filter((s) => {
+    const t = s.trim();
+    return /^[»""„"»]/.test(t) || /^[—–-]\s/.test(t) || /^[A-ZÄÖÜ][a-zäöübf]+:\s*[""]?/.test(t);
+  }).length;
+  const dialogueRatio = dialogueLines / Math.max(1, sentences.length);
 
-export function compareToAuthor(text: string, author: string): StyleComparison {
-  const textProfile = analyzeStyle(text);
-  const profile = findProfile(author);
-  const similarity = similarityScore(textProfile, profile);
+  // Erkenne Handlung vs. Beschreibung
+  const actionVerbs = ["rennen", "springen", "schlagen", "werfen", "fliegen", "fallen", "greifen", "stoßen", "ziehen", "drücken", "laufen", "klettern", "schwimmen", "fahren", "fliegen", "explodieren", "zerstören", "retten", "kämpfen", "siegen"];
+  const descriptionAdjektive = ["groß", "klein", "schön", "hässlich", "alt", "jung", "hell", "dunkel", "warm", "kalt", "hart", "weich", "laut", "leise", "schnell", "langsam", "dick", "dünn", "schwer", "leicht"];
+  
+  let actionCount = 0;
+  let descriptionCount = 0;
+  const lowerText = text.toLowerCase();
+  for (const verb of actionVerbs) {
+    const matches = lowerText.match(new RegExp(`\\b${verb}`, "g"));
+    if (matches) actionCount += matches.length;
+  }
+  for (const adj of descriptionAdjektive) {
+    const matches = lowerText.match(new RegExp(`\\b${adj}`, "g"));
+    if (matches) descriptionCount += matches.length;
+  }
+  const actionRatio = actionCount / Math.max(1, words.length);
+  const descriptionRatio = descriptionCount / Math.max(1, words.length);
+
+  // Erkenne Emotionen
+  const emotionWords = ["freude", "trauer", "wut", "angst", "liebe", "hass", "hoffnung", "verzweiflung", "ekel", "überraschung", "glück", "schmerz", "freudig", "traurig", "wütend", "ängstlich", "verliebt", "hasserfüllt", "hoffnungsvoll", "verzweifelt"];
+  let emotionCount = 0;
+  for (const emo of emotionWords) {
+    const matches = lowerText.match(new RegExp(`\\b${emo}`, "g"));
+    if (matches) emotionCount += matches.length;
+  }
+  const emotionRatio = emotionCount / Math.max(1, words.length);
+
+  // Lesbarkeit (Flesch-ähnlich)
+  const readabilityScore = Math.min(100, Math.max(0, 100 - (avgSentenceLength * 2) - (avgWordLength * 5)));
+
+  // Stil bestimmen
+  let style: StyleAnalysis["style"] = "conversational";
+  if (vocabularyRichness > 0.6 && avgWordLength > 5) style = "literary";
+  else if (passiveVoiceRatio > 0.3 && avgSentenceLength > 20) style = "technical";
+  else if (avgSentenceLength < 12 && dialogueRatio > 0.3) style = "journalistic";
+  else if (vocabularyRichness < 0.4 && avgWordLength < 4.5) style = "informal";
+  else if (avgSentenceLength > 18 && passiveVoiceRatio > 0.2) style = "formal";
+
+  // Ton bestimmen
+  const positiveWords = ["gut", "schön", "glücklich", "freude", "liebe", "hoffnung", "frieden", "erfolg", "gewinn", "sieg", "hell", "warm", "sanft", "freundlich"];
+  const negativeWords = ["schlecht", "hässlich", "traurig", "hass", "krieg", "verlust", "niederlage", "dunkel", "kalt", "hart", "feindlich", "schmerz", "angst", "wut"];
+  let positiveCount = 0;
+  let negativeCount = 0;
+  for (const w of positiveWords) {
+    const matches = lowerText.match(new RegExp(`\\b${w}`, "g"));
+    if (matches) positiveCount += matches.length;
+  }
+  for (const w of negativeWords) {
+    const matches = lowerText.match(new RegExp(`\\b${w}`, "g"));
+    if (matches) negativeCount += matches.length;
+  }
+  let tone: StyleAnalysis["tone"] = "neutral";
+  if (positiveCount > negativeCount * 2) tone = "positive";
+  else if (negativeCount > positiveCount * 2) tone = "negative";
+  else if (positiveCount > 0 && negativeCount > 0) tone = "mixed";
+
+  // Zielgruppe
+  let audience: StyleAnalysis["audience"] = "general";
+  if (vocabularyRichness > 0.65 && avgWordLength > 5.5) audience = "expert";
+  else if (vocabularyRichness > 0.5 || avgWordLength > 5) audience = "educated";
+  else if (avgSentenceLength < 10 && avgWordLength < 4) audience = "young";
+
+  // Vorschläge
+  const suggestions: string[] = [];
+  if (vocabularyRichness < 0.3) suggestions.push("Wortschatz erweitern — mehr Synonyme verwenden");
+  if (avgSentenceLength > 25) suggestions.push("Sätze kürzer machen für bessere Lesbarkeit");
+  if (passiveVoiceRatio > 0.3) suggestions.push("Passivkonstruktionen reduzieren — aktive Sprache ist lebendiger");
+  if (dialogueRatio < 0.1 && words.length > 100) suggestions.push("Dialoge einstreuen für mehr Leben");
+  if (emotionRatio < 0.05 && words.length > 100) suggestions.push("Mehr emotionale Begriffe für Tiefe");
+  if (suggestions.length === 0) suggestions.push("Guter Stil mit ausgewogener Sprache");
+
+  // Stärken
+  const strengths: string[] = [];
+  if (vocabularyRichness > 0.5) strengths.push("Reichhaltiger Wortschatz");
+  if (avgSentenceLength > 10 && avgSentenceLength < 20) strengths.push("Gute Satzlänge");
+  if (dialogueRatio > 0.2 && dialogueRatio < 0.5) strengths.push("Gute Dialogbalance");
+  if (actionRatio > descriptionRatio) strengths.push("Handlungsorientiert");
+  if (emotionRatio > 0.1) strengths.push("Emotionalreich");
+
+  // Schwächen
+  const weaknesses: string[] = [];
+  if (vocabularyRichness < 0.3) weaknesses.push("Begrenzter Wortschatz");
+  if (avgSentenceLength > 25) weaknesses.push("Zu lange Sätze");
+  if (avgSentenceLength < 8) weaknesses.push("Zu kurze Sätze");
+  if (passiveVoiceRatio > 0.4) weaknesses.push("Zu viel Passiv");
+  if (dialogueRatio > 0.6) weaknesses.push("Zu viel Dialog");
+
   return {
-    textProfile,
-    comparisons: [{ author: profile.author, similarity, profile }],
-    verdict: `Am ähnlichsten: ${profile.author} (${similarity} % Ähnlichkeit).`,
-  };
-}
-
-export function compareToManyAuthors(
-  text: string,
-  authors: string[],
-): StyleComparison[] {
-  return authors.map((a) => compareToAuthor(text, a));
-}
-
-/** Vergleicht gegen alle Profile, absteigend nach Ähnlichkeit sortiert. */
-export function compareToAllAuthors(text: string): StyleComparison {
-  const textProfile = analyzeStyle(text);
-  const comparisons: AuthorComparison[] = AUTHOR_PROFILES.map((profile) => ({
-    author: profile.author,
-    similarity: similarityScore(textProfile, profile),
-    profile,
-  })).sort((a, b) => b.similarity - a.similarity);
-  const best = comparisons[0];
-  return {
-    textProfile,
-    comparisons,
-    verdict: best
-      ? `Am ähnlichsten: ${best.author} (${best.similarity} % Ähnlichkeit).`
-      : "Kein Vergleich möglich.",
+    metrics: {
+      vocabularyRichness: Math.round(vocabularyRichness * 100) / 100,
+      averageWordLength: Math.round(avgWordLength * 10) / 10,
+      averageSentenceLength: Math.round(avgSentenceLength * 10) / 10,
+      passiveVoiceRatio: Math.round(passiveVoiceRatio * 100) / 100,
+      dialogueRatio: Math.round(dialogueRatio * 100) / 100,
+      descriptionRatio: Math.round(descriptionRatio * 100) / 100,
+      actionRatio: Math.round(actionRatio * 100) / 100,
+      emotionRatio: Math.round(emotionRatio * 100) / 100,
+      readabilityScore: Math.round(readabilityScore),
+    },
+    style,
+    tone,
+    audience,
+    suggestions,
+    strengths,
+    weaknesses,
   };
 }

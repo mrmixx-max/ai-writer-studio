@@ -122,6 +122,24 @@ const CondensePanel = lazy(() =>
 const EmotionalArcPanel = lazy(() =>
   import("@/components/Emotion/EmotionalArcPanel").then((m) => ({ default: m.EmotionalArcPanel }))
 );
+const SceneBreakdownPanel = lazy(() =>
+  import("@/components/Scene/SceneBreakdownPanel").then((m) => ({ default: m.SceneBreakdownPanel }))
+);
+const DialoguePanel = lazy(() =>
+  import("@/components/Dialogue/DialoguePanel").then((m) => ({ default: m.DialoguePanel }))
+);
+const CharacterNetworkPanel = lazy(() =>
+  import("@/components/Network/CharacterNetworkPanel").then((m) => ({ default: m.CharacterNetworkPanel }))
+);
+const WritingPacePanel = lazy(() =>
+  import("@/components/Pace/WritingPacePanel").then((m) => ({ default: m.WritingPacePanel }))
+);
+const StyleAnalyzerPanel = lazy(() =>
+  import("@/components/Style/StyleAnalyzerPanel").then((m) => ({ default: m.StyleAnalyzerPanel }))
+);
+const GenrePanel = lazy(() =>
+  import("@/components/Genre/GenrePanel").then((m) => ({ default: m.GenrePanel }))
+);
 const NewsGeneratorPanel = lazy(() =>
   import("@/components/News/NewsGeneratorPanel").then((m) => ({ default: m.NewsGeneratorPanel }))
 );
@@ -265,7 +283,6 @@ const MODES: { id: EditorMode; key: string; icon: string; description: string }[
   { id: "importer", key: "sidebar.mode.importer", icon: "📥", description: "DOCX/EPUB/PDF/TXT" },
   { id: "websearch", key: "sidebar.mode.websearch", icon: "🔍", description: "SerpAPI + DDG + Brave" },
   { id: "outliner", key: "sidebar.mode.outliner", icon: "🌳", description: "Strukturierte Gliederung" },
-  { id: "scene-breakdown", key: "sidebar.mode.scene-breakdown", icon: "🎬", description: "Drehbuch/Roman Szenen-Analyse" },
   { id: "feedback", key: "sidebar.mode.feedback", icon: "🔍", description: "LLM-gestützte Verbesserungsvorschläge" },
   { id: "cloud-sync", key: "sidebar.mode.cloud-sync", icon: "☁️", description: "Dropbox/GDrive/OneDrive" },
   { id: "sessions", key: "sidebar.mode.sessions", icon: "💾", description: "Sitzungen speichern/laden" },
@@ -284,6 +301,12 @@ const MODES: { id: EditorMode; key: string; icon: string; description: string }[
   { id: "expand", key: "sidebar.mode.expand", icon: "📐", description: "Textausweitung" },
   { id: "condense", key: "sidebar.mode.condense", icon: "📉", description: "Textverkürzung" },
   { id: "emotional-arc", key: "sidebar.mode.emotional-arc", icon: "💔", description: "Emotionale Kurve" },
+  { id: "scene-breakdown", key: "sidebar.mode.scene-breakdown", icon: "🎬", description: "Szenen-Struktur" },
+  { id: "dialogue", key: "sidebar.mode.dialogue", icon: "💬", description: "Dialog-Analyse" },
+  { id: "character-network", key: "sidebar.mode.character-network", icon: "🌐", description: "Beziehungsnetzwerk" },
+  { id: "writing-pace", key: "sidebar.mode.writing-pace", icon: "🏃", description: "Pacing" },
+  { id: "style-analyzer", key: "sidebar.mode.style-analyzer", icon: "🎨", description: "Stil-Analyse" },
+  { id: "genre", key: "sidebar.mode.genre", icon: "🎭", description: "Genre" },
 ];
 
 export function Sidebar() {
@@ -588,8 +611,6 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "style-analyzer") return <StyleAnalyzerPanel />;
     // Sprint 22 (Agent 3): Web-Recherche braucht kein offenes Kapitel (projektuebergreifend).
     if (mode === "websearch") return <WebsearchPanel />;
-    // Sprint 23 (Agent 3): Szenen-Analyse arbeitet auf freiem Text (standalone).
-    if (mode === "scene-breakdown") return <SceneBreakdownPanel />;
     // Sprint 23 (Agent 2): KI-Review arbeitet auf freiem Text (standalone).
     if (mode === "feedback") return <FeedbackPanel />;
     // Sprint 24 (Agent 4): Prompt-Bibliothek arbeitet auf eigener Sammlung (standalone).
@@ -621,7 +642,6 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
       case "fragments": return <FragmentPanel chapterId={chapterId} />;
       case "voices": return <VoiceLab text="(Text aus Editor wählen)" />;
       case "map": return <SemanticMap projectId={projectId} />;
-      case "dialogue": return <DialoguePanel chapterId={chapterId} text="(Text aus Editor wählen)" />;
       case "versions": return <VersionsPanel chapterId={chapterId} content="(Inhalt)" />;
       case "obstruction": return <ObstructionPanel text="(Text aus Editor wählen)" />;
       case "dream": return <DreamLogicPanel text="(Text aus Editor wählen)" />;
@@ -644,6 +664,12 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
       case "expand": return <ExpandPanel />;
       case "condense": return <CondensePanel />;
       case "emotional-arc": return <EmotionalArcPanel />;
+      case "scene-breakdown": return <SceneBreakdownPanel />;
+      case "dialogue": return <DialoguePanel />;
+      case "character-network": return <CharacterNetworkPanel />;
+      case "writing-pace": return <WritingPacePanel />;
+      case "style-analyzer": return <StyleAnalyzerPanel />;
+      case "genre": return <GenrePanel />;
       case "newspaper": return <NewsGeneratorPanel />;
       case "textquality": return <TextQualityPanel projectId={projectId} chapterId={chapterId} />;
       case "bilingual": return chapter ? <BilingualPanel chapter={chapter} /> : <div className="mode-placeholder">Bitte ein Kapitel auswählen</div>;

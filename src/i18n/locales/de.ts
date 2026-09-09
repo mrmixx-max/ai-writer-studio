@@ -183,6 +183,12 @@ export const de = {
   "sidebar.mode.expand": "Expand",
   "sidebar.mode.condense": "Condense",
   "sidebar.mode.emotional-arc": "Emotional Arc",
+  "sidebar.mode.scene-breakdown": "Scene Breakdown",
+  "sidebar.mode.dialogue": "Dialogue",
+  "sidebar.mode.character-network": "Character Network",
+  "sidebar.mode.writing-pace": "Writing Pace",
+  "sidebar.mode.style-analyzer": "Style Analyzer",
+  "sidebar.mode.genre": "Genre",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",

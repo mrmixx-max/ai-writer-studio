@@ -62,4 +62,10 @@ export type EditorMode =
   | "rewrite"
   | "expand"
   | "condense"
-  | "emotional-arc";
+  | "emotional-arc"
+  | "scene-breakdown"
+  | "dialogue"
+  | "character-network"
+  | "writing-pace"
+  | "style-analyzer"
+  | "genre";

@@ -1,10 +1,10 @@
-// DialoguePanel (Sprint 27, Agent 2): Dialog-Analyse.
+// WritingPacePanel (Sprint 27, Agent 4): Pacing-Analyse.
 import { useState, useCallback } from "react";
 import {
-  analyzeDialogue,
-  generateTensionAscii,
-  type DialogueAnalysis,
-} from "@/services/dialogue/dialogueAnalysis";
+  analyzeWritingPace,
+  generatePaceAscii,
+  type PaceAnalysis,
+} from "@/services/pace/writingPaceAnalysis";
 
 const BG = "#0a0e14";
 const PANEL = "#11161f";
@@ -14,16 +14,16 @@ const CYAN = "#00e5ff";
 const TEXT = "#d5dbe5";
 const DIM = "#8a93a6";
 
-export function DialoguePanel() {
+export function WritingPacePanel() {
   const [text, setText] = useState("");
-  const [analysis, setAnalysis] = useState<DialogueAnalysis | null>(null);
+  const [analysis, setAnalysis] = useState<PaceAnalysis | null>(null);
   const [busy, setBusy] = useState(false);
 
   const handleAnalyze = useCallback(() => {
     if (!text.trim()) return;
     setBusy(true);
     try {
-      setAnalysis(analyzeDialogue(text));
+      setAnalysis(analyzeWritingPace(text));
     } finally {
       setBusy(false);
     }
@@ -32,7 +32,7 @@ export function DialoguePanel() {
   return (
     <div style={{ background: BG, color: TEXT, fontFamily: "'IBM Plex Mono', monospace", height: "100%", padding: 16, overflowY: "auto" }}>
       <h2 style={{ color: AMBER, margin: "0 0 12px 0", fontSize: 18, fontWeight: 700 }}>
-        💬 DIALOG-ANALYSE
+        🏃 WRITING PACE
       </h2>
 
       <textarea
@@ -55,41 +55,33 @@ export function DialoguePanel() {
         <>
           <div style={{ display: "flex", gap: 12, marginBottom: 12 }}>
             <div style={{ background: PANEL, border: `1px solid ${BORDER}`, padding: "8px 12px", flex: 1 }}>
-              <div style={{ color: DIM, fontSize: 10 }}>ZEILEN</div>
-              <div style={{ fontSize: 20, fontWeight: 700 }}>{analysis.totalLines}</div>
+              <div style={{ color: DIM, fontSize: 10 }}>PACE</div>
+              <div style={{ fontSize: 16, fontWeight: 700 }}>{analysis.overallPace.toUpperCase()}</div>
             </div>
             <div style={{ background: PANEL, border: `1px solid ${BORDER}`, padding: "8px 12px", flex: 1 }}>
-              <div style={{ color: DIM, fontSize: 10 }}>DIALOG %</div>
-              <div style={{ fontSize: 20, fontWeight: 700 }}>{Math.round(analysis.dialogueRatio * 100)}%</div>
+              <div style={{ color: DIM, fontSize: 10 }}>Ø SATZ</div>
+              <div style={{ fontSize: 20, fontWeight: 700 }}>{analysis.averageWordsPerSentence}</div>
             </div>
             <div style={{ background: PANEL, border: `1px solid ${BORDER}`, padding: "8px 12px", flex: 1 }}>
-              <div style={{ color: DIM, fontSize: 10 }}>Ø LÄNGE</div>
-              <div style={{ fontSize: 20, fontWeight: 700 }}>{analysis.averageLineLength}</div>
+              <div style={{ color: DIM, fontSize: 10 }}>SCORE</div>
+              <div style={{ fontSize: 20, fontWeight: 700 }}>{analysis.pacingScore}</div>
             </div>
           </div>
 
           <div style={{ background: PANEL, border: `1px solid ${BORDER}`, padding: 12, marginBottom: 12 }}>
-            <div style={{ color: AMBER, fontSize: 12, fontWeight: 700, marginBottom: 6 }}>SPANNUNGSKURVE</div>
+            <div style={{ color: AMBER, fontSize: 12, fontWeight: 700, marginBottom: 6 }}>PACING-KURVE</div>
             <pre style={{ fontSize: 10, lineHeight: 1.4, color: CYAN, overflowX: "auto" }}>
-              {generateTensionAscii(analysis.tensionCurve)}
+              {generatePaceAscii(analysis)}
             </pre>
           </div>
 
           <div style={{ background: PANEL, border: `1px solid ${BORDER}`, padding: 12 }}>
-            <div style={{ color: AMBER, fontSize: 12, fontWeight: 700, marginBottom: 6 }}>CHARAKTERE</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {analysis.characters.map((char) => (
-                <div key={char.character} style={{ background: BG, border: `1px solid ${BORDER}`, padding: 8 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between" }}>
-                    <span style={{ fontSize: 12, fontWeight: 700 }}>{char.character}</span>
-                    <span style={{ color: DIM, fontSize: 10 }}>{char.totalLines} Zeilen</span>
-                  </div>
-                  <div style={{ color: DIM, fontSize: 10 }}>
-                    {char.totalWords} Wörter • Ø {char.averageLineLength} Wörter/Zeile
-                  </div>
-                </div>
+            <div style={{ color: AMBER, fontSize: 12, fontWeight: 700, marginBottom: 6 }}>VORSCHLÄGE</div>
+            <ul style={{ margin: 0, paddingLeft: 20, fontSize: 12, lineHeight: 1.8 }}>
+              {analysis.suggestions.map((s, i) => (
+                <li key={i}>{s}</li>
               ))}
-            </div>
+            </ul>
           </div>
         </>
       )}
