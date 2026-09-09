@@ -187,6 +187,12 @@ export const en: TranslationDict = {
   "sidebar.mode.writing-pace": "Writing Pace",
   "sidebar.mode.style-analyzer": "Style Analyzer",
   "sidebar.mode.genre": "Genre",
+  "sidebar.mode.hook": "Hook",
+  "sidebar.mode.tension": "Tension",
+  "sidebar.mode.character-arc": "Character Arc",
+  "sidebar.mode.pacing-map": "Pacing Map",
+  "sidebar.mode.conflict-map": "Conflicts",
+  "sidebar.mode.story-structure": "Structure",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",

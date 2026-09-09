@@ -18,6 +18,7 @@ const WIDE_EXTRA_MODES = new Set<string>([
   "scene-breakdown", "feedback", "sessions", "backup", "search", "prompt-library",
   "readability", "cloud-sync", "translator", "plot-analyzer", "mindmap", "summarizer",
   "consistency", "repetition", "rewrite", "expand", "condense", "emotional-arc",
+  "hook", "tension", "character-arc", "pacing-map", "conflict-map", "story-structure",
 ]);
 
 // Lazy-loaded Panels — werden erst beim ersten Zugriff geladen
@@ -121,6 +122,24 @@ const CondensePanel = lazy(() =>
 );
 const EmotionalArcPanel = lazy(() =>
   import("@/components/Emotion/EmotionalArcPanel").then((m) => ({ default: m.EmotionalArcPanel }))
+);
+const HookPanel = lazy(() =>
+  import("@/components/Hook/HookPanel").then((m) => ({ default: m.HookPanel }))
+);
+const TensionCurvePanel = lazy(() =>
+  import("@/components/Tension/TensionCurvePanel").then((m) => ({ default: m.TensionCurvePanel }))
+);
+const CharacterArcPanel = lazy(() =>
+  import("@/components/Arc/CharacterArcPanel").then((m) => ({ default: m.CharacterArcPanel }))
+);
+const PacingMapPanel = lazy(() =>
+  import("@/components/Pacing/PacingMapPanel").then((m) => ({ default: m.PacingMapPanel }))
+);
+const ConflictMapPanel = lazy(() =>
+  import("@/components/Conflict/ConflictMapPanel").then((m) => ({ default: m.ConflictMapPanel }))
+);
+const StoryStructurePanel = lazy(() =>
+  import("@/components/Structure/StoryStructurePanel").then((m) => ({ default: m.StoryStructurePanel }))
 );
 const SceneBreakdownPanel = lazy(() =>
   import("@/components/Scene/SceneBreakdownPanel").then((m) => ({ default: m.SceneBreakdownPanel }))
@@ -307,6 +326,12 @@ const MODES: { id: EditorMode; key: string; icon: string; description: string }[
   { id: "writing-pace", key: "sidebar.mode.writing-pace", icon: "🏃", description: "Pacing" },
   { id: "style-analyzer", key: "sidebar.mode.style-analyzer", icon: "🎨", description: "Stil-Analyse" },
   { id: "genre", key: "sidebar.mode.genre", icon: "🎭", description: "Genre" },
+  { id: "hook", key: "sidebar.mode.hook", icon: "🎣", description: "Hook-Analyse" },
+  { id: "tension", key: "sidebar.mode.tension", icon: "📈", description: "Spannungskurve" },
+  { id: "character-arc", key: "sidebar.mode.character-arc", icon: "👤", description: "Charakter-Arc" },
+  { id: "pacing-map", key: "sidebar.mode.pacing-map", icon: "🗺️", description: "Pacing-Map" },
+  { id: "conflict-map", key: "sidebar.mode.conflict-map", icon: "⚔️", description: "Konflikte" },
+  { id: "story-structure", key: "sidebar.mode.story-structure", icon: "📜", description: "Struktur" },
 ];
 
 export function Sidebar() {
@@ -664,6 +689,12 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
       case "expand": return <ExpandPanel />;
       case "condense": return <CondensePanel />;
       case "emotional-arc": return <EmotionalArcPanel />;
+      case "hook": return <HookPanel />;
+      case "tension": return <TensionCurvePanel />;
+      case "character-arc": return <CharacterArcPanel />;
+      case "pacing-map": return <PacingMapPanel />;
+      case "conflict-map": return <ConflictMapPanel />;
+      case "story-structure": return <StoryStructurePanel />;
       case "scene-breakdown": return <SceneBreakdownPanel />;
       case "dialogue": return <DialoguePanel />;
       case "character-network": return <CharacterNetworkPanel />;

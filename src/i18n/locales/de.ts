@@ -189,6 +189,12 @@ export const de = {
   "sidebar.mode.writing-pace": "Writing Pace",
   "sidebar.mode.style-analyzer": "Style Analyzer",
   "sidebar.mode.genre": "Genre",
+  "sidebar.mode.hook": "Hook",
+  "sidebar.mode.tension": "Spannung",
+  "sidebar.mode.character-arc": "Charakter-Arc",
+  "sidebar.mode.pacing-map": "Pacing-Map",
+  "sidebar.mode.conflict-map": "Konflikte",
+  "sidebar.mode.story-structure": "Struktur",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
