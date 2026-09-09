@@ -17,6 +17,7 @@ const WIDE_EXTRA_MODES = new Set<string>([
   "templates", "voice", "style-analyzer", "websearch", "outliner",
   "scene-breakdown", "feedback", "sessions", "backup", "search", "prompt-library",
   "readability", "cloud-sync", "translator", "plot-analyzer", "mindmap", "summarizer",
+  "consistency", "repetition", "rewrite", "expand", "condense", "emotional-arc",
 ]);
 
 // Lazy-loaded Panels — werden erst beim ersten Zugriff geladen
@@ -104,7 +105,22 @@ const IdeasPanel = lazy(() =>
   import("@/components/Writing/IdeasPanel").then((m) => ({ default: m.IdeasPanel }))
 );
 const ConsistencyPanel = lazy(() =>
-  import("@/components/Writing/ConsistencyPanel").then((m) => ({ default: m.ConsistencyPanel }))
+  import("@/components/Consistency/ConsistencyPanel").then((m) => ({ default: m.ConsistencyPanel }))
+);
+const RepetitionPanel = lazy(() =>
+  import("@/components/Repetition/RepetitionPanel").then((m) => ({ default: m.RepetitionPanel }))
+);
+const RewritePanel = lazy(() =>
+  import("@/components/Rewrite/RewritePanel").then((m) => ({ default: m.RewritePanel }))
+);
+const ExpandPanel = lazy(() =>
+  import("@/components/Expand/ExpandPanel").then((m) => ({ default: m.ExpandPanel }))
+);
+const CondensePanel = lazy(() =>
+  import("@/components/Condense/CondensePanel").then((m) => ({ default: m.CondensePanel }))
+);
+const EmotionalArcPanel = lazy(() =>
+  import("@/components/Emotion/EmotionalArcPanel").then((m) => ({ default: m.EmotionalArcPanel }))
 );
 const NewsGeneratorPanel = lazy(() =>
   import("@/components/News/NewsGeneratorPanel").then((m) => ({ default: m.NewsGeneratorPanel }))
@@ -262,6 +278,12 @@ const MODES: { id: EditorMode; key: string; icon: string; description: string }[
   { id: "plot-analyzer", key: "sidebar.mode.plot-analyzer", icon: "📈", description: "Handlung + Konflikte" },
   { id: "mindmap", key: "sidebar.mode.mindmap", icon: "🧠", description: "Interaktive Mindmap" },
   { id: "summarizer", key: "sidebar.mode.summarizer", icon: "📝", description: "Zusammenfassung + Kernpunkte" },
+  { id: "consistency", key: "sidebar.mode.consistency", icon: "🔍", description: "Konsistenzprüfung" },
+  { id: "repetition", key: "sidebar.mode.repetition", icon: "🔁", description: "Wiederholungen" },
+  { id: "rewrite", key: "sidebar.mode.rewrite", icon: "✏️", description: "Textverbesserung" },
+  { id: "expand", key: "sidebar.mode.expand", icon: "📐", description: "Textausweitung" },
+  { id: "condense", key: "sidebar.mode.condense", icon: "📉", description: "Textverkürzung" },
+  { id: "emotional-arc", key: "sidebar.mode.emotional-arc", icon: "💔", description: "Emotionale Kurve" },
 ];
 
 export function Sidebar() {
@@ -617,6 +639,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
       case "wordstats": return <WordStatsPanel />;
       case "ideas": return <IdeasPanel />;
       case "consistency": return <ConsistencyPanel />;
+      case "repetition": return <RepetitionPanel />;
+      case "rewrite": return <RewritePanel />;
+      case "expand": return <ExpandPanel />;
+      case "condense": return <CondensePanel />;
+      case "emotional-arc": return <EmotionalArcPanel />;
       case "newspaper": return <NewsGeneratorPanel />;
       case "textquality": return <TextQualityPanel projectId={projectId} chapterId={chapterId} />;
       case "bilingual": return chapter ? <BilingualPanel chapter={chapter} /> : <div className="mode-placeholder">Bitte ein Kapitel auswählen</div>;

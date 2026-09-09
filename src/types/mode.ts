@@ -56,4 +56,10 @@ export type EditorMode =
   | "translator"
   | "plot-analyzer"
   | "mindmap"
-  | "summarizer";
+  | "summarizer"
+  | "consistency"
+  | "repetition"
+  | "rewrite"
+  | "expand"
+  | "condense"
+  | "emotional-arc";

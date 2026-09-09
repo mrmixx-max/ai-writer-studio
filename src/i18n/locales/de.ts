@@ -177,6 +177,12 @@ export const de = {
   "sidebar.mode.plot-analyzer": "Plot-Analyse",
   "sidebar.mode.mindmap": "Mindmap",
   "sidebar.mode.summarizer": "Zusammenfasser",
+  "sidebar.mode.consistency": "Konsistenz",
+  "sidebar.mode.repetition": "Wiederholungen",
+  "sidebar.mode.rewrite": "Rewrite",
+  "sidebar.mode.expand": "Expand",
+  "sidebar.mode.condense": "Condense",
+  "sidebar.mode.emotional-arc": "Emotional Arc",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
