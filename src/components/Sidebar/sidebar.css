@@ -37,9 +37,14 @@
   min-width: 460px;
 }
 
-/* Kollabierbare Modi-Sektion (Terminal-Header). */
+/* Kollabierbare Modi-Sektion (Terminal-Header).
+   Sprint 32: hart gedeckelt + eigener Scroll — sonst quetschen 30 Modi
+   bei kleinen Fenstern .sidebar-content (Projektbaum!) auf 0px. */
 .sb-modes {
   border-bottom: 1px solid var(--sb-border);
+  flex: 0 1 auto;
+  max-height: 45%;
+  overflow-y: auto;
 }
 .sb-section-toggle {
   display: flex;
@@ -142,8 +147,8 @@
   border-bottom: 2px solid var(--sb-amber);
 }
 .sidebar-content {
-  flex: 1;
-  min-height: 0;
+  flex: 1 1 auto;
+  min-height: 140px;
   overflow-y: auto;
 }
 .project-toolbar {
