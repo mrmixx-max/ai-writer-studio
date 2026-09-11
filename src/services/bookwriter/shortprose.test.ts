@@ -174,6 +174,16 @@ describe("isOutputDegenerate — LFM2-24B Repetition-Check", () => {
     expect(isOutputDegenerate(degenerate)).toBe(true);
   });
 
+  it("wirft normale deutsche Prosa mit vielen Funktionswörtern NICHT weg", () => {
+    const prosa =
+      "Der Kommissar betrat die kleine Küche, in der das Licht der " +
+      "Deckenlampe auf den Tisch fiel. Die Frau am Fenster drehte sich um " +
+      "und sah ihn an. Der Mann neben der Tür schwieg, und der Hund unter " +
+      "dem Tisch hob den Kopf. In der Stille hörte man nur das Ticken der " +
+      "Uhr an der Wand, die über dem Regal hing, das an der Wand stand.";
+    expect(isOutputDegenerate(prosa)).toBe(false);
+  });
+
   it("erkennt den konkreten LFM2-Fehler als degeneriert", () => {
     const lfm2Output = "brack brack brid brid bridge parad parad luc luc luc bo super Starswesternlandlandtech Tran Gaming pixels pixels fast esc companion companionship moder moder licensing licensing licensing strike-down hierarch hierarch agent training trainingstation info infoetricestampestamping multip multid multid multid multid marg marg marg marg marg marg margin margins margins margins marg marg marg margins Marg dens metab Carbon deposits deposits";
     expect(isOutputDegenerate(lfm2Output)).toBe(true);

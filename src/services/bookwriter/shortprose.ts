@@ -230,28 +230,57 @@ export interface GenerateShortproseOptions {
  * Keine Skalierung mit Textlaenge — ein Wort, das 10x vorkommt, ist IMMER
  * degeneriert, egal wie lang der Text ist.
  */
+/** Deutsche (+ englische) Stopwörter: Funktionswörter wiederholen sich in
+ *  jeder normalen Prosa — sie dürfen NIEMALS als Degeneration zählen.
+ *  Ohne diese Liste wirft der Guard jeden deutschen Text weg („der“ > 5x). */
+const STOPWORDS = new Set([
+  "der", "die", "das", "den", "dem", "des", "ein", "eine", "einer", "einem",
+  "einen", "eines", "und", "oder", "aber", "denn", "zu", "zum", "zur", "in",
+  "im", "ins", "am", "an", "ans", "auf", "aufs", "aus", "bei", "beim", "von",
+  "vom", "mit", "nach", "vor", "für", "gegen", "ohne", "um", "über", "unter",
+  "zwischen", "durch", "als", "wie", "so", "auch", "nur", "schon", "noch",
+  "nicht", "kein", "keine", "keinen", "mein", "meine", "dein", "deine",
+  "sein", "seine", "seinem", "seinen", "ihr", "ihre", "ihrem", "ihren",
+  "unser", "unsere", "euer", "eure", "dieser", "diese", "dieses", "diesen",
+  "jeder", "jede", "jedes", "welcher", "welche", "welches", "mancher",
+  "solcher", "alle", "alles", "allem", "allen", "beide", "beiden", "sich",
+  "mich", "dich", "uns", "euch", "er", "sie", "es", "ich", "wir", "ihr",
+  "du", "ist", "sind", "war", "waren", "wird", "werden", "wurde", "wurden",
+  "hat", "haben", "hatte", "hatten", "kann", "konnte", "muss", "musste",
+  "soll", "sollte", "will", "wollte", "darf", "durfte", "mag", "mochte",
+  "da", "dort", "hier", "nun", "dann", "denn", "doch", "dennoch", "jedoch",
+  "zwar", "sehr", "mehr", "weniger", "viel", "viele", "wenig", "wenige",
+  "the", "a", "an", "and", "or", "of", "to", "in", "on", "is", "are",
+  "was", "were", "be", "been", "it", "its", "he", "she", "they", "we",
+]);
+
 export function isOutputDegenerate(
   text: string,
-  maxWordRepeat = 5,
+  maxWordRepeat = 8,
   maxPhraseRepeat = 2,
 ): boolean {
   const words = text.toLowerCase().split(/\s+/).filter((w) => w.length > 0);
   if (words.length === 0) return true;
 
-  // Wort-Wiederholung checken (absolutes Limit)
+  // Wort-Wiederholung checken (Inhaltswörter only — Stopwörter skippen).
   const wordCounts = new Map<string, number>();
   for (const w of words) {
     const cleaned = w.replace(/[^a-zäöüß0-9]/g, "");
-    if (cleaned.length === 0) continue;
+    if (cleaned.length === 0 || STOPWORDS.has(cleaned)) continue;
     const n = (wordCounts.get(cleaned) ?? 0) + 1;
     wordCounts.set(cleaned, n);
     if (n > maxWordRepeat) return true;
   }
 
-  // Phrasen-Wiederholung checken (3-Wort-Phrasen, absolutes Limit)
+  // Phrasen-Wiederholung checken (reine Stopwort-Phrasen skippen —
+  // „und dann ging“ o.ä. ist normaler Stil, keine Degeneration).
   const phraseCounts = new Map<string, number>();
   for (let i = 0; i < words.length - 2; i++) {
-    const phrase = `${words[i]} ${words[i + 1]} ${words[i + 2]}`;
+    const triple = [words[i], words[i + 1], words[i + 2]].map((w) =>
+      w.replace(/[^a-zäöüß0-9]/g, ""),
+    );
+    if (triple.every((w) => w.length === 0 || STOPWORDS.has(w))) continue;
+    const phrase = triple.join(" ");
     const n = (phraseCounts.get(phrase) ?? 0) + 1;
     phraseCounts.set(phrase, n);
     if (n > maxPhraseRepeat) return true;
