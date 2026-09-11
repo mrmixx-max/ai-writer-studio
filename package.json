@@ -1,6 +1,6 @@
 {
   "name": "ai-writer-studio",
-  "version": "1.3.9",
+  "version": "1.3.10",
   "description": "Desktop-Schreibsoftware f\u00fcr Autoren mit integriertem KI-Assistenten (Ollama / LM Studio / OpenAI)",
   "type": "module",
   "scripts": {
