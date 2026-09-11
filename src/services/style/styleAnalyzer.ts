@@ -188,7 +188,105 @@ export function analyzeStyle(text: string): StyleAnalysis {
   };
 }
 
-export function compareToAllAuthors(_profile?: unknown) { return []; }
-export function getAvailableAuthors(): StyleProfile[] { return []; }
+// --- Autoren-Vergleich (deterministisch, lokal, kein LLM) ---
+// Referenzprofile: grobe, aber stabile Stil-Fingerprints kanonischer Autoren.
+// similarity = 100 - gewichtete Distanz (0-100, gerundet).
+
+export type PacingLabel = "slow" | "medium" | "fast";
+
+export interface AuthorProfile {
+  author: string;
+  description: string;
+  avgSentenceLength: number;
+  vocabularyRichness: number;
+  dialogueRatio: number;
+  descriptionRatio: number;
+  pacing: PacingLabel;
+}
+
+const AUTHOR_PROFILES: AuthorProfile[] = [
+  { author: "Ernest Hemingway", description: "Kurze Sätze, karger Stil, hohes Tempo", avgSentenceLength: 12, vocabularyRichness: 0.55, dialogueRatio: 0.3, descriptionRatio: 0.25, pacing: "fast" },
+  { author: "Franz Kafka", description: "Verschachtelt, bürokratische Kälte, langsam", avgSentenceLength: 24, vocabularyRichness: 0.62, dialogueRatio: 0.15, descriptionRatio: 0.4, pacing: "slow" },
+  { author: "Thomas Mann", description: "Periodenbau, hoher Wortschatz, bedächtig", avgSentenceLength: 28, vocabularyRichness: 0.7, dialogueRatio: 0.1, descriptionRatio: 0.45, pacing: "slow" },
+  { author: "Edgar Wallace", description: "Heftroman-Tempo, dialog-getrieben", avgSentenceLength: 14, vocabularyRichness: 0.5, dialogueRatio: 0.35, descriptionRatio: 0.3, pacing: "fast" },
+  { author: "Jerry Cotton", description: "G-Man-Action, schnell, direkt", avgSentenceLength: 11, vocabularyRichness: 0.48, dialogueRatio: 0.3, descriptionRatio: 0.3, pacing: "fast" },
+  { author: "Jules Verne", description: "Abenteuer mit Erklär-Tiefe, mittlere Satzlänge", avgSentenceLength: 18, vocabularyRichness: 0.6, dialogueRatio: 0.25, descriptionRatio: 0.45, pacing: "medium" },
+  { author: "Agatha Christie", description: "Kriminalrätsel, dialogstark, flott", avgSentenceLength: 15, vocabularyRichness: 0.52, dialogueRatio: 0.4, descriptionRatio: 0.3, pacing: "fast" },
+  { author: "Stephen King", description: "Horror-Alltag, bildhaft, mittleres Tempo", avgSentenceLength: 16, vocabularyRichness: 0.58, dialogueRatio: 0.3, descriptionRatio: 0.45, pacing: "medium" },
+  { author: "Mark Twain", description: "Erzählton, lakonischer Dialog", avgSentenceLength: 17, vocabularyRichness: 0.6, dialogueRatio: 0.35, descriptionRatio: 0.35, pacing: "medium" },
+  { author: "Hermann Hesse", description: "Lyrisch, introspektiv, langsam", avgSentenceLength: 22, vocabularyRichness: 0.68, dialogueRatio: 0.12, descriptionRatio: 0.45, pacing: "slow" },
+];
+
+export interface TextStyleProfile {
+  author: string;
+  avgSentenceLength: number;
+  vocabularyRichness: number;
+  dialogueRatio: number;
+  descriptionRatio: number;
+  pacing: PacingLabel;
+}
+
+export interface AuthorComparison {
+  author: string;
+  similarity: number;
+  description: string;
+}
+
+export interface StyleComparisonResult {
+  comparisons: AuthorComparison[];
+  textProfile: TextStyleProfile;
+  verdict: string;
+}
+
+function pacingOf(avgSentenceLength: number): PacingLabel {
+  if (avgSentenceLength < 14) return "fast";
+  if (avgSentenceLength > 20) return "slow";
+  return "medium";
+}
+
+export function analyzeTextProfile(text: string): TextStyleProfile {
+  const m = analyzeStyle(text).metrics;
+  return {
+    author: "Dein Text",
+    avgSentenceLength: m.averageSentenceLength,
+    vocabularyRichness: m.vocabularyRichness,
+    dialogueRatio: m.dialogueRatio,
+    descriptionRatio: m.descriptionRatio,
+    pacing: pacingOf(m.averageSentenceLength),
+  };
+}
+
+function similarityTo(t: TextStyleProfile, a: AuthorProfile): number {
+  const dSent = Math.min(1, Math.abs(t.avgSentenceLength - a.avgSentenceLength) / 20);
+  const dVoc = Math.abs(t.vocabularyRichness - a.vocabularyRichness);
+  const dDia = Math.abs(t.dialogueRatio - a.dialogueRatio);
+  const dDes = Math.abs(t.descriptionRatio - a.descriptionRatio);
+  const dPace = t.pacing === a.pacing ? 0 : 0.5;
+  const dist = dSent * 0.3 + dVoc * 0.25 + dDia * 0.2 + dDes * 0.15 + dPace * 0.1;
+  return Math.max(0, Math.round((1 - dist) * 100));
+}
+
+export function compareToAllAuthors(text: string): StyleComparisonResult {
+  const textProfile = analyzeTextProfile(text);
+  const comparisons = AUTHOR_PROFILES.map((a) => ({
+    author: a.author,
+    similarity: similarityTo(textProfile, a),
+    description: a.description,
+  })).sort((x, y) => y.similarity - x.similarity);
+  const best = comparisons[0];
+  return {
+    comparisons,
+    textProfile,
+    verdict: best
+      ? `Am nächsten an ${best.author} (${best.similarity} %): ${best.description}.`
+      : "Kein Vergleich möglich.",
+  };
+}
+
+export function getAvailableAuthors(): string[] {
+  return AUTHOR_PROFILES.map((a) => a.author);
+}
+
+// Legacy-Typ, wird vom Panel nicht mehr verwendet (bleibt für Kompatibilität exportiert).
 export interface StyleProfile { id: string; name: string; author: string; avgSentenceLength: number; vocabularyRichness: number; dialogueRatio: number; descriptionRatio: number; pacing: string; comparisons: unknown[]; textProfile: unknown; verdict: unknown; }
 

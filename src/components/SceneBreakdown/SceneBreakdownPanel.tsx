@@ -1,4 +1,3 @@
-// @ts-nocheck — DEBT: 1 i18n-Key-Typfehler (scene.pacing.steady), separat fixen.
 // Standalone-Panel — arbeitet auf freiem Text (initialText) oder dem
 // Editor-Inhalt; kein offenes Kapitel noetig.
 //

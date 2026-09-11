@@ -1,0 +1,8 @@
+# Sprint 30: Zeilenenden normalisieren (CRLF-Churn stoppen).
+# text=auto -> Git speichert LF, checkt plattformgerecht aus.
+* text=auto
+*.png binary
+*.jpg binary
+*.ico binary
+*.icns binary
+*.wasm binary

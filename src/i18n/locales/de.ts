@@ -222,6 +222,7 @@ export const de = {
   "scene.pacing.slow": "langsam",
   "scene.pacing.medium": "mittel",
   "scene.pacing.fast": "schnell",
+  "scene.pacing.steady": "stetig",
   "scene.timeDistribution": "Zeitverteilung",
   "scene.time.day": "Tag",
   "scene.time.night": "Nacht",

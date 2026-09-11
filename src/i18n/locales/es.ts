@@ -342,6 +342,7 @@ export const es: TranslationDict = {
   "scene.pacing.slow": "lento",
   "scene.pacing.medium": "medio",
   "scene.pacing.fast": "rápido",
+  "scene.pacing.steady": "constante",
   "scene.timeDistribution": "Distribución temporal",
   "scene.time.day": "Día",
   "scene.time.night": "Noche",
