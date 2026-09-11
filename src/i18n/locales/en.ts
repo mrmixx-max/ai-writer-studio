@@ -6,6 +6,7 @@ export const en: TranslationDict = {
   "common.save": "Save",
   "common.close": "Close",
   "common.cancel": "Cancel",
+  "dialog.ok": "OK",
   "common.test": "Test",
 
   "header.export": "Export",

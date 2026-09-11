@@ -5,6 +5,7 @@ export const de = {
   "common.save": "Speichern",
   "common.close": "Schließen",
   "common.cancel": "Abbrechen",
+  "dialog.ok": "OK",
   "common.test": "Testen",
 
   // Kopfzeile

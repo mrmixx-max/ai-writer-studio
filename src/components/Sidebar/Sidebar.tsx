@@ -7,6 +7,7 @@ import type { TranslationChapter } from "@/services/bookwriter/translatorService
 import { useProjectStore } from "@/store/projectStore";
 import { usePromptStore } from "@/store/promptStore";
 import { useI18n } from "@/i18n";
+import { AppDialog, type DialogRequest } from "@/components/Dialog/AppDialog";
 
 // Modi, die die Sidebar ebenfalls verbreitern ("wide") — als Set, damit die
 // JSX-Bedingung kurz bleibt und navigation.test.ts die Struktur pruefen kann.
@@ -342,6 +343,22 @@ export function Sidebar() {
   // Bloomberg-Terminal (Sprint 18, Agent 2): Modi-Sektion ist kollabierbar.
   // Standard: aufgeklappt — bestehende Navigation bleibt unverändert.
   const [modesCollapsed, setModesCollapsed] = useState(false);
+
+  // In-App-Dialog (Sprint 32): Ersatz fuer window.prompt/confirm —
+  // native Dialoge existieren in Tauri-WebView2 nicht (prompt→null,
+  // confirm→false), alle Baum-Aktionen waren installiert tot.
+  const [dlg, setDlg] = useState<DialogRequest | null>(null);
+  const askPrompt = useCallback(
+    (label: string, initial = "") =>
+      new Promise<string | null>((resolve) => setDlg({ kind: "prompt", label, initial, resolve })),
+    [],
+  );
+  const askConfirm = useCallback(
+    (message: string) =>
+      new Promise<boolean>((resolve) => setDlg({ kind: "confirm", message, resolve })),
+    [],
+  );
+  const dlgEl = <AppDialog request={dlg} onDone={() => setDlg(null)} />;
   const activeProjectId = useProjectStore((s) => s.activeProjectId);
   const activeChapterId = useProjectStore((s) => s.activeChapterId);
   const projects = useProjectStore((s) => s.projects);
@@ -364,22 +381,30 @@ export function Sidebar() {
   tRef.current = t;
 
   const handleRenameProject = useCallback((id: string, name: string) => {
-    const n = renamePrompt(tRef.current("sidebar.promptNewName"), name);
-    if (n) { renameProject(id, n); refresh(); }
-  }, [refresh, lang]);
+    void (async () => {
+      const n = await askPrompt(tRef.current("sidebar.promptNewName"), name);
+      if (n) { renameProject(id, n); refresh(); }
+    })();
+  }, [refresh, lang, askPrompt]);
 
   const handleDeleteProject = useCallback((id: string) => {
-    if (confirm(tRef.current("sidebar.confirmDeleteProject"))) { deleteProject(id); refresh(); }
-  }, [refresh, lang]);
+    void (async () => {
+      if (await askConfirm(tRef.current("sidebar.confirmDeleteProject"))) { deleteProject(id); refresh(); }
+    })();
+  }, [refresh, lang, askConfirm]);
 
   const handleRenameChapter = useCallback((pid: string, id: string, title: string) => {
-    const n = renamePrompt(tRef.current("sidebar.promptNewName"), title);
-    if (n) { renameChapter(id, n); openProject(pid); }
-  }, [openProject, lang]);
+    void (async () => {
+      const n = await askPrompt(tRef.current("sidebar.promptNewName"), title);
+      if (n) { renameChapter(id, n); openProject(pid); }
+    })();
+  }, [openProject, lang, askPrompt]);
 
   const handleDeleteChapter = useCallback((pid: string, id: string) => {
-    if (confirm(tRef.current("sidebar.confirmDeleteChapter"))) { deleteChapter(id); openProject(pid); }
-  }, [openProject, lang]);
+    void (async () => {
+      if (await askConfirm(tRef.current("sidebar.confirmDeleteChapter"))) { deleteChapter(id); openProject(pid); }
+    })();
+  }, [openProject, lang, askConfirm]);
 
   const rowActions = useMemo<RowActions>(() => ({
     onOpenProject: openProject,
@@ -459,6 +484,7 @@ export function Sidebar() {
     return (
       <aside id="app-sidebar" tabIndex={-1} aria-label={t("sidebar.listLabel")} className={`sidebar${wideCore || wideExtra ? " wide" : ""}`}>
         {switcher}
+      {dlgEl}
         <div className="sidebar-content">
           <ModePanel mode={mode} projectId={activeProjectId} chapterId={activeChapterId} />
         </div>
@@ -470,6 +496,7 @@ export function Sidebar() {
     return (
       <aside id="app-sidebar" tabIndex={-1} aria-label={t("sidebar.listLabel")} className="sidebar">
         {switcher}
+      {dlgEl}
         <nav className="sidebar-tabs">
           <button onClick={() => { setTab("projects"); setMode("editor"); }}>{t("sidebar.projectsTab")}</button>
           <button className="active" aria-current="page" onClick={() => prompt.set("tab", "generate")}>{t("sidebar.promptsTab")}</button>
@@ -482,15 +509,16 @@ export function Sidebar() {
   return (
     <aside id="app-sidebar" tabIndex={-1} aria-label={t("sidebar.listLabel")} className="sidebar">
       {switcher}
+      {dlgEl}
       <nav className="sidebar-tabs">
         <button className="active" aria-current="page" onClick={() => setTab("projects")}>{t("sidebar.projectsTab")}</button>
         <button onClick={() => { setTab("prompts"); setMode("prompts"); }}>{t("sidebar.promptsTab")}</button>
       </nav>
       <div className="sidebar-content">
         <div className="project-toolbar">
-          <button onClick={() => { const n = promptName(t("sidebar.promptProjectName")); if (n) newProject(n); }}>{t("sidebar.newProject")}</button>
+          <button onClick={() => { void (async () => { const n = await askPrompt(t("sidebar.promptProjectName")); if (n) newProject(n); })(); }}>{t("sidebar.newProject")}</button>
           {activeProjectId && (
-            <button onClick={() => { const t2 = promptChapter(t("sidebar.promptChapterTitle")); if (t2) newChapter(t2); }}>{t("sidebar.newChapter")}</button>
+            <button onClick={() => { void (async () => { const t2 = await askPrompt(t("sidebar.promptChapterTitle")); if (t2) newChapter(t2); })(); }}>{t("sidebar.newChapter")}</button>
           )}
         </div>
         <ul className="project-tree">
@@ -714,17 +742,4 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
   })();
 
   return <Suspense fallback={<div className="mode-placeholder">{t("sidebar.loading")}</div>}>{panel}</Suspense>;
-}
-
-function promptName(label: string): string | null {
-  const v = window.prompt(label);
-  return v && v.trim() ? v.trim() : null;
-}
-function promptChapter(label: string): string | null {
-  const v = window.prompt(label);
-  return v && v.trim() ? v.trim() : null;
-}
-function renamePrompt(label: string, current: string): string | null {
-  const v = window.prompt(label, current);
-  return v && v.trim() ? v.trim() : null;
 }

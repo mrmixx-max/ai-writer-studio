@@ -37,6 +37,26 @@ async function clickMode(user: ReturnType<typeof userEvent.setup>, label: string
   await user.click(screen.getByTitle(label));
 }
 
+// In-App-Dialog-Helfer (Sprint 32): window.prompt/confirm gibt es in
+// Tauri nicht — Dialog ausfüllen und bestätigen/abbrechen.
+async function fillDialog(user: ReturnType<typeof userEvent.setup>, text: string) {
+  const dlg = await screen.findByRole("dialog");
+  const input = dlg.querySelector("input");
+  if (input && text) {
+    await user.clear(input);
+    await user.type(input, text);
+  }
+  return dlg;
+}
+
+async function clickDialogButton(user: ReturnType<typeof userEvent.setup>, re: RegExp) {
+  const dlg = screen.getByRole("dialog");
+  const btn = Array.from(dlg.querySelectorAll("button")).find((b) =>
+    re.test(b.textContent ?? ""),
+  )!;
+  await user.click(btn);
+}
+
 describe("Sidebar", () => {
   beforeEach(() => {
     useProjectStore.setState({
@@ -101,23 +121,23 @@ describe("Sidebar", () => {
   });
 
   it("+ Projekt fragt nach Namen und legt Projekt an", async () => {
-    const promptSpy = vi.spyOn(window, "prompt").mockReturnValue("  Neues Buch  ");
     const user = userEvent.setup();
     render(<Sidebar />);
     await user.click(screen.getByRole("button", { name: "+ Projekt" }));
+    await fillDialog(user, "Neues Buch");
+    await clickDialogButton(user, /^ok$/i);
     await vi.waitFor(() => {
       expect(useProjectStore.getState().activeProjectId).toBe("p-new");
     });
-    promptSpy.mockRestore();
   });
 
   it("+ Projekt ohne Eingabe legt nichts an", async () => {
-    const promptSpy = vi.spyOn(window, "prompt").mockReturnValue("   ");
     const user = userEvent.setup();
     render(<Sidebar />);
     await user.click(screen.getByRole("button", { name: "+ Projekt" }));
+    await fillDialog(user, "");
+    await clickDialogButton(user, /^ok$/i);
     expect(useProjectStore.getState().activeProjectId).toBeNull();
-    promptSpy.mockRestore();
   });
 
   it("promptStore.set aus dem Prompts-Tab schreibt den UI-State", async () => {
@@ -149,60 +169,59 @@ describe("Sidebar", () => {
 
     it("Kapitel umbenennen fragt nach neuem Titel", async () => {
       const { renameChapter } = await import("@/services/project");
-      const promptSpy = vi.spyOn(window, "prompt").mockReturnValue("Neuer Titel");
       const user = userEvent.setup();
       render(<Sidebar />);
       const row = screen.getByText(/Kapitel 1/).closest(".node")!;
       await user.click(row.querySelector(".node-actions button")!);
+      await fillDialog(user, "Neuer Titel");
+      await clickDialogButton(user, /^ok$/i);
       expect(renameChapter).toHaveBeenCalledWith("c1", "Neuer Titel");
-      promptSpy.mockRestore();
     });
 
     it("Kapitel löschen erfordert Bestätigung", async () => {
       const { deleteChapter } = await import("@/services/project");
-      const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
       const user = userEvent.setup();
       render(<Sidebar />);
       const row = screen.getByText(/Kapitel 1/).closest(".node")!;
       await user.click(row.querySelectorAll(".node-actions button")[1]!);
-      expect(confirmSpy).toHaveBeenCalledWith("Kapitel löschen?");
+      await screen.findByRole("dialog");
+      await clickDialogButton(user, /^ok$/i);
       expect(deleteChapter).toHaveBeenCalledWith("c1");
-      confirmSpy.mockRestore();
     });
 
     it("Kapitel löschen ohne Bestätigung tut nichts", async () => {
       const { deleteChapter } = await import("@/services/project");
-      const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
       const user = userEvent.setup();
       render(<Sidebar />);
       const row = screen.getByText(/Kapitel 1/).closest(".node")!;
       await user.click(row.querySelectorAll(".node-actions button")[1]!);
+      await screen.findByRole("dialog");
+      await clickDialogButton(user, /abbrechen|cancel|cancelar|annuler/i);
       expect(deleteChapter).not.toHaveBeenCalled();
-      confirmSpy.mockRestore();
     });
 
     it("Projekt umbenennen fragt nach neuem Namen", async () => {
       const { renameProject } = await import("@/services/project");
-      const promptSpy = vi.spyOn(window, "prompt").mockReturnValue("Besserer Titel");
       const user = userEvent.setup();
       render(<Sidebar />);
       const rows = screen.getAllByText(/Mein Roman/);
       const row = rows[0].closest(".node")!;
       await user.click(row.querySelector(".node-actions button")!);
+      await fillDialog(user, "Besserer Titel");
+      await clickDialogButton(user, /^ok$/i);
       expect(renameProject).toHaveBeenCalledWith("p1", "Besserer Titel");
-      promptSpy.mockRestore();
     });
 
     it("Projekt löschen erfordert Bestätigung", async () => {
       const { deleteProject } = await import("@/services/project");
-      const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
       const user = userEvent.setup();
       render(<Sidebar />);
       const rows = screen.getAllByText(/Mein Roman/);
       const row = rows[0].closest(".node")!;
       await user.click(row.querySelectorAll(".node-actions button")[1]!);
+      await screen.findByRole("dialog");
+      await clickDialogButton(user, /^ok$/i);
       expect(deleteProject).toHaveBeenCalledWith("p1");
-      confirmSpy.mockRestore();
     });
 
     it("Projekt öffnen setzt aktives Projekt + lädt Kapitel", async () => {
