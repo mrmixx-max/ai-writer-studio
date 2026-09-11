@@ -57,7 +57,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   lmstudioBaseUrl: "http://localhost:1234/v1",
   openaiApiKey: "",
   openrouterApiKey: "",
-  gpt2apiBaseUrl: "http://localhost:8080/v1",
+  gpt2apiBaseUrl: "http://127.0.0.1:8000/v1",
   gpt2apiApiKey: "",
   nousApiKey: "",
   nousBaseUrl: "https://inference-api.nousresearch.com/v1",
