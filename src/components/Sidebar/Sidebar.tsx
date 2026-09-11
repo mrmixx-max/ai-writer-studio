@@ -19,6 +19,7 @@ const WIDE_EXTRA_MODES = new Set<string>([
   "readability", "cloud-sync", "translator", "plot-analyzer", "mindmap", "summarizer",
   "consistency", "repetition", "rewrite", "expand", "condense", "emotional-arc",
   "hook", "tension", "character-arc", "pacing-map", "conflict-map", "story-structure",
+  "chat", "book-idea", "newspaper", "plugin-manager",
 ]);
 
 // Lazy-loaded Panels — werden erst beim ersten Zugriff geladen
@@ -660,6 +661,12 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "summarizer") return <SummarizerPanel />;
     // Sprint 25 (Agent 5): Plot-Analyse — Handlungsstruktur + Konflikte, standalone.
     if (mode === "plot-analyzer") return <PlotAnalyzerPanel />;
+    // Sprint 29: Chat, Buchideen, News und Plugin-Manager sind standalone
+    // (eigenes Eingabefeld) — duerfen NICHT hinter den Kapitel-Guard.
+    if (mode === "chat") return <ChatPanel />;
+    if (mode === "book-idea") return <BookIdeaPanel />;
+    if (mode === "newspaper") return <NewsGeneratorPanel />;
+    if (mode === "plugin-manager") return <PluginManagerPanel />;
     if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }
@@ -700,10 +707,6 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
       case "character-network": return <CharacterNetworkPanel />;
       case "writing-pace": return <WritingPacePanel />;
       case "genre": return <GenrePanel />;
-      case "newspaper": return <NewsGeneratorPanel />;
-      case "book-idea": return <BookIdeaPanel />;
-      case "chat": return <ChatPanel />;
-      case "plugin-manager": return <PluginManagerPanel />;
       case "textquality": return <TextQualityPanel projectId={projectId} chapterId={chapterId} />;
       case "bilingual": return chapter ? <BilingualPanel chapter={chapter} /> : <div className="mode-placeholder">Bitte ein Kapitel auswählen</div>;
       default: return null;
