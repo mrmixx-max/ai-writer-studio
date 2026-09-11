@@ -10,6 +10,7 @@ const TEXT = "#d5dbe5";
 const DIM = "#8a93a6";
 
 export function HookPanel() {
+  const [text, setText] = useState("");
   const [report, setReport] = useState<ReturnType<typeof analyzeAllHooks> | null>(null);
   const [busy, setBusy] = useState(false);
 

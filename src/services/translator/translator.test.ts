@@ -10,9 +10,10 @@ import {
 } from './translator';
 
 // Mock fetch for Ollama API
-global.fetch = async (url: string, options?: any) => {
-  if (url.includes('localhost:11434/api/generate')) {
-    const body = JSON.parse(options?.body || '{}');
+const mockFetch = async (url: string | URL, options?: RequestInit): Promise<Response> => {
+  const urlStr = url.toString();
+  if (urlStr.includes('localhost:11434/api/generate')) {
+    const body = JSON.parse(options?.body as string || '{}');
     
     // Simple mock translation - reverse the text for testing
     const mockTranslation = body.prompt.includes('Deutsch') 
@@ -26,6 +27,7 @@ global.fetch = async (url: string, options?: any) => {
   
   throw new Error('Unexpected fetch call');
 };
+global.fetch = mockFetch as typeof fetch;
 
 describe('Translator Service', () => {
   beforeEach(async () => {

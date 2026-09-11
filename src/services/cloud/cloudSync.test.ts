@@ -54,7 +54,7 @@ describe("uploadProject", () => {
     setCloudFetch(fetchMock as unknown as typeof fetch);
     await uploadProject("p1");
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
     expect(url).toContain("dropboxapi.com");
     expect(init.method).toBe("POST");
     expect(init.body as string).toContain("p1");

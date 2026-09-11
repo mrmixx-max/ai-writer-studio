@@ -12,8 +12,8 @@ import type { Character } from "@/services/character/characterManager";
 describe("Consistency Checker", () => {
   it("checkCharacterConsistency finds duplicate names", () => {
     const chars: Character[] = [
-      { id: "1", name: "Max", age: 30, description: "Ein Held", relationships: [] },
-      { id: "2", name: "Max", age: 25, description: "Auch ein Held", relationships: [] },
+      { id: "1", name: "Max", age: 30, backstory: "Ein Held", relationships: [] },
+      { id: "2", name: "Max", age: 25, backstory: "Auch ein Held", relationships: [] },
     ];
     const issues = checkCharacterConsistency(chars);
     expect(issues.some((i) => i.message.includes("Doppelter"))).toBe(true);
@@ -21,7 +21,7 @@ describe("Consistency Checker", () => {
 
   it("checkCharacterConsistency finds invalid age", () => {
     const chars: Character[] = [
-      { id: "1", name: "Test", age: -5, description: "Ein Held", relationships: [] },
+      { id: "1", name: "Test", age: -5, backstory: "Ein Held", relationships: [] },
     ];
     const issues = checkCharacterConsistency(chars);
     expect(issues.some((i) => i.message.includes("Ungültiges Alter"))).toBe(true);
@@ -29,7 +29,7 @@ describe("Consistency Checker", () => {
 
   it("checkCharacterConsistency finds missing name", () => {
     const chars: Character[] = [
-      { id: "1", name: "", age: 30, description: "Ein Held", relationships: [] },
+      { id: "1", name: "", age: 30, backstory: "Ein Held", relationships: [] },
     ];
     const issues = checkCharacterConsistency(chars);
     expect(issues.some((i) => i.message.includes("ohne Namen"))).toBe(true);
@@ -71,7 +71,7 @@ describe("Consistency Checker", () => {
   it("generateConsistencyReport returns summary", () => {
     const report = generateConsistencyReport({
       characters: [
-        { id: "1", name: "Max", age: 30, description: "Ein mutiger Held mit einer langen Beschreibung", relationships: [] },
+        { id: "1", name: "Max", age: 30, backstory: "Ein mutiger Held mit einer langen Beschreibung", relationships: [] },
       ],
     });
     expect(report.summary.total).toBe(0);

@@ -69,7 +69,7 @@ export function checkCharacterConsistency(characters: Character[]): ConsistencyI
     }
 
     // Beschreibung prüfen
-    if (!char.description || char.description.trim().length < 10) {
+    if (!char.backstory || char.backstory.trim().length < 10) {
       issues.push({
         id: nextId(),
         type: "character",

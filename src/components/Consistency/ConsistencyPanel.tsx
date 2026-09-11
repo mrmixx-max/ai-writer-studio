@@ -48,9 +48,9 @@ export function ConsistencyPanel() {
     try {
       // Demo-Daten für den Test
       const characters: Character[] = [
-        { id: "1", name: "Max", age: 30, description: "Ein mutiger Held", relationships: [] },
-        { id: "2", name: "Max", age: 25, description: "Ein anderer Max", relationships: [] },
-        { id: "3", name: "", age: -5, description: "", relationships: [] },
+        { id: "1", name: "Max", age: 30, backstory: "Ein mutiger Held", relationships: [] },
+        { id: "2", name: "Max", age: 25, backstory: "Ein anderer Max", relationships: [] },
+        { id: "3", name: "", age: -5, relationships: [] },
       ];
       const chapters = [
         { id: "c1", title: "Anfang", content: "Es war einmal ein dunkler Wald. Die Angst war allgegenwärtig." },

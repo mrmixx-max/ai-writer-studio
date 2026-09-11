@@ -12,7 +12,7 @@ import { useI18n } from "@/i18n";
 // JSX-Bedingung kurz bleibt und navigation.test.ts die Struktur pruefen kann.
 const WIDE_EXTRA_MODES = new Set<string>([
   "research", "publishing", "investigate", "watermark", "tts",
-  "bookwriter", "markdown", "wordstats", "ideas", "consistency",
+  "bookwriter", "markdown", "wordstats", "ideas",
   "newspaper", "textquality", "bilingual", "amazon", "shortprose",
   "templates", "voice", "style-analyzer", "websearch", "outliner",
   "scene-breakdown", "feedback", "sessions", "backup", "search", "prompt-library",
@@ -144,9 +144,6 @@ const StoryStructurePanel = lazy(() =>
 const SceneBreakdownPanel = lazy(() =>
   import("@/components/Scene/SceneBreakdownPanel").then((m) => ({ default: m.SceneBreakdownPanel }))
 );
-const DialoguePanel = lazy(() =>
-  import("@/components/Dialogue/DialoguePanel").then((m) => ({ default: m.DialoguePanel }))
-);
 const CharacterNetworkPanel = lazy(() =>
   import("@/components/Network/CharacterNetworkPanel").then((m) => ({ default: m.CharacterNetworkPanel }))
 );
@@ -162,8 +159,17 @@ const GenrePanel = lazy(() =>
 const NewsGeneratorPanel = lazy(() =>
   import("@/components/News/NewsGeneratorPanel").then((m) => ({ default: m.NewsGeneratorPanel }))
 );
+const BookIdeaPanel = lazy(() =>
+  import("@/components/BookIdea/BookIdeaPanel").then((m) => ({ default: m.BookIdeaPanel }))
+);
+const ChatPanel = lazy(() =>
+  import("@/components/Chat/ChatPanel").then((m) => ({ default: m.ChatPanel }))
+);
 const TextQualityPanel = lazy(() =>
   import("@/components/BookWriter/TextQualityPanel").then((m) => ({ default: m.TextQualityPanel }))
+);
+const PluginManagerPanel = lazy(() =>
+  import("@/components/Plugin/PluginManagerPanel").then((m) => ({ default: m.PluginManagerPanel }))
 );
 const BilingualPanel = lazy(() =>
   import("@/components/BookWriter/BilingualPanel").then((m) => ({ default: m.BilingualPanel }))
@@ -190,9 +196,6 @@ const CharactersPanel = lazy(() =>
   import("@/components/Characters/CharactersPanel").then((m) => ({ default: m.CharactersPanel }))
 );
 // Sprint 22 (Agent 6): Stil-Analyse — Autoren-Vergleich, standalone (kein Kapitel nötig).
-const StyleAnalyzerPanel = lazy(() =>
-  import("@/components/StyleAnalyzer/StyleAnalyzerPanel").then((m) => ({ default: m.StyleAnalyzerPanel }))
-);
 const VoiceLabPanel = lazy(() =>
   import("@/components/VoiceLab/VoiceLabPanel").then((m) => ({ default: m.VoiceLabPanel }))
 );
@@ -201,9 +204,6 @@ const WebsearchPanel = lazy(() =>
 );
 const ImporterPanel = lazy(() =>
   import("@/components/Importer/ImporterPanel").then((m) => ({ default: m.ImporterPanel }))
-);
-const SceneBreakdownPanel = lazy(() =>
-  import("@/components/SceneBreakdown/SceneBreakdownPanel").then((m) => ({ default: m.SceneBreakdownPanel }))
 );
 // Sprint 23 (Agent 2): KI-Review — freier Text, standalone (kein Kapitel nötig).
 const FeedbackPanel = lazy(() =>
@@ -289,7 +289,6 @@ const MODES: { id: EditorMode; key: string; icon: string; description: string }[
   { id: "markdown", key: "sidebar.mode.markdown", icon: "📝", description: "Markdown ansehen und exportieren" },
   { id: "wordstats", key: "sidebar.mode.wordstats", icon: "📊", description: "Häufigkeit + Fortschritt" },
   { id: "ideas", key: "sidebar.mode.ideas", icon: "💡", description: "Ideen sammeln" },
-  { id: "consistency", key: "sidebar.mode.consistency", icon: "✅", description: "Konsistenz prüfen" },
   { id: "newspaper", key: "sidebar.mode.newspaper", icon: "📰", description: "Zeitung aus Web-Recherche erstellen" },
   { id: "textquality", key: "sidebar.mode.textquality", icon: "📊", description: "Text verbessern: Lektorat und Qualität" },
   { id: "bilingual", key: "sidebar.mode.bilingual", icon: "🌐", description: "Deutsch↔Englisch Übersetzung" },
@@ -699,9 +698,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
       case "dialogue": return <DialoguePanel />;
       case "character-network": return <CharacterNetworkPanel />;
       case "writing-pace": return <WritingPacePanel />;
-      case "style-analyzer": return <StyleAnalyzerPanel />;
       case "genre": return <GenrePanel />;
       case "newspaper": return <NewsGeneratorPanel />;
+      case "book-idea": return <BookIdeaPanel />;
+      case "chat": return <ChatPanel />;
+      case "plugin-manager": return <PluginManagerPanel />;
       case "textquality": return <TextQualityPanel projectId={projectId} chapterId={chapterId} />;
       case "bilingual": return chapter ? <BilingualPanel chapter={chapter} /> : <div className="mode-placeholder">Bitte ein Kapitel auswählen</div>;
       default: return null;

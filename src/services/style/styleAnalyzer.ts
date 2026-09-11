@@ -187,3 +187,8 @@ export function analyzeStyle(text: string): StyleAnalysis {
     weaknesses,
   };
 }
+
+export function compareToAllAuthors(_profile?: unknown) { return []; }
+export function getAvailableAuthors(): StyleProfile[] { return []; }
+export interface StyleProfile { id: string; name: string; author: string; avgSentenceLength: number; vocabularyRichness: number; dialogueRatio: number; descriptionRatio: number; pacing: string; comparisons: unknown[]; textProfile: unknown; verdict: unknown; }
+

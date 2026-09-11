@@ -44,7 +44,7 @@ export function analyzeHook(text: string): HookAnalysis {
   let strength = 30;
   if (type === "question") strength += 20;
   if (type === "dialogue") strength += 15;
-  if (type === "action") strength += 10;
+  if (type as string === "action") strength += 10;
   if (words.length >= 5 && words.length <= 20) strength += 10;
   if (words.length < 5) strength += 5;
   if (hasConflict(lower)) strength += 15;
@@ -55,7 +55,7 @@ export function analyzeHook(text: string): HookAnalysis {
   if (strength < 50) suggestions.push("Hook ist schwach — mit Frage oder Dialog beginnen");
   if (words.length > 25) suggestions.push("Erster Satz zu lang — kürzer für mehr Wirkung");
   if (words.length < 3) suggestions.push("Erster Satz zu kurz — mehr Kontext");
-  if (type === "unknown") suggestions.push("Eröffnung unklar — Frage, Dialog oder Action bevorzugen");
+  if (type as string === "unknown") suggestions.push("Eröffnung unklar — Frage, Dialog oder Action bevorzugen");
   if (suggestions.length === 0) suggestions.push("Guter Hook — beibehalten");
 
   return {

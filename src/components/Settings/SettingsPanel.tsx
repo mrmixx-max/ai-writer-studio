@@ -19,7 +19,7 @@ import { UpdateCheck } from "./UpdateCheck";
 import { importHermesKeys } from "@/services/settings/hermesImport";
 import "./settings.css";
 
-const PROVIDERS: ProviderId[] = ["ollama", "lmstudio", "openai", "openrouter", "gpt2api", "nous"];
+const PROVIDERS: ProviderId[] = ["ollama", "lmstudio", "openai", "openrouter", "gpt2api", "nous", "opencode"];
 
 // ---- Feld-Validierung ------------------------------------------------------
 
@@ -52,6 +52,7 @@ const FIELD_HELP: Record<ProviderId, { key?: string; url?: string }> = {
     url: "Adresse des gpt2api-Gateways, z. B. http://localhost:8080/v1",
   },
   nous: { key: "Schlüssel der Nous Research Inference API. Wird nur lokal gespeichert.", },
+  opencode: { url: "Adresse des OpenCode-Servers, z. B. http://localhost:8080/v1" },
 };
 
 interface ProviderCardProps {
@@ -89,7 +90,7 @@ function ProviderCard({
   const keyValue = (settings[keyField] as string | undefined) ?? "";
   const urlValue = (settings[urlField] as string | undefined) ?? "";
   const hasKey = KEY_PREFIX[provider] !== undefined || provider === "gpt2api";
-  const hasUrl = provider === "ollama" || provider === "lmstudio" || provider === "gpt2api";
+  const hasUrl = provider === "ollama" || provider === "lmstudio" || provider === "gpt2api" || provider === "opencode";
 
   const keyInvalid = hasKey && KEY_PREFIX[provider] && keyValue.trim() && !KEY_PREFIX[provider]!.re.test(keyValue.trim());
   const urlInvalid = hasUrl && !isValidUrl(urlValue);

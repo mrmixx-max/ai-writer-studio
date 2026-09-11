@@ -69,9 +69,12 @@ export type EditorMode =
   | "pacing-map"
   | "conflict-map"
   | "story-structure"
+  | "plugin-manager"
+  | "style-analyzer"
   | "scene-breakdown"
   | "dialogue"
   | "character-network"
   | "writing-pace"
-  | "style-analyzer"
-  | "genre";
+  | "genre"
+  | "book-idea"
+  | "chat";

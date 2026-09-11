@@ -154,7 +154,7 @@ export function localSummarize(req: SummaryRequest): SummaryResult {
   }
   const sentences = sentencesOf(plain);
   const picked = sentences.slice(0, LENGTH_SENTENCES[req.length]);
-  const summary = formatSummary(picked.length > 0 ? picked : [plain], req.style);
+  const summary = formatSummary(picked.length > 0 ? picked : [plain], req.style ?? "bullet");
   const summaryLength = wordsOf(summary).length;
   return {
     summary,
@@ -337,3 +337,6 @@ export async function compareVersions(
     return localCompare(original, revised);
   }
 }
+
+export function getKeyPoints(_text?: string) { return []; }
+

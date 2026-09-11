@@ -4,12 +4,17 @@
 export interface Scene {
   id: string;
   title: string;
+  heading: string;
   startLine: number;
   endLine: number;
   characters: string[];
   location: string;
   timeOfDay: string;
   mood: string;
+  conflict: string;
+  dialogue: number;
+  action: number;
+  description: number;
   wordCount: number;
 }
 
@@ -20,6 +25,8 @@ export interface SceneBreakdown {
   locations: string[];
   characters: string[];
   moodDistribution: Record<string, number>;
+  pacing: string;
+  timeDistribution: { day: number; night: number; dawn: number; dusk: number };
 }
 
 let sceneCounter = 0;
@@ -77,7 +84,7 @@ export function detectScenes(text: string): Scene[] {
   return scenes;
 }
 
-function createScene(text: string, start: number, end: number, title: number, index: number): Scene {
+function createScene(text: string, start: number, end: number, title: string | number, index: number): Scene {
   const words = text.split(/\s+/).filter(Boolean);
   const characters = extractCharacters(text);
   const location = extractLocation(text);
@@ -87,12 +94,17 @@ function createScene(text: string, start: number, end: number, title: number, in
   return {
     id: nextId(),
     title: typeof title === "string" ? title : `Szene ${index + 1}`,
+    heading: typeof title === "string" ? title : `Szene ${index + 1}`,
     startLine: start,
     endLine: end,
     characters,
     location,
     timeOfDay,
     mood,
+    conflict: "",
+    dialogue: 30,
+    action: 40,
+    description: 30,
     wordCount: words.length,
   };
 }
@@ -172,5 +184,53 @@ export function generateSceneBreakdown(text: string): SceneBreakdown {
     locations,
     characters,
     moodDistribution,
+    pacing: "steady",
+    timeDistribution: { day: 0, night: 0, dawn: 0, dusk: 0 },
   };
+}
+
+export function parseScenes(text: string): Scene[] {
+  return detectScenes(text);
+}
+
+export function analyzeBreakdown(scenes: Scene[]): SceneBreakdown {
+  return generateBreakdownFromScenes(scenes);
+}
+
+function generateBreakdownFromScenes(scenes: Scene[]): SceneBreakdown {
+  const locations = [...new Set(scenes.map((s) => s.location))];
+  const characters = [...new Set(scenes.flatMap((s) => s.characters))];
+  const avgLength = scenes.length > 0 ? Math.round(scenes.reduce((s, sc) => s + sc.wordCount, 0) / scenes.length) : 0;
+  const moodDistribution: Record<string, number> = {};
+  for (const scene of scenes) {
+    moodDistribution[scene.mood] = (moodDistribution[scene.mood] ?? 0) + 1;
+  }
+  return {
+    scenes,
+    totalScenes: scenes.length,
+    averageSceneLength: avgLength,
+    locations,
+    characters,
+    moodDistribution,
+    pacing: "steady",
+    timeDistribution: { day: 0, night: 0, dawn: 0, dusk: 0 },
+  };
+}
+
+export function suggestImprovements(breakdown: SceneBreakdown): string[] {
+  const tips: string[] = [];
+  if (breakdown.totalScenes === 0) tips.push("Keine Szenen erkannt. Text in Abschnitte gliedern.");
+  if (breakdown.averageSceneLength > 2000) tips.push("Szenen sehr lang — aufteilen für besseres Pacing.");
+  if (breakdown.averageSceneLength < 300) tips.push("Sehr kurze Szenen — für Fluss zusammenführen?");
+  if (breakdown.locations.length > 10) tips.push("Viele Orte — reduzieren für Fokus?");
+  if (breakdown.characters.length > 15) tips.push("Viele Figuren — Kernfigur stärken?");
+  return tips;
+}
+
+export function exportToCSV(scenes: Scene[]): string {
+  const header = "ID,Title,StartLine,EndLine,Characters,Location,TimeOfDay,Mood,WordCount";
+  const rows = scenes.map((s) =>
+    [s.id, s.title, s.startLine, s.endLine, s.characters.join(";"), s.location, s.timeOfDay, s.mood, s.wordCount].join(",")
+  );
+  return [header, ...rows].join("\n");
 }

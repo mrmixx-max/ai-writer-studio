@@ -10,6 +10,7 @@ const TEXT = "#d5dbe5";
 const DIM = "#8a93a6";
 
 export function ConflictMapPanel() {
+  const [text, setText] = useState("");
   const [map, setMap] = useState<ConflictMap | null>(null);
   const [busy, setBusy] = useState(false);
 

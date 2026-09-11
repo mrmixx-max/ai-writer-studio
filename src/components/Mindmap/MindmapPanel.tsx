@@ -95,31 +95,31 @@ export function MindmapPanel() {
     }
   }, [text]);
 
-  const handleAddNode = async () => {
+  const handleAddNode = () => {
     if (!mindmap || !selected || !newNodeLabel.trim()) return;
-    const updated = await addNode(mindmap, selected, newNodeLabel.trim());
-    setMindmap(updated);
-    setPositions(layoutTree(updated.nodes[0]));
+    addNode(mindmap, selected, newNodeLabel.trim());
+    setMindmap({ ...mindmap });
+    if (mindmap.nodes[0]) setPositions(layoutTree(mindmap.nodes[0]));
     setNewNodeLabel("");
   };
 
-  const handleRemoveNode = async (id: string) => {
+  const handleRemoveNode = (id: string) => {
     if (!mindmap) return;
-    const updated = await removeNode(mindmap, id);
-    setMindmap(updated);
-    if (updated.nodes.length > 0) {
-      setPositions(layoutTree(updated.nodes[0]));
+    removeNode(mindmap, id);
+    setMindmap({ ...mindmap });
+    if (mindmap.nodes.length > 0 && mindmap.nodes[0]) {
+      setPositions(layoutTree(mindmap.nodes[0]));
     } else {
       setPositions([]);
     }
     if (selected === id) setSelected(null);
   };
 
-  const handleUpdateNode = async () => {
+  const handleUpdateNode = () => {
     if (!mindmap || !selected || !editLabel.trim()) return;
-    const updated = await updateNode(mindmap, selected, editLabel.trim());
-    setMindmap(updated);
-    setPositions(layoutTree(updated.nodes[0]));
+    updateNode(mindmap, selected, editLabel.trim());
+    setMindmap({ ...mindmap });
+    if (mindmap.nodes[0]) setPositions(layoutTree(mindmap.nodes[0]));
   };
 
   const handleExportMermaid = async () => {

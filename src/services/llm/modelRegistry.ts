@@ -44,6 +44,7 @@ const LABELS: Record<ProviderId, string> = {
   openrouter: "OpenRouter",
   gpt2api: "gpt2api",
   nous: "Nous Research",
+  opencode: "OpenCode",
 };
 
 /** Anzeigename für einen Provider-Schlüssel. */

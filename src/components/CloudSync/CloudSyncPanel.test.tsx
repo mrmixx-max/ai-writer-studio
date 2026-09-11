@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 // Component-Tests fuer CloudSyncPanel (Sprint 24, Agent 1).
 // Datei: src/components/CloudSync/CloudSyncPanel.test.tsx
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { CloudSyncPanel, type CloudSyncClient } from "./CloudSyncPanel";
 

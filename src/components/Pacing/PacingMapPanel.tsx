@@ -6,6 +6,8 @@ const BG = "#0a0e14";
 const PANEL = "#11161f";
 const BORDER = "#232b3a";
 const AMBER = "#ffb000";
+const TEXT = "#d5dbe5";
+const DIM = "#8a93a6";
 
 
 export function PacingMapPanel() {
@@ -36,7 +38,7 @@ export function PacingMapPanel() {
             <div style={{ color: AMBER, fontSize: 12, fontWeight: 700, marginBottom: 6 }}>SEGMENTE</div>
             <div style={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
               {map.segments.map((seg) => (
-                <div key={seg.id} style={{ width: 20, height: 20, background: seg.pace === "fast" ? "#ff4444" : seg.pace === "medium" ? AMBER : "#44ff88", border: `1px solid ${BORDER}` }} title={`${seg.wörter} Wörter - ${seg.pace}`} />
+                <div key={seg.id} style={{ width: 20, height: 20, background: seg.pace === "fast" ? "#ff4444" : seg.pace === "medium" ? AMBER : "#44ff88", border: `1px solid ${BORDER}` }} title={`${seg.wordCount} Wörter - ${seg.pace}`} />
               ))}
             </div>
           </div>
