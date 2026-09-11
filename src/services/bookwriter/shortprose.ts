@@ -186,6 +186,7 @@ export function buildShortprosePrompt(request: ShortproseRequest): string {
   // ("marg marg marg..."). Explizites "Kein Reimen, keine Wiederholungen"
   // stoppt das Modell.
   const lines = [
+    `Genre: ${request.genre}`,
     `${genreInstruction}`,
     `${STYLE_INSTRUCTIONS[request.style]}`,
     `${PERSPECTIVE_INSTRUCTIONS[request.perspective]}`,

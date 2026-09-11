@@ -55,7 +55,8 @@ describe("SceneBreakdownPanel", () => {
     await user.click(screen.getByRole("button", { name: "Als CSV exportieren" }));
     expect(onExport).toHaveBeenCalledOnce();
     const csv: string = onExport.mock.calls[0][0];
-    expect(csv.split("\n")[0]).toContain("heading");
+    // Header-Spalte "Heading" (Schreibweise egal, Inhalt zählt).
+    expect(csv.split("\n")[0].toLowerCase()).toContain("heading");
     expect(csv).toContain("INT. WOHNUNG - TAG");
   });
 

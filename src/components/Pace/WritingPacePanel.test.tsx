@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 // Writing Pace Panel Tests (Sprint 27, Agent 4)
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";

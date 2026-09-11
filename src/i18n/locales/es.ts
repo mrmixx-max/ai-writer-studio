@@ -379,4 +379,7 @@ export const es: TranslationDict = {
   "sidebar.mode.pacing-map": "Mapa de ritmo",
   "sidebar.mode.conflict-map": "Conflictos",
   "sidebar.mode.story-structure": "Estructura",
+  "sidebar.mode.plugin-manager": "Plugins",
+  "sidebar.mode.book-idea": "Ideas de libro",
+  "sidebar.mode.chat": "Chat",
 };

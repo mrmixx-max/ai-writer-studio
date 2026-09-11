@@ -134,7 +134,7 @@ function repairJson(text: string): string {
   // Unquotete Keys quoten.
   s = s.replace(/([{,]\s*)([A-Za-z_][A-Za-z0-9_-]*)\s*:/g, '$1"$2":');
   // Unquotete String-Werte quoten (Zahlen, true/false/null auslassen).
-  s = s.replace(/:\s*([A-Za-zÄÖÜäöüß][^,{}[]"]*?)\s*([,}])/g, (m, val: string, end: string) => {
+  s = s.replace(/:\s*([A-Za-zÄÖÜäöüß][^,{}[\]"]*?)\s*([,}])/g, (m, val: string, end: string) => {
     const v = (val as string).trim();
     if (/^(true|false|null)$/.test(v) || /^-?\d+(\.\d+)?$/.test(v) || v.startsWith('"')) return m;
     return `: "${v}"${end}`;

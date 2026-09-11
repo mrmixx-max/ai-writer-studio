@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 // Genre Panel Tests (Sprint 27, Agent 6)
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";

@@ -191,6 +191,9 @@ export const de = {
   "sidebar.mode.pacing-map": "Pacing-Map",
   "sidebar.mode.conflict-map": "Konflikte",
   "sidebar.mode.story-structure": "Struktur",
+  "sidebar.mode.plugin-manager": "Plugins",
+  "sidebar.mode.book-idea": "Buchideen",
+  "sidebar.mode.chat": "Chat",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",

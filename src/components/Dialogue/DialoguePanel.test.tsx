@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 // Dialogue Panel Tests (Sprint 27, Agent 2)
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";

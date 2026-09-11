@@ -219,14 +219,16 @@ export function SceneBreakdownPanel({
             )}
           </div>
 
-          <div style={cardStyle}>
-            <div style={{ color: "#999", fontSize: 11 }}>{t("scene.tips")}</div>
-            <ul style={{ margin: "4px 0", paddingLeft: 18 }}>
-              {tips.map((tip: string, i: number) => (
-                <li key={i}>{tip}</li>
-              ))}
-            </ul>
-          </div>
+          {scenes.length > 0 && (
+            <div style={cardStyle}>
+              <div style={{ color: "#999", fontSize: 11 }}>{t("scene.tips")}</div>
+              <ul style={{ margin: "4px 0", paddingLeft: 18 }}>
+                {tips.map((tip: string, i: number) => (
+                  <li key={i}>{tip}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </>
       )}
     </div>

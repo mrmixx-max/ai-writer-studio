@@ -35,66 +35,115 @@ function nextId(): string {
   return `scene-${Date.now().toString(36)}-${sceneCounter}`;
 }
 
+/** Mindestlänge eines Textblocks, damit er als Szene zählt. */
+const MIN_SCENE_CHARS = 10;
+
+function isMarkdownHeading(line: string): boolean {
+  return /^#{1,3}\s+/.test(line);
+}
+
+function isScreenplayHeading(line: string): boolean {
+  return /^(INT|EXT)\s*[.\-–—:]\s*.+/i.test(line);
+}
+
 /**
- * Erkennt Szenen anhand von Trennzeilen, Überschrifzen oder Absätzen.
+ * Totale in Versalien (Kapitel-Titel). Braucht Mindestlänge + Trennzeichen,
+ * damit Figuren-Cues wie "ANNA"/"PETER" nicht als Szenen splitten.
+ */
+function isCapsHeading(line: string): boolean {
+  const t = line.trim();
+  return (
+    t.length >= 8 &&
+    /[\s.\-–—]/.test(t) &&
+    /^[A-ZÄÖÜ0-9][A-ZÄÖÜ0-9\s.\-–—,;:!?'"()]+$/.test(t)
+  );
+}
+
+function isDivider(line: string): boolean {
+  return /^(---|\*\*\*|___|===)$/.test(line.trim());
+}
+
+function headingTitle(line: string): string | null {
+  const t = line.trim();
+  if (isMarkdownHeading(t)) return t.replace(/^#+\s*/, "");
+  if (isScreenplayHeading(t) || isCapsHeading(t)) return t;
+  return null;
+}
+
+/**
+ * Erkennt Szenen anhand von Headings (Markdown/Drehbuch/Versalien),
+ * Trennzeilen oder Absatzgrenzen. Prosa ohne jede Struktur -> keine Szenen.
  */
 export function detectScenes(text: string): Scene[] {
   const lines = text.split("\n");
   const scenes: Scene[] = [];
+  let sceneIndex = 0;
   let currentStart = 0;
   let currentTitle = "Unbenannte Szene";
-  let sceneIndex = 0;
+  let foundBoundary = false;
+
+  // Struktur-Modus? Sobald Headings/Trennzeilen existieren, gliedern NUR sie —
+  // Absätze bleiben in ihrer Szene (sonst stünde jede Dialogzeile allein).
+  let structured = false;
+  for (const raw of lines) {
+    const t = raw.trim();
+    if (t === "") continue;
+    if (headingTitle(t) !== null || isDivider(t)) {
+      structured = true;
+      break;
+    }
+  }
+
+  const pushBlock = (from: number, to: number, title: string): void => {
+    if (from > to) return;
+    const sceneText = lines.slice(from, to + 1).join("\n");
+    if (sceneText.trim().length < MIN_SCENE_CHARS) return;
+    scenes.push(createScene(sceneText, from, to, title, sceneIndex));
+    sceneIndex++;
+  };
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
-    
-    // Szene erkennen: Überschrift, Trennlinie, oder doppelter Absatz
-    const isHeading = /^#{1,3}\s+/.test(line) || /^[A-ZÄÖÜ][A-ZÄÖÜ\s]+$/.test(line);
-    const isDivider = /^(---|\*\*\*|___|===)$/.test(line);
-    const isEmpty = line === "";
-    const prevEmpty = i > 0 && lines[i - 1].trim() === "";
-
-    if ((isHeading || isDivider) && i > currentStart) {
-      const sceneText = lines.slice(currentStart, i).join("\n");
-      if (sceneText.trim().length > 20) {
-        scenes.push(createScene(sceneText, currentStart, i - 1, currentTitle, sceneIndex));
-        sceneIndex++;
+    if (line === "") {
+      if (!structured) {
+        pushBlock(currentStart, i - 1, currentTitle);
+        foundBoundary = true;
+        currentStart = i + 1;
+      } else {
+        // Struktur-Modus: Leerzeile gehört zum Block (start NICHT vorschieben).
+        continue;
       }
-      currentTitle = isHeading ? line.replace(/^#+\s*/, "") : `Szene ${sceneIndex + 1}`;
+      continue;
+    }
+    const heading = headingTitle(line);
+    if (heading !== null || isDivider(line)) {
+      pushBlock(currentStart, i - 1, currentTitle);
+      foundBoundary = true;
+      currentTitle = heading ?? `Szene ${sceneIndex + 1}`;
       currentStart = i + 1;
-    } else if (isEmpty && prevEmpty && i > currentStart + 2) {
-      const sceneText = lines.slice(currentStart, i).join("\n");
-      if (sceneText.trim().length > 20) {
-        scenes.push(createScene(sceneText, currentStart, i - 1, currentTitle, sceneIndex));
-        sceneIndex++;
-      }
-      currentTitle = `Szene ${sceneIndex + 1}`;
-      currentStart = i + 1;
+      continue;
     }
   }
 
-  // Letzte Szene
-  if (currentStart < lines.length) {
-    const sceneText = lines.slice(currentStart).join("\n");
-    if (sceneText.trim().length > 20) {
-      scenes.push(createScene(sceneText, currentStart, lines.length - 1, currentTitle, sceneIndex));
-    }
-  }
-
+  // Restblock gehört nur dazu, wenn der Text überhaupt Struktur hat.
+  if (foundBoundary) pushBlock(currentStart, lines.length - 1, currentTitle);
   return scenes;
 }
 
 function createScene(text: string, start: number, end: number, title: string | number, index: number): Scene {
   const words = text.split(/\s+/).filter(Boolean);
+  const name = typeof title === "string" ? title : `Szene ${index + 1}`;
+  // Titel in die Zeit-/Stimmungsprobe einbeziehen (Drehbuch-Headings wie "INT. X - TAG").
+  const probe = `${name}\n${text}`;
   const characters = extractCharacters(text);
   const location = extractLocation(text);
-  const timeOfDay = extractTimeOfDay(text);
+  const timeOfDay = extractTimeOfDay(probe);
   const mood = extractMood(text);
 
   return {
     id: nextId(),
-    title: typeof title === "string" ? title : `Szene ${index + 1}`,
-    heading: typeof title === "string" ? title : `Szene ${index + 1}`,
+    title: name,
+    heading: name,
     startLine: start,
     endLine: end,
     characters,
@@ -138,6 +187,7 @@ function extractTimeOfDay(text: string): string {
   if (lower.includes("mittag") || lower.includes("sonnenschein") || lower.includes("essen")) return "Mittag";
   if (lower.includes("abend") || lower.includes("sonnenuntergang") || lower.includes("dinner") || lower.includes("essen")) return "Abend";
   if (lower.includes("nacht") || lower.includes("mond") || lower.includes("sternen") || lower.includes("schlaf")) return "Nacht";
+  if (/\btag\b/.test(lower)) return "Tag";
   if (lower.includes("dämmerung") || lower.includes("zwischen")) return "Dämmerung";
   return "Unbekannt";
 }
@@ -163,6 +213,16 @@ function extractMood(text: string): string {
   return "neutral";
 }
 
+function countTimeDistribution(scenes: Scene[]): { day: number; night: number; dawn: number; dusk: number } {
+  const dist = { day: 0, night: 0, dawn: 0, dusk: 0 };
+  for (const s of scenes) {
+    if (s.timeOfDay === "Tag" || s.timeOfDay === "Morgen" || s.timeOfDay === "Mittag") dist.day++;
+    else if (s.timeOfDay === "Nacht") dist.night++;
+    else if (s.timeOfDay === "Abend" || s.timeOfDay === "Dämmerung") dist.dusk++;
+  }
+  return dist;
+}
+
 /**
  * Generiert einen Szenen-Bericht.
  */
@@ -185,7 +245,7 @@ export function generateSceneBreakdown(text: string): SceneBreakdown {
     characters,
     moodDistribution,
     pacing: "steady",
-    timeDistribution: { day: 0, night: 0, dawn: 0, dusk: 0 },
+    timeDistribution: countTimeDistribution(scenes),
   };
 }
 
@@ -213,7 +273,7 @@ function generateBreakdownFromScenes(scenes: Scene[]): SceneBreakdown {
     characters,
     moodDistribution,
     pacing: "steady",
-    timeDistribution: { day: 0, night: 0, dawn: 0, dusk: 0 },
+    timeDistribution: countTimeDistribution(scenes),
   };
 }
 
@@ -228,9 +288,9 @@ export function suggestImprovements(breakdown: SceneBreakdown): string[] {
 }
 
 export function exportToCSV(scenes: Scene[]): string {
-  const header = "ID,Title,StartLine,EndLine,Characters,Location,TimeOfDay,Mood,WordCount";
+  const header = "ID,Title,Heading,StartLine,EndLine,Characters,Location,TimeOfDay,Mood,WordCount";
   const rows = scenes.map((s) =>
-    [s.id, s.title, s.startLine, s.endLine, s.characters.join(";"), s.location, s.timeOfDay, s.mood, s.wordCount].join(",")
+    [s.id, s.title, s.heading, s.startLine, s.endLine, s.characters.join(";"), s.location, s.timeOfDay, s.mood, s.wordCount].join(",")
   );
   return [header, ...rows].join("\n");
 }

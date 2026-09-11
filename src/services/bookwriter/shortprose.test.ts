@@ -7,6 +7,7 @@ import {
   countWords,
   estimateReadingTime,
   generateShortprose,
+  isOutputDegenerate,
   SHORTPROSE_MAX_WORDS,
   type CompleteFn,
   type ShortproseRequest,
@@ -160,24 +161,20 @@ describe("countWords — DE + EN", () => {
 
 describe("isOutputDegenerate — LFM2-24B Repetition-Check", () => {
   it("erkennt normale Prosa als nicht-degeneriert", () => {
-    const { isOutputDegenerate } = require("@/services/bookwriter/shortprose");
     expect(isOutputDegenerate("Der Leuchtturm schwieg. Die Nacht war kalt.")).toBe(false);
   });
 
   it("erkennt Wort-Wiederholungen als degeneriert", () => {
-    const { isOutputDegenerate } = require("@/services/bookwriter/shortprose");
     const degenerate = "marg marg marg marg marg marg marg marg marg marg marg marg marg marg marg marg marg marg marg marg marg marg marg marg marg";
     expect(isOutputDegenerate(degenerate)).toBe(true);
   });
 
   it("erkennt Phrasen-Wiederholungen als degeneriert", () => {
-    const { isOutputDegenerate } = require("@/services/bookwriter/shortprose");
     const degenerate = "horizon horizon horizon horizon horizon horizon horizon horizon horizon horizon horizon horizon horizon horizon horizon horizon horizon horizon horizon horizon";
     expect(isOutputDegenerate(degenerate)).toBe(true);
   });
 
   it("erkennt den konkreten LFM2-Fehler als degeneriert", () => {
-    const { isOutputDegenerate } = require("@/services/bookwriter/shortprose");
     const lfm2Output = "brack brack brid brid bridge parad parad luc luc luc bo super Starswesternlandlandtech Tran Gaming pixels pixels fast esc companion companionship moder moder licensing licensing licensing strike-down hierarch hierarch agent training trainingstation info infoetricestampestamping multip multid multid multid multid marg marg marg marg marg marg margin margins margins margins marg marg marg margins Marg dens metab Carbon deposits deposits";
     expect(isOutputDegenerate(lfm2Output)).toBe(true);
   });

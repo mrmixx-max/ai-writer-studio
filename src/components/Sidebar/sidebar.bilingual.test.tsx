@@ -5,17 +5,21 @@ import { render, screen } from "@testing-library/react";
 import { Sidebar } from "./Sidebar";
 
 // Mock the project store so Sidebar renders without a DB.
+// Zustand-Selektor-Signatur beachten: useProjectStore((s) => s.x).
+const mockStoreState = {
+  projects: [],
+  activeProjectId: null,
+  chapters: [],
+  activeChapterId: null,
+  activeContent: "",
+  refresh: vi.fn(),
+  openProject: vi.fn(),
+  openChapter: vi.fn(),
+  newProject: vi.fn(),
+};
 vi.mock("@/store/projectStore", () => ({
-  useProjectStore: () => ({
-    projects: [],
-    activeProjectId: null,
-    chapters: [],
-    activeChapterId: null,
-    activeContent: "",
-    refresh: vi.fn(),
-    openProject: vi.fn(),
-    openChapter: vi.fn(),
-  }),
+  useProjectStore: (sel?: (s: unknown) => unknown) =>
+    typeof sel === "function" ? sel(mockStoreState) : mockStoreState,
 }));
 
 vi.mock("@/services/project", () => ({
@@ -34,6 +38,7 @@ describe("Sidebar — bilingual mode", () => {
   it("bilingual button has correct description", () => {
     render(<Sidebar />);
     const bilingualButton = screen.getByRole("button", { name: /bilingual/i });
-    expect(bilingualButton).toHaveAttribute("title", expect.stringContaining("Übersetzung"));
+    // title = Label, Beschreibung hängt im aria-label (gilt für alle Modi einheitlich).
+    expect(bilingualButton).toHaveAttribute("aria-label", expect.stringContaining("Übersetzung"));
   });
 });

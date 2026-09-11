@@ -142,7 +142,7 @@ const StoryStructurePanel = lazy(() =>
   import("@/components/Structure/StoryStructurePanel").then((m) => ({ default: m.StoryStructurePanel }))
 );
 const SceneBreakdownPanel = lazy(() =>
-  import("@/components/Scene/SceneBreakdownPanel").then((m) => ({ default: m.SceneBreakdownPanel }))
+  import("@/components/SceneBreakdown/SceneBreakdownPanel").then((m) => ({ default: m.SceneBreakdownPanel }))
 );
 const CharacterNetworkPanel = lazy(() =>
   import("@/components/Network/CharacterNetworkPanel").then((m) => ({ default: m.CharacterNetworkPanel }))
@@ -151,7 +151,7 @@ const WritingPacePanel = lazy(() =>
   import("@/components/Pace/WritingPacePanel").then((m) => ({ default: m.WritingPacePanel }))
 );
 const StyleAnalyzerPanel = lazy(() =>
-  import("@/components/Style/StyleAnalyzerPanel").then((m) => ({ default: m.StyleAnalyzerPanel }))
+  import("@/components/StyleAnalyzer/StyleAnalyzerPanel").then((m) => ({ default: m.StyleAnalyzerPanel }))
 );
 const GenrePanel = lazy(() =>
   import("@/components/Genre/GenrePanel").then((m) => ({ default: m.GenrePanel }))
@@ -320,10 +320,8 @@ const MODES: { id: EditorMode; key: string; icon: string; description: string }[
   { id: "condense", key: "sidebar.mode.condense", icon: "📉", description: "Textverkürzung" },
   { id: "emotional-arc", key: "sidebar.mode.emotional-arc", icon: "💔", description: "Emotionale Kurve" },
   { id: "scene-breakdown", key: "sidebar.mode.scene-breakdown", icon: "🎬", description: "Szenen-Struktur" },
-  { id: "dialogue", key: "sidebar.mode.dialogue", icon: "💬", description: "Dialog-Analyse" },
   { id: "character-network", key: "sidebar.mode.character-network", icon: "🌐", description: "Beziehungsnetzwerk" },
   { id: "writing-pace", key: "sidebar.mode.writing-pace", icon: "🏃", description: "Pacing" },
-  { id: "style-analyzer", key: "sidebar.mode.style-analyzer", icon: "🎨", description: "Stil-Analyse" },
   { id: "genre", key: "sidebar.mode.genre", icon: "🎭", description: "Genre" },
   { id: "hook", key: "sidebar.mode.hook", icon: "🎣", description: "Hook-Analyse" },
   { id: "tension", key: "sidebar.mode.tension", icon: "📈", description: "Spannungskurve" },
@@ -331,6 +329,9 @@ const MODES: { id: EditorMode; key: string; icon: string; description: string }[
   { id: "pacing-map", key: "sidebar.mode.pacing-map", icon: "🗺️", description: "Pacing-Map" },
   { id: "conflict-map", key: "sidebar.mode.conflict-map", icon: "⚔️", description: "Konflikte" },
   { id: "story-structure", key: "sidebar.mode.story-structure", icon: "📜", description: "Struktur" },
+  { id: "plugin-manager", key: "sidebar.mode.plugin-manager", icon: "🧩", description: "Plugins verwalten" },
+  { id: "book-idea", key: "sidebar.mode.book-idea", icon: "💡", description: "Buchideen entwickeln" },
+  { id: "chat", key: "sidebar.mode.chat", icon: "💬", description: "Frei chatten" },
 ];
 
 export function Sidebar() {
