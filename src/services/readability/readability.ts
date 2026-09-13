@@ -36,7 +36,7 @@ function round1(n: number): number {
 
 /** Woerter: Buchstaben-/Ziffernfolgen (inkl. Umlaute, Apostroph). */
 export function tokenizeReadabilityWords(text: string): string[] {
-  const hits = text.toLowerCase().match(/[a-zäöüß0-9]+(?:[''\-][a-zäöüß0-9]+)*/gu);
+  const hits = text.toLowerCase().match(/[a-zäöüß0-9]+(?:[''-][a-zäöüß0-9]+)*/gu);
   return hits ?? [];
 }
 
