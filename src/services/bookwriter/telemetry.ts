@@ -6,6 +6,9 @@
 // - Interface-Change (DB): bookwriter_jobs.telemetry_json (Migration 020).
 import { getDb, persistNow } from "@/services/db";
 import type { RouterCallMeta } from "@/services/llm/router";
+import { getLogger } from "@/services/logger";
+
+const log = getLogger("bookwriter/telemetry");
 
 /** DOM-Event-Name für die Budget-Warnung (B4). */
 export const BOOKWRITER_BUDGET_WARNING_EVENT = "bookwriter:budget-warning";
@@ -88,6 +91,9 @@ export function emitBudgetWarning(payload: { spent: number; limit: number; token
   }
   console.warn(
     `[Bookwriter] Budget-Warnung: ${payload.spent} > ${payload.limit} (tokens_est gesamt: ${payload.tokensTotal})`,
+  );
+  log.warn(
+    `Budget-Warnung: ${payload.spent} > ${payload.limit} (tokens_est gesamt: ${payload.tokensTotal})`,
   );
 }
 

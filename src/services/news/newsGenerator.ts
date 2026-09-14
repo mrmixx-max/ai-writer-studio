@@ -1,6 +1,9 @@
 // News Generator (Sprint 29): Vollautomatischer Zeitungsgenerator.
 // Demo-Modus + optional LLM via Ollama (Hybrid).
 import type { GeneratedNewsArticle } from "@/components/News/NewsGeneratorPanel";
+import { getLogger } from "@/services/logger";
+
+const log = getLogger("news");
 
 export interface GenerateOptions {
   topic: string;
@@ -149,7 +152,7 @@ async function generateHybridArticles(
       source: a.source ?? "Hybrid",
     }));
   } catch (e) {
-    console.warn("Hybrid-Modus fehlgeschlagen, nutze Demo:", e);
+    log.warn("Hybrid-Modus fehlgeschlagen, nutze Demo:", e);
     return demo;
   }
 }

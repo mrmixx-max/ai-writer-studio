@@ -8,6 +8,9 @@
 // - Pro Call: provider, model, latency_ms, tokens_est, fallback_reason.
 import type { ChatMessage, ChatOptions } from "@/types/llm";
 import { ProviderError } from "@/types/llm";
+import { getLogger } from "@/services/logger";
+
+const log = getLogger("llm/router");
 import { OllamaProvider } from "./ollama";
 import { OpenRouterProvider } from "./openrouter";
 import { classifyError } from "@/services/writing/retry";
@@ -330,15 +333,15 @@ export class BookwriterRouter {
       if (!healthy) {
         errors.push(new Error(`${entry.id}: healthCheck fehlgeschlagen`));
         fallbackReason = "health_check_failed";
-        console.warn(`[Bookwriter-Router] ${entry.id} healthCheck rot — nächster Provider.`);
+        log.warn(`${entry.id} healthCheck rot — nächster Provider.`);
         continue;
       }
 
       // Trigger 2: Timeout-Quote > Limit (min. 2 Calls für eine Aussage).
       if (state.calls >= 2 && this.timeoutQuota(idx) > this.timeoutQuotaPercent) {
         fallbackReason = "timeout_quota_exceeded";
-        console.warn(
-          `[Bookwriter-Router] ${entry.id} Timeout-Quote ${this.timeoutQuota(idx)}% > ${this.timeoutQuotaPercent}% — Provider wird umgangen.`,
+        log.warn(
+          `${entry.id} Timeout-Quote ${this.timeoutQuota(idx)}% > ${this.timeoutQuotaPercent}% — Provider wird umgangen.`,
         );
         continue;
       }
@@ -442,8 +445,8 @@ export class BookwriterRouter {
               model = candidate;
               lastModel = candidate;
               chatOpts.model = candidate;
-              console.warn(
-                `[Bookwriter-Router] ${entry.id} Timeout — Downgrade ${downgradeFrom} → ${candidate}.`,
+              log.warn(
+                `${entry.id} Timeout — Downgrade ${downgradeFrom} → ${candidate}.`,
               );
             }
           }
