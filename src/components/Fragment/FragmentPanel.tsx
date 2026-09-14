@@ -1,9 +1,13 @@
 // Fragment-Panel: Karten/Liste/Zeitleiste + Drag & Drop + KI-Ordnung.
-import { useState } from "react";
+// Nutzt AppDialog statt nativer window.prompt/confirm/alert (Tauri-WebView2
+// hat keine nativen Dialoge — Aktionen waren installiert tot).
+import { useState, useCallback } from "react";
 import { useFragmentStore } from "@/store/fragmentStore";
 import { createFragment, deleteFragment } from "@/services/fragment";
 import { runKIAction } from "@/services/ki";
 import { DEFAULT_SETTINGS } from "@/types/config";
+import { useProjectStore } from "@/store/projectStore";
+import { AppDialog, type DialogRequest } from "@/components/Dialog/AppDialog";
 
 const TIME_REFS = ["Vergangenheit", "Gegenwart", "Zukunft", "unklar"];
 
@@ -11,6 +15,18 @@ export function FragmentPanel({ chapterId }: { chapterId: string }) {
   const store = useFragmentStore();
   const [dragId, setDragId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [dlg, setDlg] = useState<DialogRequest | null>(null);
+
+  const askPrompt = useCallback(
+    (label: string, initial = "") =>
+      new Promise<string | null>((resolve) => setDlg({ kind: "prompt", label, initial, resolve })),
+    [],
+  );
+  const askConfirm = useCallback(
+    (message: string) =>
+      new Promise<boolean>((resolve) => setDlg({ kind: "confirm", message, resolve })),
+    [],
+  );
 
   // Store synchronisieren
   if (store.chapterId !== chapterId) store.setChapter(chapterId);
@@ -18,14 +34,14 @@ export function FragmentPanel({ chapterId }: { chapterId: string }) {
   const frags = store.fragments;
 
   async function addFragment() {
-    const title = window.prompt("Fragment-Titel:");
+    const title = await askPrompt("Fragment-Titel:");
     if (!title) return;
     await createFragment(chapterId, title, "");
     store.refresh();
   }
 
   async function remove(id: string) {
-    if (confirm("Fragment löschen?")) {
+    if (await askConfirm("Fragment löschen?")) {
       await deleteFragment(id);
       store.refresh();
     }
@@ -74,12 +90,14 @@ export function FragmentPanel({ chapterId }: { chapterId: string }) {
 
   function assembleChapter() {
     const text = frags.map((f) => `## ${f.title}\n\n${f.content}`).join("\n\n");
-    // TODO: in Kapitel schreiben (via projectStore)
-    alert(text.slice(0, 200) + "…");
+    // Als neues Kapitel ins aktive Projekt schreiben (statt totem alert()).
+    const newChapter = useProjectStore.getState().newChapter;
+    newChapter(`Fragmente ${new Date().toLocaleDateString("de-DE")}`, text, "draft");
   }
 
   return (
     <div className="fragment-panel">
+      <AppDialog request={dlg} onDone={() => setDlg(null)} />
       <div className="fragment-toolbar">
         <button onClick={addFragment}>+ Fragment</button>
         <button onClick={() => store.setView("list")} className={store.view === "list" ? "active" : ""}>Liste</button>
