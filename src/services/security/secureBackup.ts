@@ -81,13 +81,14 @@ export async function restoreEncryptedBackup(
   if (!checksumOk) {
     throw new Error("Pruefsummen-Fehler: Backup beschdigt oder manipuliert.");
   }
-  const payload = JSON.parse(plain) as BackupPayload;
+  const payload = parseBackupPayload(plain);
   await invoke("restore_user_data_files", { entries: payload.entries });
   return { restoredFiles: payload.entries.length, checksumOk };
 }
 
 /** Prueft nur die Integritaetspruefsumme (ohne Entschluesselung). */
 export function validateContainerShape(c: BackupContainer): boolean {
+  if (!c || typeof c !== "object") return false;
   return (
     c.format === "AIWS-BACKUP-1" &&
     typeof c.createdAt === "number" &&
@@ -95,4 +96,42 @@ export function validateContainerShape(c: BackupContainer): boolean {
     c.checksum.length === 64 &&
     isEncryptedPayload(c.payload)
   );
+}
+
+/** true, wenn ein Restore-Pfad sicher in user_data liegt (kein Traversal, kein Absolut). */
+function isSafeRestorePath(p: unknown): boolean {
+  if (typeof p !== "string" || p.length === 0) return false;
+  // Beide Trennzeichen normalisieren (Backslash via charCode, ohne Regex-Literal).
+  const norm = p.split(String.fromCharCode(92)).join("/");
+  if (norm.startsWith("/") || /^[a-zA-Z]:\//.test(norm)) return false;
+  const segs = norm.split("/");
+  return segs.length > 0 && !segs.some((s) => s === "" || s === "." || s === "..");
+}
+
+/**
+ * Parst und validiert den entschluesselten Backup-Payload. Verweigert
+ * korrupte Inhalte und Pfad-Traversal (../, absolute Pfade), bevor
+ * Dateien zurueckgeschrieben werden.
+ */
+function parseBackupPayload(plain: string): BackupPayload {
+  let data: unknown;
+  try {
+    data = JSON.parse(plain);
+  } catch {
+    throw new Error("Backup-Payload ist kein valides JSON — Wiederherstellung verweigert.");
+  }
+  if (!data || typeof data !== "object" || !Array.isArray((data as BackupPayload).entries)) {
+    throw new Error("Backup-Payload ist beschaedigt (ungueltige Eintraege).");
+  }
+  for (const e of (data as BackupPayload).entries) {
+    if (
+      !e ||
+      typeof e !== "object" ||
+      !isSafeRestorePath((e as BackupEntry).path) ||
+      typeof (e as BackupEntry).dataB64 !== "string"
+    ) {
+      throw new Error("Backup enthaelt ungueltige oder unsichere Dateipfade — Wiederherstellung verweigert.");
+    }
+  }
+  return data as BackupPayload;
 }

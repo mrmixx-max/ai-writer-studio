@@ -215,6 +215,24 @@ async function readJsonSafe(res: Response): Promise<unknown> {
   }
 }
 
+/** UTF-8-String -> Base64 (Browser + Node; ohne Buffer-Abhängigkeit). */
+function utf8ToBase64(s: string): string {
+  const bytes = new TextEncoder().encode(s);
+  let bin = "";
+  const CHUNK = 0x8000;
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    bin += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + CHUNK)));
+  }
+  return btoa(bin);
+}
+
+/** Base64-Kodierung mit Node-Buffer, wo verfügbar, sonst Web-API. */
+function encodeSvgBase64(svg: string): string {
+  const buf = (globalThis as { Buffer?: { from(s: string, enc: string): { toString(enc: string): string } } }).Buffer;
+  if (buf) return buf.from(svg, "utf-8").toString("base64");
+  return utf8ToBase64(svg);
+}
+
 /** Escaped Text fuer das SVG-Placeholder (Ollama-Pfad). */
 function escapeXml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -251,7 +269,7 @@ export function renderTextAsSvgDataUrl(text: string, label: string): string {
     `${textEls}` +
     `<text x="24" y="336" font-family="sans-serif" font-size="12" fill="#8a8f9e">Ollama-Platzhalter — SD WebUI (--api) fuer echte Pixelbilder starten.</text>` +
     `</svg>`;
-  return `data:image/svg+xml;base64,${Buffer.from(svg, "utf-8").toString("base64")}`;
+  return `data:image/svg+xml;base64,${encodeSvgBase64(svg)}`;
 }
 
 async function generateViaOllama(prompt: string, options: GenerateImageOptions): Promise<GenerateImageResult> {

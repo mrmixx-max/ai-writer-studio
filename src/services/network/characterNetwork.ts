@@ -37,28 +37,33 @@ export function buildCharacterNetwork(
   const connectionCount = new Map<string, number>();
   const charMap = new Map(characters.map((c) => [c.id, c]));
 
-  // Finde Charakter-Extraktionen
+  // Finde Charakter-Extraktionen (auf einer Kopie arbeiten — das
+  // Eingabe-Array des Aufrufers darf nicht mutiert werden).
+  const chars = characters.map((c) => ({
+    ...c,
+    relationships: c.relationships ? [...c.relationships] : undefined,
+  }));
   const extractedChars = extractCharactersFromText(text);
   const allChars = new Map<string, string>();
-  
-  for (const char of characters) {
+
+  for (const char of chars) {
     allChars.set(char.name.toLowerCase(), char.id);
   }
   for (const name of extractedChars) {
     if (!allChars.has(name.toLowerCase())) {
       const id = `ext-${name.toLowerCase()}`;
       allChars.set(name.toLowerCase(), id);
-      characters.push({ id, name, relationships: [] });
+      chars.push({ id, name, relationships: [] });
     }
   }
 
   // Zähle Verbindungen
-  for (const char of characters) {
+  for (const char of chars) {
     connectionCount.set(char.id, 0);
   }
 
   // Beziehungen aus Extraktion
-  for (const char of characters) {
+  for (const char of chars) {
     if (char.relationships) {
       for (const rel of char.relationships) {
         connectionCount.set(char.id, (connectionCount.get(char.id) ?? 0) + 1);
@@ -77,7 +82,7 @@ export function buildCharacterNetwork(
   const textByChapter = text.split(/\n\s*\n/);
   for (const chapter of textByChapter) {
     const present: string[] = [];
-    for (const char of characters) {
+    for (const char of chars) {
       if (chapter.toLowerCase().includes(char.name.toLowerCase())) {
         present.push(char.id);
       }
@@ -112,9 +117,9 @@ export function buildCharacterNetwork(
   }
 
   // Positionierung im Kreis
-  const totalChars = characters.length;
+  const totalChars = chars.length;
   for (let i = 0; i < totalChars; i++) {
-    const char = characters[i];
+    const char = chars[i];
     const connections = connectionCount.get(char.id) ?? 0;
     const importance = connections / Math.max(1, totalChars - 1);
     const angle = (2 * Math.PI * i) / totalChars;
@@ -133,16 +138,19 @@ export function buildCharacterNetwork(
   const totalPossibleEdges = (totalChars * (totalChars - 1)) / 2;
   const density = totalPossibleEdges > 0 ? edges.length / totalPossibleEdges : 0;
 
+  // Namensauflösung inkl. extrahierter Charaktere (charMap kennt nur
+  // die übergebenen — Fallback über die lokale Kopie).
+  const nameById = new Map(chars.map((c) => [c.id, c.name]));
   let mostConnected = "";
   let maxConnections = 0;
   for (const [id, count] of connectionCount) {
     if (count > maxConnections) {
       maxConnections = count;
-      mostConnected = charMap.get(id)?.name ?? id;
+      mostConnected = charMap.get(id)?.name ?? nameById.get(id) ?? id;
     }
   }
 
-  const isolated = characters
+  const isolated = chars
     .filter((c) => (connectionCount.get(c.id) ?? 0) === 0)
     .map((c) => c.name);
 

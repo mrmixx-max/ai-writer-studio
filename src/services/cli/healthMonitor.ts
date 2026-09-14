@@ -27,6 +27,19 @@ export const DEFAULT_LOCAL_ENDPOINTS: { name: string; url: string }[] = [
   { name: "Hermes Agent", url: "http://127.0.0.1:8080/health" },
 ];
 
+/** Injizierbarer Fetch-Typ (Tests uebergeben einen Mock). */
+export type HealthFetchFn = typeof fetch;
+
+/** true nur fuer http(s)-URLs — andere Schemata werden nicht angefragt. */
+function isHttpUrl(url: string): boolean {
+  try {
+    const u = new URL(url);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Prüft EINE lokale Instanz: erst Erreichbarkeit (GET, kurzer Timeout),
  * dann CORS-Interpretation (403 = blockiert, ok = grün).
@@ -35,11 +48,23 @@ export async function checkInstanceHealth(
   name: string,
   url: string,
   timeoutMs = 3000,
+  fetchFn: HealthFetchFn = globalThis.fetch,
 ): Promise<HealthCheck> {
+  if (!isHttpUrl(url)) {
+    return {
+      name,
+      url,
+      reachable: false,
+      corsOk: false,
+      status: "red",
+      message: "Ungültige URL (nur http/https erlaubt)",
+    };
+  }
+  const ms = Number.isFinite(timeoutMs) && timeoutMs > 0 ? Math.floor(timeoutMs) : 0;
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const timer = ms > 0 ? setTimeout(() => controller.abort(), ms) : undefined;
   try {
-    const res = await fetch(url, { method: "GET", signal: controller.signal } as RequestInit);
+    const res = await fetchFn(url, { method: "GET", signal: controller.signal } as RequestInit);
     if (res.ok) {
       return { name, url, reachable: true, corsOk: true, status: "green", message: "OK" };
     }
@@ -72,15 +97,17 @@ export async function checkInstanceHealth(
       message: `Nicht erreichbar: ${msg}`,
     };
   } finally {
-    clearTimeout(timer);
+    if (timer) clearTimeout(timer);
   }
 }
 
 /** Prüft alle lokalen Endpunkte parallel. */
 export async function checkAllLocalInstances(
   endpoints: { name: string; url: string }[] = DEFAULT_LOCAL_ENDPOINTS,
+  timeoutMs = 3000,
+  fetchFn: HealthFetchFn = globalThis.fetch,
 ): Promise<HealthCheck[]> {
-  return Promise.all(endpoints.map((e) => checkInstanceHealth(e.name, e.url)));
+  return Promise.all(endpoints.map((e) => checkInstanceHealth(e.name, e.url, timeoutMs, fetchFn)));
 }
 
 /** Ampel-Symbol je Status. */

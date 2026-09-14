@@ -86,6 +86,18 @@ describe("AlertManager", () => {
     expect(alert?.severity).toBe("warning");
   });
 
+  it("checkBudgetAlert mit Limit 0/negativ/NaN → null (kein Fehlalarm)", () => {
+    expect(manager.checkBudgetAlert(80, 0)).toBeNull();
+    expect(manager.checkBudgetAlert(80, -5)).toBeNull();
+    expect(manager.checkBudgetAlert(80, Number.NaN)).toBeNull();
+  });
+
+  it("checkDiskAlert mit Kapazität 0/negativ → null (kein Fehlalarm)", () => {
+    expect(manager.checkDiskAlert(900, 0)).toBeNull();
+    expect(manager.checkDiskAlert(100, -100)).toBeNull();
+    expect(manager.checkDiskAlert(-5, 1000)).toBeNull();
+  });
+
   it("clear() entfernt alle Alerts", () => {
     manager.createAlert("a", "critical", "Test");
     manager.createAlert("b", "warning", "Test");

@@ -96,4 +96,37 @@ describe("secureBackup (Roundtrip über gemocktes Tauri-Backend)", () => {
     expect(c1.startsWith("AWS1|")).toBe(true);
     expect(c2.startsWith("AWS1|")).toBe(true);
   });
+
+  it("validateContainerShape(null/undefined) → false statt Crash (a3-sec)", () => {
+    expect(validateContainerShape(null as never)).toBe(false);
+    expect(validateContainerShape(undefined as never)).toBe(false);
+  });
+
+  it("verweigert Restore mit Pfad-Traversal (a3-sec)", async () => {
+    const { sha256Hex } = await import("./crypto");
+    const plain = JSON.stringify({ entries: [{ path: "../ausbruch.txt", dataB64: "eA==" }] });
+    const payload = await encryptString(plain, "pw");
+    const container = {
+      format: "AIWS-BACKUP-1" as const,
+      createdAt: Date.now(),
+      payload,
+      checksum: await sha256Hex(plain),
+    };
+    expect(validateContainerShape(container)).toBe(true);
+    await expect(restoreEncryptedBackup(container, "pw")).rejects.toThrow(/unsicher/);
+    expect(userFiles.has("../ausbruch.txt")).toBe(false);
+  });
+
+  it("verweigert Restore mit absolutem Pfad (a3-sec)", async () => {
+    const { sha256Hex } = await import("./crypto");
+    const plain = JSON.stringify({ entries: [{ path: "/tmp/evil.txt", dataB64: "eA==" }] });
+    const payload = await encryptString(plain, "pw");
+    const container = {
+      format: "AIWS-BACKUP-1" as const,
+      createdAt: Date.now(),
+      payload,
+      checksum: await sha256Hex(plain),
+    };
+    await expect(restoreEncryptedBackup(container, "pw")).rejects.toThrow(/unsicher/);
+  });
 });

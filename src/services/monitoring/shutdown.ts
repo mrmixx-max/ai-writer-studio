@@ -5,6 +5,8 @@ export interface ShutdownTask {
   name: string;
   priority: number;
   execute: () => Promise<void>;
+  /** Max. Laufzeit in ms (Default 10_000). 0 = kein Timeout. */
+  timeoutMs?: number;
 }
 
 export interface ShutdownResult {
@@ -46,7 +48,7 @@ export class GracefulShutdown {
 
     for (const task of this.tasks) {
       try {
-        await task.execute();
+        await runWithTimeout(task);
         completedTasks.push(task.name);
       } catch (err) {
         const message =
@@ -76,6 +78,32 @@ export class GracefulShutdown {
 }
 
 export const gracefulShutdown = new GracefulShutdown();
+
+/** Default-Timeout pro Shutdown-Task (ein Hänger darf den Shutdown nicht blockieren). */
+export const DEFAULT_SHUTDOWN_TASK_TIMEOUT_MS = 10_000;
+
+/**
+ * Führt einen Shutdown-Task mit Timeout-Guard aus. Bei Überschreitung
+ * wird ein Timeout-Error geworfen (der Aufrufer verbucht ihn als
+ * fehlgeschlagenen Task, statt ewig zu hängen).
+ */
+async function runWithTimeout(task: ShutdownTask): Promise<void> {
+  const ms = task.timeoutMs ?? DEFAULT_SHUTDOWN_TASK_TIMEOUT_MS;
+  if (!(ms > 0)) return task.execute();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    await Promise.race([
+      task.execute(),
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => {
+          reject(new Error(`Shutdown-Task "${task.name}" hat das Zeitlimit von ${ms} ms überschritten.`));
+        }, ms);
+      }),
+    ]);
+  } finally {
+    if (timer) clearTimeout(timer);
+  }
+}
 
 // Standard-Tasks registrieren
 export function registerDefaultShutdownTasks(): void {

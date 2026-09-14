@@ -24,4 +24,20 @@ describe("Character Network", () => {
     const ascii = generateNetworkAscii(network);
     expect(ascii.length).toBeGreaterThan(0);
   });
+
+  it("mutiert das Eingabe-Array nicht (a3-sec)", () => {
+    const chars = [
+      { id: "a", name: "Max" },
+      { id: "b", name: "Anna" },
+    ];
+    buildCharacterNetwork("Max und Anna gingen spazieren. Max sah Anna.", chars);
+    expect(chars).toHaveLength(2);
+  });
+
+  it("mostConnected nennt einen Namen statt interner ext-ID (a3-sec)", () => {
+    const network = buildCharacterNetwork("Max und Anna gingen spazieren. Max sah Anna.", []);
+    if (network.mostConnected) {
+      expect(network.mostConnected).not.toMatch(/^ext-/);
+    }
+  });
 });

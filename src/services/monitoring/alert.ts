@@ -107,6 +107,11 @@ export class AlertManager {
 
   /** Prüft Budget-Alert basierend auf Verbrauch. */
   checkBudgetAlert(spent: number, limit: number): Alert | null {
+    // Ungültiges/fehlendes Limit (0, negativ, NaN) → kein Alert statt
+    // Fehlalarm durch Division durch Null (Infinity-Ratio).
+    if (!Number.isFinite(spent) || !Number.isFinite(limit) || limit <= 0) {
+      return null;
+    }
     const ratio = spent / limit;
     const rule = this.rules
       .filter((r) => r.type === "budget_exceed")
@@ -132,6 +137,10 @@ export class AlertManager {
 
   /** Prüft Disk-Space-Alert. */
   checkDiskAlert(usedBytes: number, totalBytes: number): Alert | null {
+    // Unbekannte Kapazität (0/negativ/NaN) → kein Alert statt Fehlalarm.
+    if (!Number.isFinite(usedBytes) || !Number.isFinite(totalBytes) || totalBytes <= 0 || usedBytes < 0) {
+      return null;
+    }
     const ratio = usedBytes / totalBytes;
     const rule = this.rules.find(
       (r) => r.type === "disk_full" && ratio >= r.threshold

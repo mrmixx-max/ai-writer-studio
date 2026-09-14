@@ -102,12 +102,19 @@ export async function runStatsCommand(opts: { exportPath?: string | null } = {})
   const exportPath = opts.exportPath !== undefined ? opts.exportPath : parseExportArg(process.argv);
   if (exportPath) {
     const csv = renderAnalyticsCsv(report.jobs, 30, Date.now());
-    nodeFs().writeFileSync(exportPath, csv, "utf8");
-    console.log(`\nAnalytics-Export: ${exportPath} (letzte 30 Tage)`);
-    info(
-      `stats: Analytics-Export nach ${exportPath} (${report.jobs.length} Job(s))`,
-      "cli/stats",
-    );
+    try {
+      nodeFs().writeFileSync(exportPath, csv, "utf8");
+      console.log(`\nAnalytics-Export: ${exportPath} (letzte 30 Tage)`);
+      info(
+        `stats: Analytics-Export nach ${exportPath} (${report.jobs.length} Job(s))`,
+        "cli/stats",
+      );
+    } catch (e) {
+      // Ungültiger/unbeschreibbarer Pfad darf die Stats-Ausgabe nicht verwerfen.
+      const msg = e instanceof Error ? e.message : String(e);
+      console.error(`\nAnalytics-Export nach ${exportPath} fehlgeschlagen: ${msg}`);
+      info(`stats: Analytics-Export nach ${exportPath} fehlgeschlagen: ${msg}`, "cli/stats");
+    }
   }
   info(`CLI stats: ${report.totals.jobs} Job(s), ${report.totals.tokens} Tokens, Cloud-Kosten $${report.totals.cloudCostUsd.toFixed(4)}, Ersparnis $${report.totals.savingsUsd.toFixed(4)}`, "cli/stats");
   return text;

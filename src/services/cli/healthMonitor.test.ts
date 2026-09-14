@@ -69,4 +69,20 @@ describe("CORS-Health-Monitor", () => {
     ]);
     expect(results.every((r) => r.status === "green")).toBe(true);
   });
+
+  it("ungültiges URL-Schema → rot ohne fetch (a3-sec)", async () => {
+    const spy = vi.fn(async () => ({ ok: true, status: 200 }));
+    const r = await checkInstanceHealth("X", "file:///etc/passwd", 3000, spy as unknown as typeof fetch);
+    expect(r.status).toBe("red");
+    expect(r.reachable).toBe(false);
+    expect(r.message).toContain("http");
+    expect(spy).not.toHaveBeenCalled();
+  });
+
+  it("injizierter fetch wird verwendet (a3-sec)", async () => {
+    const spy = vi.fn(async () => ({ ok: true, status: 200 }));
+    const r = await checkInstanceHealth("O", "http://127.0.0.1:11434/api/tags", 3000, spy as unknown as typeof fetch);
+    expect(r.status).toBe("green");
+    expect(spy).toHaveBeenCalledTimes(1);
+  });
 });

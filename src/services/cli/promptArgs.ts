@@ -85,7 +85,15 @@ export function loadPromptLibraryOverride(path: string | null): PromptLibrary {
   if (!fs.existsSync(path)) {
     throw new PromptLibraryError(`Prompt-Library nicht gefunden: ${path}`);
   }
-  const raw = fs.readFileSync(path, "utf-8");
+  let raw: string;
+  try {
+    raw = fs.readFileSync(path, "utf-8");
+  } catch (e) {
+    throw new PromptLibraryError(
+      `Prompt-Library nicht lesbar (${path}): ${e instanceof Error ? e.message : String(e)}`,
+      e,
+    );
+  }
   let data: unknown;
   try {
     data = JSON.parse(raw);
@@ -97,20 +105,20 @@ export function loadPromptLibraryOverride(path: string | null): PromptLibrary {
   }
   const lib = data as Partial<PromptLibrary>;
   if (typeof lib.version !== "string" || lib.version === "") {
-    throw new Error("Prompt-Library: Feld 'version' fehlt oder ist leer.");
+    throw new PromptLibraryError("Prompt-Library: Feld 'version' fehlt oder ist leer.");
   }
   if (!lib.genres || typeof lib.genres !== "object" || Object.keys(lib.genres).length === 0) {
-    throw new Error("Prompt-Library: Feld 'genres' fehlt oder ist leer.");
+    throw new PromptLibraryError("Prompt-Library: Feld 'genres' fehlt oder ist leer.");
   }
   for (const [key, profile] of Object.entries(lib.genres)) {
     if (typeof profile?.systemRole !== "string" || profile.systemRole === "") {
-      throw new Error(`Prompt-Library: Genre "${key}" ohne systemRole.`);
+      throw new PromptLibraryError(`Prompt-Library: Genre "${key}" ohne systemRole.`);
     }
     if (!Array.isArray(profile.systemRules) || profile.systemRules.length === 0) {
-      throw new Error(`Prompt-Library: Genre "${key}" ohne systemRules.`);
+      throw new PromptLibraryError(`Prompt-Library: Genre "${key}" ohne systemRules.`);
     }
     if (!profile.prompts || Object.keys(profile.prompts).length === 0) {
-      throw new Error(`Prompt-Library: Genre "${key}" ohne prompts.`);
+      throw new PromptLibraryError(`Prompt-Library: Genre "${key}" ohne prompts.`);
     }
   }
   return lib as PromptLibrary;

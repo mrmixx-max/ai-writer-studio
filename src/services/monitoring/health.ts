@@ -79,7 +79,8 @@ export async function checkDiskSpace(): Promise<HealthCheckResult> {
     const os = await import("node:os");
     const homeDir = os.homedir();
     const stat = await fs.statfs(homeDir);
-    const freeBytes = stat.bavail * stat.bfree;
+    // statfs liefert Blockzahlen; frei = verfügbare Blöcke × Blockgröße.
+    const freeBytes = stat.bavail * stat.bsize;
     const elapsed = Date.now() - start;
     const minBytes = 500 * 1024 * 1024; // 500 MB
     if (freeBytes < minBytes) {
@@ -93,11 +94,15 @@ export async function checkDiskSpace(): Promise<HealthCheckResult> {
     return { name: "disk", status: "ok", responseTimeMs: elapsed };
   } catch (e: unknown) {
     const elapsed = Date.now() - start;
+    const msg = e instanceof Error ? e.message : "Disk check error";
+    // Ohne Node-FS (Browser/Tauri-Webview) ist die Prüfung nicht möglich —
+    // als "degraded" melden statt "down", um Fehlalarme zu vermeiden.
+    const unavailable = /Cannot find module|Unknown file extension|is not defined|node:fs/i.test(msg);
     return {
       name: "disk",
-      status: "down",
+      status: unavailable ? "degraded" : "down",
       responseTimeMs: elapsed,
-      message: e instanceof Error ? e.message : "Disk check error",
+      message: unavailable ? `Plattenprüfung nicht verfügbar: ${msg}` : msg,
     };
   }
 }

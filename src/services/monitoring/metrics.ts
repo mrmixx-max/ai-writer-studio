@@ -70,14 +70,28 @@ export function getMetricsReport(): MetricsReport {
 }
 
 /**
- * Exportiert alle Metriken als CSV.
+ * Exportiert alle Metriken als CSV. Textfelder werden nach RFC 4180
+ * quotiert, sobald sie Komma, Quote oder Zeilenumbruch enthalten.
  */
 export function exportCsv(): string {
   const header = "timestamp,bookId,chapterCount,totalTokens,durationMs,success,provider,model";
   const rows = metrics.map((m) =>
-    [m.timestamp, m.bookId, m.chapterCount, m.totalTokens, m.durationMs, m.success, m.provider, m.model].join(",")
+    [m.timestamp, m.bookId, m.chapterCount, m.totalTokens, m.durationMs, m.success, m.provider, m.model]
+      .map(csvCell)
+      .join(",")
   );
   return [header, ...rows].join("\n");
+}
+
+/** Quotiert ein CSV-Feld, wenn es Trenn-/Steuerzeichen enthält. */
+const CSV_NL = String.fromCharCode(10);
+const CSV_CR = String.fromCharCode(13);
+function csvCell(v: unknown): string {
+  const s = String(v);
+  if (s.includes(",") || s.includes('"') || s.includes(CSV_NL) || s.includes(CSV_CR)) {
+    return ["", s.replace(/"/g, '""'), ""].join('"');
+  }
+  return s;
 }
 
 /**

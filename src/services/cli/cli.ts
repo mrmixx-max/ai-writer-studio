@@ -44,19 +44,30 @@ export async function runHealthCheck(): Promise<void> {
 
 /** Schritt 2: Job-Recovery — fragt nach fortsetzbaren Jobs. */
 export async function runJobRecovery(): Promise<void> {
-  const jobs = findInterruptedJobs();
+  let jobs: ReturnType<typeof findInterruptedJobs>;
+  try {
+    jobs = findInterruptedJobs();
+  } catch (e) {
+    console.error(`Job-Recovery-Prüfung fehlgeschlagen: ${(e as Error).message}`);
+    return;
+  }
   if (jobs.length === 0) {
     console.log("Keine unterbrochenen Buchprojekte gefunden.");
     return;
   }
   for (const info of jobs) {
-    const answer = await ask(`${formatRecoveryPrompt(info)} [j/N] `);
-    const action = /^j(a)?$/i.test(answer.trim()) ? "resume" : "discard";
-    const choice = await buildRecoveryChoice(info, action);
-    if (choice.action === "resume") {
-      console.log(`→ Fortsetzung bei Kapitel ${choice.startChapter} vorbereitet (Job ${choice.jobId}).`);
-    } else {
-      console.log("→ Job verworfen (Kapitel bleiben erhalten).");
+    try {
+      const answer = await ask(`${formatRecoveryPrompt(info)} [j/N] `);
+      const action = /^j(a)?$/i.test(answer.trim()) ? "resume" : "discard";
+      const choice = await buildRecoveryChoice(info, action);
+      if (choice.action === "resume") {
+        console.log(`→ Fortsetzung bei Kapitel ${choice.startChapter} vorbereitet (Job ${choice.jobId}).`);
+      } else {
+        console.log("→ Job verworfen (Kapitel bleiben erhalten).");
+      }
+    } catch (e) {
+      // Ein defekter Job darf die restlichen nicht blockieren.
+      console.error(`Job-Recovery für ${info.jobId} fehlgeschlagen: ${(e as Error).message}`);
     }
   }
 }
@@ -85,19 +96,28 @@ export async function runDashboardLoop(
 
   const rl = readline.createInterface({ input, output, terminal: false });
   paint();
-  while (running) {
-    const key = await rl.question("");
-    if (key.trim().toLowerCase() === "q") {
-      running = false;
-    } else {
-      d = updateAgentProgress(d, "writer", { phase: "Schreibt", done: Math.min(8, (d.agents[0]?.done ?? 0) + 1), total: 8 });
-      d = recordTokens(d, "writer", 1500);
-      d = setAgentStatus(d, "repair", (d.agents[0]?.done ?? 0) >= 8 ? "done" : "running");
-      if (onTick) await onTick(d);
-      paint();
+  try {
+    while (running) {
+      const key = await rl.question("");
+      if (key.trim().toLowerCase() === "q") {
+        running = false;
+      } else {
+        d = updateAgentProgress(d, "writer", { phase: "Schreibt", done: Math.min(8, (d.agents[0]?.done ?? 0) + 1), total: 8 });
+        d = recordTokens(d, "writer", 1500);
+        d = setAgentStatus(d, "repair", (d.agents[0]?.done ?? 0) >= 8 ? "done" : "running");
+        if (onTick) {
+          try {
+            await onTick(d);
+          } catch (e) {
+            console.error(`Dashboard-Tick fehlgeschlagen: ${(e as Error).message}`);
+          }
+        }
+        paint();
+      }
     }
+  } finally {
+    rl.close();
   }
-  rl.close();
 }
 
 /**
@@ -138,9 +158,24 @@ export async function main(): Promise<void> {
   if (parseHitlArg(process.argv)) {
     console.log("HITL-Modus aktiv: Haltepunkte nach Outline, Memory-Base und finalem Revisions-Loop.\n");
   }
-  await runHealthCheck();
-  await runJobRecovery();
-  await runDashboardLoop();
+  try {
+    await runHealthCheck();
+  } catch (e) {
+    console.error(`Health-Check fehlgeschlagen: ${(e as Error).message}`);
+  }
+  try {
+    await runJobRecovery();
+  } catch (e) {
+    console.error(`Job-Recovery fehlgeschlagen: ${(e as Error).message}`);
+    process.exitCode = 1;
+    return;
+  }
+  try {
+    await runDashboardLoop();
+  } catch (e) {
+    console.error(`Dashboard-Loop fehlgeschlagen: ${(e as Error).message}`);
+    process.exitCode = 1;
+  }
 }
 
 // Direkt-Ausführung: node dist/cli.js o.ä. (kein Import durch Tests).

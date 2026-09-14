@@ -18,7 +18,12 @@ export function formatCorrelationLog(
 ): string {
   const base = `[${correlationId}] ${message}`;
   if (data) {
-    return `${base} ${JSON.stringify(data)}`;
+    // Zirkuläre Strukturen dürfen das Logging nie crashen.
+    try {
+      return `${base} ${JSON.stringify(data)}`;
+    } catch {
+      return `${base} [unserializable data]`;
+    }
   }
   return base;
 }
