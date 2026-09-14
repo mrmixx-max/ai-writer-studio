@@ -124,15 +124,16 @@ async function generateLLMIdeas(
   const prompt = `Erstelle ${count} detaillierte Buchideen für ein ${genre}-Buch zum Thema "${theme}" für ${targetAudience}. Jede Idee: title, logline (1 Satz), synopsis (3 Sätze), protagonist, antagonist, setting, conflict, themes (3-5), chapters (6 Überschriften). JSON-Array. Nur JSON.`;
 
   try {
-    const response = await fetch("http://localhost:11434/api/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model,
-        prompt,
-        stream: false,
-        options: { temperature: 0.85, num_predict: 2000 },
-      }),
+    // localFetch: Tauri → Rust-Proxy ohne CORS-403, Browser/Test → window.fetch.
+    // localhost → 127.0.0.1 (IPv6-::1-Falle umgehen).
+    const { postLocalJson } = await import("@/services/llm/localFetch");
+    const { normalizeLocalBaseUrl } = await import("@/services/llm/baseUrl");
+    const base = normalizeLocalBaseUrl("http://localhost:11434");
+    const response = await postLocalJson(`${base}/api/generate`, {
+      model,
+      prompt,
+      stream: false,
+      options: { temperature: 0.85, num_predict: 2000 },
     });
 
     if (!response.ok) throw new Error(`Ollama HTTP ${response.status}`);
@@ -336,11 +337,17 @@ export async function generateBookIdeas(
  */
 export async function isOllamaAvailable(): Promise<boolean> {
   try {
-    const response = await fetch("http://localhost:11434/api/tags", {
-      method: "GET",
-      signal: AbortSignal.timeout(2000),
-    });
-    return response.ok;
+    const { getLocal } = await import("@/services/llm/localFetch");
+    const { normalizeLocalBaseUrl } = await import("@/services/llm/baseUrl");
+    const base = normalizeLocalBaseUrl("http://localhost:11434");
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 2000);
+    try {
+      const response = await getLocal(`${base}/api/tags`, 2000, { signal: ctrl.signal });
+      return response.ok;
+    } finally {
+      clearTimeout(timer);
+    }
   } catch {
     return false;
   }
