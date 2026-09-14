@@ -39,8 +39,8 @@ function hasTemplateSelection(s: TemplateSelection): boolean {
 
 export function WelcomeWizard({ onDone }: Props) {
   const [step, setStep] = useState(0);
-  const [provider, setProvider] = useState<ProviderId>("ollama");
-  const [model, setModel] = useState("llama3.2");
+  const [provider, setProvider] = useState<ProviderId>("openrouter");
+  const [model, setModel] = useState("meta/muse-spark-1.3-contributor");
   const [openaiKey, setOpenaiKey] = useState("");
   const [openrouterKey, setOpenrouterKey] = useState("");
   const [nousKey, setNousKey] = useState("");

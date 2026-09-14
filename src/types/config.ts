@@ -43,8 +43,8 @@ export interface AppSettings {
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
-  provider: "ollama",
-  model: "llama3.2",
+  provider: "openrouter",
+  model: "meta/muse-spark-1.3-contributor",
   temperature: 0.7,
   maxTokens: 2048,
   systemPrompt:
@@ -52,7 +52,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   theme: "dark",
   language: "de",
   highContrast: false,
-  kiModelSlots: [{ id: "main", label: "Hauptmodell", provider: "ollama", model: "llama3.2" }],
+  kiModelSlots: [{ id: "main", label: "Hauptmodell", provider: "openrouter", model: "meta/muse-spark-1.3-contributor" }],
   ollamaBaseUrl: "http://localhost:11434",
   lmstudioBaseUrl: "http://localhost:1234/v1",
   openaiApiKey: "",

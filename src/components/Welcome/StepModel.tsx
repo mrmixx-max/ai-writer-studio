@@ -17,7 +17,7 @@ const FALLBACK: Record<string, string[]> = {
   ollama: ["llama3.2", "mistral", "qwen2.5", "gemma2"],
   lmstudio: ["local-model"],
   openai: ["gpt-4o-mini", "gpt-4o"],
-  openrouter: ["z-ai/glm-4.5-air:free", "deepseek/deepseek-chat-v3.1:free", "openai/gpt-4o-mini"],
+  openrouter: ["meta/muse-spark-1.3-contributor", "z-ai/glm-4.5-air:free", "deepseek/deepseek-chat-v3.1:free", "openai/gpt-4o-mini"],
   nous: ["Hermes-4.5-405B", "Hermes-4-405B", "Hermes-4-70B", "Hermes-3-Llama-3.1-405B"],
 };
 
