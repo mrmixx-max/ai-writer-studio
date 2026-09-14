@@ -100,13 +100,17 @@ export async function* parseSse(
 
 /** Holt ein verschachteltes Feld per dot-notation (z.B. "message.content"). */
 function* emitField(jsonStr: string, fieldPath: string): Generator<string, void, unknown> {
-  let obj: any;
+  let obj: unknown;
   try {
     obj = JSON.parse(jsonStr);
   } catch {
     return; // Zeile ist kein valides JSON → überspringen
   }
-  const val = fieldPath.split(".").reduce((o, k) => (o == null ? o : o[k]), obj);
+  let val: unknown = obj;
+  for (const k of fieldPath.split(".")) {
+    if (val == null || typeof val !== "object") { val = undefined; break; }
+    val = (val as Record<string, unknown>)[k];
+  }
   if (typeof val === "string" && val.length > 0) yield val;
 }
 
