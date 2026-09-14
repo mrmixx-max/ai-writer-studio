@@ -1,8 +1,18 @@
 // Hilfsfunktionen für den Editor: TipTap-JSON → reiner Text → Zählung.
 
+interface TipTapNode {
+  type?: unknown;
+  text?: unknown;
+  content?: unknown;
+}
+
+function isNode(v: unknown): v is TipTapNode {
+  return typeof v === "object" && v !== null;
+}
+
 /** Extrahiert allen Text aus einem TipTap-Dokument (JSON-Objekt oder String). */
 export function tiptapToText(doc: unknown): string {
-  let parsed: any = doc;
+  let parsed: unknown = doc;
   if (typeof doc === "string") {
     try {
       parsed = JSON.parse(doc);
@@ -10,22 +20,22 @@ export function tiptapToText(doc: unknown): string {
       return doc; // kein JSON → als Plaintext behandeln
     }
   }
-  if (!parsed || typeof parsed !== "object" || !("content" in parsed)) return "";
+  if (!isNode(parsed) || !("content" in parsed)) return "";
   const parts: string[] = [];
   walk(parsed, parts);
   return parts.join("\n");
 }
 
-function walk(node: any, out: string[]): void {
-  if (!node) return;
+function walk(node: unknown, out: string[]): void {
+  if (!isNode(node)) return;
   if (node.type === "text" && typeof node.text === "string") {
     out.push(node.text);
   }
-  if (node.content && Array.isArray(node.content)) {
+  if (Array.isArray(node.content)) {
     for (const child of node.content) walk(child, out);
   }
   // Absatzumbruch nach Block-Elementen
-  if (["paragraph", "heading", "blockquote", "listItem"].includes(node.type)) {
+  if (["paragraph", "heading", "blockquote", "listItem"].includes(node.type as string)) {
     out.push("");
   }
 }
