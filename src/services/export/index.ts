@@ -15,10 +15,17 @@ interface Block {
   items?: Block[];
 }
 
+interface TipTapJson {
+  type?: unknown;
+  text?: unknown;
+  attrs?: Record<string, unknown>;
+  content?: TipTapJson[];
+}
+
 function toBlocks(json: string): Block[] {
-  let doc: any;
+  let doc: TipTapJson;
   try {
-    doc = JSON.parse(json || "{}");
+    doc = JSON.parse(json || "{}") as TipTapJson;
   } catch {
     return [];
   }
@@ -27,12 +34,16 @@ function toBlocks(json: string): Block[] {
   return out;
 }
 
-function walk(node: any, out: Block[]) {
+function asHeading(s: string): Block["type"] {
+  return s === "h1" || s === "h2" || s === "h3" ? s : "h1";
+}
+
+function walk(node: TipTapJson, out: Block[]) {
   if (!node || !node.content) return;
   for (const child of node.content) {
     if (child.type === "heading") {
-      const lvl = child.attrs?.level ?? 1;
-      out.push({ type: `h${lvl}` as any, text: textOf(child) });
+      const lvl = typeof child.attrs?.level === "number" ? child.attrs.level : 1;
+      out.push({ type: asHeading(`h${lvl}`), text: textOf(child) });
     } else if (child.type === "blockquote") {
       out.push({ type: "quote", text: textOf(child) });
     } else if (child.type === "paragraph") {
@@ -63,8 +74,8 @@ function walk(node: any, out: Block[]) {
   }
 }
 
-function textOf(node: any): string {
-  if (node.type === "text") return node.text || "";
+function textOf(node: TipTapJson): string {
+  if (node.type === "text") return typeof node.text === "string" ? node.text : "";
   if (!node.content) return "";
   return node.content.map(textOf).join("");
 }
