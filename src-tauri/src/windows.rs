@@ -63,7 +63,6 @@ pub fn clamp_progress(progress: Option<u64>) -> Option<u64> {
 mod imp {
     use super::*;
     use std::ffi::c_void;
-    use std::os::windows::ffi::OsStrExt;
 
     #[link(name = "dwmapi")]
     extern "system" {

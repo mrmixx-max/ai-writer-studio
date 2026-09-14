@@ -43,13 +43,11 @@ fn get_hermes_config_path() -> Result<PathBuf, String> {
 /// Extrahiert einen API-Key aus einem YAML-String (einfaches Parsing).
 fn extract_key(content: &str, provider: &str, key_name: &str) -> Option<String> {
     let mut in_provider = false;
-    let mut in_delegation = false;
 
     for line in content.lines() {
         let trimmed = line.trim();
         if trimmed.starts_with(&format!("{provider}:")) {
             in_provider = true;
-            in_delegation = false;
             continue;
         }
         if in_provider && trimmed.starts_with(key_name) {

@@ -80,7 +80,9 @@ export async function probeOllama(baseUrl = "http://localhost:11434"): Promise<P
     return {
       ...base,
       message:
-        `Ollama ist unter ${baseUrl} nicht erreichbar. Starte es mit „ollama serve“. ` +
+        `Ollama ist unter ${baseUrl} nicht erreichbar. ` +
+        `Falls Ollama noch nicht installiert ist: https://ollama.com/download — ` +
+        `danach starten mit „ollama serve“. ` +
         "Die App funktioniert auch ohne — nur die KI-Funktionen ruhen dann.",
     };
   }

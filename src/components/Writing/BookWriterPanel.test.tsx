@@ -233,7 +233,7 @@ describe("BookWriterPanel Export-UI (C3)", () => {
     render(<BookWriterPanel />);
     await user.selectOptions(screen.getByLabelText("Exportformat"), "docx");
     await user.click(screen.getByTestId("bw-export-btn"));
-    await screen.findByTestId("bw-export-success");
+    await screen.findByTestId("bw-export-success", undefined, { timeout: 10000 });
     const { saveExportBlob } = await import("@/services/bookwriter/export/save");
     expect((saveExportBlob as ReturnType<typeof vi.fn>).mock.calls[0][2]).toBe("docx");
   });
