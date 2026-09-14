@@ -4,6 +4,7 @@ import { usePromptStore } from "@/store/promptStore";
 import { generatePrompts, pickOfflinePrompts } from "@/services/prompt/generate";
 import { savePrompt, setFavorite, listPrompts, deletePrompt, exportFavoritesMarkdown } from "@/services/prompt/store";
 import { useEditorStore } from "@/store/editorStore";
+import { useProjectStore } from "@/store/projectStore";
 import { DEFAULT_SETTINGS } from "@/types/config";
 import { PROMPT_TEMPLATES } from "@/services/ki/templates";
 import type { Genre, PromptType, Tone, TargetLength, GeneratedPrompt } from "@/services/prompt/types";
@@ -66,10 +67,13 @@ export function PromptGenerator() {
   }
 
   function newChapterFromPrompt(p: GeneratedPrompt) {
-    // TODO Schritt 5 (Projekt-Service): echtes Kapitel im aktiven Projekt anlegen.
-    // Hier: speichern + in Editor einfügen als Platzhalter für Kapitel-Start.
+    // Echtes Kapitel im aktiven Projekt anlegen + Prompttext als Starthilfe.
     savePrompt(p, "generator", "current");
     insertIntoEditor(p);
+    const project = useProjectStore.getState();
+    if (project.activeProjectId) {
+      project.newChapter(p.text.slice(0, 60) || "Neues Kapitel", p.text, "draft");
+    }
   }
 
   function copy(p: GeneratedPrompt) {
