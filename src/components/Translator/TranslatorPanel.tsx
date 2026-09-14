@@ -22,6 +22,8 @@ export function TranslatorPanel() {
   const [newGlossarySource, setNewGlossarySource] = useState('');
   const [newGlossaryTarget, setNewGlossaryTarget] = useState('');
   const [context, setContext] = useState('');
+  const [notice, setNotice] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Load initial glossary
   useEffect(() => {
@@ -55,8 +57,10 @@ export function TranslatorPanel() {
 
   const handleTranslate = async () => {
     if (!sourceText.trim()) return;
-    
+
     setIsTranslating(true);
+    setNotice(null);
+    setError(null);
     try {
       const request: TranslationRequest = {
         text: sourceText,
@@ -65,9 +69,14 @@ export function TranslatorPanel() {
         glossary,
         context: context.trim() || undefined
       };
-      
+
       const result = await translate(request);
       setTranslatedText(result.translated);
+      if (result.confidence === 0) {
+        setNotice('Offline-Modus: Übersetzungsdienst nicht erreichbar — Originaltext wird angezeigt.');
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       setIsTranslating(false);
     }
@@ -89,7 +98,11 @@ export function TranslatorPanel() {
 
   const handleCopyTranslation = async () => {
     if (translatedText) {
-      await navigator.clipboard.writeText(translatedText);
+      try {
+        await navigator.clipboard.writeText(translatedText);
+      } catch (e) {
+        setError(e instanceof Error ? `Kopieren fehlgeschlagen: ${e.message}` : 'Kopieren fehlgeschlagen.');
+      }
     }
   };
 
@@ -207,6 +220,18 @@ export function TranslatorPanel() {
           />
         </div>
       </div>
+
+      {error && (
+        <div className="translator-error" role="alert">
+          {error}
+        </div>
+      )}
+
+      {notice && (
+        <div className="translator-notice" role="status">
+          {notice}
+        </div>
+      )}
 
       {/* Glossary Section */}
       <div className="glossary-section">

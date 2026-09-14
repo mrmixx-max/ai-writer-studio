@@ -8,6 +8,7 @@ import {
   localSummarize,
   buildSummaryPrompt,
   extractPlainText,
+  getKeyPoints,
   type SummaryRequest,
 } from "./summarizer";
 import { useProjectStore } from "@/store/projectStore";
@@ -145,5 +146,23 @@ describe("compareVersions", () => {
     const res = await compareVersions("Eins zwei drei vier.", "Eins zwei.", { client });
     expect(res).toContain("4 → 2");
     expect(res).toContain("Entfernt");
+  });
+});
+
+describe("getKeyPoints", () => {
+  it("liefert echte Kernpunkte statt leerem Array", () => {
+    const points = getKeyPoints(TEXT);
+    expect(points.length).toBeGreaterThan(0);
+    expect(points.length).toBeLessThanOrEqual(5);
+    for (const p of points) expect(TEXT).toContain(p);
+  });
+
+  it("ist deterministisch", () => {
+    expect(getKeyPoints(TEXT)).toEqual(getKeyPoints(TEXT));
+  });
+
+  it("gibt [] für leeren Text zurück", () => {
+    expect(getKeyPoints("")).toEqual([]);
+    expect(getKeyPoints()).toEqual([]);
   });
 });

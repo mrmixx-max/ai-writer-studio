@@ -28,6 +28,7 @@ export function BookIdeaPanel() {
   const [ideas, setIdeas] = useState<BookIdea[]>([]);
   const [evaluations, setEvaluations] = useState<Record<string, IdeaEvaluation>>({});
   const [ollamaAvailable, setOllamaAvailable] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     isOllamaAvailable().then(setOllamaAvailable);
@@ -37,6 +38,7 @@ export function BookIdeaPanel() {
     setBusy(true);
     setIdeas([]);
     setEvaluations({});
+    setError(null);
 
     try {
       const result = await generateBookIdeas({
@@ -44,6 +46,7 @@ export function BookIdeaPanel() {
         theme: theme.trim() || "Zukunft",
         targetAudience,
         count,
+        mode,
         useLLM: mode !== "demo",
         llmModel: "llama3.2",
       });
@@ -57,6 +60,7 @@ export function BookIdeaPanel() {
       setEvaluations(evals);
     } catch (e) {
       logger.error("Generierung fehlgeschlagen:", e);
+      setError(e instanceof Error ? e.message : String(e));
     } finally {
       setBusy(false);
     }
@@ -166,6 +170,12 @@ export function BookIdeaPanel() {
       >
         {busy ? "Generiert …" : "💡 Ideen generieren"}
       </button>
+
+      {error && (
+        <div role="alert" style={{ color: "#ff5555", fontSize: 12, marginBottom: 12 }}>
+          {error}
+        </div>
+      )}
 
       {/* Ergebnisse */}
       {ideas.length > 0 && (

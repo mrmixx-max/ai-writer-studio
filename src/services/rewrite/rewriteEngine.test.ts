@@ -31,4 +31,18 @@ describe("Rewrite Engine", () => {
     const results = rewriteAll(text);
     expect(results.length).toBe(REWRITE_TECHNIQUES.length);
   });
+
+  it("simplify reports no fake changes for untouched conjunctions", () => {
+    const text = "Entweder du kommst oder du gehst.";
+    const result = rewriteText(text, "simplify");
+    expect(result.rewritten).toBe(text);
+    expect(result.changes).toHaveLength(0);
+  });
+
+  it("vivid maps each weak phrase exactly once (no dead duplicates)", () => {
+    const result = rewriteText("Das ist sehr gut.", "vivid");
+    expect(result.rewritten).toContain("exzellent");
+    expect(result.rewritten).not.toContain("meisterhaft");
+    expect(result.changes).toHaveLength(1);
+  });
 });

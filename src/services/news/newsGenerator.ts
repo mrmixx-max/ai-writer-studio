@@ -60,7 +60,7 @@ function buildTemplates(topic: string, de: boolean) {
         ? `Praxis-Check: Erste Ergebnisse sind vielversprechend, aber es gibt Herausforderungen.`
         : `Practical check: First results are promising, but challenges remain.`,
       body: de
-        ? `Für Anweder bedeutet ${topic} sowohl Chancen als auch Herausforderungen. Erste Umsetzungen zeigen positive Effekte auf Effizienz und Qualität. Experten empfehlen einen schrittweisen Ansatz: Zuerst analysieren, dann pilotsieren, dann skalieren.`
+        ? `Für Anwender bedeutet ${topic} sowohl Chancen als auch Herausforderungen. Erste Umsetzungen zeigen positive Effekte auf Effizienz und Qualität. Experten empfehlen einen schrittweisen Ansatz: Zuerst analysieren, dann pilotsieren, dann skalieren.`
         : `For users, ${topic} brings both opportunities and challenges. Initial implementations show positive effects. Experts recommend a phased approach: analyze first, then pilot, then scale.`,
       source: de ? "Marktbeobachtung" : "Market Watch",
     },
@@ -120,7 +120,7 @@ async function generateHybridArticles(
   const de = language === "de";
 
   const prompt = de
-    ? `Verbessere diese ${count} Artikel zum Thema "${topic}". Antwiese als JSON-Array: { "headline": "...", "teaser": "...", "body": "...", "source": "..." }. Nur JSON. Original: ${JSON.stringify(demo)}`
+    ? `Verbessere diese ${count} Artikel zum Thema "${topic}". Antworte als JSON-Array: { "headline": "...", "teaser": "...", "body": "...", "source": "..." }. Nur JSON. Original: ${JSON.stringify(demo)}`
     : `Improve these ${count} articles about "${topic}". JSON array: { "headline": "...", "teaser": "...", "body": "...", "source": "..." }. Only JSON. Original: ${JSON.stringify(demo)}`;
 
   try {
@@ -143,11 +143,14 @@ async function generateHybridArticles(
     if (!jsonMatch) throw new Error("Keine JSON-Antwort");
 
     const parsed = JSON.parse(jsonMatch[0]) as Array<Partial<GeneratedNewsArticle>>;
-    return parsed.map((a, i) => ({
+    if (!Array.isArray(parsed) || parsed.length === 0) throw new Error("Leere JSON-Antwort");
+    const clean = parsed.filter((a) => a && typeof a === "object");
+    if (clean.length === 0) throw new Error("Keine verwertbaren Artikel in der JSON-Antwort");
+    return clean.map((a, i) => ({
       id: `hybrid-${i + 1}`,
-      headline: a.headline ?? demo[i]?.headline ?? `${topic} - Artikel ${i + 1}`,
+      headline: a.headline || demo[i]?.headline || `${topic} - Artikel ${i + 1}`,
       teaser: a.teaser ?? demo[i]?.teaser ?? "",
-      body: a.body ?? demo[i]?.body ?? "",
+      body: a.body || demo[i]?.body || "",
       imageUrl: undefined,
       source: a.source ?? "Hybrid",
     }));
@@ -165,13 +168,18 @@ export async function generateNewsArticles(
 ): Promise<GeneratedNewsArticle[]> {
   const { topic, language, count = 6, useLLM = false, llmModel = "llama3.2" } = options;
 
+  if (!topic.trim()) {
+    throw new Error("Kein Thema angegeben — bitte ein Thema für die Artikel eingeben.");
+  }
+  const safeCount = Math.max(1, Math.min(12, Math.floor(count) || 6));
+
   await new Promise((resolve) => setTimeout(resolve, 500));
 
   if (useLLM) {
-    return generateHybridArticles(topic, language, count, llmModel);
+    return generateHybridArticles(topic.trim(), language, safeCount, llmModel);
   }
 
-  return generateDemoArticles(topic, language, count);
+  return generateDemoArticles(topic.trim(), language, safeCount);
 }
 
 /**

@@ -6,6 +6,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { TranslatorPanel } from './TranslatorPanel';
+import { translate } from '@/services/translator/translator';
 
 // Mock the translator service
 vi.mock('@/services/translator/translator', () => ({
@@ -177,7 +178,36 @@ describe('TranslatorPanel', () => {
 
   it('shows empty glossary message initially', () => {
     render(<TranslatorPanel />);
-    
+
     expect(screen.getByText(/Noch keine Glossar-Einträge vorhanden/)).toBeInTheDocument();
+  });
+
+  it('shows offline notice when service falls back (confidence 0)', async () => {
+    vi.mocked(translate).mockResolvedValueOnce({
+      translated: 'Originaltext',
+      sourceLang: 'en',
+      targetLang: 'de',
+      confidence: 0.0,
+    });
+    render(<TranslatorPanel />);
+
+    fireEvent.change(screen.getByPlaceholderText(/Text hier eingeben/), {
+      target: { value: 'Some text' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /→ Übersetzen/ }));
+
+    expect(await screen.findByRole('status')).toHaveTextContent(/Offline-Modus/);
+  });
+
+  it('shows error alert when translation throws', async () => {
+    vi.mocked(translate).mockRejectedValueOnce(new Error('Boom'));
+    render(<TranslatorPanel />);
+
+    fireEvent.change(screen.getByPlaceholderText(/Text hier eingeben/), {
+      target: { value: 'Some text' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /→ Übersetzen/ }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Boom');
   });
 });

@@ -58,24 +58,11 @@ const SIMPLIFY_REPLACEMENTS: [RegExp, string][] = [
   [/während/g, "aber"],
   [/andererseits/g, "aber"],
   [/einerseits/g, "zum einen"],
-  [/zum anderen/g, "zum anderen"],
-  [/erstere/g, "erstere"],
-  [/letztere/g, "letztere"],
   [/erstens/g, "zuerst"],
-  [/zweitens/g, "zweitens"],
-  [/drittens/g, "drittens"],
   [/schlussendlich/g, "schließlich"],
   [/letztendlich/g, "schließlich"],
   [/zuletzt/g, "schließlich"],
   [/zu guter Letzt/g, "schließlich"],
-  [/nicht nur/g, "nicht nur"],
-  [/sondern auch/g, "sondern auch"],
-  [/sowohl/g, "sowohl"],
-  [/als auch/g, "als auch"],
-  [/weder/g, "weder"],
-  [/noch/g, "noch"],
-  [/entweder/g, "entweder"],
-  [/oder/g, "oder"],
 ];
 
 const INFORMAL_TO_FORMAL: [RegExp, string][] = [
@@ -134,8 +121,6 @@ const WEAK_TO_STRONG: [RegExp, string][] = [
   [/sehr wenig/g, "minimal"],
   [/sehr oft/g, "ständig"],
   [/sehr selten/g, "kaum je"],
-  [/sehr gut/g, "meisterhaft"],
-  [/sehr schlecht/g, "miserabel"],
 ];
 
 /**
