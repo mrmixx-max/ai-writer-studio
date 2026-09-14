@@ -6,6 +6,9 @@
 import { loadSettings } from "@/services/settings";
 import { completeOnce } from "@/services/llm";
 import { createChapter } from "@/services/project";
+import { getLogger } from "@/services/logger";
+
+const log = getLogger("bookwriter/workflow");
 import { markdownToTipTap } from "@/services/editor/markdown";
 import { createSnapshot } from "@/services/snapshot";
 import { runDiagnostics } from "@/services/diagnostics/runner";
@@ -360,7 +363,7 @@ export async function runBookwriter(
           if (signal?.aborted) return;
           await pauseRun(runId);
           onProgress?.(phase, 1, "Haltepunkt Outline abgelehnt — Lauf pausiert.");
-          console.log("⏸ Haltepunkt 'outline' abgelehnt — Lauf pausiert (Fortsetzen über Job-Recovery).");
+          log.info("⏸ Haltepunkt 'outline' abgelehnt — Lauf pausiert (Fortsetzen über Job-Recovery).");
           return;
         }
       }
@@ -378,7 +381,7 @@ export async function runBookwriter(
           if (signal?.aborted) return;
           await pauseRun(runId);
           onProgress?.(phase, 0, "Haltepunkt Memory abgelehnt — Lauf pausiert.");
-          console.log("⏸ Haltepunkt 'memory' abgelehnt — Lauf pausiert (Fortsetzen über Job-Recovery).");
+          log.info("⏸ Haltepunkt 'memory' abgelehnt — Lauf pausiert (Fortsetzen über Job-Recovery).");
           return;
         }
       }
@@ -394,7 +397,7 @@ export async function runBookwriter(
           if (signal?.aborted) return;
           await pauseRun(runId);
           onProgress?.(phase, 1, "Haltepunkt Revision abgelehnt — Lauf pausiert.");
-          console.log("⏸ Haltepunkt 'revision' abgelehnt — Lauf pausiert (Fortsetzen über Job-Recovery).");
+          log.info("⏸ Haltepunkt 'revision' abgelehnt — Lauf pausiert (Fortsetzen über Job-Recovery).");
           return;
         }
       }
