@@ -9,6 +9,7 @@ import {
   TARGET_AUDIENCES,
 } from "@/services/bookIdea/bookIdeaEngine";
 import type { BookIdea, IdeaEvaluation, GenerationMode } from "@/types/bookIdea";
+import { logger } from "@/services/logger";
 
 const BG = "#0a0e14";
 const PANEL = "#11161f";
@@ -55,7 +56,7 @@ export function BookIdeaPanel() {
       }
       setEvaluations(evals);
     } catch (e) {
-      console.error("Generierung fehlgeschlagen:", e);
+      logger.error("Generierung fehlgeschlagen:", e);
     } finally {
       setBusy(false);
     }

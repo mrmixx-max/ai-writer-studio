@@ -1,6 +1,7 @@
 // Book Idea Engine (Sprint 29): KI-Buchideenentwickler.
 // Generiert, bewertet und verfeinert Buchideen — ohne Platzhalter.
 import type { BookIdea, IdeaEvaluation, GenerateIdeasOptions } from "@/types/bookIdea";
+import { logger } from "@/services/logger";
 
 const GENRES = [
   "Krimi", "Thriller", "Fantasy", "Science-Fiction", "Romantik",
@@ -157,7 +158,7 @@ async function generateLLMIdeas(
       chapters: idea.chapters ?? [],
     }));
   } catch (e) {
-    console.warn("LLM fehlgeschlagen:", e);
+    logger.warn("LLM fehlgeschlagen:", e);
     return generateDemoIdeas(genre, theme, targetAudience, count);
   }
 }
