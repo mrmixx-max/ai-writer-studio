@@ -9,6 +9,7 @@ import { downloadData } from "@/services/characters/characterExport";
 import { TimelineCanvas } from "@/components/Timeline/TimelineCanvas";
 import { useEditorStore } from "@/store/editorStore";
 import { CompareView, downloadComparePdf, type CompareVersionMeta } from "@/components/Compare";
+import { AppDialog, type DialogRequest } from "@/components/Dialog/AppDialog";
 
 const VERSION_TYPES = ["Rohfassung", "Verdichtung", "Bruch", "neue Richtung", "bereinigt", "radikalisiert"];
 
@@ -30,6 +31,8 @@ export function VersionsPanel({ chapterId, content }: { chapterId: string; conte
   const [mode, setMode] = useState<"timeline" | "compare">("timeline");
   const [leftId, setLeftId] = useState<string | null>(null);
   const [rightId, setRightId] = useState<string | null>(null);
+  const [dlg, setDlg] = useState<DialogRequest | null>(null);
+  const [comparison, setComparison] = useState<string | null>(null);
   const setContent = useEditorStore((s) => s.setContent);
 
   useEffect(() => {
@@ -69,7 +72,7 @@ export function VersionsPanel({ chapterId, content }: { chapterId: string; conte
       },
       () => {},
     );
-    alert(res.text);
+    setComparison(res.text);
     setBusy(false);
   }
 
@@ -78,7 +81,10 @@ export function VersionsPanel({ chapterId, content }: { chapterId: string; conte
   async function rollback(id: string) {
     const v = versions.find((x) => x.id === id);
     if (!v) return;
-    if (!window.confirm(`Version "${v.label}" wiederherstellen? Der aktuelle Editor-Inhalt wird ersetzt (als Rollback-Eintrag gesichert).`)) return;
+    const ok = await new Promise<boolean>((resolve) =>
+      setDlg({ kind: "confirm", message: `Version "${v.label}" wiederherstellen? Der aktuelle Editor-Inhalt wird ersetzt (als Rollback-Eintrag gesichert).`, resolve }),
+    );
+    if (!ok) return;
     if (content.trim()) {
       await createVersion(chapterId, `Sicherung vor Rollback (${new Date().toLocaleString("de")})`, content, "Rohfassung");
     }
@@ -122,6 +128,16 @@ export function VersionsPanel({ chapterId, content }: { chapterId: string; conte
 
   return (
     <div className="versions-panel">
+      <AppDialog request={dlg} onDone={() => setDlg(null)} />
+      {comparison && (
+        <div className="versions-comparison" style={{ padding: "10px 12px", borderBottom: "1px solid var(--border)", fontSize: 12, whiteSpace: "pre-wrap", maxHeight: 240, overflowY: "auto" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+            <strong>KI-Vergleich</strong>
+            <button onClick={() => setComparison(null)}>×</button>
+          </div>
+          {comparison}
+        </div>
+      )}
       <div className="versions-toolbar">
         <input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Label…" />
         <select value={vtype} onChange={(e) => setVtype(e.target.value)}>

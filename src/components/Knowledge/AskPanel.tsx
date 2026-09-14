@@ -41,9 +41,16 @@ export function AskPanel({
       onQuickAsk(kind, "");
       return;
     }
-    // Betreff aus dem Eingabefeld nehmen, wenn er dort steht — sonst nachfragen.
-    const subject = question.trim() || window.prompt("Name der Figur, des Orts oder des Begriffs?") || "";
-    if (subject) onQuickAsk(kind, subject);
+    // Betreff aus dem Eingabefeld nehmen; steht dort nichts, Fokus dorthin
+    // statt totem window.prompt (WebView2) — der Nutzer tippt und klickt erneut.
+    const subject = question.trim();
+    if (subject) {
+      onQuickAsk(kind, subject);
+    } else {
+      onQuestionChange(" ");
+      onQuestionChange("");
+      document.querySelector<HTMLInputElement>(".kw-searchbar .kw-input")?.focus();
+    }
   }
 
   return (
