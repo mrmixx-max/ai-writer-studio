@@ -231,6 +231,10 @@ export function rulePdfUnsupportedChars(input: PreflightInput): RawFinding[] {
  */
 export function ruleEpubSingleChapter(input: PreflightInput): RawFinding[] {
   if (!wants(input, "epub")) return [];
+  // Kapitel-Umfang: Ein einzelnes geprüftes Kapitel ist nie „das ganze Buch“.
+  // Ohne diese Ausnahme meldet jede Kapitel-Einzelprüfung über 5000 Wörtern
+  // fälschlich fehlende Navigation — auch in Projekten mit 30 Kapiteln.
+  if (input.isPartialScope) return [];
   if (input.chapters.length !== 1) return [];
 
   const only = input.chapters[0];

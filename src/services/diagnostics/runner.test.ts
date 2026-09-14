@@ -79,6 +79,19 @@ describe("Prüflauf", () => {
     expect(r.perChapter[0].metrics.wordCount).toBeGreaterThan(0);
   });
 
+  it("führt leere Kapitel im Stil-Tab (perChapter), ohne Befunde für sie", async () => {
+    await createChapter(projectId, "Voll", doc(["Ein Satz. Noch ein Satz hier."]));
+    await createChapter(projectId, "Leer", doc([""]));
+
+    const r = await runDiagnostics(projectId);
+    expect(r.chaptersChecked).toBe(2);
+    expect(r.perChapter).toHaveLength(2);
+    const empty = r.perChapter.find((p) => p.title === "Leer");
+    expect(empty).toBeDefined();
+    expect(empty!.metrics.wordCount).toBe(0);
+    expect(r.findings.filter((f) => f.chapterTitle === "Leer")).toHaveLength(0);
+  });
+
   it("meldet Fortschritt", async () => {
     await createChapter(projectId, "Kapitel", doc(["Ein Text mit einigen Wörtern."]));
     const seen: Array<{ done: number; total: number }> = [];

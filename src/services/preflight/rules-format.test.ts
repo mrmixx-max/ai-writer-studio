@@ -194,6 +194,13 @@ describe("Formatregeln respektieren die Formatauswahl", () => {
     expect(ruleEpubSingleChapter(input([c], { formats: ["docx"] }))).toHaveLength(0);
   });
 
+  it("meldet im Kapitel-Umfang kein Einzelkapitel-Buch", () => {
+    const c = chapter({ wordCount: 40000 });
+    expect(
+      ruleEpubSingleChapter(input([c], { formats: ["epub"], isPartialScope: true })),
+    ).toHaveLength(0);
+  });
+
   it("meldet TXT-Verlust nur bei TXT-Export", () => {
     const raw = doc([para("Fett", ["bold"])]);
     const c = chapter({ raw });

@@ -76,6 +76,29 @@ describe("Prüflauf", () => {
     expect(r.report.chapterId).toBe(a.id);
   });
 
+  it("meldet bei Kapitel-Umfang kein fehlendes Front-/Backmatter (kein Fehlalarm)", async () => {
+    const a = await createChapter(projectId, "Kapitel Eins", doc(["Text eins mit etwas Inhalt darin."]));
+    await createChapter(projectId, "Kapitel Zwei", doc(["Text zwei mit etwas Inhalt darin."]));
+
+    const r = await runPreflight(projectId, "Test", { chapterId: a.id });
+    const ruleIds = r.findings.map((f) => f.ruleId);
+    expect(ruleIds.filter((id) => id.startsWith("frontmatter."))).toHaveLength(0);
+    expect(ruleIds.filter((id) => id.startsWith("backmatter."))).toHaveLength(0);
+    expect(r.report.checkedFrontmatter).toBe(false);
+    expect(r.report.checkedBackmatter).toBe(false);
+  });
+
+  it("meldet bei Kapitel-Umfang kein Einzelkapitel-Buch (kein Fehlalarm)", async () => {
+    // Ein langes Kapitel (> 5000 Wörter) im Projekt mit mehreren Kapiteln:
+    // Im Kapitel-Umfang darf ruleEpubSingleChapter nicht feuern.
+    const longText = Array(6000).fill("Wort").join(" ");
+    const a = await createChapter(projectId, "Lang", doc([longText]));
+    await createChapter(projectId, "Kurz", doc(["Kurzer Text hier."]));
+
+    const r = await runPreflight(projectId, "Test", { chapterId: a.id, formats: ["epub"] });
+    expect(r.findings.some((f) => f.ruleId === "format.epub-single-chapter")).toBe(false);
+  });
+
   it("arbeitet ohne jedes Modell", async () => {
     await createChapter(projectId, "Eins", doc(["Ein Text mit Inhalt."]));
     const r = await runPreflight(projectId, "Test");

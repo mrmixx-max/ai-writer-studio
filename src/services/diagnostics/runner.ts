@@ -127,16 +127,18 @@ export async function runDiagnostics(
       const text = tiptapToText(full?.content ?? "{}");
       wholeParts.push(text);
 
+      // Kennwerte immer erfassen — auch für leere Kapitel. Der Stil-Tab zeigt
+      // ein Kapitel je Eintrag; fehlende Einträge sehen nach verlorenen
+      // Kapiteln aus. checkStyle liefert für Leertext leere Befunde plus
+      // Null-Kennwerte und wirft nicht.
+      const a = analyzeText(text);
+      const { issues: styleIssues, metrics } = checkStyle(a);
+      perChapter.push({ chapterId: ch.id, title: ch.title, metrics });
+
       if (!text.trim()) {
         done++;
         continue;
       }
-
-      const a = analyzeText(text);
-
-      // Stil
-      const { issues: styleIssues, metrics } = checkStyle(a);
-      perChapter.push({ chapterId: ch.id, title: ch.title, metrics });
 
       for (const s of styleIssues) {
         findings.push(makeFinding(projectId, ch.id, ch.title, "style", "possible", s));

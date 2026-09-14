@@ -54,6 +54,12 @@ export interface PreflightInput {
   formats: ExportFormat[];
   checkFrontmatter: boolean;
   checkBackmatter: boolean;
+  /**
+   * true, wenn nur ein einzelnes Kapitel geprüft wird (Kapitel-Umfang).
+   * Projektweite Regeln (z. B. Einzelkapitel-Buch) dürfen dann nicht feuern:
+   * Ein Kapitel allein ist nie „das ganze Buch“.
+   */
+  isPartialScope?: boolean;
 }
 
 /** Signatur einer Prüfregel. */

@@ -44,8 +44,13 @@ export async function runPreflight(
   const reportId = uid("pfrep");
 
   const formats = options.formats ?? EXPORT_FORMATS;
-  const checkFrontmatter = options.checkFrontmatter ?? true;
-  const checkBackmatter = options.checkBackmatter ?? true;
+  // Kapitel-Umfang prüft nur das Kapitel selbst: Front-/Backmatter sind
+  // Projekteigenschaften und würden sonst bei jeder Einzelprüfung fehlen —
+  // ein Fehlalarm, der die Kapitelprüfung unbrauchbar macht. Explizit
+  // übergebene Werte gewinnen immer.
+  const scoped = options.chapterId !== undefined;
+  const checkFrontmatter = options.checkFrontmatter ?? !scoped;
+  const checkBackmatter = options.checkBackmatter ?? !scoped;
 
   // --- Kapitel einlesen ----------------------------------------------------
   options.onProgress?.(0, 3, "Kapitel werden gelesen…");
@@ -81,6 +86,7 @@ export async function runPreflight(
     formats,
     checkFrontmatter,
     checkBackmatter,
+    isPartialScope: scoped,
   };
 
   // --- Regeln ausführen ----------------------------------------------------
