@@ -110,17 +110,24 @@ export function splitSentences(text: string): string[] {
  * Überschriften (heading) öffnen einen neuen Block, Absätze füllen ihn.
  */
 export function blocksFromTiptap(json: string, rootLabel?: string): StructuredBlock[] {
-  let doc: any;
+  let doc: TipTapChunkNode;
   try {
-    doc = JSON.parse(json);
+    doc = JSON.parse(json) as TipTapChunkNode;
   } catch {
     return [];
   }
   return blocksFromTiptapDoc(doc, rootLabel);
 }
 
+interface TipTapChunkNode {
+  type?: unknown;
+  text?: unknown;
+  attrs?: Record<string, unknown>;
+  content?: TipTapChunkNode[];
+}
+
 /** Wie blocksFromTiptap, aber auf einem bereits geparsten Dokument. */
-export function blocksFromTiptapDoc(doc: any, rootLabel?: string): StructuredBlock[] {
+export function blocksFromTiptapDoc(doc: TipTapChunkNode, rootLabel?: string): StructuredBlock[] {
   const blocks: StructuredBlock[] = [];
   /** Aktueller Überschriften-Stack pro Ebene (Index 0 = h1). */
   const headingStack: string[] = [];
@@ -138,10 +145,11 @@ export function blocksFromTiptapDoc(doc: any, rootLabel?: string): StructuredBlo
     return parts.filter(Boolean).join(" › ");
   }
 
-  const nodes: any[] = Array.isArray(doc?.content) ? doc.content : [];
+  const nodes: TipTapChunkNode[] = Array.isArray(doc?.content) ? doc.content : [];
   for (const node of nodes) {
     if (node?.type === "heading") {
-      const level = Math.max(1, Math.min(6, Number(node.attrs?.level ?? 1)));
+      const rawLevel = node.attrs?.level;
+      const level = Math.max(1, Math.min(6, typeof rawLevel === "number" ? rawLevel : 1));
       const text = extractInline(node).trim();
       flush();
       headingStack.length = level - 1;
@@ -167,12 +175,12 @@ export function blocksFromTiptapDoc(doc: any, rootLabel?: string): StructuredBlo
 }
 
 /** Rekursive Textextraktion aus einem TipTap-Knoten. */
-function extractInline(node: any): string {
+function extractInline(node: TipTapChunkNode | null | undefined): string {
   if (!node) return "";
   if (typeof node.text === "string") return node.text;
   if (!Array.isArray(node.content)) return "";
   const sep = node.type === "bulletList" || node.type === "orderedList" ? "\n" : "";
-  return node.content.map((c: any) => extractInline(c)).join(sep);
+  return node.content.map((c) => extractInline(c)).join(sep);
 }
 
 /** Erzeugt Blöcke aus reinem Text (Notizen, Referenztexte, Figurenprofile). */
