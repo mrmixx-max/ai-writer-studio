@@ -66,12 +66,29 @@ describe("mergeChapterContent", () => {
 });
 
 describe("mergePayloads / resolveConflict", () => {
-  it("merged Kapitel aus beiden Seiten", () => {
-    const local = payload("Buch", [{ id: "c1", content: "lokal" }, { id: "c2", content: "neu lokal" }]);
-    const remote = payload("Buch", [{ id: "c1", content: "remote" }]);
+  it("merged disjunkte Kapitel aus beiden Seiten", () => {
+    const local = payload("Buch", [{ id: "c1", content: "gleich" }, { id: "c2", content: "neu lokal" }]);
+    const remote = payload("Buch", [{ id: "c1", content: "gleich" }, { id: "c3", content: "neu remote" }]);
     const merged = mergePayloads(local, remote);
     expect(merged).not.toBeNull();
-    expect(merged!.chapters.map((c) => c.id).sort()).toEqual(["c1", "c2"]);
+    expect(merged!.chapters.map((c) => c.id).sort()).toEqual(["c1", "c2", "c3"]);
+  });
+  it("echter Inhaltskonflikt ohne Basis -> kein stiller Merge, sondern manual", () => {
+    // Ohne gemeinsame Basis kann kein 3-Wege-Merge entscheiden; der alte Code
+    // nahm still die Remote-Seite (lokale Aenderung verworfen). Jetzt: null,
+    // damit resolveConflict(merged) auf manual/manual-offen faellt.
+    const local = payload("Buch", [{ id: "c1", content: "lokal" }, { id: "c2", content: "neu lokal" }]);
+    const remote = payload("Buch", [{ id: "c1", content: "remote" }]);
+    expect(mergePayloads(local, remote)).toBeNull();
+    const conflict = {
+      id: "c", projectId: "p1", projectPath: "/x", localPayload: local, remotePayload: remote,
+      remoteEtag: "e1", localTime: 2, remoteTime: 1, detectedAt: 0,
+      status: "open" as const, resolution: null, mergedPayload: null,
+    };
+    const { conflict: resolved, payload: p } = resolveConflict(conflict, "merged");
+    expect(resolved.status).toBe("open");
+    expect(resolved.resolution).toBe("manual");
+    expect(p).toBeNull();
   });
   it("local-wins liefert den lokalen Payload", () => {
     const local = payload("Buch", [{ id: "c1", content: "lokal" }]);

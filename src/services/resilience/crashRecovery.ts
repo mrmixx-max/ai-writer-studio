@@ -166,7 +166,7 @@ export async function loadWithRecovery(
       .map((e) => e.name!)
       .sort()
       .reverse();
-    for (const name of snaps.slice(0, 1)) {
+    for (const name of snaps) {
       candidates.push({ file: `${dir}${name}`, source: "snapshot" });
     }
   } catch {

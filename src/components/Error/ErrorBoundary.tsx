@@ -87,6 +87,15 @@ export class ErrorBoundary extends Component<
       // Monitoring blockiert (z. B. isolierte Tests) → Konsole als Fallback.
       console.error("[ErrorBoundary/panel]", error);
     }
+    // Globalen Crash-Report füttern (einheitliches Monitoring): Darf die
+    // Boundary nie selbst zum Absturz bringen — daher best effort.
+    void import("@/services/resilience/globalErrorHandler")
+      .then(({ reportReactCrash }) => {
+        reportReactCrash(error, info.componentStack ?? undefined);
+      })
+      .catch(() => {
+        // Monitoring optional — Fallback-UI steht bereits.
+      });
   }
 
   reset = (): void => {

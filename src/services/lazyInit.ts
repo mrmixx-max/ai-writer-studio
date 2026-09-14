@@ -139,10 +139,23 @@ export const HEAVY_MODULES: HeavyModuleEntry[] = [
 
 /**
  * Preload critical lazy modules in parallel (e.g. right after first paint).
- * Returns settled results so one failure doesn't hide the others.
+ * Every module is attempted (allSettled): One failure no longer hides the
+ * others — alle Fehler werden gesammelt und gemeinsam gemeldet.
  */
-export function preloadCritical<T>(modules: Array<LazyModule<T>>): Promise<Array<T>> {
-  return Promise.all(modules.map((m) => m.load()));
+export async function preloadCritical<T>(modules: Array<LazyModule<T>>): Promise<Array<T>> {
+  const settled = await Promise.allSettled(modules.map((m) => m.load()));
+  const rejected = settled.filter(
+    (s): s is PromiseRejectedResult => s.status === "rejected",
+  );
+  if (rejected.length > 0) {
+    const details = rejected
+      .map((r) => (r.reason instanceof Error ? r.reason.message : String(r.reason)))
+      .join("; ");
+    throw new Error(
+      `${rejected.length}/${settled.length} Module konnten nicht geladen werden: ${details}`,
+    );
+  }
+  return (settled as PromiseFulfilledResult<T>[]).map((s) => s.value);
 }
 
 export interface DeferOptions {

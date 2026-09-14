@@ -125,11 +125,16 @@ export class SyncService {
       return st?.lastPayloadJson != null && st.lastPayloadJson === localJson;
     })();
 
-    if (remoteCanonical === localJson || (unchangedRemotely && localUnchanged)) {
-      if (remoteCanonical === localJson || localUnchanged) {
-        this.store.upsert({ projectId, path, lastEtag: remote.etag, lastSyncedAt: Date.now(), lastPayloadJson: remoteCanonical });
-        return { projectId, path, action: "up-to-date", conflict: null, etag: remote.etag, error: null };
-      }
+    if (remoteCanonical === localJson || localUnchanged) {
+      this.store.upsert({ projectId, path, lastEtag: remote.etag, lastSyncedAt: Date.now(), lastPayloadJson: remoteCanonical });
+      return { projectId, path, action: "up-to-date", conflict: null, etag: remote.etag, error: null };
+    }
+
+    // Remote seit letztem Sync unveraendert (ETag-Match), nur lokal geaendert
+    // -> direkt pushen, ganz ohne Konfliktaufloesung. (Der alte Code hatte
+    // diesen Push in einem unerreichbaren Zweig: Die aeussere Bedingung
+    // verlangte localUnchanged, der innere Push-Zweig verlangte !localUnchanged.)
+    if (unchangedRemotely) {
       const { etag } = await this.provider.put(path, localJson);
       this.store.upsert({ projectId, path, lastEtag: etag, lastSyncedAt: Date.now(), lastPayloadJson: localJson });
       return { projectId, path, action: "pushed", conflict: null, etag, error: null };
@@ -152,8 +157,9 @@ export class SyncService {
     };
     const { conflict: resolved, payload } = resolveConflict(conflict, strategy);
     if (payload && resolved.status === "resolved") {
-      const { etag } = await this.provider.put(path, JSON.stringify(payload));
-      this.store.upsert({ projectId, path, lastEtag: etag, lastSyncedAt: Date.now(), lastPayloadJson: localJson });
+      const payloadJson = canonicalJson(payload);
+      const { etag } = await this.provider.put(path, payloadJson);
+      this.store.upsert({ projectId, path, lastEtag: etag, lastSyncedAt: Date.now(), lastPayloadJson: payloadJson });
       return { projectId, path, action: "pushed", conflict: resolved, etag, error: null };
     }
     return { projectId, path, action: "conflict", conflict: resolved, etag: remote.etag, error: null };
@@ -166,7 +172,8 @@ export class SyncService {
     if (!remote) {
       return { projectId, path, action: "up-to-date", conflict: null, etag: null, error: "remote nicht gefunden" };
     }
-    this.store.upsert({ projectId, path, lastEtag: remote.etag, lastSyncedAt: Date.now(), lastPayloadJson: remote.data });
+    const remotePayload = JSON.parse(remote.data) as SyncPayload;
+    this.store.upsert({ projectId, path, lastEtag: remote.etag, lastSyncedAt: Date.now(), lastPayloadJson: canonicalJson(remotePayload) });
     // Anwenden der Remote-Daten in die lokale DB macht der Aufrufer
     // (UI-Layer), da dies interaktiv bestaetigt werden sollte.
     return { projectId, path, action: "pulled", conflict: null, etag: remote.etag, error: null };
