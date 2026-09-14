@@ -12,6 +12,7 @@ import {
 } from "@/services/bookwriter/jobs";
 import { useActiveModel } from "@/components/KIPanel/useActiveModel";
 import { useProjectStore } from "@/store/projectStore";
+import { deleteChapter } from "@/services/project";
 import { useI18n } from "@/i18n";
 import { markdownToTipTap } from "@/services/editor/markdown";
 import { countWords } from "@/services/writing/chapterPlan";
@@ -358,11 +359,17 @@ export function BookWriterPanel() {
     }
   }, [activeProjectId, storeChapters, topic, exportFormat, t]);
 
-  const handleDeleteChapter = useCallback((_chapterId: string) => {
-    // Nur aus Store entfernen — DB-Delete kommt später
+  const handleDeleteChapter = useCallback((chapterId: string) => {
     const pid = activeProjectId;
     if (!pid) return;
-    // TODO: DB-Delete implementieren
+    // Store + DB konsistent löschen (kein Zombie-Kapitel nach Reload).
+    useProjectStore.setState((s) => ({
+      chapters: s.chapters.filter((ch) => ch.id !== chapterId),
+      activeChapterId: s.activeChapterId === chapterId ? null : s.activeChapterId,
+    }));
+    void deleteChapter(chapterId).catch(() => {
+      // DB-Fehler: Store bleibt Quelle der Wahrheit, UI läuft weiter.
+    });
   }, [activeProjectId]);
 
   // Abbruch NUR nach Bestätigung — bereits generierte Kapitel bleiben

@@ -8,6 +8,7 @@ import { completeOnce } from "@/services/llm";
 import { createChapter } from "@/services/project";
 import { markdownToTipTap } from "@/services/editor/markdown";
 import { createSnapshot } from "@/services/snapshot";
+import { runDiagnostics } from "@/services/diagnostics/runner";
 import {
   promptTitles,
   promptSubtitles,
@@ -320,13 +321,13 @@ export async function runBookwriter(
           break;
 
         case "qualitaet":
-          await runQualitaet((p, label) => {
+          await runQualitaet(runId, run.projectId, (p, label) => {
             onProgress?.(phase, p, label);
           }, signal);
           break;
 
         case "ueberarbeitung":
-          await runUeberarbeitung((p, label) => {
+          await runUeberarbeitung(runId, run.projectId, (p, label) => {
             onProgress?.(phase, p, label);
           }, signal);
           break;
@@ -581,25 +582,42 @@ async function generateManuskript(
   onProgress(1, "Manuskript fertig.");
 }
 
-/** Qualitätsloop. */
+/** Qualitätsloop: echte regelbasierte Prüfung über runDiagnostics. */
 async function runQualitaet(
+  runId: string,
+  projectId: string,
   onProgress: (progress: number, label: string) => void,
   signal?: AbortSignal,
 ): Promise<void> {
   onProgress(0.3, "Manuskriptprüfung wird ausgeführt…");
   if (signal?.aborted) return;
-  // TODO: runDiagnostics aufrufen und Ergebnisse speichern.
-  onProgress(1, "Qualitätsloop fertig.");
+  const report = await runDiagnostics(projectId);
+  await saveArtifact(runId, "qualitaet", "diagnostik", {
+    findings: report.findings.length,
+    chaptersChecked: report.chaptersChecked,
+    degraded: report.degraded,
+    notice: report.notice,
+    reportId: report.reportId,
+  });
+  onProgress(1, `Qualitätsloop fertig (${report.findings.length} Befunde).`);
 }
 
-/** Buch-Level-Überarbeitung. */
+/** Buch-Level-Überarbeitung: projektweite Prüfung, Ergebnis als Artefakt. */
 async function runUeberarbeitung(
+  runId: string,
+  projectId: string,
   onProgress: (progress: number, label: string) => void,
   signal?: AbortSignal,
 ): Promise<void> {
   onProgress(0.5, "Gesamtkonsistenz wird geprüft…");
   if (signal?.aborted) return;
-  // TODO: Buch-Level-Checks.
+  const report = await runDiagnostics(projectId);
+  await saveArtifact(runId, "ueberarbeitung", "konsistenz", {
+    findings: report.findings.length,
+    chaptersChecked: report.chaptersChecked,
+    degraded: report.degraded,
+    reportId: report.reportId,
+  });
   onProgress(1, "Überarbeitung fertig.");
 }
 
