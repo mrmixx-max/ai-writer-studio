@@ -16,6 +16,7 @@ import {
 } from "@/services/snapshot";
 import { useProjectStore } from "@/store/projectStore";
 import type { Snapshot, SnapshotDiff } from "@/types/snapshot";
+import { AppDialog, type DialogRequest } from "@/components/Dialog/AppDialog";
 import "./preflight.css";
 
 interface Props {
@@ -50,6 +51,7 @@ export function SnapshotPanel({ projectId }: Props) {
   const [deleteExtra, setDeleteExtra] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<Notice>(null);
+  const [dlg, setDlg] = useState<DialogRequest | null>(null);
 
   const reload = useCallback(() => {
     if (!projectId) {
@@ -75,12 +77,13 @@ export function SnapshotPanel({ projectId }: Props) {
 
   async function create() {
     if (!projectId) return;
-    const name = window.prompt(
-      "Name des Snapshots:",
-      `Stand ${new Date().toLocaleDateString("de-DE")}`,
+    const name = await new Promise<string | null>((resolve) =>
+      setDlg({ kind: "prompt", label: "Name des Snapshots:", initial: `Stand ${new Date().toLocaleDateString("de-DE")}`, resolve }),
     );
     if (!name?.trim()) return;
-    const note = window.prompt("Notiz (optional):") || null;
+    const note = await new Promise<string | null>((resolve) =>
+      setDlg({ kind: "prompt", label: "Notiz (optional):", initial: "", resolve }),
+    );
 
     setBusy(true);
     try {
@@ -121,7 +124,10 @@ export function SnapshotPanel({ projectId }: Props) {
   }
 
   async function remove(snap: Snapshot) {
-    if (!window.confirm(`Snapshot „${snap.name}“ endgültig löschen?`)) return;
+    const ok = await new Promise<boolean>((resolve) =>
+      setDlg({ kind: "confirm", message: `Snapshot „${snap.name}“ endgültig löschen?`, resolve }),
+    );
+    if (!ok) return;
     setBusy(true);
     try {
       await deleteSnapshot(snap.id);
@@ -171,6 +177,7 @@ export function SnapshotPanel({ projectId }: Props) {
 
   return (
     <div className="pf">
+      <AppDialog request={dlg} onDone={() => setDlg(null)} />
       <div className="pf-scroll">
         <div className="dg-actions">
           <button className="dg-btn primary" onClick={() => void create()} disabled={busy}>
