@@ -7,7 +7,7 @@ function uid(p: string): string {
 }
 
 export async function createVersion(
-  chapterId: string, label: string, content: string, versionType: string, metrics?: any
+  chapterId: string, label: string, content: string, versionType: string, metrics?: Record<string, unknown>
 ): Promise<LiteraryVersion> {
   const db = getDb();
   const id = uid("ver");

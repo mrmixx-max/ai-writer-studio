@@ -25,7 +25,7 @@ import { loadWithRecovery, backupBeforeCritical } from "@/services/resilience/cr
 
 export { backupBeforeCritical };
 
-declare const window: any;
+declare const window: { __TAURI_INTERNALS__?: unknown } | undefined;
 
 /** true, wenn die App im Tauri-Desktop-Kontext läuft. */
 function hasTauri(): boolean {

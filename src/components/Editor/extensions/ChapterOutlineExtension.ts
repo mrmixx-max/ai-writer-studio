@@ -95,7 +95,7 @@ function arraysEqual(a: OutlineItem[], b: OutlineItem[]): boolean {
 }
 
 /** Hilfsfunktion: Outline aus dem Editor-Instanz lesen. */
-export function getOutlineFromEditor(editor: any): OutlineItem[] {
-  const pluginState = outlinePluginKey.getState(editor.state);
-  return pluginState || [];
+export function getOutlineFromEditor(editor: { state: unknown }): OutlineItem[] {
+  const pluginState = outlinePluginKey.getState(editor.state as never);
+  return (pluginState as OutlineItem[] | undefined) ?? [];
 }
