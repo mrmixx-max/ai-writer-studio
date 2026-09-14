@@ -46,8 +46,11 @@ export const wordCountBadgePlugin: PluginDefinition = {
       return value;
     });
 
-    ctx.onEvent("wordcount:changed", (payload) => {
-      ctx.log.info(`Absätze: ${(payload as { paragraphs?: number })?.paragraphs ?? 0}`);
+    ctx.onEvent("wordcount:changed", (payload: unknown) => {
+      const paragraphs = typeof (payload as { paragraphs?: unknown })?.paragraphs === "number"
+        ? (payload as { paragraphs: number }).paragraphs
+        : 0;
+      ctx.log.info(`Absätze: ${paragraphs}`);
     });
   },
   deactivate() {

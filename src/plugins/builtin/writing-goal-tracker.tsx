@@ -204,8 +204,11 @@ export const writingGoalTrackerPlugin: PluginDefinition = {
       return value;
     });
 
-    ctx.onEvent("wordcount:changed", (payload) => {
-      ctx.log.info(`Wortstand: ${(payload as { words?: number })?.words ?? 0}`);
+    ctx.onEvent("wordcount:changed", (payload: unknown) => {
+      const words = typeof (payload as { words?: unknown })?.words === "number"
+        ? (payload as { words: number }).words
+        : 0;
+      ctx.log.info(`Wortstand: ${words}`);
     });
   },
   deactivate() {
