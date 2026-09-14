@@ -223,9 +223,9 @@ async function paPost(
   target: string,
   body: Record<string, unknown>,
    
-  fetchFn: typeof fetch = fetch as any,
+  fetchFn: typeof fetch = fetch,
    
-): Promise<any> {
+): Promise<unknown> {
   if (!isAmazonConfigured(cfg)) throw new Error("Amazon API nicht konfiguriert");
   const host = hostForRegion(cfg.region);
   const payload = JSON.stringify(body);
@@ -260,36 +260,66 @@ async function paPost(
 // ---- Response-Mapping ---------------------------------------------------------
 
  
-export function mapPaItem(item: any): AmazonBook {
-  const asin: string = item?.ASIN ?? "";
-  const title: string = item?.ItemInfo?.Title?.DisplayValue ?? "(ohne Titel)";
+interface PaItem {
+  ASIN?: unknown;
+  DetailPageURL?: unknown;
+  SalesRank?: unknown;
+  ItemInfo?: {
+    Title?: { DisplayValue?: unknown };
+    ByLineInfo?: {
+      Contributors?: Array<{ Name?: unknown }>;
+      Manufacturer?: { DisplayValue?: unknown };
+    };
+    Classifications?: { ProductGroup?: { DisplayValue?: unknown } };
+  };
+  Offers?: {
+    Listings?: Array<{ Price?: { Amount?: unknown; Currency?: unknown } }>;
+    Summaries?: Array<{ LowestPrice?: { Amount?: unknown; Currency?: unknown } }>;
+  };
+  BrowseNodeInfo?: {
+    WebsiteSalesRank?: { Rank?: unknown };
+    BrowseNodes?: Array<{ DisplayName?: unknown }>;
+  };
+  Images?: { Primary?: { Medium?: { URL?: unknown } } };
+}
+
+function paStr(v: unknown): string | undefined {
+  return typeof v === 'string' && v ? v : undefined;
+}
+
+export function mapPaItem(item: PaItem): AmazonBook {
+  const asin = paStr(item?.ASIN) ?? "";
+  const title = paStr(item?.ItemInfo?.Title?.DisplayValue) ?? "(ohne Titel)";
   const contributors = item?.ItemInfo?.ByLineInfo?.Contributors ?? [];
-  const author: string =
-    contributors.map((c: { Name?: string }) => c?.Name).filter(Boolean).join(", ") ||
-    item?.ItemInfo?.ByLineInfo?.Manufacturer?.DisplayValue ||
+  const author =
+    contributors.map((c) => paStr(c?.Name)).filter((n): n is string => !!n).join(", ") ||
+    paStr(item?.ItemInfo?.ByLineInfo?.Manufacturer?.DisplayValue) ||
     "(unbekannt)";
   const listing = item?.Offers?.Listings?.[0]?.Price;
   const summary = item?.Offers?.Summaries?.[0]?.LowestPrice;
   const priceRaw = listing ?? summary;
+  const amount = typeof priceRaw?.Amount === 'number' ? priceRaw.Amount : Number(priceRaw?.Amount);
   const price: AmazonPrice | undefined =
-    priceRaw?.Amount != null
-      ? { currency: String(priceRaw.Currency ?? "EUR"), amount: Number(priceRaw.Amount) }
+    priceRaw?.Amount != null && !Number.isNaN(amount)
+      ? { currency: paStr(priceRaw.Currency) ?? "EUR", amount }
       : undefined;
-  const rankRaw =
-    item?.BrowseNodeInfo?.WebsiteSalesRank?.Rank ?? item?.SalesRank ?? undefined;
-  const rank = rankRaw != null ? Number(rankRaw) : undefined;
-  const category: string | undefined =
-    item?.BrowseNodeInfo?.BrowseNodes?.[0]?.DisplayName ??
-    item?.ItemInfo?.Classifications?.ProductGroup?.DisplayValue ??
+  const rankRaw = item?.BrowseNodeInfo?.WebsiteSalesRank?.Rank ?? item?.SalesRank ?? undefined;
+  const rankNum = typeof rankRaw === 'number' ? rankRaw : Number(rankRaw);
+  const rank = rankRaw != null && !Number.isNaN(rankNum) ? rankNum : undefined;
+  const category =
+    paStr(item?.BrowseNodeInfo?.BrowseNodes?.[0]?.DisplayName) ??
+    paStr(item?.ItemInfo?.Classifications?.ProductGroup?.DisplayValue) ??
     undefined;
+  const url = paStr(item?.DetailPageURL) ?? "";
+  const imageUrl = paStr(item?.Images?.Primary?.Medium?.URL);
   return {
     asin,
     title,
     author,
     ...(price ? { price } : {}),
-    url: item?.DetailPageURL ?? "",
-    ...(item?.Images?.Primary?.Medium?.URL ? { imageUrl: item.Images.Primary.Medium.URL } : {}),
-    ...(rank != null && !Number.isNaN(rank) ? { rank } : {}),
+    url,
+    ...(imageUrl ? { imageUrl } : {}),
+    ...(rank != null ? { rank } : {}),
     ...(category ? { category } : {}),
   };
 }
@@ -305,11 +335,11 @@ export async function searchBooks(
   searchIndex = "Books",
   cfg?: AmazonPaConfig,
    
-  fetchFn: typeof fetch = fetch as any,
+  fetchFn: typeof fetch = fetch,
 ): Promise<AmazonBook[]> {
   const c = cfg ?? loadAmazonConfig();
    
-  const data: any = await paPost(
+  const data: unknown = await paPost(
     c,
     "/paapi5/searchitems",
     SEARCH_TARGET,
@@ -324,9 +354,9 @@ export async function searchBooks(
     },
     fetchFn,
   );
-  const items = data?.SearchResult?.Items ?? [];
+  const items = (data as { SearchResult?: { Items?: unknown } })?.SearchResult?.Items;
    
-  return items.map((i: any) => mapPaItem(i));
+  return (Array.isArray(items) ? items : []).map((i) => mapPaItem(i as PaItem));
 }
 
 /** Einzelabruf per ASIN (GetItems). Null, wenn nicht gefunden. */
@@ -334,11 +364,11 @@ export async function getBookByAsin(
   asin: string,
   cfg?: AmazonPaConfig,
    
-  fetchFn: typeof fetch = fetch as any,
+  fetchFn: typeof fetch = fetch,
 ): Promise<AmazonBook | null> {
   const c = cfg ?? loadAmazonConfig();
    
-  const data: any = await paPost(
+  const data: unknown = await paPost(
     c,
     "/paapi5/getitems",
     GET_TARGET,
@@ -352,8 +382,9 @@ export async function getBookByAsin(
     },
     fetchFn,
   );
-  const items = data?.ItemsResult?.Items ?? [];
-  return items.length ? mapPaItem(items[0]) : null;
+  const items = (data as { ItemsResult?: { Items?: unknown } })?.ItemsResult?.Items;
+  const arr = Array.isArray(items) ? items : [];
+  return arr.length ? mapPaItem(arr[0] as PaItem) : null;
 }
 
 /** Aktueller Preis per ASIN. Null, wenn kein Angebot/Preis verfügbar. */
@@ -361,7 +392,7 @@ export async function getBookPrice(
   asin: string,
   cfg?: AmazonPaConfig,
    
-  fetchFn: typeof fetch = fetch as any,
+  fetchFn: typeof fetch = fetch,
 ): Promise<AmazonPrice | null> {
   const book = await getBookByAsin(asin, cfg, fetchFn);
   return book?.price ?? null;
