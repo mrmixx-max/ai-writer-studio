@@ -43,7 +43,7 @@ const KEY_PREFIX: Partial<Record<ProviderId, { re: RegExp; hint: string }>> = {
 
 /** Deutsche Hilfetexte je Anbieter-Feld. */
 const FIELD_HELP: Record<ProviderId, { key?: string; url?: string }> = {
-  ollama: { url: "Adresse des lokalen Ollama-Servers, z. B. http://localhost:11434" },
+  ollama: { url: "Adresse des lokalen Ollama-Servers, z. B. http://127.0.0.1:11434 (localhost meiden: löst teils auf IPv6 ::1 auf · Ollama lauscht auf IPv4)" },
   lmstudio: { url: "OpenAI-kompatible Adresse des LM Studio-Servers, z. B. http://localhost:1234/v1" },
   openai: { key: "Persönlicher Schlüssel von platform.openai.com. Wird nur lokal gespeichert.", },
   openrouter: { key: "Persönlicher Schlüssel von openrouter.ai/keys. Wird nur lokal gespeichert." },
