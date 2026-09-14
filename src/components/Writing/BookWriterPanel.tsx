@@ -21,6 +21,7 @@ import {
   type ExportFormat,
 } from "@/services/bookwriter/export";
 import { logger } from "@/services/logger";
+import { AppDialog, type DialogRequest } from "@/components/Dialog/AppDialog";
 import { listStyles } from "@/services/bookwriter/prompts/library";
 import { ChapterPlanner } from "./ChapterPlanner";
 import type { Chapter, ChapterStatus } from "@/types/project";
@@ -91,6 +92,8 @@ export function BookWriterPanel() {
   const [exportProgress, setExportProgress] = useState<number | null>(null);
   const [exportStatus, setExportStatus] = useState<string | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
+  const [dlg, setDlg] = useState<DialogRequest | null>(null);
+  const [panelNotice, setPanelNotice] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const activeJobIdRef = useRef<string | null>(null);
 
@@ -374,8 +377,11 @@ export function BookWriterPanel() {
 
   // Abbruch NUR nach Bestätigung — bereits generierte Kapitel bleiben
   // erhalten (C3).
-  const handleStop = useCallback(() => {
-    if (!window.confirm(t("bookwriter.confirmStop"))) return;
+  const handleStop = useCallback(async () => {
+    const ok = await new Promise<boolean>((resolve) =>
+      setDlg({ kind: "confirm", message: t("bookwriter.confirmStop"), resolve }),
+    );
+    if (!ok) return;
     abortRef.current?.abort();
     setIsGenerating(false);
     const jobId = activeJobIdRef.current;
@@ -458,6 +464,13 @@ export function BookWriterPanel() {
 
   return (
     <div className="bookwriter-panel">
+      <AppDialog request={dlg} onDone={() => setDlg(null)} />
+      {panelNotice && (
+        <div className="bw-error" data-testid="bw-panel-notice" role="alert">
+          {panelNotice}{" "}
+          <button onClick={() => setPanelNotice(null)}>×</button>
+        </div>
+      )}
       <h3>{t("bookwriter.title")}</h3>
 
       {/* Resume-Dialog (C2): Job läuft seit App-Neustart weiter */}
@@ -759,7 +772,7 @@ export function BookWriterPanel() {
               <button
                 onClick={() => {
                   if (!activeProjectId) {
-                    alert(t("bookwriter.openProjectFirst"));
+                    setPanelNotice(t("bookwriter.openProjectFirst"));
                     return;
                   }
                   for (const ch of chapters) {
