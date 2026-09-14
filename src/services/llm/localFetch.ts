@@ -1,16 +1,24 @@
-// Lokaler HTTP-Transport — läuft im Tauri-Kontext über das HTTP-Plugin
-// (Rust-Seite, kein Browser-Origin → kein Ollama-CORS-Problem), im Browser/
-// Test-Kontext über window.fetch. Das behebt den 403-Fehler der installierten
-// App: Tauri v2 sendet Origin `https://tauri.localhost`, den Ollama ohne
-// OLLAMA_ORIGINS mit 403 ablehnt — der Plugin-Request kommt dagegen vom
-// nativen Client ohne blockierten Origin.
+// Lokaler HTTP-Transport — läuft im Tauri-Kontext über Rust-Commands
+// (ollama_get/ollama_post/ollama_delete in src-tauri/src/ollama_proxy.rs:
+// nativer Client, kein Browser-Origin, kein CORS), im Browser/Test-Kontext
+// über window.fetch.
+//
+// Warum kein fetch in der WebView: Die installierte App sendet Origin
+// `https://tauri.localhost`, den Ollama ohne OLLAMA_ORIGINS mit 403 ablehnt —
+// und WebView-fetch scheitert hier sogar mit Netzwerkfehler (Failed to fetch),
+// obwohl der Server per curl antwortet. Der Rust-Proxy umgeht das vollständig.
 //
 // API: getLocal(url, timeoutMs, extra?), postLocalJson(url, body, extra?),
 // deleteLocal(url, body) — alle liefern einen nativen Response, damit
 // Aufrufer (.ok/.status/.json()/.text()/.body) unverändert weiterarbeiten.
 // extra.headers erlaubt eigene Header (z. B. Authorization für Gateways).
+//
+// HINWEIS Streaming: Der Rust-Proxy liefert den VOLLEN Body (kein Stream).
+// Für /api/chat-Streaming nutzt der OllamaProvider deshalb weiterhin fetch
+// (siehe ollama.ts) — sobald Ollama erreichbar ist, greift dort der normale
+// NDJSON-Stream. Health/List/Embed/Pull/Delete laufen über den Proxy.
 
-import { fetch as tauriFetch } from "@tauri-apps/plugin-http";
+import { invoke } from "@tauri-apps/api/core";
 
 declare const window: { __TAURI_INTERNALS__?: unknown } | undefined;
 
@@ -23,6 +31,14 @@ export interface LocalFetchExtra {
   signal?: AbortSignal;
   timeoutMs?: number;
   headers?: Record<string, string>;
+}
+
+/** Baut einen Response aus Status + Body-String (Rust-Proxy-Pfad). */
+function proxyResponse(status: number, bodyText: string): Response {
+  return new Response(bodyText, {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
 }
 
 /** GET gegen einen lokalen Server (Ollama/LM Studio). */
@@ -45,12 +61,13 @@ export async function getLocal(url: string, timeoutMs = 30000, extra?: LocalFetc
       if (signal && onAbort) signal.removeEventListener("abort", onAbort);
     }
   }
-  return tauriFetch(url, {
-    method: "GET",
-    ...(headers ? { headers } : {}),
-    ...(signal ? { signal } : {}),
-    connectTimeout: Math.round(timeoutMs / 1000),
+  // Tauri: über den Rust-Proxy (kein CORS, kein WebView-Netzwerkstack).
+  if (signal?.aborted) throw new DOMException("Abgebrochen", "AbortError");
+  const text = await invoke<string>("ollama_get", {
+    url,
+    timeoutSecs: Math.max(1, Math.round(timeoutMs / 1000)),
   });
+  return proxyResponse(200, text);
 }
 
 /** DELETE gegen einen lokalen Server (z. B. Ollama /api/delete). */
@@ -63,11 +80,8 @@ export async function deleteLocal(url: string, body: unknown): Promise<Response>
       body: payload,
     });
   }
-  return tauriFetch(url, {
-    method: "DELETE",
-    headers: { "Content-Type": "application/json" },
-    body: payload,
-  });
+  const text = await invoke<string>("ollama_delete", { url, body: payload });
+  return proxyResponse(200, text);
 }
 
 /** POST mit JSON-Body gegen einen lokalen Server. Liefert nativen Response. */
@@ -104,10 +118,13 @@ export async function postLocalJson(
       if (extra?.signal && onAbort) extra.signal.removeEventListener("abort", onAbort);
     }
   }
-  return tauriFetch(url, {
-    method: "POST",
-    headers,
+  // Tauri: über den Rust-Proxy. HINWEIS: kein Streaming — voller Body.
+  // Für /api/chat nutzt der Provider weiterhin fetch (siehe ollama.ts).
+  if (extra?.signal?.aborted) throw new DOMException("Abgebrochen", "AbortError");
+  const text = await invoke<string>("ollama_post", {
+    url,
     body: payload,
-    ...(extra?.signal ? { signal: extra.signal } : {}),
+    timeoutSecs: Math.max(1, Math.round((extra?.timeoutMs ?? 600000) / 1000)),
   });
+  return proxyResponse(200, text);
 }

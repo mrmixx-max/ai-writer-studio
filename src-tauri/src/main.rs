@@ -17,6 +17,7 @@ mod git;
 mod updater;
 mod windows;
 mod hermes_import;
+mod ollama_proxy;
 
 const USER_DIRS: [&str; 4] = ["user_data", "logs", "exports", "backups"];
 
@@ -138,7 +139,10 @@ fn main() {
             updater::download_and_install_update,
             updater::relaunch_app,
             git::git_version,
-            git::run_git
+            git::run_git,
+            ollama_proxy::ollama_get,
+            ollama_proxy::ollama_post,
+            ollama_proxy::ollama_delete
         ])
         .setup(|app| {
             log::info!("App started (setup)");
