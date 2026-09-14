@@ -44,6 +44,21 @@ export const TTS_PROVIDER_LABELS: Record<TTSProviderId, string> = {
 
 // --- OpenAI TTS ---
 
+/** Bekannte OpenAI-Stimmen — Unbekanntes fällt auf "alloy" zurück (statt API-400). */
+export const OPENAI_TTS_VOICES = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"] as const;
+
+export function normalizeOpenAIVoice(voice: unknown): string {
+  return typeof voice === "string" && (OPENAI_TTS_VOICES as readonly string[]).includes(voice)
+    ? voice
+    : "alloy";
+}
+
+/** Klampft Sprechtempo auf den unterstützten Bereich 0.5–2.0. */
+export function normalizeTTSSpeed(speed: unknown): number {
+  const n = typeof speed === "number" && Number.isFinite(speed) ? speed : 1.0;
+  return Math.min(2.0, Math.max(0.5, n));
+}
+
 class OpenAITTSProvider implements TTSProvider {
   readonly id = "openai-tts" as const;
   readonly label = "OpenAI TTS";
@@ -64,6 +79,7 @@ class OpenAITTSProvider implements TTSProvider {
 
   async speak(options: TTSOptions): Promise<ArrayBuffer> {
     if (!this.config.openaiApiKey) throw new Error("OpenAI API-Key fehlt");
+    if (!options.text || !options.text.trim()) throw new Error("OpenAI TTS Fehler: kein Text");
 
     const res = await fetch("https://api.openai.com/v1/audio/speech", {
       method: "POST",
@@ -74,8 +90,8 @@ class OpenAITTSProvider implements TTSProvider {
       body: JSON.stringify({
         model: "tts-1",
         input: options.text.slice(0, 4096),
-        voice: options.voice ?? "alloy",
-        speed: options.speed ?? 1.0,
+        voice: normalizeOpenAIVoice(options.voice),
+        speed: normalizeTTSSpeed(options.speed),
         response_format: "mp3",
       }),
     });
@@ -142,6 +158,7 @@ class PiperTTSProvider implements TTSProvider {
 
   async speak(options: TTSOptions): Promise<ArrayBuffer> {
     if (!this.config.piperUrl) throw new Error("Piper URL fehlt");
+    if (!options.text || !options.text.trim()) throw new Error("Piper Fehler: kein Text");
 
     const res = await fetch(`${this.config.piperUrl}/tts`, {
       method: "POST",
@@ -149,7 +166,7 @@ class PiperTTSProvider implements TTSProvider {
       body: JSON.stringify({
         text: options.text.slice(0, 2000),
         voice: options.voice ?? "de_DE-thorsten-medium",
-        speed: options.speed ?? 1.0,
+        speed: normalizeTTSSpeed(options.speed),
       }),
     });
 

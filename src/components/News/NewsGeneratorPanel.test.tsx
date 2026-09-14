@@ -52,4 +52,13 @@ describe("NewsGeneratorPanel V2", () => {
     await waitFor(() => expect(screen.getByTestId("news-gen-results")).toBeInTheDocument(), { timeout: 5000 });
     expect((screen.getByTestId("news-gen-topic") as HTMLInputElement).value).not.toBe("");
   });
+
+  it("deaktiviert Export ohne Handler (kein toter Button)", async () => {
+    const user = userEvent.setup();
+    render(<NewsGeneratorPanel />);
+    await user.type(screen.getByTestId("news-gen-topic"), "Künstliche Intelligenz");
+    await user.click(screen.getByTestId("news-gen-generate"));
+    await waitFor(() => expect(screen.getByTestId("news-gen-results")).toBeInTheDocument(), { timeout: 5000 });
+    expect(screen.getByTestId("news-gen-export")).toBeDisabled();
+  });
 });

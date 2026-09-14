@@ -262,6 +262,8 @@ export function NewsGeneratorPanel({
             data-testid="news-gen-export"
             className="news-gen-button"
             onClick={exportNewspaper}
+            disabled={articles.length === 0 || !onExportNewspaper}
+            title={onExportNewspaper ? undefined : "Kein Export-Handler verbunden"}
             style={{ marginTop: 8 }}
           >
             {exported ? "✓ Exportiert" : "Exportieren"}

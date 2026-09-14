@@ -164,7 +164,14 @@ export function recordAndTranscribe(
       fn();
     };
     const ok = (text: string) => settle(() => resolve(text));
-    const fail = (err: Error) => settle(() => reject(err));
+    const fail = (err: Error) => {
+      try {
+        onStatus(`Fehler: ${err.message}`);
+      } catch {
+        /* Status-Callback darf nie werfen */
+      }
+      settle(() => reject(err));
+    };
 
     const timer =
       timeoutMs > 0
@@ -237,7 +244,7 @@ export function recordAndTranscribe(
           });
           return;
         }
-        fail(new Error(`Spracherkennung Fehler: ${code}`));
+        fail(new Error(`Spracherkennung Fehler: ${code ?? "unbekannt"}`));
       };
 
       recognition.onend = () => {

@@ -289,7 +289,7 @@ export function buildKdpChecklist(metadata: KdpMetadata): KdpChecklistItem[] {
       id: "cover",
       label: "Cover-Bild",
       hint: "Min. 1000 Pixel an der langen Seite; als JPG/PNG eingebettet.",
-      status: metadata.coverImage ? "ok" : "err",
+      status: (metadata.coverImage?.trim() ?? "") !== "" ? "ok" : "err",
     },
     {
       id: "price",

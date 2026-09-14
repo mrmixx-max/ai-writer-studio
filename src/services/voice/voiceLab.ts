@@ -116,13 +116,24 @@ export async function transcribeAudio(
   const fetchFn = deps.fetchFn ?? fetch;
   const endpoint = deps.endpoint ?? VOICE_LAB_DEFAULT_ENDPOINT;
 
+  if (!audioBlob || audioBlob.size === 0) {
+    throw new Error("Transkription fehlgeschlagen (kein Audio: Aufnahme war leer).");
+  }
+
   const form = new FormData();
   form.append("file", audioBlob, "recording.webm");
   form.append("model", config.model);
   form.append("language", config.language);
   form.append("response_format", "verbose_json");
 
-  const res = await fetchFn(endpoint, { method: "POST", body: form });
+  let res: Response;
+  try {
+    res = await fetchFn(endpoint, { method: "POST", body: form });
+  } catch (e) {
+    throw new Error(
+      `Transkription fehlgeschlagen (Netzwerkfehler: ${e instanceof Error ? e.message : String(e)})`,
+    );
+  }
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     throw new Error(errorMessage(res.status, body));
@@ -165,14 +176,38 @@ export async function transcribeAudio(
 
 /** Startet die Mikrofon-Aufnahme und gibt den laufenden Recorder zurueck. */
 export async function startRecording(deps: RecordDeps = {}): Promise<MediaRecorder> {
+  const nav = (globalThis as unknown as { navigator?: Navigator }).navigator;
   const getUserMedia =
-    deps.getUserMedia ?? navigator?.mediaDevices?.getUserMedia?.bind(navigator.mediaDevices);
+    deps.getUserMedia ?? nav?.mediaDevices?.getUserMedia?.bind(nav.mediaDevices);
   const Recorder = deps.Recorder ?? (typeof MediaRecorder !== "undefined" ? MediaRecorder : undefined);
   if (!getUserMedia) throw new Error("Mikrofon-Aufnahme wird nicht unterstützt (kein getUserMedia).");
   if (!Recorder) throw new Error("Mikrofon-Aufnahme wird nicht unterstützt (kein MediaRecorder).");
-  const stream = await getUserMedia({ audio: true });
+  let stream: MediaStream;
+  try {
+    stream = await getUserMedia({ audio: true });
+  } catch (e) {
+    throw new Error(
+      `Mikrofon-Zugriff verweigert: ${e instanceof Error ? e.message : String(e)}`,
+    );
+  }
   const recorder = new Recorder(stream);
-  recorder.start();
+  try {
+    recorder.start();
+  } catch (e) {
+    try {
+      stream.getTracks().forEach((t) => t.stop());
+    } catch {
+      /* ignore */
+    }
+    throw e instanceof Error ? e : new Error(String(e));
+  }
+  // Stream am Recorder hinterlegen, damit UI den Mikrofon-Track stoppen kann
+  // (MediaRecorder selbst exponiert keinen Stream).
+  try {
+    (recorder as unknown as { stream: MediaStream }).stream = stream;
+  } catch {
+    /* ignore */
+  }
   return recorder;
 }
 

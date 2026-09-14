@@ -229,9 +229,10 @@ export async function restoreSnapshot(
       }
       restored++;
     } else {
-      // Das Kapitel wurde inzwischen gelöscht — neu anlegen. Es bekommt
-      // dabei eine neue Id; der alte Inhalt ist das Entscheidende.
-      await createChapter(snapshot.projectId, it.title, it.content);
+      // Das Kapitel wurde inzwischen gelöscht — neu anlegen. Die ursprüngliche
+      // Reihenfolge (orderIndex) wird übergeben, damit das Kapitel nicht
+      // ans Ende rutscht und die Manuskriptstruktur erhalten bleibt.
+      await createChapter(snapshot.projectId, it.title, it.content, it.orderIndex);
       recreated++;
     }
   }

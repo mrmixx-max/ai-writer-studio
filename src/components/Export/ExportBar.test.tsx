@@ -146,4 +146,30 @@ describe("ExportBar", () => {
     await user.click(screen.getByRole("button", { name: "Zurück" }));
     expect(screen.getByRole("button", { name: "Exportieren" })).toBeInTheDocument();
   });
+
+  it("Fehlgeschlagener Export zeigt Fehler und hält das Menü offen", async () => {
+    vi.mocked(exportProject).mockRejectedValueOnce(new Error("Platte voll"));
+    const user = userEvent.setup();
+    render(<ExportBar />);
+    await openMenu(user);
+    await user.selectOptions(screen.getByDisplayValue("DOCX"), "md");
+    await user.click(screen.getByRole("button", { name: "Exportieren" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(/Platte voll/);
+    // Menü bleibt für Wiederholung offen
+    expect(screen.getByText("Bereich")).toBeInTheDocument();
+    expect(exportProject).toHaveBeenCalledTimes(1);
+  });
+
+  it("Fehlgeschlagener Preflight zeigt Fehler, Export bleibt möglich", async () => {
+    const { runExportPreflight: run } = await import("@/services/preflight/runner");
+    vi.mocked(run).mockRejectedValueOnce(new Error("Preflight-Dienst offline"));
+    const user = userEvent.setup();
+    render(<ExportBar />);
+    await openMenu(user);
+    await user.click(screen.getByRole("button", { name: "Exportieren" }));
+    expect(await screen.findByText(/Prüfung fehlgeschlagen/)).toBeInTheDocument();
+    expect(exportProject).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "Exportieren" }));
+    expect(exportProject).toHaveBeenCalledTimes(1);
+  });
 });

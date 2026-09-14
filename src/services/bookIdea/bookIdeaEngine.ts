@@ -1,6 +1,6 @@
 // Book Idea Engine (Sprint 29): KI-Buchideenentwickler.
 // Generiert, bewertet und verfeinert Buchideen — ohne Platzhalter.
-import type { BookIdea, IdeaEvaluation, GenerateIdeasOptions } from "@/types/bookIdea";
+import type { BookIdea, IdeaEvaluation, GenerateIdeasOptions, GenerationMode } from "@/types/bookIdea";
 import { logger } from "@/services/logger";
 
 const GENRES = [
@@ -143,17 +143,20 @@ async function generateLLMIdeas(
     if (!jsonMatch) throw new Error("Keine JSON-Antwort");
 
     const parsed = JSON.parse(jsonMatch[0]) as Array<Partial<BookIdea>>;
-    return parsed.map((idea, i) => ({
+    if (!Array.isArray(parsed)) throw new Error("Keine JSON-Array-Antwort");
+    const clean = parsed.filter((idea) => idea && typeof idea === "object");
+    if (clean.length === 0) throw new Error("Leere JSON-Antwort");
+    return clean.map((idea, i) => ({
       id: `llm-${i + 1}`,
-      title: idea.title ?? `${genre} ${i + 1}`,
+      title: idea.title || `${genre} ${i + 1}`,
       genre,
       targetAudience,
-      logline: idea.logline ?? "",
-      synopsis: idea.synopsis ?? "",
-      protagonist: idea.protagonist ?? "",
-      antagonist: idea.antagonist ?? "",
-      setting: idea.setting ?? "",
-      conflict: idea.conflict ?? "",
+      logline: idea.logline || "",
+      synopsis: idea.synopsis || "",
+      protagonist: idea.protagonist || "",
+      antagonist: idea.antagonist || "",
+      setting: idea.setting || "",
+      conflict: idea.conflict || "",
       themes: idea.themes ?? [],
       chapters: idea.chapters ?? [],
     }));
@@ -241,23 +244,65 @@ function generateTips(idea: BookIdea, scores: ReturnType<typeof calculateScores>
 }
 
 /**
- * Verfeinert eine bestehende Idee.
+ * Verfeinert eine bestehende Idee (idempotent — wiederholtes Verfeinern
+ * hängt keine doppelten Themes/Kapitel an).
  */
 export function refineIdea(idea: BookIdea): BookIdea {
+  const themes = [...idea.themes];
+  for (const t of ["Wachstum", "Transformation"]) {
+    if (!themes.includes(t)) themes.push(t);
+  }
+  const chapters =
+    idea.chapters.length >= 6
+      ? idea.chapters
+      : [
+          ...idea.chapters,
+          ...["Die Krise", "Die Auflösung"].filter((c) => !idea.chapters.includes(c)),
+        ];
   return {
     ...idea,
     title: idea.title.includes(":") ? idea.title : `${idea.title}: Die Fortsetzung`,
-    synopsis: idea.synopsis + " Die Entwicklung zeigt: Es geht um mehr als erwartet — die Spannung steigt.",
-    themes: [...idea.themes, "Wachstum", "Transformation"],
-    chapters: idea.chapters.length >= 6 ? idea.chapters : [...idea.chapters, "Die Krise", "Die Auflösung"],
+    synopsis: idea.synopsis.endsWith("die Spannung steigt.")
+      ? idea.synopsis
+      : idea.synopsis + " Die Entwicklung zeigt: Es geht um mehr als erwartet — die Spannung steigt.",
+    themes,
+    chapters,
   };
+}
+
+/**
+ * Hybrid-Modus: LLM-Ideen zuerst, Demo-Ideen füllen auf die gewünschte
+ * Anzahl auf (mit kollisionsfreien IDs). So ist "hybrid" ein echter
+ * eigener Modus statt eines Aliases für "llm".
+ */
+async function generateHybridIdeas(
+  genre: string,
+  theme: string,
+  targetAudience: string,
+  count: number,
+  model: string,
+): Promise<BookIdea[]> {
+  const llmIdeas = await generateLLMIdeas(genre, theme, targetAudience, count, model);
+  if (llmIdeas.length >= count) return llmIdeas.slice(0, count);
+  const demoIdeas = await generateDemoIdeas(
+    genre,
+    theme,
+    targetAudience,
+    count - llmIdeas.length,
+  );
+  const used = new Set(llmIdeas.map((i) => i.id));
+  const fill = demoIdeas.map((idea, i) => ({
+    ...idea,
+    id: `hybrid-${i + 1}`,
+  })).filter((idea) => !used.has(idea.id));
+  return [...llmIdeas, ...fill].slice(0, count);
 }
 
 /**
  * Hauptfunktion.
  */
 export async function generateBookIdeas(
-  options: GenerateIdeasOptions,
+  options: GenerateIdeasOptions & { mode?: GenerationMode },
 ): Promise<BookIdea[]> {
   const {
     genre = GENRES[Math.floor(Math.random() * GENRES.length)],
@@ -266,15 +311,24 @@ export async function generateBookIdeas(
     count = 4,
     useLLM = false,
     llmModel = "llama3.2",
+    mode,
   } = options;
+
+  const safeCount = Math.max(1, Math.min(10, Math.floor(count) || 4));
+  const safeTheme = theme.trim() || "Zukunft";
 
   await new Promise((resolve) => setTimeout(resolve, 500));
 
-  if (useLLM) {
-    return generateLLMIdeas(genre, theme, targetAudience, count, llmModel);
+  const effectiveMode: GenerationMode =
+    mode ?? (useLLM ? "llm" : "demo");
+  if (effectiveMode === "hybrid") {
+    return generateHybridIdeas(genre, safeTheme, targetAudience, safeCount, llmModel);
+  }
+  if (effectiveMode === "llm") {
+    return generateLLMIdeas(genre, safeTheme, targetAudience, safeCount, llmModel);
   }
 
-  return generateDemoIdeas(genre, theme, targetAudience, count);
+  return generateDemoIdeas(genre, safeTheme, targetAudience, safeCount);
 }
 
 /**

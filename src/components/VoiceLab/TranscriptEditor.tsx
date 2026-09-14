@@ -24,6 +24,7 @@ export function TranscriptEditor({ chapterId, onApplyToChapter }: TranscriptEdit
   const [draft, setDraft] = useState("");
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   function reload() {
     const list = listTranscriptions(chapterId);
@@ -44,6 +45,7 @@ export function TranscriptEditor({ chapterId, onApplyToChapter }: TranscriptEdit
   async function save() {
     if (!selected || !dirty) return;
     setSaving(true);
+    setSaveError(null);
     try {
       await updateTranscriptionText(selected.id, draft);
       setItems((list) =>
@@ -54,14 +56,21 @@ export function TranscriptEditor({ chapterId, onApplyToChapter }: TranscriptEdit
         ),
       );
       setDirty(false);
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : "Speichern fehlgeschlagen");
     } finally {
       setSaving(false);
     }
   }
 
   async function remove(id: string) {
-    await deleteTranscription(id);
-    reload();
+    setSaveError(null);
+    try {
+      await deleteTranscription(id);
+      reload();
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : "Löschen fehlgeschlagen");
+    }
   }
 
   if (!items.length) {
@@ -107,6 +116,11 @@ export function TranscriptEditor({ chapterId, onApplyToChapter }: TranscriptEdit
               {dirty ? "Ungespeicherte Änderungen" : selected.isEdited ? "Korrigiert ✎" : "Original"}
               {selected.updatedAt ? ` · geändert ${formatDate(selected.updatedAt)}` : ""}
             </span>
+            {saveError && (
+              <span className="te-error" role="alert">
+                ⚠ {saveError}
+              </span>
+            )}
             <button onClick={save} disabled={!dirty || saving}>
               {saving ? "Speichere…" : "💾 Korrektur speichern"}
             </button>

@@ -87,6 +87,7 @@ export function VoiceLabPanel({
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [result, setResult] = useState<TranscriptionResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [hasAudio, setHasAudio] = useState(false);
 
   const recorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -128,10 +129,16 @@ export function VoiceLabPanel({
     () => () => {
       stopTimer();
       stopWaveform();
-      if (audioUrl) URL.revokeObjectURL(audioUrl);
     },
     [],
   );
+
+  // Erzeugte Object-URL beim Wechsel/Unmount freigeben.
+  useEffect(() => {
+    return () => {
+      if (audioUrl) URL.revokeObjectURL(audioUrl);
+    };
+  }, [audioUrl]);
 
   const drawWaveform = (stream: MediaStream) => {
     try {
@@ -172,6 +179,7 @@ export function VoiceLabPanel({
   const handleRecord = async () => {
     setError(null);
     setResult(null);
+    setHasAudio(false);
     try {
       const recorder = await startRecording();
       recorderRef.current = recorder;
@@ -218,10 +226,12 @@ export function VoiceLabPanel({
       const blob = await stopRecording(recorder);
       recorderRef.current = null;
       blobRef.current = blob;
+      setHasAudio(true);
       if (audioUrl) URL.revokeObjectURL(audioUrl);
       setAudioUrl(URL.createObjectURL(blob));
       await runTranscription(blob);
     } catch (e) {
+      recorderRef.current = null;
       setError(e instanceof Error ? e.message : String(e));
       setStatus("error");
     }
@@ -330,7 +340,7 @@ export function VoiceLabPanel({
         <audio data-testid="voicelab-playback" src={audioUrl} controls style={{ width: "100%" }} />
       )}
 
-      {blobRef.current && status === "error" && (
+      {hasAudio && status === "error" && (
         <button data-testid="voicelab-transcribe-btn" style={BTN_STYLE} onClick={handleRetryTranscribe}>
           🔁 Erneut transkribieren
         </button>

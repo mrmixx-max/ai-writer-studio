@@ -23,6 +23,9 @@ export function ExportBar() {
   const [preflightVisible, setPreflightVisible] = useState(false);
   const [findings, setFindings] = useState<PreflightFinding[]>([]);
   const [preflightBusy, setPreflightBusy] = useState(false);
+  const [preflightError, setPreflightError] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
   const activeProjectId = useProjectStore((s) => s.activeProjectId);
   const activeChapterId = useProjectStore((s) => s.activeChapterId);
   const projects = useProjectStore((s) => s.projects);
@@ -35,13 +38,16 @@ export function ExportBar() {
     if (!p) return;
 
     setPreflightBusy(true);
+    setPreflightError(null);
     try {
       const r = await runExportPreflight(activeProjectId, p.name, format);
       setFindings(r.findings);
       setPreflightVisible(true);
-    } catch {
-      // Preflight fehlgeschlagen — Export trotzdem erlauben.
+    } catch (e) {
+      // Preflight fehlgeschlagen — Fehler zeigen, Export trotzdem erlauben.
       setFindings([]);
+      setPreflightError(e instanceof Error ? e.message : String(e));
+      setPreflightVisible(true);
     } finally {
       setPreflightBusy(false);
     }
@@ -49,21 +55,33 @@ export function ExportBar() {
 
   // --- Export --------------------------------------------------------------
   async function run() {
-    if (scope === "project" && activeProjectId) {
-      const p = projects.find((x) => x.id === activeProjectId);
-      if (p) await exportProject(p, format);
-    } else if (scope === "chapter" && activeChapterId) {
-      const p = projects.find((x) => x.id === activeProjectId);
-      if (p) await exportProject(p, format, activeChapterId);
-    } else {
-      await exportContent(content, "Dokument", format);
+    if (exporting) return;
+    setExporting(true);
+    setExportError(null);
+    try {
+      if (scope === "project" && activeProjectId) {
+        const p = projects.find((x) => x.id === activeProjectId);
+        if (p) await exportProject(p, format);
+      } else if (scope === "chapter" && activeChapterId) {
+        const p = projects.find((x) => x.id === activeProjectId);
+        if (p) await exportProject(p, format, activeChapterId);
+      } else {
+        await exportContent(content, "Dokument", format);
+      }
+      setOpen(false);
+      setPreflightVisible(false);
+      setFindings([]);
+      setPreflightError(null);
+    } catch (e) {
+      // Export-Fehler zeigen, Menü offen halten für Wiederholung.
+      setExportError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setExporting(false);
     }
-    setOpen(false);
-    setPreflightVisible(false);
-    setFindings([]);
   }
 
   function startExport() {
+    setExportError(null);
     // Preflight nur bei DOCX/PDF/EPUB, nicht bei Markdown/Text.
     if (PRELIGHT_FORMATS.includes(format) && activeProjectId) {
       void runPreflightCheck();
@@ -80,7 +98,7 @@ export function ExportBar() {
       {open && (
         <div className="export-menu">
           <label>Format
-            <select value={format} onChange={(e) => { setFormat(e.target.value as Format); setPreflightVisible(false); }}>
+            <select value={format} onChange={(e) => { setFormat(e.target.value as Format); setPreflightVisible(false); setPreflightError(null); setExportError(null); }}>
               {FORMATS.map((f) => <option key={f} value={f}>{f.toUpperCase()}</option>)}
             </select>
           </label>
@@ -92,11 +110,23 @@ export function ExportBar() {
           </label>
 
           {!preflightVisible ? (
-            <button className="export-go" onClick={startExport} disabled={preflightBusy}>
-              {preflightBusy ? "Prüfung läuft…" : "Exportieren"}
-            </button>
+            <>
+              <button className="export-go" onClick={startExport} disabled={preflightBusy || exporting}>
+                {preflightBusy ? "Prüfung läuft…" : exporting ? "Exportiert…" : "Exportieren"}
+              </button>
+              {exportError && (
+                <div className="export-error" role="alert">
+                  Export fehlgeschlagen: {exportError}
+                </div>
+              )}
+            </>
           ) : (
             <div className="export-preflight">
+              {preflightError && (
+                <div className="pf-gate-warn" role="alert">
+                  <strong>Prüfung fehlgeschlagen:</strong> {preflightError}
+                </div>
+              )}
               {gate?.needsConfirm && (
                 <div className="pf-gate-warn">
                   <strong>Achtung:</strong> {gate.blockers.length} kritische(r) Befund/Bunde.
@@ -124,13 +154,18 @@ export function ExportBar() {
                 </details>
               )}
               <div className="pf-gate-actions">
-                <button className="export-go" onClick={run}>
-                  {gate?.needsConfirm ? "Trotzdem exportieren" : "Exportieren"}
+                <button className="export-go" onClick={run} disabled={exporting}>
+                  {exporting ? "Exportiert…" : gate?.needsConfirm ? "Trotzdem exportieren" : "Exportieren"}
                 </button>
-                <button className="export-cancel" onClick={() => { setPreflightVisible(false); setFindings([]); }}>
+                <button className="export-cancel" onClick={() => { setPreflightVisible(false); setFindings([]); setPreflightError(null); }}>
                   Zurück
                 </button>
               </div>
+              {exportError && (
+                <div className="export-error" role="alert">
+                  Export fehlgeschlagen: {exportError}
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -50,7 +50,9 @@ export function installGlobalErrorHandlers(): void {
   if (w.__aws_error_handlers_installed) return;
   w.__aws_error_handlers_installed = true;
 
-  // 1) window.onerror (klassische Sync-Fehler)
+  // 1) window.onerror (klassische Sync-Fehler) + Ressourcen-Fehler (img/script/
+  // Link brauchen Capture-Phase: Sie bubbeln nicht, ohne capture:true feuert
+  // der Listener nie und Ressourcen-Fehler bleiben unsichtbar.
   window.addEventListener("error", (event) => {
     // Ressourcen-Fehler (img/script) haben kein error-Objekt
     if (event.target && (event.target as HTMLElement).tagName) {
@@ -67,7 +69,7 @@ export function installGlobalErrorHandlers(): void {
     };
     log.error("Unbehandelter Fehler", report);
     void writeCrashReport({ ...report, recentLogs: summarizeLogs() });
-  });
+  }, true);
 
   // 2) Unbehandelte Promise-Rejections
   window.addEventListener("unhandledrejection", (event) => {

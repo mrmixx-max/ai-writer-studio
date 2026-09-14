@@ -71,13 +71,15 @@ export function mergePayloads(
       merged.push(lc.updatedAt >= rc.updatedAt ? { ...lc } : { ...rc });
       continue;
     }
-    const content = mergeChapterContent(lc.content, rc.content, lc.content);
-    if (content === null) return null; // manueller Konflikt noetig
-    merged.push({
-      ...(lc.updatedAt >= rc.updatedAt ? lc : rc),
-      content,
-      updatedAt: Math.max(lc.updatedAt, rc.updatedAt),
-    });
+    if (lc.content !== rc.content) {
+      // Kein echter 3-Wege-Merge moeglich: Es gibt keine gemeinsame Basis
+      // (der Sync-Store speichert nur den letzten Stand, kein Base-Payload).
+      // Ein Fake-Base (z.B. local als base) wuerde lokale Aenderungen still
+      // verwerfen (remote gewinnt immer). Statt Datenverlust: manueller
+      // Konflikt, damit der Nutzer entscheidet.
+      return null;
+    }
+    merged.push(lc.updatedAt >= rc.updatedAt ? lc : rc);
   }
   // Nur remote vorhandene Kapitel ergaenzen.
   for (const rc of remote.chapters) {

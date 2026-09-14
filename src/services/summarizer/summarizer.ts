@@ -338,5 +338,52 @@ export async function compareVersions(
   }
 }
 
-export function getKeyPoints(_text?: string) { return []; }
+const KEYPOINT_STOPWORDS = new Set([
+  "der", "die", "das", "den", "dem", "des", "ein", "eine", "einer", "eines",
+  "und", "oder", "aber", "denn", "doch", "nicht", "kein", "keine", "keinen",
+  "ist", "sind", "war", "waren", "wird", "werden", "wurde", "wurden", "haben",
+  "hat", "hatte", "hatten", "sein", "mit", "von", "zu", "zum", "zur", "für",
+  "auf", "aus", "bei", "nach", "vor", "über", "unter", "durch", "zwischen",
+  "im", "am", "an", "als", "auch", "nur", "noch", "schon", "sehr", "sich",
+  "dass", "weil", "wenn", "dann", "dabei", "darum", "hier", "dort", "alle",
+  "jede", "jeder", "jedes", "man", "es", "er", "sie", "wir", "ihr", "ihnen",
+  "the", "a", "an", "and", "or", "but", "not", "is", "are", "was", "were",
+  "be", "been", "have", "has", "had", "with", "from", "for", "that", "this",
+  "these", "those", "they", "them", "their", "its", "our", "your", "you",
+  "she", "him", "his", "her", "all", "each", "every", "some", "such", "than",
+  "then", "there", "here", "when", "where", "which", "while", "will", "would",
+]);
+
+/**
+ * Extrahiert Kernpunkte aus einem Text (lokal, deterministisch, offline).
+ * Bewertet Sätze nach Worthäufigkeit (ohne Stoppwörter) und liefert die
+ * bis zu 5 wichtigsten Sätze in Originalreihenfolge. Ersetzt den früheren
+ * Stub (leeres Array), damit die KERNPUNKTE-Ansicht des Panels echte
+ * Inhalte zeigt.
+ */
+export function getKeyPoints(text?: string, max = 5): string[] {
+  const plain = extractPlainText(text ?? "").trim();
+  if (!plain) return [];
+  const sentences = sentencesOf(plain);
+  if (sentences.length <= max) return sentences;
+  const freq = new Map<string, number>();
+  for (const w of wordsOf(plain.toLowerCase())) {
+    if (w.length < 4 || KEYPOINT_STOPWORDS.has(w)) continue;
+    freq.set(w, (freq.get(w) ?? 0) + 1);
+  }
+  const scored = sentences.map((s, i) => {
+    const words = wordsOf(s.toLowerCase()).filter(
+      (w) => w.length >= 4 && !KEYPOINT_STOPWORDS.has(w),
+    );
+    const score =
+      words.length > 0
+        ? words.reduce((sum, w) => sum + (freq.get(w) ?? 0), 0) / Math.sqrt(words.length)
+        : 0;
+    return { s, i, score };
+  });
+  const top = new Set(
+    [...scored].sort((a, b) => b.score - a.score).slice(0, Math.max(1, max)).map((e) => e.i),
+  );
+  return scored.filter((e) => top.has(e.i)).map((e) => e.s);
+}
 

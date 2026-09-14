@@ -1,10 +1,11 @@
 // Tests for translator service
-import { describe, it, expect, beforeEach } from 'vitest';
-import { 
-  detectLanguage, 
-  translate, 
-  getGlossary, 
-  addToGlossary, 
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import {
+  detectLanguage,
+  translate,
+  buildTranslationPrompt,
+  getGlossary,
+  addToGlossary,
   removeFromGlossary,
   type TranslationRequest
 } from './translator';
@@ -156,9 +157,68 @@ describe('Translator Service', () => {
 
     it('should trim whitespace when adding to glossary', async () => {
       await addToGlossary('  hello  ', '  hallo  ');
-      
+
       const glossary = await getGlossary();
       expect(glossary['hello']).toBe('hallo');
+    });
+  });
+
+  describe('guards (offline/empty/corrupt)', () => {
+    it('should short-circuit empty text without any fetch call', async () => {
+      const fetchFn = vi.fn();
+      const result = await translate(
+        { text: '   ', sourceLang: 'en', targetLang: 'de' },
+        { fetchFn: fetchFn as unknown as typeof fetch },
+      );
+      expect(result.translated).toBe('');
+      expect(result.confidence).toBe(0.0);
+      expect(fetchFn).not.toHaveBeenCalled();
+    });
+
+    it('should fall back with confidence 0 on empty LLM response (no fake success)', async () => {
+      const fetchFn = async () =>
+        new Response(JSON.stringify({ response: '   ' }), { status: 200 });
+      const result = await translate(
+        { text: 'Hello world', sourceLang: 'en', targetLang: 'de' },
+        { fetchFn: fetchFn as unknown as typeof fetch },
+      );
+      expect(result.translated).toBe('Hello world');
+      expect(result.confidence).toBe(0.0);
+    });
+
+    it('should fall back with confidence 0 on non-string LLM response', async () => {
+      const fetchFn = async () =>
+        new Response(JSON.stringify({ response: 12345 }), { status: 200 });
+      const result = await translate(
+        { text: 'Hello world', sourceLang: 'en', targetLang: 'de' },
+        { fetchFn: fetchFn as unknown as typeof fetch },
+      );
+      expect(result.translated).toBe('Hello world');
+      expect(result.confidence).toBe(0.0);
+    });
+
+    it('should rethrow Abort instead of silently falling back', async () => {
+      const controller = new AbortController();
+      controller.abort();
+      await expect(
+        translate(
+          { text: 'Hello world', sourceLang: 'en', targetLang: 'de' },
+          { signal: controller.signal },
+        ),
+      ).rejects.toMatchObject({ name: 'AbortError' });
+    });
+
+    it('buildTranslationPrompt should include glossary and context', () => {
+      const prompt = buildTranslationPrompt({
+        text: 'Hello world',
+        sourceLang: 'en',
+        targetLang: 'de',
+        glossary: { world: 'Welt' },
+        context: 'Roman',
+      });
+      expect(prompt).toContain('world → Welt');
+      expect(prompt).toContain('Roman');
+      expect(prompt).toContain('Hello world');
     });
   });
 });

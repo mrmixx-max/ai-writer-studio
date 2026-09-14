@@ -242,6 +242,19 @@ export function validateBackup(
       };
     }
   }
+  const counts = (parsed as Record<string, unknown>).counts;
+  if (isRecord(counts)) {
+    const cp = (counts as { projects?: unknown; chapters?: unknown }).projects;
+    const cc = (counts as { projects?: unknown; chapters?: unknown }).chapters;
+    if (cp !== projects.length || cc !== chapters.length) {
+      return {
+        ok: false,
+        error:
+          `Backup inkonsistent: counts meldet ${String(cp)}/${String(cc)} Projekte/Kapitel, ` +
+          `enthalten sind ${projects.length}/${chapters.length}.`,
+      };
+    }
+  }
   return { ok: true, backup: parsed as unknown as BackupFile };
 }
 
@@ -268,7 +281,11 @@ export function restoreBackup(json: string, d?: Database): RestoreResult {
   if (!validated.ok) return fail(validated.error);
   const backup = validated.backup;
   try {
+    // FK-Pruefung aus (wie bisher), dann alles in EINER Transaktion: Schlaegt
+    // ein INSERT fehl, rollt ROLLBACK den vorherigen DELETE zurueck — ohne
+    // Transaktion stuende die DB nach halb abgebrochenem Restore leer da.
     db.run("PRAGMA foreign_keys = OFF;");
+    db.run("BEGIN TRANSACTION;");
     try {
       db.run("DELETE FROM chapters;");
       db.run("DELETE FROM projects;");
@@ -304,6 +321,14 @@ export function restoreBackup(json: string, d?: Database): RestoreResult {
           ],
         );
       }
+      db.run("COMMIT;");
+    } catch (inner) {
+      try {
+        db.run("ROLLBACK;");
+      } catch {
+        // Rollback selbst fehlgeschlagen — DB-Zustand unklar, Fehler unten melden.
+      }
+      throw inner;
     } finally {
       db.run("PRAGMA foreign_keys = ON;");
     }
