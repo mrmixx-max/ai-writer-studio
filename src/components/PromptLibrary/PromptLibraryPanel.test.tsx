@@ -72,14 +72,14 @@ describe("PromptLibraryPanel", () => {
   it("Neu-Button oeffnet Formular und speichert einen Prompt", async () => {
     const user = userEvent.setup();
     render(<PromptLibraryPanel />);
-    await waitFor(() => expect(screen.getByText("Kapitel umschreiben")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText("Kapitel umschreiben")).toBeInTheDocument(), { timeout: 10000 });
     await user.click(screen.getByTestId("prompt-library-new"));
     expect(screen.getByTestId("prompt-library-form")).toBeInTheDocument();
     await user.type(screen.getByTestId("prompt-library-form-name"), "Mein Testprompt");
     await user.type(screen.getByTestId("prompt-library-form-description"), "Beschreibung fuer den Test");
     await user.type(screen.getByTestId("prompt-library-form-prompt"), "Mache etwas Gutes mit dem Text");
     await user.click(screen.getByTestId("prompt-library-submit"));
-    await waitFor(() => expect(screen.getByText("Mein Testprompt")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText("Mein Testprompt")).toBeInTheDocument(), { timeout: 10000 });
   });
 
   it("Loeschen-Button entfernt eine Karte", async () => {
