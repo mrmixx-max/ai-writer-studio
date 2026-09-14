@@ -38,25 +38,54 @@ import {
   type MemoryStats,
 } from "@/services/ki/memory";
 import { AIWritingAssistant } from "@/components/KIPanel/AIWritingAssistant/AIWritingAssistant";
+import { useI18n, type Lang, type TranslationKey } from "@/i18n";
 import "@/components/Whisper/whisper.css";
 
-const ACTIONS: { id: KIAction; label: string }[] = [
-  { id: "weiterschreiben", label: "Weiterschreiben" },
-  { id: "umschreiben", label: "Umschreiben" },
-  { id: "zusammenfassen", label: "Zusammenfassen" },
-  { id: "korrektur", label: "Korrektur" },
-  { id: "brainstorming", label: "Brainstorming" },
-  { id: "chat", label: "Freier Chat" },
+const DATE_LOCALE: Record<Lang, string> = {
+  de: "de-DE",
+  en: "en-GB",
+  es: "es-ES",
+  fr: "fr-FR",
+};
+
+const ACTIONS: { id: KIAction; key: TranslationKey }[] = [
+  { id: "weiterschreiben", key: "ki.action.weiter" },
+  { id: "umschreiben", key: "ki.action.umschreiben" },
+  { id: "zusammenfassen", key: "ki.action.zusammenfassen" },
+  { id: "korrektur", key: "ki.action.korrektur" },
+  { id: "brainstorming", key: "ki.action.brainstorming" },
+  { id: "chat", key: "ki.action.chat" },
 ];
 
+const STYLE_LABELS: Record<RewriteStyle, TranslationKey> = {
+  formell: "ki.style.formell",
+  locker: "ki.style.locker",
+  dramatisch: "ki.style.dramatisch",
+  sachlich: "ki.style.sachlich",
+};
 const STYLES: RewriteStyle[] = ["formell", "locker", "dramatisch", "sachlich"];
+const LENGTH_LABELS: Record<RewriteLength, TranslationKey> = {
+  kürzer: "ki.length.kurzer",
+  gleich: "ki.length.gleich",
+  länger: "ki.length.laenger",
+};
 const LENGTHS: RewriteLength[] = ["kürzer", "gleich", "länger"];
-const TARGETS: { value: RewriteTarget; label: string }[] = [
-  { value: "de", label: "Deutsch" },
-  { value: "en", label: "Englisch" },
+const TARGETS: { value: RewriteTarget; key: TranslationKey }[] = [
+  { value: "de", key: "ki.target.de" },
+  { value: "en", key: "ki.target.en" },
 ];
+
+const MEM_KIND_LABELS: Record<MemoryKind, TranslationKey> = {
+  charakter: "ki.memKind.charakter",
+  ort: "ki.memKind.ort",
+  fakt: "ki.memKind.fakt",
+  gespraech: "ki.memKind.gespraech",
+  stil: "ki.memKind.stil",
+};
+const MEM_KINDS: MemoryKind[] = ["charakter", "ort", "fakt", "gespraech", "stil"];
 
 export function KIPanel() {
+  const { t, lang } = useI18n();
   const [output, setOutput] = useState("");
   const [streaming, setStreaming] = useState("");
   const [busy, setBusy] = useState(false);
@@ -193,11 +222,11 @@ export function KIPanel() {
     } catch (e) {
       // Abbruch ist kein Fehler: kurze Rückmeldung statt Fehlertext.
       if (controller.signal.aborted || (e instanceof DOMException && e.name === "AbortError")) {
-        setOutput("Abgebrochen.");
+        setOutput(t("ki.aborted"));
         setStreaming("");
       } else {
         // Fehler sichtbar machen statt still zu verschlucken (unhandled rejection).
-        const msg = `Fehler: ${e instanceof Error ? e.message : String(e)}`;
+        const msg = t("ki.error", { message: e instanceof Error ? e.message : String(e) });
         setOutput(msg);
         setStreaming("");
         await autoRemember("").catch(() => {}); // no-op Guard
@@ -243,7 +272,7 @@ export function KIPanel() {
         history: llmHistory,
         memoryContext: memoryBlock || undefined,
       },
-      (t) => setStreaming((s) => s + t),
+      (chunk) => setStreaming((s) => s + chunk),
       { signal },
     );
     setOutput(res.text);
@@ -331,13 +360,13 @@ export function KIPanel() {
   }
 
   return (
-    <aside id="app-ai-panel" tabIndex={-1} aria-label="KI-Assistent" className="ki-panel">
-      <h3>KI-Assistent</h3>
+    <aside id="app-ai-panel" tabIndex={-1} aria-label={t("ki.title")} className="ki-panel">
+      <h3>{t("ki.title")}</h3>
 
       {/* Jederzeitige Modell-Auswahl (Header): aktives Modell, Wechsel ohne Neustart */}
       <ModelPicker settings={settings} onSelect={selectModel} toggleId="ki-model-picker-toggle" />
 
-      {offline && <span className="offline-badge">Offline-Modus</span>}
+      {offline && <span className="offline-badge">{t("ki.offline")}</span>}
 
       {/* Modell-Dropdown entfernt — redundant mit ModelPicker */}
 
@@ -345,36 +374,36 @@ export function KIPanel() {
       {activeAction === "umschreiben" && (
         <div className="ki-rewrite-options">
           <label className="ki-style">
-            Stil:
+            {t("ki.styleLabel")}:
             <select
-              aria-label="Stil"
+              aria-label={t("ki.styleLabel")}
               value={rewriteOptions.style}
               onChange={(e) => {
                 const v = e.target.value as RewriteStyle;
                 setRewriteOptions((o) => ({ ...o, style: v }));
               }}
             >
-              {STYLES.map((s) => <option key={s} value={s}>{s}</option>)}
+              {STYLES.map((s) => <option key={s} value={s}>{t(STYLE_LABELS[s])}</option>)}
             </select>
           </label>
           <label className="ki-length">
-            Länge:
+            {t("ki.lengthLabel")}:
             <select
-              aria-label="Länge"
+              aria-label={t("ki.lengthLabel")}
               value={rewriteOptions.length}
               onChange={(e) => setRewriteOptions((o) => ({ ...o, length: e.target.value as RewriteLength }))}
             >
-              {LENGTHS.map((l) => <option key={l} value={l}>{l}</option>)}
+              {LENGTHS.map((l) => <option key={l} value={l}>{t(LENGTH_LABELS[l])}</option>)}
             </select>
           </label>
           <label className="ki-target">
-            Zielsprache:
+            {t("ki.targetLabel")}:
             <select
-              aria-label="Zielsprache"
+              aria-label={t("ki.targetLabel")}
               value={rewriteOptions.target}
               onChange={(e) => setRewriteOptions((o) => ({ ...o, target: e.target.value as RewriteTarget }))}
             >
-              {TARGETS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+              {TARGETS.map((tg) => <option key={tg.value} value={tg.value}>{t(tg.key)}</option>)}
             </select>
           </label>
         </div>
@@ -383,14 +412,14 @@ export function KIPanel() {
       <div className="ki-actions">
         {ACTIONS.map((a) => (
           <button key={a.id} onClick={() => run(a.id)} disabled={busy}>
-            {a.label}
+            {t(a.key)}
           </button>
         ))}
       </div>
 
       <div className="ki-chat-input">
         <textarea
-          placeholder="Freie Frage an die KI… (Umschalt+Eingabe = neue Zeile)"
+          placeholder={t("ki.chatPh")}
           value={chatInput}
           onChange={(e) => setChatInput(e.target.value)}
           onKeyDown={(e) => {
@@ -402,7 +431,7 @@ export function KIPanel() {
           rows={4}
         />
         <button className="ki-send" onClick={() => run("chat")} disabled={busy}>
-          Senden
+          {t("ki.send")}
         </button>
       </div>
 
@@ -413,12 +442,12 @@ export function KIPanel() {
 
       {/* KI-Analysen: offline, ohne Provider */}
       <button className="ki-analyze" onClick={runAnalysis} disabled={busy}>
-        Text analysieren (Sentiment · Stil · Lesbarkeit)
+        {t("ki.analyze")}
       </button>
       {analysis && (
         <div className="ki-analysis">
-          <span>Sentiment: {analysis.sentiment.label} ({analysis.sentiment.score})</span>
-          <span>⌀ Satz: {analysis.style.avgSentenceLength} Wörter · Dialog {Math.round(analysis.style.dialogueRatio * 100)}%</span>
+          <span>{t("ki.sentiment")} {analysis.sentiment.label} ({analysis.sentiment.score})</span>
+          <span>{t("ki.avgSentence")} {analysis.style.avgSentenceLength} {t("ki.words")} · {t("ki.dialog")} {Math.round(analysis.style.dialogueRatio * 100)}%</span>
           <span>LIX {analysis.readability.lix} — {analysis.readability.level}</span>
         </div>
       )}
@@ -426,21 +455,21 @@ export function KIPanel() {
       {/* Persistierter Chatverlauf */}
       <div className="ki-history">
         <button className="ki-history-toggle" onClick={() => setShowHistory((v) => !v)}>
-          Chatverlauf {showHistory ? "ausblenden" : `einblenden (${history.length})`}
+          {t("ki.history")} {showHistory ? t("ki.historyHide") : t("ki.historyShow", { count: history.length })}
         </button>
         {showHistory && (
           <>
             <div className="ki-history-list">
-              {history.length === 0 && <p className="ki-history-empty">Noch keine Nachrichten.</p>}
+              {history.length === 0 && <p className="ki-history-empty">{t("ki.historyEmpty")}</p>}
               {history.map((m) => (
                 <div key={m.id} className={`ki-history-msg ki-history-${m.role}`}>
-                  <span className="ki-history-role">{m.role === "user" ? "Du" : "KI"}</span>
+                  <span className="ki-history-role">{m.role === "user" ? t("ki.roleUser") : t("ki.roleAi")}</span>
                   <p>{m.content.slice(0, 400)}{m.content.length > 400 ? "…" : ""}</p>
                 </div>
               ))}
             </div>
             {history.length > 0 && (
-              <button onClick={resetHistory}>Verlauf löschen</button>
+              <button onClick={resetHistory}>{t("ki.clearHistory")}</button>
             )}
           </>
         )}
@@ -453,21 +482,21 @@ export function KIPanel() {
             ohne erstes Token (große lokale Modelle brauchen 1–2 Min). */}
         {busy && (
           <div className="ki-busy" role="status" aria-live="polite">
-            <span className="ki-busy-label">KI arbeitet… {elapsed}s</span>
+            <span className="ki-busy-label">{t("ki.busy", { seconds: elapsed })}</span>
             {elapsed >= 10 && !streaming && !output && (
               <span className="ki-slow-hint">
-                Großes Modell lädt — erste Antwort kann 1-2 Min dauern
+                {t("ki.slowHint")}
               </span>
             )}
             <button className="ki-cancel" onClick={cancelRun}>
-              Abbrechen
+              {t("ki.cancel")}
             </button>
           </div>
         )}
         {(streaming || output) && usedModel && (
           <p className="ki-response-model">
             → {usedModel}
-            {offline ? <span className="model-offline"> (offline)</span> : null}
+            {offline ? <span className="model-offline">{t("ki.offlineSuffix")}</span> : null}
           </p>
         )}
         {streaming && <pre className="streaming">{streaming}</pre>}
@@ -476,84 +505,80 @@ export function KIPanel() {
 
       {output && !busy && (
         <button className="ki-insert" onClick={insertIntoDoc}>
-          In Dokument einfügen
+          {t("ki.insert")}
         </button>
       )}
 
       {/* KI-Gedächtnis: Langzeit-Erinnerungen, Kontext-Vorschläge, Export, Bereinigung */}
       <div className="ki-memory">
         <button className="ki-memory-toggle" onClick={() => setShowMemory((v) => !v)}>
-          🧠 Gedächtnis {memStats ? `(${memStats.total})` : ""}
+          {t("ki.memory")} {memStats ? `(${memStats.total})` : ""}
         </button>
         {showMemory && (
           <div className="ki-memory-body">
             {memStats && (
               <p className="ki-memory-stats">
-                {memStats.total} Einträge · auto {memStats.auto} / manuell {memStats.manual}
-                {memStats.oldest && ` · seit ${new Date(memStats.oldest).toLocaleDateString("de-DE")}`}
+                {t("ki.memoryStats", { total: memStats.total, auto: memStats.auto, manual: memStats.manual })}
+                {memStats.oldest && ` · ${t("ki.memorySince", { date: new Date(memStats.oldest).toLocaleDateString(DATE_LOCALE[lang]) })}`}
               </p>
             )}
 
             {/* Suchen */}
             <div className="ki-memory-search">
               <input
-                placeholder="Gedächtnis durchsuchen…"
+                placeholder={t("ki.memSearchPh")}
                 value={memQuery}
                 onChange={(e) => setMemQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && doMemorySearch()}
               />
-              <button onClick={doMemorySearch}>Suchen</button>
+              <button onClick={doMemorySearch}>{t("ki.search")}</button>
             </div>
 
             {/* Manuelle Erinnerung anlegen */}
             <div className="ki-memory-add">
               <select value={memKind} onChange={(e) => setMemKind(e.target.value as MemoryKind)}>
-                <option value="charakter">Charakter</option>
-                <option value="ort">Ort</option>
-                <option value="fakt">Fakt</option>
-                <option value="gespraech">Gespräch</option>
-                <option value="stil">Stil</option>
+                {MEM_KINDS.map((k) => <option key={k} value={k}>{t(MEM_KIND_LABELS[k])}</option>)}
               </select>
-              <input placeholder="Titel" value={memTitle} onChange={(e) => setMemTitle(e.target.value)} />
-              <textarea placeholder="Was soll sich die KI merken?" value={memContent} onChange={(e) => setMemContent(e.target.value)} />
-              <button onClick={addManualMemory}>Merken</button>
+              <input placeholder={t("ki.memTitlePh")} value={memTitle} onChange={(e) => setMemTitle(e.target.value)} />
+              <textarea placeholder={t("ki.memContentPh")} value={memContent} onChange={(e) => setMemContent(e.target.value)} />
+              <button onClick={addManualMemory}>{t("ki.remember")}</button>
             </div>
 
             {/* Eintragsliste (Suchergebnis oder alles) */}
             <div className="ki-memory-list">
-              {(memSearch ?? memories).length === 0 && <p className="ki-memory-empty">Noch keine Erinnerungen.</p>}
+              {(memSearch ?? memories).length === 0 && <p className="ki-memory-empty">{t("ki.memEmpty")}</p>}
               {(memSearch ?? memories).map((m) => (
                 <div key={m.id} className={`ki-memory-entry ki-memory-${m.kind}`}>
-                  <span className="ki-memory-kind">{m.kind}</span>
+                  <span className="ki-memory-kind">{t(MEM_KIND_LABELS[m.kind])}</span>
                   <strong>{m.title}</strong>
                   <p>{m.content.slice(0, 180)}{m.content.length > 180 ? "…" : ""}</p>
                   <span className="ki-memory-meta">
-                    {m.source} · Wichtigkeit {m.importance}/5
-                    {m.lastUsedAt ? ` · zuletzt genutzt ${new Date(m.lastUsedAt).toLocaleDateString("de-DE")}` : " · nie genutzt"}
+                    {m.source} · {t("ki.importance", { value: m.importance })}
+                    {m.lastUsedAt ? ` · ${t("ki.lastUsed", { date: new Date(m.lastUsedAt).toLocaleDateString(DATE_LOCALE[lang]) })}` : ` · ${t("ki.neverUsed")}`}
                   </span>
-                  <button className="ki-memory-delete" onClick={() => removeMemory(m.id)} title="Erinnerung löschen">✕</button>
+                  <button className="ki-memory-delete" onClick={() => removeMemory(m.id)} title={t("ki.memDeleteTitle")}>✕</button>
                 </div>
               ))}
             </div>
 
             {/* Export */}
             <div className="ki-memory-export">
-              <button onClick={() => downloadMemory("json")}>Export JSON</button>
-              <button onClick={() => downloadMemory("markdown")}>Export Markdown</button>
+              <button onClick={() => downloadMemory("json")}>{t("ki.exportJson")}</button>
+              <button onClick={() => downloadMemory("markdown")}>{t("ki.exportMd")}</button>
             </div>
 
             {/* Bereinigung */}
             <div className="ki-memory-cleanup">
-              <button onClick={() => showCleanupPreview(30)} title="Vorschau: automatische Einträge älter als 30 Tage">Vorschau: &gt; 30 Tage</button>
-              <button onClick={() => showCleanupPreview(90)} title="Vorschau: automatische Einträge älter als 90 Tage">Vorschau: &gt; 90 Tage</button>
+              <button onClick={() => showCleanupPreview(30)} title={t("ki.cleanupTitle30")}>{t("ki.cleanupPreview30")}</button>
+              <button onClick={() => showCleanupPreview(90)} title={t("ki.cleanupTitle90")}>{t("ki.cleanupPreview90")}</button>
               {cleanupPreviewCount !== null && (
                 <span className="ki-memory-cleanup-preview">
-                  {cleanupPreviewCount} Einträge betroffen ·{" "}
-                  <button onClick={() => cleanupOld(30)}>30 T. löschen</button>
-                  <button onClick={() => cleanupOld(90)}>90 T. löschen</button>
+                  {t("ki.affected", { count: cleanupPreviewCount })}{" "}
+                  <button onClick={() => cleanupOld(30)}>{t("ki.delete30")}</button>
+                  <button onClick={() => cleanupOld(90)}>{t("ki.delete90")}</button>
                 </span>
               )}
-              <button className="ki-memory-wipe" onClick={wipeMemory} title="ALLE Erinnerungen dieses Projekts löschen">Alles löschen</button>
+              <button className="ki-memory-wipe" onClick={wipeMemory} title={t("ki.wipeTitle")}>{t("ki.wipe")}</button>
             </div>
           </div>
         )}

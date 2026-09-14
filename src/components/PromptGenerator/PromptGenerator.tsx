@@ -9,6 +9,7 @@ import { loadSettings } from "@/services/settings";
 import { PROMPT_TEMPLATES } from "@/services/ki/templates";
 import type { Genre, PromptType, Tone, TargetLength, GeneratedPrompt } from "@/services/prompt/types";
 import { PromptCard } from "./PromptCard";
+import { useI18n } from "@/i18n";
 import "./prompt.css";
 
 const GENRES: Genre[] = ["Fantasy", "Science Fiction", "Krimi/Thriller", "Romance", "Horror", "Historisch", "Literary Fiction", "Sachbuch", "Poesie", "Überraschung"];
@@ -17,6 +18,7 @@ const TONES: Tone[] = ["düster", "humorvoll", "romantisch", "spannend", "melanc
 const LENGTHS: TargetLength[] = ["Kurzgeschichte", "Kapitel", "Roman-Idee", "10-Minuten-Freewriting"];
 
 export function PromptGenerator() {
+  const { t } = useI18n();
   const s = usePromptStore();
   const editor = useEditorStore();
   const [templateId, setTemplateId] = useState("");
@@ -24,14 +26,14 @@ export function PromptGenerator() {
   /** Wendet eine Prompt-Vorlage auf die Filter an und generiert sofort. */
   function applyTemplate(id: string) {
     setTemplateId(id);
-    const t = PROMPT_TEMPLATES.find((x) => x.id === id);
-    if (!t) return;
-    s.set("genres", [t.genre]);
-    s.set("promptType", t.promptType);
-    s.set("tone", t.tone);
-    s.set("targetLength", t.targetLength);
+    const tpl = PROMPT_TEMPLATES.find((x) => x.id === id);
+    if (!tpl) return;
+    s.set("genres", [tpl.genre]);
+    s.set("promptType", tpl.promptType);
+    s.set("tone", tpl.tone);
+    s.set("targetLength", tpl.targetLength);
     // Seed-Idee als erster Ergebnisvorschlag (offline-Karte), damit sofort etwas sichtbar ist
-    s.set("results", [{ text: `${t.seed}\n\n(Richtlinie: ${t.guidance})`, genre: t.genre, type: t.promptType, hook: t.name }]);
+    s.set("results", [{ text: `${tpl.seed}\n\n${t("prompt.seedNote", { guidance: tpl.guidance })}`, genre: tpl.genre, type: tpl.promptType, hook: tpl.name }]);
   }
 
   async function run() {
@@ -41,8 +43,8 @@ export function PromptGenerator() {
     const filters = { genres: s.genres, promptType: s.promptType, tone: s.tone, targetLength: s.targetLength, count: s.count };
     // letzte 20 gespeicherte Prompts als "bereits verwendet"
     const used = listPrompts().slice(0, 20).map((p) => p.text);
-    const res = await generatePrompts(loadSettings(), filters, (t) => {
-      s.set("streamingText", s.streamingText + t);
+    const res = await generatePrompts(loadSettings(), filters, (chunk) => {
+      s.set("streamingText", s.streamingText + chunk);
     }, used);
     s.set("results", res.prompts);
     s.set("offline", res.offline);
@@ -72,7 +74,7 @@ export function PromptGenerator() {
     insertIntoEditor(p);
     const project = useProjectStore.getState();
     if (project.activeProjectId) {
-      project.newChapter(p.text.slice(0, 60) || "Neues Kapitel", p.text, "draft");
+      project.newChapter(p.text.slice(0, 60) || t("prompt.newChapter"), p.text, "draft");
     }
   }
 
@@ -89,14 +91,14 @@ export function PromptGenerator() {
     const favs = listPrompts({ favoritesOnly: true });
     return (
       <div className="prompt-panel">
-        <h3>Favoriten</h3>
-        <button onClick={() => downloadMd(exportFavoritesMarkdown())}>Als Markdown exportieren</button>
+        <h3>{t("prompt.favorites")}</h3>
+        <button onClick={() => downloadMd(exportFavoritesMarkdown())}>{t("prompt.exportMd")}</button>
         {favs.map((f) => (
           <div key={f.id} className="prompt-card">
             <p>{f.text}</p>
             <div className="prompt-actions">
-              <button onClick={() => copy(f as any)}>Kopieren</button>
-              <button onClick={() => deletePrompt(f.id)}>Löschen</button>
+              <button onClick={() => copy(f as any)}>{t("prompt.copy")}</button>
+              <button onClick={() => deletePrompt(f.id)}>{t("prompt.delete")}</button>
             </div>
           </div>
         ))}
@@ -106,51 +108,51 @@ export function PromptGenerator() {
 
   return (
     <div className="prompt-panel">
-      <h3>Prompt-Generator</h3>
+      <h3>{t("prompt.title")}</h3>
 
       {/* Vorlagen: kuratierte Genre-Templates setzen Filter + Start-Idee */}
-      <label>Vorlage
+      <label>{t("prompt.template")}
         <select value={templateId} onChange={(e) => applyTemplate(e.target.value)}>
-          <option value="">— Keine Vorlage —</option>
-          {PROMPT_TEMPLATES.map((t) => (
-            <option key={t.id} value={t.id}>{t.name}</option>
+          <option value="">{t("prompt.noTemplate")}</option>
+          {PROMPT_TEMPLATES.map((tpl) => (
+            <option key={tpl.id} value={tpl.id}>{tpl.name}</option>
           ))}
         </select>
       </label>
 
-      <label>Genre (Mehrfach)
+      <label>{t("prompt.genre")}
         <select multiple value={s.genres} onChange={(e) => s.set("genres", Array.from(e.target.selectedOptions).map((o) => o.value) as Genre[])}>
           {GENRES.map((g) => <option key={g} value={g}>{g}</option>)}
         </select>
       </label>
 
-      <label>Typ
+      <label>{t("prompt.type")}
         <select value={s.promptType} onChange={(e) => s.set("promptType", e.target.value as PromptType)}>
-          {TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+          {TYPES.map((ty) => <option key={ty} value={ty}>{ty}</option>)}
         </select>
       </label>
 
-      <label>Ton
+      <label>{t("prompt.tone")}
         <select value={s.tone} onChange={(e) => s.set("tone", e.target.value as Tone)}>
-          {TONES.map((t) => <option key={t} value={t}>{t}</option>)}
+          {TONES.map((tn) => <option key={tn} value={tn}>{tn}</option>)}
         </select>
       </label>
 
-      <label>Länge/Ziel
+      <label>{t("prompt.length")}
         <select value={s.targetLength} onChange={(e) => s.set("targetLength", e.target.value as TargetLength)}>
           {LENGTHS.map((l) => <option key={l} value={l}>{l}</option>)}
         </select>
       </label>
 
-      <label>Anzahl
+      <label>{t("prompt.count")}
         <input type="number" min={1} max={10} value={s.count} onChange={(e) => s.set("count", Math.max(1, Math.min(10, +e.target.value)))} />
       </label>
 
       <button onClick={run} disabled={s.isGenerating}>
-        {s.isGenerating ? "Generiere…" : "Prompts generieren"}
+        {s.isGenerating ? t("prompt.generating") : t("prompt.generate")}
       </button>
 
-      {s.offline && <span className="offline-badge">Offline-Modus (lokale Prompts)</span>}
+      {s.offline && <span className="offline-badge">{t("prompt.offline")}</span>}
 
       {s.isGenerating && s.streamingText && (
         <pre className="streaming">{s.streamingText}</pre>

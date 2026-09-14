@@ -2,6 +2,7 @@
 // 3D-Cover-Mockup und Publishing-History in einem Panel.
 
 import { useCallback, useEffect, useState } from "react";
+import { useI18n, type TranslationKey } from "@/i18n";
 import { useProjectStore } from "@/store/projectStore";
 import { loadActiveRun, loadArtifact } from "@/services/bookwriter/state";
 import { validateKdpMetadata } from "@/services/kdp/validation";
@@ -18,14 +19,15 @@ import "./publishing.css";
 type Tab = "checklist" | "metadata" | "cover" | "history";
 type Notice = { text: string; kind: "ok" | "warn" | "err" } | null;
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: "checklist", label: "✅ Upload-Checklist" },
-  { id: "metadata", label: "🪄 Metadaten-KI" },
-  { id: "cover", label: "📕 Cover-Vorschau" },
-  { id: "history", label: "🕒 History" },
+const TABS: { id: Tab; key: TranslationKey }[] = [
+  { id: "checklist", key: "pub.tab.checklist" },
+  { id: "metadata", key: "pub.tab.metadata" },
+  { id: "cover", key: "pub.tab.cover" },
+  { id: "history", key: "pub.tab.history" },
 ];
 
 export function PublishingAssistantPanel({ projectId }: { projectId: string | null }) {
+  const { t } = useI18n();
   const proj = useProjectStore();
   const [tab, setTab] = useState<Tab>("checklist");
   const [baseMetadata, setBaseMetadata] = useState<KdpMetadata | null>(null);
@@ -45,13 +47,13 @@ export function PublishingAssistantPanel({ projectId }: { projectId: string | nu
     try {
       const run = loadActiveRun(projectId);
       if (!run) {
-        setNotice({ text: "Kein Bookwriter-Lauf für dieses Projekt aktiv.", kind: "warn" });
+        setNotice({ text: t("pub.noRun"), kind: "warn" });
         return;
       }
       const meta =
         loadArtifact<KdpMetadata>(run.id, "metadata") ?? loadArtifact<KdpMetadata>(run.id, "metadaten");
       if (!meta) {
-        setNotice({ text: "Noch keine KDP-Metadaten — bitte zuerst die Metadaten-Phase ausführen.", kind: "warn" });
+        setNotice({ text: t("pub.noMeta"), kind: "warn" });
         return;
       }
       setBaseMetadata(meta);
@@ -60,7 +62,7 @@ export function PublishingAssistantPanel({ projectId }: { projectId: string | nu
     } catch {
       // DB noch nicht bereit.
     }
-  }, [projectId]);
+  }, [projectId, t]);
 
   useEffect(() => {
     reload();
@@ -76,12 +78,12 @@ export function PublishingAssistantPanel({ projectId }: { projectId: string | nu
   async function exportPackage() {
     if (!metadata) return;
     if (chapters.length === 0) {
-      setNotice({ text: "Keine Kapitel vorhanden — bitte zuerst die Manuskript-Phase ausführen.", kind: "err" });
+      setNotice({ text: t("pub.noChapters"), kind: "err" });
       return;
     }
     const validation = validateKdpMetadata(metadata);
     if (!validation.isValid) {
-      setNotice({ text: `Metadaten haben ${validation.errorCount} Fehler — Export blockiert.`, kind: "err" });
+      setNotice({ text: t("pub.invalidMeta", { count: validation.errorCount }), kind: "err" });
       return;
     }
     setBusy(true);
@@ -109,7 +111,11 @@ export function PublishingAssistantPanel({ projectId }: { projectId: string | nu
       });
       setHistoryKey((k) => k + 1);
       setNotice({
-        text: `KDP-Paket exportiert: ${result.files.length} Dateien (${Math.round(result.totalSizeBytes / 1024)} KB) in "${result.folderName}".`,
+        text: t("pub.exported", {
+          files: result.files.length,
+          kb: Math.round(result.totalSizeBytes / 1024),
+          folder: result.folderName,
+        }),
         kind: "ok",
       });
     } catch (e) {
@@ -120,32 +126,32 @@ export function PublishingAssistantPanel({ projectId }: { projectId: string | nu
   }
 
   if (!projectId) {
-    return <div className="pub mode-placeholder">Wähle links ein Projekt, um den Publishing-Assistenten zu sehen.</div>;
+    return <div className="pub mode-placeholder">{t("pub.noProject")}</div>;
   }
 
   return (
     <div className="pub">
       <div className="pub-head">
-        <h3>Publishing-Assistent</h3>
-        <button className="pub-reload" onClick={reload} title="Neu laden">↻</button>
+        <h3>{t("pub.title")}</h3>
+        <button className="pub-reload" onClick={reload} title={t("pub.reloadTitle")}>↻</button>
       </div>
 
       {notice && <div className={`pub-notice pub-notice-${notice.kind}`}>{notice.text}</div>}
 
-      {!metadata && !notice && <div className="pub-empty">Lädt…</div>}
+      {!metadata && !notice && <div className="pub-empty">{t("pub.loading")}</div>}
 
       {metadata && (
         <>
           <div className="pub-tabs" role="tablist">
-            {TABS.map((t) => (
+            {TABS.map((tb) => (
               <button
-                key={t.id}
+                key={tb.id}
                 role="tab"
-                aria-selected={tab === t.id}
-                className={`pub-tab${tab === t.id ? " active" : ""}`}
-                onClick={() => setTab(t.id)}
+                aria-selected={tab === tb.id}
+                className={`pub-tab${tab === tb.id ? " active" : ""}`}
+                onClick={() => setTab(tb.id)}
               >
-                {t.label}
+                {t(tb.key)}
               </button>
             ))}
           </div>
@@ -155,7 +161,7 @@ export function PublishingAssistantPanel({ projectId }: { projectId: string | nu
               <KdpUploadChecklist metadata={metadata} />
               <div className="pub-price-edit">
                 <label>
-                  Listenpreis (USD):
+                  {t("pub.priceLabel")}
                   <input
                     type="number"
                     min={0.99}
@@ -169,7 +175,7 @@ export function PublishingAssistantPanel({ projectId }: { projectId: string | nu
                 </label>
               </div>
               <button className="pub-export" onClick={exportPackage} disabled={busy || chapters.length === 0}>
-                {busy ? "Export läuft…" : "KDP-Paket exportieren"}
+                {busy ? t("pub.exporting") : t("pub.exportBtn")}
               </button>
             </>
           )}

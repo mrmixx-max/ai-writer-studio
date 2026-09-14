@@ -21,20 +21,32 @@ import {
 } from "@/services/aiwriting/writingprompts";
 import { loadSettings } from "@/services/settings";
 import { getDocumentContext } from "@/services/ki/context";
+import { useI18n, type TranslationKey } from "@/i18n";
 import "./aiwriting.css";
 
 type Tab = "autocomplete" | "style" | "dialog" | "prompts";
 
-const TABS: { id: Tab; label: string }[] = [
-  { id: "autocomplete", label: "Auto-Complete" },
-  { id: "style", label: "Style Transfer" },
-  { id: "dialog", label: "Dialoge" },
-  { id: "prompts", label: "Impulse" },
+const TABS: { id: Tab; key: TranslationKey }[] = [
+  { id: "autocomplete", key: "aiwa.tab.autocomplete" },
+  { id: "style", key: "aiwa.tab.style" },
+  { id: "dialog", key: "aiwa.tab.dialog" },
+  { id: "prompts", key: "aiwa.tab.prompts" },
 ];
 
 const PROMPT_KINDS = ["frei", "szene", "konflikt", "figur", "ort", "öffnung"] as const;
+type PromptKind = (typeof PROMPT_KINDS)[number];
+
+const PROMPT_KIND_LABELS: Record<PromptKind, TranslationKey> = {
+  frei: "aiwa.kind.frei",
+  szene: "aiwa.kind.szene",
+  konflikt: "aiwa.kind.konflikt",
+  figur: "aiwa.kind.figur",
+  ort: "aiwa.kind.ort",
+  "öffnung": "aiwa.kind.oeffnung",
+};
 
 export function AIWritingAssistant() {
+  const { t } = useI18n();
   const [tab, setTab] = useState<Tab>("autocomplete");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -77,7 +89,7 @@ export function AIWritingAssistant() {
   const [dgLines, setDgLines] = useState<DialogLine[]>([]);
 
   // ---- Writing-Prompts ----
-  const [wpKind, setWpKind] = useState<(typeof PROMPT_KINDS)[number]>("frei");
+  const [wpKind, setWpKind] = useState<PromptKind>("frei");
   const [wpPrompts, setWpPrompts] = useState<WritingPrompt[]>([]);
 
   async function runStyleTransfer() {
@@ -105,13 +117,13 @@ export function AIWritingAssistant() {
         })
         .filter((c): c is { name: string; description?: string } => !!c && !!c.name);
       if (characters.length < 2) {
-        setError("Mindestens zwei Figuren nötig (eine pro Zeile: NAME: Beschreibung).");
+        setError(t("aiwa.needTwoChars"));
         setBusy(false);
         return;
       }
       const res = await generateDialog(loadSettings(), {
         characters,
-        situation: dgSituation || editor.slice(-500) || "Eine Szene aus dem laufenden Kapitel.",
+        situation: dgSituation || editor.slice(-500) || t("aiwa.dialogFallback"),
         goal: dgGoal || undefined,
         withSubtext: dgSubtext,
         lineCount: 8,
@@ -154,17 +166,17 @@ export function AIWritingAssistant() {
 
   return (
     <section className="aiwa" data-testid="ai-writing-assistant">
-      <h3 className="aiwa__title">KI-Schreibassistent</h3>
+      <h3 className="aiwa__title">{t("aiwa.title")}</h3>
       <div className="aiwa__tabs" role="tablist">
-        {TABS.map((t) => (
+        {TABS.map((tb) => (
           <button
-            key={t.id}
+            key={tb.id}
             role="tab"
-            aria-selected={tab === t.id}
-            className={`aiwa__tab${tab === t.id ? " is-active" : ""}`}
-            onClick={() => setTab(t.id)}
+            aria-selected={tab === tb.id}
+            className={`aiwa__tab${tab === tb.id ? " is-active" : ""}`}
+            onClick={() => setTab(tb.id)}
           >
-            {t.label}
+            {t(tb.key)}
           </button>
         ))}
       </div>
@@ -173,26 +185,26 @@ export function AIWritingAssistant() {
 
       {tab === "autocomplete" && (
         <div className="aiwa__body">
-          <p className="aiwa__hint">Tippt ein paar Wörter in das Feld — der Assistent schlägt Fortsetzungen vor (Debounce 700 ms).</p>
+          <p className="aiwa__hint">{t("aiwa.acHint")}</p>
           <textarea
             className="aiwa__input"
             rows={4}
-            placeholder="Der Zug verspätete sich, und während sie noch wartete, …"
+            placeholder={t("aiwa.acPh")}
             value={acPrefix}
             onChange={(e) => setAcPrefix(e.target.value)}
           />
           <ul className="aiwa__suggestions">
             {acSuggestions.map((s, i) => (
               <li key={i} className="aiwa__suggestion">
-                <button className="aiwa__insert" onClick={() => insertIntoEditor(s.text)} title="Einfügen">
+                <button className="aiwa__insert" onClick={() => insertIntoEditor(s.text)} title={t("aiwa.insertTitle")}>
                   {s.text}
                 </button>
                 <span className={`aiwa__kind aiwa__kind--${s.kind}`}>
-                  {s.kind === "llm" ? "KI" : "lokal"}
+                  {s.kind === "llm" ? t("aiwa.kindLlm") : t("aiwa.kindLocal")}
                 </span>
               </li>
             ))}
-            {!acSuggestions.length && <li className="aiwa__hint">Noch keine Vorschläge.</li>}
+            {!acSuggestions.length && <li className="aiwa__hint">{t("aiwa.noSuggestions")}</li>}
           </ul>
         </div>
       )}
@@ -200,7 +212,7 @@ export function AIWritingAssistant() {
       {tab === "style" && (
         <div className="aiwa__body">
           <label className="aiwa__label">
-            Zielstil
+            {t("aiwa.targetStyle")}
             <select value={stStyleId} onChange={(e) => setStStyleId(e.target.value)}>
               {LITERARY_STYLES.map((s) => (
                 <option key={s.id} value={s.id}>{s.label}</option>
@@ -210,17 +222,17 @@ export function AIWritingAssistant() {
           <textarea
             className="aiwa__input"
             rows={5}
-            placeholder="Zu übertragender Text (leer = markierter/aktueller Text)"
+            placeholder={t("aiwa.sourcePh")}
             value={stSource}
             onChange={(e) => setStSource(e.target.value)}
           />
           <button className="aiwa__action" disabled={busy} onClick={runStyleTransfer}>
-            {busy ? "Übertrage…" : "Stil übertragen"}
+            {busy ? t("aiwa.transferring") : t("aiwa.transfer")}
           </button>
           {stResult && (
             <div className="aiwa__result">
               <pre className="aiwa__text">{stResult}</pre>
-              <button className="aiwa__insert" onClick={() => insertIntoEditor(stResult)}>In Editor übernehmen</button>
+              <button className="aiwa__insert" onClick={() => insertIntoEditor(stResult)}>{t("aiwa.applyToEditor")}</button>
               {stOffline && <span className="aiwa__kind aiwa__kind--offline">offline</span>}
             </div>
           )}
@@ -230,23 +242,23 @@ export function AIWritingAssistant() {
       {tab === "dialog" && (
         <div className="aiwa__body">
           <label className="aiwa__label">
-            Figuren (eine pro Zeile — NAME: Beschreibung)
+            {t("aiwa.charsLabel")}
             <textarea className="aiwa__input" rows={3} value={dgChars} onChange={(e) => setDgChars(e.target.value)} />
           </label>
           <label className="aiwa__label">
-            Situation
-            <textarea className="aiwa__input" rows={2} value={dgSituation} onChange={(e) => setDgSituation(e.target.value)} placeholder="Küche, früher Morgen, nach der Beerdigung" />
+            {t("aiwa.situation")}
+            <textarea className="aiwa__input" rows={2} value={dgSituation} onChange={(e) => setDgSituation(e.target.value)} placeholder={t("aiwa.situationPh")} />
           </label>
           <label className="aiwa__label">
-            Ziel der Szene
-            <input className="aiwa__input" value={dgGoal} onChange={(e) => setDgGoal(e.target.value)} placeholder="Anna gibt ein Geheimnis preis — ohne es auszusprechen" />
+            {t("aiwa.goal")}
+            <input className="aiwa__input" value={dgGoal} onChange={(e) => setDgGoal(e.target.value)} placeholder={t("aiwa.goalPh")} />
           </label>
           <label className="aiwa__check">
             <input type="checkbox" checked={dgSubtext} onChange={(e) => setDgSubtext(e.target.checked)} />
-            Untertext (gesagt ≠ gemeint)
+            {t("aiwa.subtext")}
           </label>
           <button className="aiwa__action" disabled={busy} onClick={runDialog}>
-            {busy ? "Schreibe…" : "Dialog erzeugen"}
+            {busy ? t("aiwa.writing") : t("aiwa.genDialog")}
           </button>
           {dgLines.length > 0 && (
             <div className="aiwa__result">
@@ -270,23 +282,23 @@ export function AIWritingAssistant() {
       {tab === "prompts" && (
         <div className="aiwa__body">
           <label className="aiwa__label">
-            Art des Impulses
-            <select value={wpKind} onChange={(e) => setWpKind(e.target.value as (typeof PROMPT_KINDS)[number])}>
+            {t("aiwa.kindLabel")}
+            <select value={wpKind} onChange={(e) => setWpKind(e.target.value as PromptKind)}>
               {PROMPT_KINDS.map((k) => (
-                <option key={k} value={k}>{k}</option>
+                <option key={k} value={k}>{t(PROMPT_KIND_LABELS[k])}</option>
               ))}
             </select>
           </label>
           <button className="aiwa__action" disabled={busy} onClick={runPrompts}>
-            {busy ? "Denke…" : "Neue Impulse"}
+            {busy ? t("aiwa.thinking") : t("aiwa.newImpulses")}
           </button>
           <ul className="aiwa__suggestions">
             {wpPrompts.map((p, i) => (
               <li key={i} className="aiwa__suggestion">
-                <button className="aiwa__insert" onClick={() => insertIntoEditor(p.text)} title="Kopieren/Einfügen">
+                <button className="aiwa__insert" onClick={() => insertIntoEditor(p.text)} title={t("aiwa.copyTitle")}>
                   {p.text}
                 </button>
-                {p.offline && <span className="aiwa__kind aiwa__kind--offline">lokal</span>}
+                {p.offline && <span className="aiwa__kind aiwa__kind--offline">{t("aiwa.kindLocal")}</span>}
               </li>
             ))}
           </ul>
