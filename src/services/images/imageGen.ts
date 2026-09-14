@@ -115,7 +115,7 @@ export interface DescribeImageOptions {
 }
 
 const OLLAMA_OFFLINE_HINT =
-  "Ollama ist nicht erreichbar. Server starten: `ollama serve` (Standard-Port 11434).";
+  "Ollama ist nicht erreichbar (https://ollama.com/download — danach Server starten: `ollama serve`, Standard-Port 11434).";
 const SD_OFFLINE_HINT =
   "SD WebUI ist nicht erreichbar. WebUI starten mit `--api` (Standard-Port 7860).";
 
