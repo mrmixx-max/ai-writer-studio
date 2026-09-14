@@ -4,6 +4,7 @@ import { listChapters, getChapter } from "@/services/project";
 import { buildCommentAppendix } from "@/services/collaboration/sharing";
 import type { Project } from "@/types/project";
 import { PAGE_SIZES, mmToPt, type PrintLayout } from "@/services/printlayout";
+import type { PDFPage, PDFFont } from "pdf-lib";
 
 type Format = "docx" | "md" | "txt" | "pdf" | "epub";
 
@@ -260,7 +261,7 @@ async function toPdf(blocks: Block[], title: string, options: PdfLayoutOptions =
   let y = pageHeightPt - marginPt.top;
   let pageNum = 1;
 
-  const drawHf = (p: any, num: number) => {
+  const drawHf = (p: PDFPage, num: number) => {
     const ctx = { title: safeTitle, author: "", page: num };
     const size = hfFontSizePt;
     const hfY = pageHeightPt - marginPt.top + 14;
@@ -343,7 +344,7 @@ async function toPdf(blocks: Block[], title: string, options: PdfLayoutOptions =
   return new Blob([buf as BlobPart], { type: "application/pdf" });
 }
 
-function wrap(text: string, fontSize: number, font: any, maxWidth: number): string[] {
+function wrap(text: string, fontSize: number, font: PDFFont, maxWidth: number): string[] {
   const allLines: string[] = [];
   for (const paragraph of text.split("\n")) {
     const words = paragraph.split(/\s+/);

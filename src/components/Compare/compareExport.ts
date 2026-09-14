@@ -1,6 +1,6 @@
 // Vergleichs-Export: PDF mit Markup (rot durchgestrichen = gelöscht, grün = hinzugefügt, gelb/amber = geändert).
 // Nutzt pdf-lib (bereits im Projekt für den Hauptexport).
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument, StandardFonts, rgb, type PDFFont, type RGB } from "pdf-lib";
 import { diffLines, diffStats, type DiffLine, type DiffSegment } from "./diff";
 
 const FONT_SIZE = 10;
@@ -72,7 +72,7 @@ export async function buildComparePdf(
     curX = TEXT_X;
   };
 
-  const drawRun = (text: string, color: any, strike: boolean) => {
+  const drawRun = (text: string, color: RGB, strike: boolean) => {
     for (const chunk of text.split("\n")) {
       if (chunk === "") continue;
       const w = font.widthOfTextAtSize(chunk, FONT_SIZE);
@@ -90,7 +90,7 @@ export async function buildComparePdf(
     }
   };
 
-  const drawHeaderRow = (t: string, size: number, boldFont: any, color: any) => {
+  const drawHeaderRow = (t: string, size: number, boldFont: PDFFont, color: RGB) => {
     page.drawText(sanitize(t), { x: MARGIN, y, size, font: boldFont, color });
   };
 
