@@ -5,7 +5,7 @@ import { useState, useCallback } from "react";
 import { useFragmentStore } from "@/store/fragmentStore";
 import { createFragment, deleteFragment } from "@/services/fragment";
 import { runKIAction } from "@/services/ki";
-import { DEFAULT_SETTINGS } from "@/types/config";
+import { loadSettings } from "@/services/settings";
 import { useProjectStore } from "@/store/projectStore";
 import { AppDialog, type DialogRequest } from "@/components/Dialog/AppDialog";
 
@@ -71,7 +71,7 @@ export function FragmentPanel({ chapterId }: { chapterId: string }) {
     setBusy(true);
     const summary = frags.map((f, i) => `${i + 1}. ${f.title}: ${f.content.slice(0, 100)}`).join("\n");
     const res = await runKIAction(
-      DEFAULT_SETTINGS,
+      loadSettings(),
       {
         action: "brainstorming",
         selection: `Ordne diese Fragmente nach ${strategy}. Gib die neue Reihenfolge als Nummern-Liste (z.B. "3,1,2,4") zurück.\n\n${summary}`,

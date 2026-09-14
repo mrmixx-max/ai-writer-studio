@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { createVoice, listVoices } from "@/services/voice";
 import { runKIAction } from "@/services/ki";
-import { DEFAULT_SETTINGS } from "@/types/config";
+import { loadSettings } from "@/services/settings";
 import type { Chapter } from "@/types/project";
 import { AudioWaveformPlayer } from "./AudioWaveformPlayer";
 import { BatchTTS } from "./BatchTTS";
@@ -65,7 +65,7 @@ export function VoiceLab({
     } else {
       userPrompt = `Erzeuge eine Kontrastversion: dieselbe Situation, aber in der Stimme "${selected.promptTemplate}".\n\nORIGINAL:\n${text}`;
     }
-    await runKIAction(DEFAULT_SETTINGS, { action: "umschreiben", selection: text, context: userPrompt }, (t) => setOutput((o) => o + t));
+    await runKIAction(loadSettings(), { action: "umschreiben", selection: text, context: userPrompt }, (t) => setOutput((o) => o + t));
     setBusy(false);
   }
 

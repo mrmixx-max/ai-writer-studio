@@ -5,7 +5,7 @@ import { generatePrompts, pickOfflinePrompts } from "@/services/prompt/generate"
 import { savePrompt, setFavorite, listPrompts, deletePrompt, exportFavoritesMarkdown } from "@/services/prompt/store";
 import { useEditorStore } from "@/store/editorStore";
 import { useProjectStore } from "@/store/projectStore";
-import { DEFAULT_SETTINGS } from "@/types/config";
+import { loadSettings } from "@/services/settings";
 import { PROMPT_TEMPLATES } from "@/services/ki/templates";
 import type { Genre, PromptType, Tone, TargetLength, GeneratedPrompt } from "@/services/prompt/types";
 import { PromptCard } from "./PromptCard";
@@ -41,7 +41,7 @@ export function PromptGenerator() {
     const filters = { genres: s.genres, promptType: s.promptType, tone: s.tone, targetLength: s.targetLength, count: s.count };
     // letzte 20 gespeicherte Prompts als "bereits verwendet"
     const used = listPrompts().slice(0, 20).map((p) => p.text);
-    const res = await generatePrompts(DEFAULT_SETTINGS, filters, (t) => {
+    const res = await generatePrompts(loadSettings(), filters, (t) => {
       s.set("streamingText", s.streamingText + t);
     }, used);
     s.set("results", res.prompts);

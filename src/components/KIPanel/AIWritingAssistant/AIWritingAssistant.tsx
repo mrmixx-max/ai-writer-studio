@@ -19,7 +19,7 @@ import {
   generateWritingPrompts,
   type WritingPrompt,
 } from "@/services/aiwriting/writingprompts";
-import { DEFAULT_SETTINGS } from "@/types/config";
+import { loadSettings } from "@/services/settings";
 import { getDocumentContext } from "@/services/ki/context";
 import "./aiwriting.css";
 
@@ -50,7 +50,7 @@ export function AIWritingAssistant() {
         acAbort.current?.abort();
         const ctrl = new AbortController();
         acAbort.current = ctrl;
-        fetchAutoComplete(DEFAULT_SETTINGS, { prefix, signal: ctrl.signal })
+        fetchAutoComplete(loadSettings(), { prefix, signal: ctrl.signal })
           .then((s) => {
             if (!ctrl.signal.aborted) setAcSuggestions(s);
           })
@@ -83,7 +83,7 @@ export function AIWritingAssistant() {
   async function runStyleTransfer() {
     setBusy(true); setError(""); setStResult("");
     try {
-      const res = await transferStyle(DEFAULT_SETTINGS, {
+      const res = await transferStyle(loadSettings(), {
         text: stSource || editor,
         styleId: stStyleId,
       });
@@ -109,7 +109,7 @@ export function AIWritingAssistant() {
         setBusy(false);
         return;
       }
-      const res = await generateDialog(DEFAULT_SETTINGS, {
+      const res = await generateDialog(loadSettings(), {
         characters,
         situation: dgSituation || editor.slice(-500) || "Eine Szene aus dem laufenden Kapitel.",
         goal: dgGoal || undefined,
@@ -125,7 +125,7 @@ export function AIWritingAssistant() {
   const runPrompts = useCallback(async () => {
     setBusy(true); setError("");
     try {
-      const res = await generateWritingPrompts(DEFAULT_SETTINGS, {
+      const res = await generateWritingPrompts(loadSettings(), {
         kind: wpKind,
         count: 5,
         context: editor.slice(-1200),

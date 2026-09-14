@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { listNodes, listEdges, createNode, createEdge } from "@/services/semantic";
 import { runKIAction } from "@/services/ki";
-import { DEFAULT_SETTINGS } from "@/types/config";
+import { loadSettings } from "@/services/settings";
 
 const NODE_TYPES = ["Figur", "Motiv", "Ort", "Konflikt", "Begriff"];
 const COLORS: Record<string, string> = {
@@ -46,7 +46,7 @@ export function SemanticMap({ projectId }: { projectId: string }) {
     setBusy(true);
     const summary = nodes.map((n) => `${n.label} (${n.nodeType})`).join(", ");
     const res = await runKIAction(
-      DEFAULT_SETTINGS,
+      loadSettings(),
       {
         action: "brainstorming",
         selection: `Projekt-Elemente: ${summary}\n\nFragen:\n1. Welche Figur ist unterentwickelt?\n2. Welche Motive tauchen auf, ohne aufgelöst zu werden?\n3. Wo sind blinde Flecken?`,

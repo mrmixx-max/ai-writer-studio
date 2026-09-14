@@ -1,7 +1,7 @@
 // Schreib-Obstruktionen: absichtlich restriktiver Modus für kreative Reibung.
 import { useState } from "react";
 import { runKIAction } from "@/services/ki";
-import { DEFAULT_SETTINGS } from "@/types/config";
+import { loadSettings } from "@/services/settings";
 
 interface Rule {
   id: string;
@@ -58,7 +58,7 @@ export function ObstructionPanel({ text }: { text: string }) {
     setBusy(true);
     const rules = RULES.filter((r) => active.has(r.id)).map((r) => r.prompt).join(" ");
     await runKIAction(
-      DEFAULT_SETTINGS,
+      loadSettings(),
       {
         action: "umschreiben",
         selection: text,

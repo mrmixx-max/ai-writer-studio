@@ -1,7 +1,7 @@
 // Traumlogik-Generator: assoziatives Schreiben mit Reglern.
 import { useState } from "react";
 import { runKIAction } from "@/services/ki";
-import { DEFAULT_SETTINGS } from "@/types/config";
+import { loadSettings } from "@/services/settings";
 
 export function DreamLogicPanel({ text }: { text: string }) {
   const [output, setOutput] = useState("");
@@ -16,7 +16,7 @@ export function DreamLogicPanel({ text }: { text: string }) {
     setBusy(true);
     setOutput("");
     await runKIAction(
-      DEFAULT_SETTINGS,
+      loadSettings(),
       {
         action: "umschreiben",
         selection: text,
