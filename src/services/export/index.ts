@@ -36,7 +36,21 @@ function toBlocks(json: string): Block[] {
 }
 
 function asHeading(s: string): Block["type"] {
-  return s === "h1" || s === "h2" || s === "h3" ? s : "h1";
+  // Ebenen >3 auf h3 clampen (h4–h6 bleiben Unter-Überschriften, werden nie zu h1 hochgestuft).
+  if (s === "h2") return "h2";
+  if (s === "h3" || s === "h4" || s === "h5" || s === "h6") return "h3";
+  return "h1";
+}
+
+/** TipTap-Knotentypen liegen je nach Produzent in camelCase (Editor/Import) oder snake_case (Legacy) vor. */
+function isList(nodeType: unknown, ordered: boolean): boolean {
+  return ordered
+    ? nodeType === "orderedList" || nodeType === "ordered_list"
+    : nodeType === "bulletList" || nodeType === "bullet_list";
+}
+
+function isListItem(nodeType: unknown): boolean {
+  return nodeType === "listItem" || nodeType === "list_item";
 }
 
 function walk(node: TipTapJson, out: Block[]) {
@@ -50,18 +64,19 @@ function walk(node: TipTapJson, out: Block[]) {
     } else if (child.type === "paragraph") {
       const t = textOf(child);
       if (t.trim()) out.push({ type: "p", text: t });
-    } else if (child.type === "bullet_list" || child.type === "ordered_list") {
+    } else if (isList(child.type, false) || isList(child.type, true)) {
+      const ordered = isList(child.type, true);
       const items: Block[] = [];
       if (child.content) {
         for (const item of child.content) {
-          if (item.type === "list_item") {
+          if (isListItem(item.type)) {
             const t = textOf(item);
             if (t.trim()) items.push({ type: "list_item", text: t });
           }
         }
       }
       if (items.length > 0) {
-        out.push({ type: "list_item", text: "", ordered: child.type === "ordered_list", items });
+        out.push({ type: "list_item", text: "", ordered, items });
       }
     } else if (child.type === "code_block") {
       const t = textOf(child);
