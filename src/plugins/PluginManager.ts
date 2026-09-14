@@ -9,6 +9,7 @@
 import { HookRegistry } from "./api/hooks";
 import { EventBus } from "./api/events";
 import { safeActivate, safeDeactivate, versionGt } from "./api/lifecycle";
+import { getLogger } from "@/services/logger";
 import type {
   BadgeComponent,
   EventName,
@@ -22,6 +23,8 @@ import type {
 } from "./types";
 
 const STORAGE_KEY = "plugins.enabled";
+
+const log = getLogger("plugins/manager");
 
 interface PluginEntry {
   plugin: PluginDefinition;
@@ -44,7 +47,7 @@ export class PluginManager {
   constructor() {
     // Fehler von Plugins zentral sichtbar machen.
     this.events.on("plugin:error", (payload) => {
-      console.error("[plugins]", payload);
+      log.error("[plugins]", payload);
     });
   }
 
@@ -186,18 +189,18 @@ export class PluginManager {
     this.deactivate(id);
 
     const disposers: Array<() => void> = [];
-    const log: PluginLogger = {
-      info: (m) => console.info(`[${id}] ${m}`),
-      warn: (m) => console.warn(`[${id}] ${m}`),
+    const pluginLog: PluginLogger = {
+      info: (m) => log.info(`[${id}] ${m}`),
+      warn: (m) => log.warn(`[${id}] ${m}`),
       error: (m) => {
-        console.error(`[${id}] ${m}`);
+        log.error(`[${id}] ${m}`);
         this.events.emit("plugin:error", { plugin: id, message: m });
       },
     };
 
     const context: PluginContext = {
       manifest: entry.plugin.manifest,
-      log,
+      log: pluginLog,
       onHook: (name: HookName, handler: HookHandler) => {
         const off = this.hooks.register(name, handler);
         disposers.push(off);
@@ -217,7 +220,7 @@ export class PluginManager {
       },
     };
 
-    const result = await safeActivate(entry.plugin, context, log);
+    const result = await safeActivate(entry.plugin, context, pluginLog);
     if (result.ok) {
       entry.status = "active";
       entry.error = undefined;
@@ -235,9 +238,9 @@ export class PluginManager {
     const entry = this.entries.get(id);
     if (!entry) return;
     safeDeactivate(entry.plugin, {
-      info: (m) => console.info(`[${id}] ${m}`),
-      warn: (m) => console.warn(`[${id}] ${m}`),
-      error: (m) => console.error(`[${id}] ${m}`),
+      info: (m) => log.info(`[${id}] ${m}`),
+      warn: (m) => log.warn(`[${id}] ${m}`),
+      error: (m) => log.error(`[${id}] ${m}`),
     });
     for (const off of entry.disposers) {
       try {

@@ -2,6 +2,9 @@
 // Plugins und Host kommunizieren darüber lose gekoppelt.
 
 import type { EventName, EventHandler } from "../types";
+import { getLogger } from "@/services/logger";
+
+const log = getLogger("plugins/events");
 
 type ListenerMap = Map<EventName, Set<EventHandler>>;
 
@@ -27,7 +30,7 @@ export class EventBus {
       try {
         handler(payload);
       } catch (e) {
-        console.error(`[events] Handler für "${name}" fehlgeschlagen:`, e);
+        log.error(`Handler für "${name}" fehlgeschlagen:`, e);
       }
     }
   }

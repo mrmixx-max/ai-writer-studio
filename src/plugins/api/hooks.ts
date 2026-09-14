@@ -2,6 +2,9 @@
 // Werte sequenziell transformieren (Kette in Registrierungsreihenfolge).
 
 import type { HookName, HookHandler } from "../types";
+import { getLogger } from "@/services/logger";
+
+const log = getLogger("plugins/hooks");
 
 type HandlerMap = Map<HookName, Set<HookHandler>>;
 
@@ -32,7 +35,7 @@ export class HookRegistry {
       try {
         current = handler(current) as V;
       } catch (e) {
-        console.error(`[hooks] Handler für "${name}" fehlgeschlagen:`, e);
+        log.error(`Handler für "${name}" fehlgeschlagen:`, e);
       }
     }
     return current;
