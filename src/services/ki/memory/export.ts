@@ -25,8 +25,12 @@ export function exportMemoryMarkdown(entries?: MemoryEntry[]): string {
   ];
   const groups = new Map<string, MemoryEntry[]>();
   for (const m of list) {
-    if (!groups.has(m.kind)) groups.set(m.kind, []);
-    groups.get(m.kind)!.push(m);
+    let group = groups.get(m.kind);
+    if (!group) {
+      group = [];
+      groups.set(m.kind, group);
+    }
+    group.push(m);
   }
   const order = ["charakter", "ort", "fakt", "gespraech", "stil"];
   for (const kind of order) {

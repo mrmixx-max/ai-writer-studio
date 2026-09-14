@@ -234,6 +234,10 @@ export async function embedBatch(
 
     if (settings.provider === "openai") {
       vecs = await embedOpenAI(sliceTexts, model, settings.openaiApiKey ?? "", "https://api.openai.com/v1");
+    } else if (settings.provider === "openrouter") {
+      // Wie embedOne: OpenRouter bietet kein einheitliches Embedding-Endpoint.
+      // Bewusst werfen statt still auf Ollama zurückzufallen.
+      throw new Error("OpenRouter unterstützt keine Embeddings. Nutze Ollama oder OpenAI.");
     } else if (settings.provider === "lmstudio") {
       vecs = await embedOpenAI(sliceTexts, model, "", settings.lmstudioBaseUrl);
     } else if (settings.provider === "gpt2api") {
@@ -339,7 +343,11 @@ export function deserializeEmbedding(raw: string | null): number[] | null {
   if (!raw) return null;
   try {
     const v = JSON.parse(raw);
-    return Array.isArray(v) ? (v as number[]) : null;
+    // Korrupte Zeilen (kein Array, keine endlichen Zahlen) abweisen, sonst
+    // entstehen NaN-Scores im Retrieval, die Trefferlisten verfälschen.
+    if (!Array.isArray(v) || v.length === 0) return null;
+    if (!v.every((n) => typeof n === "number" && Number.isFinite(n))) return null;
+    return v as number[];
   } catch {
     return null;
   }

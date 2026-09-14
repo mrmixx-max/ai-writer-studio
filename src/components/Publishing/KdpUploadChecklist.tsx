@@ -4,6 +4,7 @@
 
 import { useMemo } from "react";
 import { buildKdpChecklist, type KdpChecklistItem } from "@/services/kdp/validation";
+import { useI18n } from "@/i18n";
 import type { KdpMetadata } from "@/types/bookwriter";
 
 const STATUS_ICON: Record<KdpChecklistItem["status"], string> = {
@@ -13,13 +14,14 @@ const STATUS_ICON: Record<KdpChecklistItem["status"], string> = {
 };
 
 export function KdpUploadChecklist({ metadata }: { metadata: KdpMetadata }) {
+  const { t } = useI18n();
   const checklist = useMemo(() => buildKdpChecklist(metadata), [metadata]);
   const doneCount = checklist.filter((c) => c.status !== "err").length;
 
   return (
     <section className="pub-section" data-testid="pub-upload-checklist">
       <div className="pub-summary">
-        {doneCount}/{checklist.length} Punkte erfüllt
+        {t("pub.checklistSummary", { done: doneCount, total: checklist.length })}
         <div className="pub-bar">
           <div
             className="pub-bar-fill"

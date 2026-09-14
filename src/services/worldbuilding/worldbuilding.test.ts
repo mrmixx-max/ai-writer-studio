@@ -105,6 +105,23 @@ describe("Konsistenz-Checker", () => {
     expect(md).toContain("Konsistenz-Report");
     expect(md).toContain("Lyra");
   });
+
+  it("zählt Orte wie Figuren case-insensitiv (kein falsches Unerwähnt)", async () => {
+    await createLocation(projectId, { name: "Altefels" });
+    const ch = await createChapter(projectId, "Kapitel 1", "x");
+    const db = getDb();
+    db.run("UPDATE chapters SET content = ? WHERE id = ?", [
+      "altefels lag im morgennebel.",
+      ch.id,
+    ]);
+
+    const report = checkWorldConsistency(projectId);
+    const loc = report.mentions.locations.find((m) => m.name === "Altefels");
+    expect(loc?.total).toBeGreaterThanOrEqual(1);
+    expect(report.findings.some(
+      (f) => f.kind === "location" && f.name === "Altefels" && f.severity === "info",
+    )).toBe(false);
+  });
 });
 
 describe("Export", () => {

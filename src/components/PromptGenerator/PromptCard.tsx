@@ -1,5 +1,6 @@
 // Einzelne Prompt-Karte mit Aktionen + optionalem 10-Min-Freewriting-Timer.
 import { useEffect, useState } from "react";
+import { useI18n } from "@/i18n";
 import type { GeneratedPrompt } from "@/services/prompt/types";
 
 interface Props {
@@ -14,6 +15,7 @@ interface Props {
 const FREEWRITE_MS = 10 * 60 * 1000;
 
 export function PromptCard({ prompt, onInsert, onNewChapter, onFavorite, onCopy, onRegenerate }: Props) {
+  const { t } = useI18n();
   const [timer, setTimer] = useState<number | null>(null);
   const [remaining, setRemaining] = useState(FREEWRITE_MS);
 
@@ -65,13 +67,13 @@ export function PromptCard({ prompt, onInsert, onNewChapter, onFavorite, onCopy,
         {prompt.genre} · {prompt.type}
       </div>
       <div className="prompt-actions">
-        <button onClick={onInsert}>In Editor einfügen</button>
-        <button onClick={onNewChapter}>Neues Kapitel</button>
-        <button onClick={onFavorite}>★ Favorit</button>
-        <button onClick={onCopy}>Kopieren</button>
-        <button onClick={onRegenerate}>Neu würfeln</button>
+        <button onClick={onInsert}>{t("prompt.insert")}</button>
+        <button onClick={onNewChapter}>{t("prompt.newChapter")}</button>
+        <button onClick={onFavorite}>{t("prompt.favorite")}</button>
+        <button onClick={onCopy}>{t("prompt.copy")}</button>
+        <button onClick={onRegenerate}>{t("prompt.regen")}</button>
         {timer === null ? (
-          <button onClick={startTimer}>⏱ 10-Min-Timer</button>
+          <button onClick={startTimer}>{t("prompt.timer")}</button>
         ) : (
           <span className="timer">{mm}:{ss.toString().padStart(2, "0")}</span>
         )}

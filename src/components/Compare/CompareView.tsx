@@ -1,6 +1,7 @@
 // Diff-View: zwei Kapitel-Versionen nebeneinander mit hervorgehobenen Änderungen.
 import { useMemo } from "react";
 import { diffLines, diffStats, type DiffSegment } from "./diff";
+import { useI18n } from "@/i18n";
 import "./compare.css";
 
 export interface CompareSelection {
@@ -17,6 +18,7 @@ export interface CompareVersionMeta {
 }
 
 export function CompareView({ left, right }: { left: CompareVersionMeta; right: CompareVersionMeta }) {
+  const { t } = useI18n();
   const lines = useMemo(() => diffLines(left.content, right.content), [left.content, right.content]);
   const stats = useMemo(() => diffStats(lines), [lines]);
 
@@ -53,9 +55,9 @@ export function CompareView({ left, right }: { left: CompareVersionMeta; right: 
           <strong>B:</strong> {right.label} <span className="vtype">{right.versionType}</span>
         </div>
         <div className="compare-stats" data-testid="compare-stats">
-          <span className="stat-added">+{stats.added} Wörter</span>
-          <span className="stat-deleted">−{stats.deleted} Wörter</span>
-          <span className="stat-changed">{stats.changedLines} geänderte Zeilen</span>
+          <span className="stat-added">{t("compare.addedWords", { count: stats.added })}</span>
+          <span className="stat-deleted">{t("compare.deletedWords", { count: stats.deleted })}</span>
+          <span className="stat-changed">{t("compare.changedLines", { count: stats.changedLines })}</span>
         </div>
       </div>
       <div className="compare-columns">
@@ -73,9 +75,9 @@ export function CompareView({ left, right }: { left: CompareVersionMeta; right: 
         </div>
       </div>
       <div className="compare-legend">
-        <span className="legend-del">durchgestrichen/rot = gelöscht</span>
-        <span className="legend-add">grün = hinzugefügt</span>
-        <span className="legend-chg">gelb = geändert</span>
+        <span className="legend-del">{t("compare.legendDel")}</span>
+        <span className="legend-add">{t("compare.legendAdd")}</span>
+        <span className="legend-chg">{t("compare.legendChg")}</span>
       </div>
     </div>
   );

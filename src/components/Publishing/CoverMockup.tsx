@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { computeMockupSpec, coverDisplaySize, DEFAULT_MOCKUP_OPTIONS } from "@/services/kdp/mockup";
+import { useI18n } from "@/i18n";
 import type { KdpMetadata } from "@/types/bookwriter";
 
 function imageSize(dataUrl: string): Promise<{ w: number; h: number } | null> {
@@ -14,6 +15,7 @@ function imageSize(dataUrl: string): Promise<{ w: number; h: number } | null> {
 }
 
 export function CoverMockup({ metadata, title }: { metadata: KdpMetadata; title: string }) {
+  const { t } = useI18n();
   const [pageCount, setPageCount] = useState(250);
   const [imgSize, setImgSize] = useState<{ w: number; h: number } | null>(null);
   const spec = useMemo(() => computeMockupSpec(pageCount), [pageCount]);
@@ -34,7 +36,7 @@ export function CoverMockup({ metadata, title }: { metadata: KdpMetadata; title:
     <section className="pub-section" data-testid="pub-cover-mockup">
       <div className="pub-mockup-controls">
         <label>
-          Seitenzahl: <strong>{pageCount}</strong>
+          {t("pub.pageCount")} <strong>{pageCount}</strong>
           <input
             type="range"
             min={50}
@@ -55,9 +57,9 @@ export function CoverMockup({ metadata, title }: { metadata: KdpMetadata; title:
           <div className="pub-mockup-book" style={{ transform: spec.groupTransform, width: spec.frontWidth, height: spec.frontHeight }}>
             <div className="pub-mockup-front">
               {size ? (
-                <img src={cover} alt={`Cover: ${title}`} width={size.width} height={size.height} />
+                <img src={cover} alt={t("pub.coverAlt", { title })} width={size.width} height={size.height} />
               ) : (
-                <img src={cover} alt={`Cover: ${title}`} style={{ width: "100%", height: "100%" }} />
+                <img src={cover} alt={t("pub.coverAlt", { title })} style={{ width: "100%", height: "100%" }} />
               )}
             </div>
             <div className="pub-mockup-spine" style={{ transform: spec.spineTransform, width: spec.spineWidth, height: spec.frontHeight }}>
@@ -68,12 +70,11 @@ export function CoverMockup({ metadata, title }: { metadata: KdpMetadata; title:
         </div>
       ) : (
         <div className="pub-notice pub-notice-warn">
-          Kein Cover vorhanden — bitte zuerst ein Cover generieren (CoverGen) oder hochladen.
+          {t("pub.noCover")}
         </div>
       )}
       <p className="pub-note">
-        Spine-Breite ≈ {spec.spineWidth} px ({pageCount} Seiten). Vorschau, kein Ersatz für die
-        Cover-Datei im KDP-Export.
+        {t("pub.spineNote", { px: spec.spineWidth, pages: pageCount })}
       </p>
     </section>
   );

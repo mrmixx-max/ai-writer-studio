@@ -7,6 +7,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { AppSettings } from "@/types/config";
 import type { ProviderId } from "@/types/llm";
+import { useI18n } from "@/i18n";
 import {
   discoverModels,
   labelFor,
@@ -24,6 +25,7 @@ interface ModelPickerProps {
 }
 
 export function ModelPicker({ settings, onSelect, variant = "default", toggleId }: ModelPickerProps) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [results, setResults] = useState<DiscoveredModels[] | null>(null);
   // loading: sichtbarer Ladezustand (Spinner statt Liste) beim Öffnen/Refresh.
@@ -110,7 +112,7 @@ export function ModelPicker({ settings, onSelect, variant = "default", toggleId 
           aria-haspopup="listbox"
           aria-expanded={open}
           onClick={() => setOpen((v) => !v)}
-          title="Aktives Modell wechseln"
+          title={t("kipicker.changeTitle")}
         >
           <span className="ki-model-picker-active">
             {variant === "badge" ? (
@@ -119,7 +121,7 @@ export function ModelPicker({ settings, onSelect, variant = "default", toggleId 
               </span>
             ) : null}
             {labelFor(settings.provider)} · {settings.model}
-            {activeOffline ? " (offline)" : ""}
+            {activeOffline ? t("ki.offlineSuffix") : ""}
           </span>
           <span className="ki-model-picker-caret" aria-hidden="true">
             ▾
@@ -130,32 +132,32 @@ export function ModelPicker({ settings, onSelect, variant = "default", toggleId 
           className={`ki-model-picker-refresh${loading ? " spinning" : ""}`}
           onClick={() => void load(true)}
           disabled={loading}
-          title="Modelle neu laden"
-          aria-label="Modelle aktualisieren"
+          title={t("kipicker.refreshTitle")}
+          aria-label={t("kipicker.refreshLabel")}
         >
           ⟳
         </button>
       </div>
 
       {open && (
-        <div className="ki-model-menu" role="listbox" aria-label="Verfügbare Modelle">
+        <div className="ki-model-menu" role="listbox" aria-label={t("kipicker.listLabel")}>
           {/* Sprint 24: Suchfeld für schnelle Modell-Filterung */}
           <div className="ki-model-menu-search">
             <input
               ref={searchInputRef}
               type="text"
               className="ki-model-menu-search-input"
-              placeholder="Modell suchen…"
+              placeholder={t("kipicker.searchPh")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              aria-label="Modell suchen"
+              aria-label={t("kipicker.searchLabel")}
             />
             {searchQuery && (
               <button
                 type="button"
                 className="ki-model-menu-search-clear"
                 onClick={() => setSearchQuery("")}
-                aria-label="Suche löschen"
+                aria-label={t("kipicker.clearSearch")}
               >
                 ×
               </button>
@@ -167,21 +169,20 @@ export function ModelPicker({ settings, onSelect, variant = "default", toggleId 
               <span className="ki-model-menu-spinner" aria-hidden="true">
                 ⟳
               </span>{" "}
-              Suche nach Modellen…
+              {t("kipicker.searching")}
             </p>
           )}
           {!loading && results === null && (
-            <p className="ki-model-menu-hint">Suche nach Modellen…</p>
+            <p className="ki-model-menu-hint">{t("kipicker.searching")}</p>
           )}
           {!loading && refreshing && (
             <p className="ki-model-menu-hint" role="status" aria-live="polite">
-              Aktualisiere…
+              {t("kipicker.updating")}
             </p>
           )}
           {!loading && results !== null && listDisabled && (
             <p className="ki-model-menu-hint">
-              Kein Anbieter erreichbar. Ollama installieren (ollama.com/download),
-              lokale Modelle starten (z. B. „ollama serve“) und aktualisieren.
+              {t("kipicker.noProvider")}
             </p>
           )}
           {!loading &&

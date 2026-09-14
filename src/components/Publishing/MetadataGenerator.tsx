@@ -9,6 +9,7 @@ import {
   type GeneratedKeywords,
 } from "@/services/kdp/metadata-gen";
 import { loadSettings } from "@/services/settings";
+import { useI18n } from "@/i18n";
 import type { KdpMetadata } from "@/types/bookwriter";
 
 type Notice = { text: string; kind: "ok" | "warn" | "err" } | null;
@@ -26,6 +27,7 @@ export function MetadataGenerator({
   const [notice, setNotice] = useState<Notice>(null);
   const [description, setDescription] = useState<GeneratedDescription | null>(null);
   const [keywords, setKeywords] = useState<GeneratedKeywords | null>(null);
+  const { t } = useI18n();
 
   const runDescription = useCallback(async () => {
     setBusy("desc");
@@ -35,7 +37,7 @@ export function MetadataGenerator({
       const result = await generateKdpDescription(input, loadSettings());
       setDescription(result);
       setNotice({
-        text: result.viaLlm ? "Beschreibung generiert (LLM)." : "LLM nicht erreichbar — Fallback-Vorlage erzeugt.",
+        text: result.viaLlm ? t("pub.descDone") : t("pub.descFallback"),
         kind: result.viaLlm ? "ok" : "warn",
       });
     } catch (e) {
@@ -43,7 +45,7 @@ export function MetadataGenerator({
     } finally {
       setBusy(null);
     }
-  }, [metadata, authorName]);
+  }, [metadata, authorName, t]);
 
   const runKeywords = useCallback(async () => {
     setBusy("kw");
@@ -54,8 +56,8 @@ export function MetadataGenerator({
       setKeywords(result);
       setNotice({
         text: result.viaLlm
-          ? `${result.keywords.length} Keywords generiert (LLM).`
-          : "LLM nicht erreichbar — Fallback-Keywords erzeugt.",
+          ? t("pub.kwDone", { count: result.keywords.length })
+          : t("pub.kwFallback"),
         kind: result.viaLlm ? "ok" : "warn",
       });
     } catch (e) {
@@ -63,16 +65,16 @@ export function MetadataGenerator({
     } finally {
       setBusy(null);
     }
-  }, [metadata, authorName]);
+  }, [metadata, authorName, t]);
 
   return (
     <section className="pub-section" data-testid="pub-metadata-gen">
       <div className="pub-actions">
         <button onClick={runDescription} disabled={busy !== null}>
-          {busy === "desc" ? "Generiere Beschreibung…" : "🪄 Beschreibung generieren"}
+          {busy === "desc" ? t("pub.genDescBusy") : t("pub.genDesc")}
         </button>
         <button onClick={runKeywords} disabled={busy !== null}>
-          {busy === "kw" ? "Generiere Keywords…" : "🪄 Keywords generieren"}
+          {busy === "kw" ? t("pub.genKwBusy") : t("pub.genKw")}
         </button>
       </div>
 
@@ -80,7 +82,7 @@ export function MetadataGenerator({
 
       {description && (
         <div className="pub-gen-result">
-          <h4>Beschreibung {description.viaLlm ? "(KI)" : "(Fallback)"}</h4>
+          <h4>{t("pub.resultDesc")} {description.viaLlm ? t("pub.viaLlm") : t("pub.viaFallback")}</h4>
           <pre className="pub-gen-text">{description.description}</pre>
           <div className="pub-actions">
             <button
@@ -88,7 +90,7 @@ export function MetadataGenerator({
                 onApply({ blurbVariants: [description.description], shortDescription: description.shortDescription })
               }
             >
-              ✎ In Metadaten übernehmen
+              {t("pub.applyMeta")}
             </button>
           </div>
         </div>
@@ -96,7 +98,7 @@ export function MetadataGenerator({
 
       {keywords && (
         <div className="pub-gen-result">
-          <h4>Keywords {keywords.viaLlm ? "(KI)" : "(Fallback)"}</h4>
+          <h4>{t("pub.resultKw")} {keywords.viaLlm ? t("pub.viaLlm") : t("pub.viaFallback")}</h4>
           <div className="pub-keyword-cloud">
             {keywords.keywords.map((kw) => (
               <span key={kw} className="pub-keyword">{kw}</span>
@@ -104,7 +106,7 @@ export function MetadataGenerator({
           </div>
           <div className="pub-actions">
             <button onClick={() => onApply({ keywords: keywords.keywords })}>
-              ✎ In Metadaten übernehmen
+              {t("pub.applyMeta")}
             </button>
           </div>
         </div>
