@@ -40,16 +40,10 @@ pub fn is_project_file(path: &str) -> bool {
 /// Alles andere (inkl. "") fällt auf "none" zurück (= Anzeige aus).
 pub fn normalize_progress_status(status: &str) -> &'static str {
     match status.to_lowercase().as_str() {
-        "normal" | "indeterminate" | "paused" | "error" => {
-            // Exakter kanonischer Bezeichner zurückgeben (Kleinschreibung ok,
-            // Mapping erfolgt in `progress_state_for`).
-            match status.to_lowercase().as_str() {
-                "normal" => "normal",
-                "indeterminate" => "indeterminate",
-                "paused" => "paused",
-                _ => "error",
-            }
-        }
+        "normal" => "normal",
+        "indeterminate" => "indeterminate",
+        "paused" => "paused",
+        "error" => "error",
         _ => "none",
     }
 }
