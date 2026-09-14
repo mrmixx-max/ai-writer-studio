@@ -259,7 +259,11 @@ export async function buildBookDocxBlob(
 <ds:datastoreItem ds:itemID="{${uuid}}" xmlns:ds="http://schemas.openxmlformats.org/officeDocument/2006/customXml"/>`,
   );
 
-  const ct = await zip.file("[Content_Types].xml")!.async("string");
+  const ctEntry = zip.file("[Content_Types].xml");
+  if (!ctEntry) {
+    throw new Error("DOCX-Export: [Content_Types].xml fehlt im generierten Paket (jszip lieferte keinen Eintrag).");
+  }
+  const ct = await ctEntry.async("string");
   const ctOverrides = [
     `<Override PartName="/customXml/item1.xml" ContentType="application/xml"/>`,
     `<Override PartName="/customXml/itemProps1.xml" ContentType="application/vnd.openxmlformats-officedocument.customXmlProperties+xml"/>`,

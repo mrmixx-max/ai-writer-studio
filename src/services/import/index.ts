@@ -90,10 +90,16 @@ export async function importFiles(
         const zip = await JSZip.loadAsync(file.data);
         const scrivxEntry = Object.keys(zip.files).find((k) => k.toLowerCase().endsWith(".scrivx"));
         if (scrivxEntry) {
-          xml = await zip.file(scrivxEntry)!.async("string");
+          const scrivxFile = zip.file(scrivxEntry);
+          if (!scrivxFile) {
+            throw new ImportError(`Eintrag „${scrivxEntry}“ konnte nicht aus dem .scriv-Paket gelesen werden.`);
+          }
+          xml = await scrivxFile.async("string");
           for (const key of Object.keys(zip.files)) {
             if (/\/?Files\/Docs\/[^/]+\.(rtf|txt)$/i.test(key)) {
-              docFiles[key] = await zip.file(key)!.async("string");
+              const docFile = zip.file(key);
+              if (!docFile) continue; // Verzeichnis-Eintrag o.ä. — überspringen statt crashen.
+              docFiles[key] = await docFile.async("string");
             }
           }
         } else {
