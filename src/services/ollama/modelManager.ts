@@ -53,7 +53,7 @@ export class ModelManagerError extends Error {
   }
 }
 
-const SERVE_HINT = "Ollama nicht erreichbar. Server starten: `ollama serve` (Standard-Port 11434).";
+const SERVE_HINT = "Ollama nicht erreichbar (https://ollama.com/download — danach `ollama serve`, Standard-Port 11434).";
 
 function base(baseUrl: string | undefined): string {
   const b = (baseUrl ?? DEFAULT_OLLAMA_BASE_URL).trim() || DEFAULT_OLLAMA_BASE_URL;

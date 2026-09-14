@@ -148,7 +148,7 @@ export async function probeEmbeddings(settings: AppSettings): Promise<EmbeddingP
 function buildUnavailableNotice(settings: AppSettings, model: string, raw: string): string {
   const isNetwork = /fetch|network|abort|ECONNREFUSED|Failed to fetch/i.test(raw);
   if (settings.provider === "ollama" && isNetwork) {
-    return `Ollama ist nicht erreichbar (${settings.ollamaBaseUrl}). Die semantische Suche steht nicht zur Verfügung – es wird die lexikalische Suche verwendet. Starte Ollama mit „ollama serve" und lade das Modell mit „ollama pull ${model}".`;
+    return `Ollama ist nicht erreichbar (${settings.ollamaBaseUrl}) — falls nicht installiert: https://ollama.com/download. Die semantische Suche steht nicht zur Verfügung – es wird die lexikalische Suche verwendet. Starte Ollama mit „ollama serve“ und lade das Modell mit „ollama pull ${model}“.`;
   }
   if (/not found|no such model|model .* not found/i.test(raw)) {
     return `Das Embedding-Modell „${model}“ ist nicht installiert. Lade es mit „ollama pull ${model}". Bis dahin wird die lexikalische Suche verwendet.`;

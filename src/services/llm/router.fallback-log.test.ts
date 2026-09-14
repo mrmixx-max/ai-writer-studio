@@ -4,6 +4,7 @@
 // OpenRouter-Fallback. Pro Call ein Log-Eintrag mit fallback_reason.
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { BookwriterRouter, type RouterChainSpec } from "./router";
+import { getLogger, getLogEntries } from "@/services/logger";
 
 const ollamaHealthy = { value: false };
 const orResponses: string[] = [];
@@ -39,9 +40,7 @@ beforeEach(() => {
   orErrors.length = 0;
   callMetas.length = 0;
   logLines.length = 0;
-  vi.spyOn(console, "warn").mockImplementation((...args: unknown[]) => {
-    logLines.push(args.map(String).join(" "));
-  });
+  void getLogger;
 });
 
 function makeRouter(): BookwriterRouter {
@@ -72,8 +71,10 @@ describe("Fallback-Log (Akzeptanzkriterium)", () => {
     expect(callMetas[0].fallback_reason).toBe("health_check_failed");
     expect(callMetas[1].fallback_reason).toBe("health_check_failed");
 
-    // Router-Log enthält Umschalt-Hinweis je Call.
-    const routerLogs = logLines.filter((l) => l.includes("Bookwriter-Router"));
+    // Router-Log enthält Umschalt-Hinweis je Call (zentraler Logger-Puffer).
+    const routerLogs = getLogEntries(200).filter(
+      (e) => e.context === "llm/router" && e.message.includes("healthCheck rot"),
+    );
     expect(routerLogs.length).toBeGreaterThanOrEqual(2);
 
     // Log-Eintrag-Struktur: provider, model, latency, tokens, fallback_reason

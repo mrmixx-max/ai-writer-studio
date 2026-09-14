@@ -95,7 +95,7 @@ export class OllamaProvider implements LLMProvider {
     } catch (e) {
       if (e instanceof ProviderError) throw e;
       throw new ProviderError(
-        "Ollama nicht erreichbar. Server starten: `ollama serve` (Standard-Port 11434).",
+        "Ollama nicht erreichbar (https://ollama.com/download — danach `ollama serve`, Standard-Port 11434).",
         e,
       );
     }
@@ -174,7 +174,7 @@ export class OllamaProvider implements LLMProvider {
       } catch (e) {
         release();
         throw new ProviderError(
-          "Ollama nicht erreichbar. Server starten: `ollama serve` (Standard-Port 11434).",
+          "Ollama nicht erreichbar (https://ollama.com/download — danach `ollama serve`, Standard-Port 11434).",
           e,
         );
       }

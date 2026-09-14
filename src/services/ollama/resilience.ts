@@ -19,7 +19,7 @@ export const DEFAULT_HEALTH_TTL_MS = 15_000;
 
 /** Clear offline hint shown when Ollama is unreachable. */
 export const OFFLINE_MESSAGE =
-  "Ollama ist nicht erreichbar. Server starten: `ollama serve` (Standard-Port 11434).";
+  "Ollama ist nicht erreichbar (https://ollama.com/download — danach `ollama serve`, Standard-Port 11434).";
 
 /** Error kinds of the resilience layer. */
 export type OllamaResilienceErrorKind = "timeout" | "offline" | "model-missing" | "aborted";
