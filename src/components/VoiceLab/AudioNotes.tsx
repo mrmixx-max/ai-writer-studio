@@ -10,6 +10,7 @@ import {
   type AudioNote,
 } from "@/services/voice/audioNotes";
 import { AudioWaveformPlayer } from "./AudioWaveformPlayer";
+import { AppDialog, type DialogRequest } from "@/components/Dialog/AppDialog";
 
 interface AudioNotesProps {
   chapterId: string;
@@ -31,6 +32,7 @@ export function AudioNotes({ chapterId }: AudioNotesProps) {
   const [error, setError] = useState<string | null>(null);
   const recorderRef = useRef<RecorderHandle | null>(null);
   const timerRef = useRef<number | null>(null);
+  const [dlg, setDlg] = useState<DialogRequest | null>(null);
 
   function reload() {
     setNotes(listAudioNotes(chapterId));
@@ -79,7 +81,9 @@ export function AudioNotes({ chapterId }: AudioNotesProps) {
   }
 
   async function doRename(note: AudioNote) {
-    const name = window.prompt("Neuer Name:", note.label);
+    const name = await new Promise<string | null>((resolve) =>
+      setDlg({ kind: "prompt", label: "Neuer Name:", initial: note.label, resolve }),
+    );
     if (!name || name === note.label) return;
     await renameAudioNote(note.id, name);
     reload();
@@ -101,6 +105,7 @@ export function AudioNotes({ chapterId }: AudioNotesProps) {
 
   return (
     <div className="audio-notes" data-testid="audio-notes">
+      <AppDialog request={dlg} onDone={() => setDlg(null)} />
       <div className="an-recorder">
         {recording ? (
           <button className="danger" onClick={stopRecording} data-testid="memo-stop">

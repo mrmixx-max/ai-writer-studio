@@ -8,6 +8,7 @@ import { AudioWaveformPlayer } from "./AudioWaveformPlayer";
 import { BatchTTS } from "./BatchTTS";
 import { TranscriptEditor } from "./TranscriptEditor";
 import { AudioNotes } from "./AudioNotes";
+import { AppDialog, type DialogRequest } from "@/components/Dialog/AppDialog";
 
 const PRESET_VOICES = [
   { name: "nüchtern", prompt: "Schreibe den Text nüchtern, sachlich, ohne Emotion." },
@@ -36,6 +37,7 @@ export function VoiceLab({
   const [busy, setBusy] = useState(false);
   const [splitMode, setSplitMode] = useState<"translate" | "collide" | "contrast">("translate");
   const [tab, setTab] = useState<VoiceLabTab>("voices");
+  const [dlg, setDlg] = useState<DialogRequest | null>(null);
 
   const selected = voices.find((v) => v.id === voiceId);
 
@@ -45,9 +47,13 @@ export function VoiceLab({
   }
 
   async function addCustom() {
-    const name = window.prompt("Stimme-Name:");
+    const name = await new Promise<string | null>((resolve) =>
+      setDlg({ kind: "prompt", label: "Stimme-Name:", initial: "", resolve }),
+    );
     if (!name) return;
-    const prompt = window.prompt("Prompt-Template:");
+    const prompt = await new Promise<string | null>((resolve) =>
+      setDlg({ kind: "prompt", label: "Prompt-Template:", initial: "", resolve }),
+    );
     if (!prompt) return;
     await createVoice(name, "", prompt);
     setVoices(listVoices());
@@ -71,6 +77,7 @@ export function VoiceLab({
 
   return (
     <div className="voice-lab">
+      <AppDialog request={dlg} onDone={() => setDlg(null)} />
       <div className="voice-lab-tabs" role="tablist">
         <button role="tab" onClick={() => setTab("voices")} className={tab === "voices" ? "active" : ""}>Stimmen</button>
         <button role="tab" onClick={() => setTab("player")} className={tab === "player" ? "active" : ""}>Player</button>
