@@ -110,7 +110,7 @@ Write-Host '===========================================================' -Foregr
 Write-Step 'Alte App-Prozesse beenden'
 # Nur die eigene App killen — kein globaler msedgewebview2-Kill, da andere
 # Apps (Outlook, Teams, Electron) WebView2 nutzen könnten.
-$appName = $Cfg.ExeName -replace '\\.exe$',''
+$appName = $Cfg.ExeName -replace '\.exe$',''
 $procs = Get-Process -Name $appName -ErrorAction SilentlyContinue
 if ($procs) {
     $procs | Stop-Process -Force

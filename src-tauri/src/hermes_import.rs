@@ -31,8 +31,7 @@ pub fn import_hermes_keys() -> Result<HermesKeys, String> {
 }
 
 fn get_hermes_config_path() -> Result<PathBuf, String> {
-    let app_data = std::env::var("APPDATA")
-        .map_err(|e| format!("APPDATA nicht gefunden: {e}"))?;
+    let app_data = std::env::var("APPDATA").map_err(|e| format!("APPDATA nicht gefunden: {e}"))?;
     let path = PathBuf::from(app_data).join("hermes").join("config.yaml");
     if !path.exists() {
         return Err(format!("Config nicht gefunden: {:?}", path));
@@ -52,14 +51,18 @@ fn extract_key(content: &str, provider: &str, key_name: &str) -> Option<String> 
         }
         if in_provider && trimmed.starts_with(key_name) {
             let parts: Vec<&str> = trimmed.splitn(2, ':').collect();
-            if parts.len() == 2 {
+            if parts.len() == 2 && parts[0].trim() == key_name {
                 let value = parts[1].trim().trim_matches('"').trim_matches('\'');
                 if !value.is_empty() && value != "***" {
                     return Some(value.to_string());
                 }
             }
         }
-        if in_provider && !trimmed.starts_with('-') && !trimmed.starts_with(key_name) && !trimmed.is_empty() {
+        if in_provider
+            && !trimmed.starts_with('-')
+            && !trimmed.starts_with(key_name)
+            && !trimmed.is_empty()
+        {
             if line.starts_with(' ') || line.starts_with('\t') {
                 continue;
             }

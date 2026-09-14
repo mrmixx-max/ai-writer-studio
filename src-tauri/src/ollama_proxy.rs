@@ -28,23 +28,40 @@ fn client(timeout_secs: u64) -> Result<reqwest::Client, String> {
 }
 
 /// Prüft, ob die URL ein Loopback-Ziel ist (nur lokale Server erlaubt).
+///
+/// Der Host wird aus der geparsten URL verglichen — ein reiner
+/// Präfix-Vergleich wäre umgehbar (`http://127.0.0.1.evil.com`,
+/// `http://127.0.0.1@evil.com`).
 fn require_loopback(url: &str) -> Result<(), String> {
-    let lower = url.to_lowercase();
-    let ok = lower.starts_with("http://127.0.0.1")
-        || lower.starts_with("http://localhost")
-        || lower.starts_with("http://[::1]");
+    let parsed = reqwest::Url::parse(url).map_err(|e| format!("Ungültige URL ({url}): {e}"))?;
+    if parsed.scheme() != "http" {
+        return Err(format!(
+            "Nur http-URLs erlaubt (kein {0}): {url}",
+            parsed.scheme()
+        ));
+    }
+    let host = parsed.host_str().unwrap_or_default().to_lowercase();
+    let ok = host == "127.0.0.1" || host == "localhost" || host == "::1" || host == "[::1]";
     if ok {
         Ok(())
     } else {
-        Err(format!("Nur lokale URLs erlaubt (127.0.0.1/localhost): {url}"))
+        Err(format!(
+            "Nur lokale URLs erlaubt (127.0.0.1/localhost): {url}"
+        ))
     }
+}
+
+/// Klemmt das Timeout auf einen sinnvollen Bereich (1 s … Limit).
+/// `0` würde sofort abbrechen und nur kryptische Timeout-Fehler liefern.
+fn clamp_timeout(timeout_secs: u64, max: u64) -> u64 {
+    timeout_secs.clamp(1, max)
 }
 
 /// GET gegen einen lokalen Server — liefert Status + Body als String.
 #[tauri::command]
 pub async fn ollama_get(url: String, timeout_secs: u64) -> Result<String, String> {
     require_loopback(&url)?;
-    let res = client(timeout_secs.min(120))?
+    let res = client(clamp_timeout(timeout_secs, 120))?
         .get(&url)
         .send()
         .await
@@ -62,7 +79,7 @@ pub async fn ollama_get(url: String, timeout_secs: u64) -> Result<String, String
 #[tauri::command]
 pub async fn ollama_post(url: String, body: String, timeout_secs: u64) -> Result<String, String> {
     require_loopback(&url)?;
-    let res = client(timeout_secs.min(600))?
+    let res = client(clamp_timeout(timeout_secs, 600))?
         .post(&url)
         .header("Content-Type", "application/json")
         .body(body)
@@ -96,4 +113,35 @@ pub async fn ollama_delete(url: String, body: String) -> Result<String, String> 
     res.text()
         .await
         .map_err(|e| format!("Antwort konnte nicht gelesen werden: {e}"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn loopback_wird_akzeptiert() {
+        assert!(require_loopback("http://127.0.0.1:11434/api/tags").is_ok());
+        assert!(require_loopback("http://localhost:11434/").is_ok());
+        assert!(require_loopback("http://[::1]:11434/").is_ok());
+    }
+
+    #[test]
+    fn ssrf_bypass_wird_abgewiesen() {
+        // Praefix-Tarnung: Host ist evil.com, nicht Loopback.
+        assert!(require_loopback("http://127.0.0.1.evil.com/").is_err());
+        assert!(require_loopback("http://localhost.evil.com/").is_err());
+        // Userinfo-Trick: Host ist evil.com.
+        assert!(require_loopback("http://127.0.0.1@evil.com/").is_err());
+        // Extern + falsches Scheme.
+        assert!(require_loopback("http://example.com/").is_err());
+        assert!(require_loopback("https://127.0.0.1:11434/").is_err());
+    }
+
+    #[test]
+    fn timeout_wird_geklammert() {
+        assert_eq!(clamp_timeout(0, 120), 1);
+        assert_eq!(clamp_timeout(5, 120), 5);
+        assert_eq!(clamp_timeout(9999, 120), 120);
+    }
 }
