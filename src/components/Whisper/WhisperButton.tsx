@@ -59,7 +59,11 @@ export function WhisperButton({ onResult }: Props) {
     recognition.onresult = (event: SpeechRecognitionEvent) => {
       const raw = event.results?.[0]?.[0]?.transcript;
       const text = typeof raw === "string" ? raw : "";
-      if (!text) return;
+      if (!text.trim()) {
+        setStatus("Nichts erkannt — bitte erneut sprechen");
+        setTimeout(() => setStatus(""), 3000);
+        return;
+      }
       onResult(text);
       setStatus("Transkribiert");
       setTimeout(() => setStatus(""), 2000);
@@ -76,11 +80,22 @@ export function WhisperButton({ onResult }: Props) {
       recognitionRef.current = null;
     };
 
-    recognition.start();
+    try {
+      recognition.start();
+    } catch (e) {
+      recognitionRef.current = null;
+      setStatus(`Fehler: ${e instanceof Error ? e.message : "Start fehlgeschlagen"}`);
+      setTimeout(() => setStatus(""), 3000);
+    }
   }
 
   function stop() {
-    recognitionRef.current?.stop();
+    try {
+      recognitionRef.current?.stop();
+    } catch {
+      /* ignore */
+    }
+    recognitionRef.current = null;
     setRecording(false);
   }
 

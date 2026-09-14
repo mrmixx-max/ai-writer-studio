@@ -22,7 +22,10 @@ function uid(): string {
 function blobToDataUrl(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
+    reader.onload = () => {
+      if (typeof reader.result === "string" && reader.result) resolve(reader.result);
+      else reject(new Error("Audio konnte nicht gelesen werden"));
+    };
     reader.onerror = () => reject(new Error("Audio konnte nicht gelesen werden"));
     reader.readAsDataURL(blob);
   });
@@ -35,15 +38,23 @@ export async function saveAudioNote(
   blob: Blob,
   durationMs: number | null,
 ): Promise<AudioNote> {
+  if (!chapterId || !chapterId.trim()) throw new Error("Memo braucht ein Kapitel");
+  if (!blob || blob.size === 0) throw new Error("Aufnahme war leer — Memo wurde nicht gespeichert");
+  const safeDuration =
+    typeof durationMs === "number" && Number.isFinite(durationMs) && durationMs >= 0
+      ? Math.min(durationMs, MAX_DURATION_MS)
+      : null;
+  const safeLabel = label.trim() || `Memo ${new Date().toLocaleTimeString("de-DE")}`;
   const db = getDb();
   const id = uid();
+  const now = Date.now();
   const dataUrl = await blobToDataUrl(blob);
   db.run(
     "INSERT INTO audio_notes (id, chapter_id, label, duration_ms, mime_type, audio_data, created_at) VALUES (?,?,?,?,?,?,?)",
-    [id, chapterId, label, durationMs, blob.type, dataUrl, Date.now()],
+    [id, chapterId, safeLabel, safeDuration, blob.type || "audio/webm", dataUrl, now],
   );
   await persist();
-  return { id, chapterId, label, durationMs, mimeType: blob.type, audioData: dataUrl, createdAt: Date.now() };
+  return { id, chapterId, label: safeLabel, durationMs: safeDuration, mimeType: blob.type || "audio/webm", audioData: dataUrl, createdAt: now };
 }
 
 /** Listet Memos eines Kapitels, neueste zuerst. */
@@ -67,7 +78,9 @@ export function listAudioNotes(chapterId: string): AudioNote[] {
 
 /** Benennt ein Memo um. */
 export async function renameAudioNote(id: string, label: string): Promise<void> {
-  getDb().run("UPDATE audio_notes SET label = ? WHERE id = ?", [label, id]);
+  const name = label.trim();
+  if (!name) throw new Error("Memo-Name darf nicht leer sein");
+  getDb().run("UPDATE audio_notes SET label = ? WHERE id = ?", [name, id]);
   await persist();
 }
 
@@ -84,18 +97,43 @@ export async function deleteAudioNote(id: string): Promise<void> {
 export async function startMemoRecording(): Promise<{
   stop(): Promise<{ blob: Blob; durationMs: number }>;
 }> {
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  const nav = (globalThis as unknown as { navigator?: Navigator }).navigator;
+  const getUserMedia = nav?.mediaDevices?.getUserMedia?.bind(nav.mediaDevices);
+  if (!getUserMedia) throw new Error("Mikrofon-Aufnahme wird nicht unterstützt (kein getUserMedia).");
+  if (typeof MediaRecorder === "undefined") throw new Error("Mikrofon-Aufnahme wird nicht unterstützt (kein MediaRecorder).");
+  let stream: MediaStream;
+  try {
+    stream = await getUserMedia({ audio: true });
+  } catch (e) {
+    throw new Error(`Mikrofon-Zugriff verweigert: ${e instanceof Error ? e.message : String(e)}`);
+  }
   const recorder = new MediaRecorder(stream);
   const chunks: Blob[] = [];
   const startedAt = Date.now();
 
   recorder.ondataavailable = (e) => {
-    if (e.data.size > 0) chunks.push(e.data);
+    if (e?.data && e.data.size > 0) chunks.push(e.data);
   };
-  recorder.start();
+  try {
+    recorder.start();
+  } catch (e) {
+    try {
+      stream.getTracks().forEach((t) => t.stop());
+    } catch {
+      /* ignore */
+    }
+    throw e instanceof Error ? e : new Error(String(e));
+  }
 
-  const stopped = new Promise<void>((resolve) => {
-    recorder.onstop = () => resolve();
+  let recordError: Error | null = null;
+  const stopped = new Promise<void>((resolve, reject) => {
+    recorder.onstop = () => {
+      if (recordError) reject(recordError);
+      else resolve();
+    };
+    recorder.onerror = () => {
+      recordError = new Error("Memo-Aufnahme fehlgeschlagen.");
+    };
   });
 
   // Hartes Limit: Aufnahme automatisch beenden.
@@ -106,10 +144,18 @@ export async function startMemoRecording(): Promise<{
   return {
     async stop(): Promise<{ blob: Blob; durationMs: number }> {
       clearTimeout(timer);
-      if (recorder.state !== "inactive") recorder.stop();
-      await stopped;
-      stream.getTracks().forEach((t) => t.stop());
+      try {
+        if (recorder.state !== "inactive") recorder.stop();
+        await stopped;
+      } finally {
+        try {
+          stream.getTracks().forEach((t) => t.stop());
+        } catch {
+          /* ignore */
+        }
+      }
       const blob = new Blob(chunks, { type: recorder.mimeType || "audio/webm" });
+      if (blob.size === 0) throw new Error("Aufnahme war leer — Memo wurde nicht gespeichert");
       return { blob, durationMs: Date.now() - startedAt };
     },
   };

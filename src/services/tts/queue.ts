@@ -260,7 +260,18 @@ export class SpeechQueue {
     if (item.voice) {
       try {
         const voices = synth.getVoices?.() ?? [];
-        const match = voices.find((v) => v.name === item.voice || v.voiceURI === item.voice);
+        const want = item.voice.toLowerCase();
+        const match =
+          voices.find((v) => v.name === item.voice || v.voiceURI === item.voice) ??
+          voices.find(
+            (v) =>
+              v.name?.toLowerCase().includes(want) ||
+              v.voiceURI?.toLowerCase().includes(want) ||
+              (typeof v.lang === "string" && want.startsWith(v.lang.toLowerCase())),
+          ) ??
+          voices.find(
+            (v) => typeof v.lang === "string" && v.lang.toLowerCase().startsWith("de"),
+          );
         if (match) utter.voice = match;
       } catch {
         /* Voice-Matching ist best-effort */

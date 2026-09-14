@@ -126,7 +126,17 @@ export async function batchSynthesizeBook(
         chapterIndex: ci, totalChapters: chapters.length, chapterTitle: chapter.title,
         chunkIndex: pi, totalChunks: parts.length, phase: "synthesizing",
       });
-      const audio = await provider.speak({ text: parts[pi], voice: options.voice, speed: options.speed });
+      let audio: ArrayBuffer;
+      try {
+        audio = await provider.speak({ text: parts[pi], voice: options.voice, speed: options.speed });
+      } catch (e) {
+        const message = e instanceof Error ? e.message : String(e);
+        onProgress({
+          chapterIndex: ci, totalChapters: chapters.length, chapterTitle: chapter.title,
+          chunkIndex: pi, totalChunks: parts.length, phase: "error", message,
+        });
+        throw e;
+      }
       const item: BatchTTSResultItem = { chapterId: chapter.id, chunkIndex: pi, audio };
       chunks.push(item);
       onResult(item);
