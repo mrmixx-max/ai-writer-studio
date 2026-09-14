@@ -100,7 +100,7 @@ export function KdpChecklistPanel({ projectId }: { projectId: string | null }) {
   }
 
   const checklist = metadata ? buildKdpChecklist(metadata) : [];
-  const doneCount = checklist.filter((c) => c.status !== "err").length;
+  const doneCount = checklist.filter((c) => c.status === "ok").length;
 
   return (
     <div className="kdp">

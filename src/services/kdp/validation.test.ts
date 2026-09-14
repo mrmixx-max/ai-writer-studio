@@ -68,4 +68,9 @@ describe("buildKdpChecklist", () => {
     const kw = items.find((i) => i.id === "keywords")!;
     expect(kw.label).toContain("2/7");
   });
+
+  it("Cover aus Leer-String ist ein Fehler (kein Truthy-Fallback)", () => {
+    const items = buildKdpChecklist({ ...base, coverImage: "   " });
+    expect(items.find((i) => i.id === "cover")!.status).toBe("err");
+  });
 });

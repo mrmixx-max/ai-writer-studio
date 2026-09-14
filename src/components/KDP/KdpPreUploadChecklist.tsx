@@ -57,11 +57,11 @@ export function buildPreUploadChecklist(
 
   const fileErrors = errorsOn("file");
   const formatOk = !fileErrors.some((i) => /format|endung|kein dateiname|keine manuskript/i.test(i.message));
-  const sizeOk = !fileErrors.some((i) => /leer|klein|groß|limit/i.test(i.message));
+  const sizeOk = file != null && !fileErrors.some((i) => /leer|klein|groß|limit/i.test(i.message));
   const fileHint = fileErrors.map((i) => i.message).join("; ") || null;
 
   const metaErrors = errorsOn("metadata").filter((i) => !/preis/i.test(i.message));
-  const metadataOk = !metaErrors.some((i) => /titel|klappentext|keyword/i.test(i.message));
+  const metadataOk = metaErrors.length === 0;
   const priceOk = !issues.some((i) => /preis/i.test(i.message) && i.severity === "error");
 
   const coverOk = (metadata.coverImage?.trim() ?? "") !== "";

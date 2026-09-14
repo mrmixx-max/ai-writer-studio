@@ -97,14 +97,31 @@ export function AmazonPanel() {
     setReloading(true);
     setError(null);
     try {
-      const entries = await Promise.all(
+      // allSettled: Ein fehlender/fehlerhafter ASIN darf die übrigen
+      // Preise nicht verwerfen (Preis-Monitoring bleibt teilnutzbar).
+      const results = await Promise.allSettled(
         watchlist.map(async (asin) => [asin, await getBookByAsin(asin, cfg)] as const),
       );
       const next: Record<string, AmazonBook> = {};
-      for (const [asin, book] of entries) {
-        if (book) next[asin] = book;
+      const failed: string[] = [];
+      for (let i = 0; i < results.length; i++) {
+        const r = results[i];
+        if (r.status === "fulfilled") {
+          const [asin, book] = r.value;
+          if (book) next[asin] = book;
+          else failed.push(watchlist[i]);
+        } else {
+          failed.push(watchlist[i]);
+        }
       }
       setPrices(next);
+      if (failed.length > 0) {
+        setError(
+          failed.length === watchlist.length
+            ? `Preise konnten nicht geladen werden (${failed.length}/${watchlist.length} ASINs).`
+            : `Teilweise fehlgeschlagen: keine Preisdaten für ${failed.join(", ")}.`,
+        );
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {

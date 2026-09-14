@@ -53,6 +53,12 @@ describe("buildPreUploadChecklist (reine Funktion)", () => {
     expect(items.find((i) => i.id === "isbn")?.required).toBe(false);
   });
 
+  it("ohne Datei ist auch die Dateigröße nicht ok", () => {
+    const items = buildPreUploadChecklist({ file: null, metadata: META });
+    expect(items.find((i) => i.id === "size")?.ok).toBe(false);
+    expect(items.find((i) => i.id === "size")?.required).toBe(true);
+  });
+
   it("Preis außerhalb des Bereichs ist ein Fehler, Cover-Hint erklärt Review-Risiko", () => {
     const items = buildPreUploadChecklist({
       file: FILE,
