@@ -19,6 +19,8 @@ export const OLLAMA_MODELS_DIR_HINT = "D:\\ollama\\models";
 /** Warnschwelle für freien Plattenplatz (Default 10 GB — Modelle sind groß). */
 export const LOW_DISK_THRESHOLD_BYTES = 10 * 1024 ** 3;
 
+import { getLocal, postLocalJson, deleteLocal } from "@/services/llm/localFetch";
+
 /** Ein installiertes Ollama-Modell (Subset von /api/tags). */
 export interface InstalledModel {
   name: string;
@@ -84,7 +86,8 @@ export async function listInstalledModels(baseUrl?: string): Promise<InstalledMo
   const url = `${base(baseUrl)}/api/tags`;
   let res: Response;
   try {
-    res = await fetch(url, { method: "GET" });
+    // localFetch: im Tauri-Build kein CORS-403, sonst window.fetch.
+    res = await getLocal(url);
   } catch (e) {
     throw new ModelManagerError(SERVE_HINT, e);
   }
@@ -149,12 +152,10 @@ export async function pullModel(
   const url = `${base(opts?.baseUrl)}/api/pull`;
   let res: Response;
   try {
-    res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: model, stream: true }),
-      signal: opts?.signal,
-    });
+    // localFetch: im Tauri-Build kein CORS-403, sonst window.fetch.
+    // HINWEIS: localFetch setzt keinen internen Timer — der Pull-Stream
+    // läuft Minuten; Abort kommt von außen über opts.signal.
+    res = await postLocalJson(url, { name: model, stream: true }, { signal: opts?.signal });
   } catch (e) {
     if (e instanceof DOMException && e.name === "AbortError") throw e;
     throw new ModelManagerError(SERVE_HINT, e);
@@ -241,11 +242,8 @@ export async function deleteModel(name: string, opts?: { baseUrl?: string }): Pr
   const url = `${base(opts?.baseUrl)}/api/delete`;
   let res: Response;
   try {
-    res = await fetch(url, {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: model }),
-    });
+    // localFetch: im Tauri-Build kein CORS-403, sonst window.fetch.
+    res = await deleteLocal(url, { name: model });
   } catch (e) {
     throw new ModelManagerError(SERVE_HINT, e);
   }

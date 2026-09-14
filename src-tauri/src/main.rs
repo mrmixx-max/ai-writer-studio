@@ -121,6 +121,10 @@ fn main() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_shell::init())
+        // Tauri-Proxy-Sprint: lokale LLM-Requests (Ollama/LM Studio) laufen
+        // über das HTTP-Plugin (Rust-Seite, kein Browser-Origin) — behebt
+        // den CORS-403 der installierten App (Origin https://tauri.localhost).
+        .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
             log_message,

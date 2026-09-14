@@ -10,17 +10,24 @@ import {
 import { resetOllamaPools } from "@/services/ollama/connectionPool";
 import type { ChatMessage, ChatOptions } from "@/types/llm";
 
-// fetchWithTimeout-Aufrufe mitschneiden (echte Implementierung behalten).
-const { fetchWithTimeoutCalls } = vi.hoisted(() => ({
-  fetchWithTimeoutCalls: [] as Array<{ url: string; timeoutMs: number }>,
+// getLocal/postLocalJson-Aufrufe mitschneiden (echte Implementierung behalten).
+// Der Provider läuft seit dem Tauri-Proxy-Sprint über localFetch statt über
+// stream/fetchWithTimeout direkt — das Timeout-Verhalten ist identisch,
+// nur der Mock-Punkt hat sich verschoben.
+const { localFetchCalls } = vi.hoisted(() => ({
+  localFetchCalls: [] as Array<{ fn: "get" | "post"; url: string; timeoutMs?: number }>,
 }));
-vi.mock("./stream", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("./stream")>();
+vi.mock("./localFetch", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./localFetch")>();
   return {
     ...actual,
-    fetchWithTimeout: vi.fn((url: string, init: RequestInit, timeoutMs = 30000) => {
-      fetchWithTimeoutCalls.push({ url, timeoutMs });
-      return actual.fetchWithTimeout(url, init, timeoutMs);
+    getLocal: vi.fn((url: string, timeoutMs = 30000) => {
+      localFetchCalls.push({ fn: "get", url, timeoutMs });
+      return actual.getLocal(url, timeoutMs);
+    }),
+    postLocalJson: vi.fn((url: string, body: unknown, extra?: { signal?: AbortSignal; timeoutMs?: number }) => {
+      localFetchCalls.push({ fn: "post", url, timeoutMs: extra?.timeoutMs });
+      return actual.postLocalJson(url, body, extra);
     }),
   };
 });
@@ -77,7 +84,7 @@ afterEach(() => {
   captured = [];
   responseDelayMs = 0;
   chunkDelayMs = 0;
-  fetchWithTimeoutCalls.length = 0;
+  localFetchCalls.length = 0;
 });
 
 const MSGS: ChatMessage[] = [{ role: "user", content: "Hallo" }];
@@ -136,33 +143,35 @@ describe("OllamaProvider Sprint 19d: kein Whole-Request-Timeout für chat", () =
     const text = await collect(p.chat(MSGS, OPTS, ctrl.signal));
 
     expect(text).toBe("Teil1 Teil2");
-    // Deterministisch: /api/chat darf KEINEN fetchWithTimeout-Timer armen.
-    expect(fetchWithTimeoutCalls.filter((c) => c.url.endsWith("/api/chat"))).toHaveLength(0);
+    // Deterministisch: /api/chat ohne timeoutMs darf KEINEN Timeout armen
+    // (localFetch post ohne timeoutMs). Der Signal-Pfad gehört zum Abort.
+    expect(localFetchCalls.filter((c) => c.url.endsWith("/api/chat"))).toHaveLength(1);
+    expect(localFetchCalls.find((c) => c.url.endsWith("/api/chat"))!.timeoutMs).toBeUndefined();
     // Externer Abortpfad bleibt verdrahtet.
     const chatCall = captured.find((c) => c.url.endsWith("/api/chat"));
     expect(chatCall!.init?.signal).toBe(ctrl.signal);
   });
 
-  it("explizites options.timeoutMs aktiviert fetchWithTimeout für chat", async () => {
+  it("explizites options.timeoutMs aktiviert den Timeout für chat", async () => {
     mockFetch(chatLines);
     const p = new OllamaProvider("http://127.0.0.1:11434");
     await collect(p.chat(MSGS, { ...OPTS, timeoutMs: 5000 }));
 
-    const chatTimeouts = fetchWithTimeoutCalls.filter((c) => c.url.endsWith("/api/chat"));
+    const chatTimeouts = localFetchCalls.filter((c) => c.url.endsWith("/api/chat"));
     expect(chatTimeouts).toHaveLength(1);
     expect(chatTimeouts[0].timeoutMs).toBe(5000);
   });
 });
 
 describe("OllamaProvider Sprint 19d: healthCheck/listModels behalten kurze Timeouts", () => {
-  it("healthCheck mit 3s, listModels mit 10s via fetchWithTimeout", async () => {
+  it("healthCheck mit 3s, listModels mit 10s via getLocal", async () => {
     mockFetchJson({ models: [{ name: "llama3.2" }] });
     const p = new OllamaProvider("http://127.0.0.1:11434");
 
     expect(await p.healthCheck()).toBe(true);
     expect(await p.listModels()).toEqual(["llama3.2"]);
 
-    const health = fetchWithTimeoutCalls.filter((c) => c.url.endsWith("/api/tags"));
+    const health = localFetchCalls.filter((c) => c.url.endsWith("/api/tags"));
     expect(health).toHaveLength(2);
     expect(health[0].timeoutMs).toBe(3000);
     expect(health[1].timeoutMs).toBe(10000);

@@ -9,7 +9,8 @@
 
 import type { ChatMessage, ChatOptions, LLMProvider, LLMProviderCapabilities } from "@/types/llm";
 import { ProviderError } from "@/types/llm";
-import { assertOk, parseNdjson, fetchWithTimeout } from "./stream";
+import { assertOk, parseNdjson } from "./stream";
+import { getLocal, postLocalJson } from "./localFetch";
 import { getOllamaPool } from "@/services/ollama/connectionPool";
 import { getPromptCache, promptCacheKey } from "@/services/ollama/promptCache";
 import { normalizeLocalBaseUrl } from "./baseUrl";
@@ -78,7 +79,9 @@ export class OllamaProvider implements LLMProvider {
 
   async healthCheck(): Promise<boolean> {
     try {
-      const res = await fetchWithTimeout(`${this.baseUrl}/api/tags`, { method: "GET" }, HEALTH_TIMEOUT);
+      // localFetch: im Tauri-Build über das HTTP-Plugin (kein CORS-403),
+      // im Browser/Dev über window.fetch.
+      const res = await getLocal(`${this.baseUrl}/api/tags`, HEALTH_TIMEOUT);
       return res.ok;
     } catch {
       return false;
@@ -87,7 +90,7 @@ export class OllamaProvider implements LLMProvider {
 
   async listModels(): Promise<string[]> {
     try {
-      const res = await fetchWithTimeout(`${this.baseUrl}/api/tags`, {}, LIST_TIMEOUT);
+      const res = await getLocal(`${this.baseUrl}/api/tags`, LIST_TIMEOUT);
       await assertOk(res, "Ollama listModels");
       const data = (await res.json()) as { models?: Array<{ name?: unknown }> };
       // Ollama liefert { models: [{ name: "llama3.2" }, ...] }
@@ -163,16 +166,13 @@ export class OllamaProvider implements LLMProvider {
         // Sprint 19d: KEIN Whole-Request-Timeout für /api/chat — große
         // Modelle brauchen >60s bis zum ersten Token. fetch läuft ohne
         // internen Timer; Abort kommt von außen über `signal`. Nur ein
-        // explizites options.timeoutMs aktiviert fetchWithTimeout.
-        const init: RequestInit = {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
+        // explizites options.timeoutMs aktiviert den Timeout.
+        // Transport: localFetch — im Tauri-Build über das HTTP-Plugin
+        // (kein CORS-403), im Browser über window.fetch.
+        res = await postLocalJson(`${this.baseUrl}/api/chat`, payload, {
           ...(signal ? { signal } : {}),
-        };
-        res = options.timeoutMs != null
-          ? await fetchWithTimeout(`${this.baseUrl}/api/chat`, init, options.timeoutMs)
-          : await fetch(`${this.baseUrl}/api/chat`, init);
+          ...(options.timeoutMs != null ? { timeoutMs: options.timeoutMs } : {}),
+        });
       } catch (e) {
         release();
         throw new ProviderError(

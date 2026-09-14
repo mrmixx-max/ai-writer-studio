@@ -6,6 +6,7 @@
 
 import type { AppSettings } from "@/types/config";
 import { contentHash } from "./util";
+import { postLocalJson } from "@/services/llm/localFetch";
 
 /** Ergebnis einer Verfügbarkeitsprüfung. */
 export interface EmbeddingProbe {
@@ -260,14 +261,9 @@ async function embedOllama(texts: string[], model: string, baseUrl: string): Pro
   const base = baseUrl.replace(/\/+$/, "");
   const out: number[][] = [];
   for (const t of texts) {
-    const { signal, cancel } = withTimeout(EMBED_TIMEOUT_MS);
-    try {
-      const res = await fetch(`${base}/api/embeddings`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ model, prompt: t }),
-        signal,
-      });
+    // localFetch: im Tauri-Build kein CORS-403, sonst window.fetch.
+    const res = await postLocalJson(`${base}/api/embeddings`, { model, prompt: t }, { timeoutMs: EMBED_TIMEOUT_MS });
+    {
       if (!res.ok) {
         const body = await res.text().catch(() => "");
         throw new Error(`Ollama ${res.status}: ${body.slice(0, 200)}`);
@@ -276,8 +272,6 @@ async function embedOllama(texts: string[], model: string, baseUrl: string): Pro
       const vec = data?.embedding;
       if (!Array.isArray(vec)) throw new Error("Ollama lieferte kein embedding-Feld.");
       out.push(vec as number[]);
-    } finally {
-      cancel();
     }
   }
   return out;

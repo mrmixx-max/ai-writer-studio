@@ -6,6 +6,7 @@
 // kein Fehler.
 
 import type { AppSettings } from "@/types/config";
+import { getLocal } from "@/services/llm/localFetch";
 
 /** Ergebnis einer Anbieterprüfung. */
 export interface ProviderProbe {
@@ -27,6 +28,11 @@ export interface ProviderProbe {
 const PROBE_TIMEOUT_MS = 2500;
 
 async function fetchWithTimeout(url: string, init?: RequestInit): Promise<Response> {
+  // Lokale Endpunkte (Ollama/LM Studio) laufen im Tauri-Build über das
+  // HTTP-Plugin (kein CORS-403), Cloud-Endpunkte weiter über window.fetch.
+  if (/127\.0\.0\.1|localhost/.test(url)) {
+    return getLocal(url, PROBE_TIMEOUT_MS);
+  }
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), PROBE_TIMEOUT_MS);
   try {

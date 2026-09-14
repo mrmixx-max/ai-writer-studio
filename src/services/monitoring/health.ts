@@ -1,5 +1,6 @@
 // Health-Checks: Prüft kritische Abhängigkeiten (Ollama, Datenbank, Speicher).
 // Liefert Status für Monitoring und Load Balancer.
+import { getLocal } from "@/services/llm/localFetch";
 
 export interface HealthCheckResult {
   name: string;
@@ -20,9 +21,8 @@ export interface SystemHealth {
 export async function checkOllamaHealth(): Promise<HealthCheckResult> {
   const start = Date.now();
   try {
-    const res = await fetch("http://127.0.0.1:11434/api/tags", {
-      method: "GET",
-    });
+    // localFetch: im Tauri-Build kein CORS-403, sonst window.fetch.
+    const res = await getLocal("http://127.0.0.1:11434/api/tags", 5000);
     const elapsed = Date.now() - start;
     if (!res.ok) {
       return {
