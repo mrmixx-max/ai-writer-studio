@@ -145,7 +145,7 @@ export function BookIdeaPanel() {
 
       {!ollamaAvailable && (
         <div style={{ color: DIM, fontSize: 10, marginBottom: 8 }}>
-          Ollama nicht erreichbar — nur Demo-Modus verfügbar.
+          Ollama nicht erreichbar (ollama.com/download) — nur Demo-Modus verfügbar.
         </div>
       )}
 

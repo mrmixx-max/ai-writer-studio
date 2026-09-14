@@ -200,7 +200,7 @@ export function NewsGeneratorPanel({
         </div>
         {!ollamaAvailable && (
           <div style={{ color: "#666", fontSize: 10, marginTop: 4 }}>
-            Ollama nicht erreichbar — nur Demo-Modus verfügbar.
+            Ollama nicht erreichbar (ollama.com/download) — nur Demo-Modus verfügbar.
           </div>
         )}
       </div>

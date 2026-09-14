@@ -180,8 +180,8 @@ export function ModelPicker({ settings, onSelect, variant = "default", toggleId 
           )}
           {!loading && results !== null && listDisabled && (
             <p className="ki-model-menu-hint">
-              Kein Anbieter erreichbar. Lokale Modelle starten (z. B. „ollama serve“) und
-              aktualisieren.
+              Kein Anbieter erreichbar. Ollama installieren (ollama.com/download),
+              lokale Modelle starten (z. B. „ollama serve“) und aktualisieren.
             </p>
           )}
           {!loading &&
