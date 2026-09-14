@@ -10,11 +10,14 @@ interface SpeechRecognition extends EventTarget {
   stop(): void;
   abort(): void;
   onresult: ((event: SpeechRecognitionEvent) => void) | null;
-  onerror: ((event: { error: string }) => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
   onend: (() => void) | null;
 }
 interface SpeechRecognitionEvent {
   results: { transcript: string }[][];
+}
+interface SpeechRecognitionErrorEvent {
+  error?: unknown;
 }
 declare const SpeechRecognition: {
   new (): SpeechRecognition;
@@ -94,7 +97,7 @@ export function assemblePartialTranscripts(parts: unknown[]): string {
 }
 
 interface SpeechEvent {
-  results?: ArrayLike<{ 0?: { transcript?: unknown }; isFinal?: unknown }>;
+  results?: ArrayLike<ArrayLike<{ transcript?: unknown }> & { isFinal?: unknown }>;
 }
 
 function extractEventTexts(event: SpeechEvent | null | undefined): string[] {
@@ -131,7 +134,7 @@ const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 
 /** Startet Spracherkennung und gibt Transkript zurück. */
 export function recordAndTranscribe(
-  _settings: any,
+  _settings: Partial<WhisperOptions & { language?: unknown }> | null | undefined,
   _chapterId: string | null,
   onStatus: (s: string) => void,
   options: WhisperOptions = {},
@@ -198,13 +201,13 @@ export function recordAndTranscribe(
       recognition.lang = language;
       recognition.interimResults = interimResults;
       recognition.continuous = continuous;
-      (recognition as any).maxAlternatives = 1;
+      (recognition as SpeechRecognition & { maxAlternatives?: number }).maxAlternatives = 1;
 
-      (recognition as any).onstart = () => {
+      (recognition as SpeechRecognition & { onstart?: () => void }).onstart = () => {
         onStatus("Aufnahme läuft…");
       };
 
-      recognition.onresult = (event: any) => {
+      recognition.onresult = (event: SpeechRecognitionEvent) => {
         if (settled) return;
         const texts = extractEventTexts(event);
         if (texts.length === 0) return;
@@ -223,9 +226,9 @@ export function recordAndTranscribe(
         ok(text);
       };
 
-      recognition.onerror = (event: any) => {
+      recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
         if (settled) return;
-        const code = event?.error;
+        const code = typeof event?.error === "string" ? event.error : undefined;
         if (isTransientWhisperError(code) && attempts <= maxRetries) {
           onStatus(`Wiederholung ${attempts}/${maxRetries}…`);
           const delay = retryDelayMs * 2 ** (attempts - 1);
