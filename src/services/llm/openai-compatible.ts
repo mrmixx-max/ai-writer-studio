@@ -76,8 +76,10 @@ export class OpenAICompatibleProvider implements LLMProvider {
         headers: this.headers(),
       }, FETCH_TIMEOUT);
       await assertOk(res, `${this.label} listModels`);
-      const data = await res.json();
-      return (data.data ?? []).map((m: any) => m.id as string);
+      const data = (await res.json()) as { data?: Array<{ id?: unknown }> };
+      return (data.data ?? [])
+        .map((m) => (typeof m?.id === "string" ? m.id : null))
+        .filter((n): n is string => n !== null && n.length > 0);
     } catch (e) {
       if (e instanceof ProviderError) throw e;
       throw new ProviderError(`${this.label} nicht erreichbar. Endpoint prüfen.`, e);

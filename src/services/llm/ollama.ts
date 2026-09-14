@@ -89,9 +89,11 @@ export class OllamaProvider implements LLMProvider {
     try {
       const res = await fetchWithTimeout(`${this.baseUrl}/api/tags`, {}, LIST_TIMEOUT);
       await assertOk(res, "Ollama listModels");
-      const data = await res.json();
+      const data = (await res.json()) as { models?: Array<{ name?: unknown }> };
       // Ollama liefert { models: [{ name: "llama3.2" }, ...] }
-      return (data.models ?? []).map((m: any) => m.name as string);
+      return (data.models ?? [])
+        .map((m) => (typeof m?.name === "string" ? m.name : null))
+        .filter((n): n is string => n !== null && n.length > 0);
     } catch (e) {
       if (e instanceof ProviderError) throw e;
       throw new ProviderError(
