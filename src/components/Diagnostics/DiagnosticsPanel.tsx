@@ -66,7 +66,7 @@ export function DiagnosticsPanel({ projectId, chapterId }: Props) {
     try {
       const all = listFindings(projectId, { includeResolved: true });
       // Kapiteltitel nachtragen: die DB kennt nur die Id.
-      const titles = new Map(chapters.map((c: any) => [c.id, c.title]));
+      const titles = new Map(chapters.map((c) => [c.id, c.title] as const));
       setFindings(
         all.map((f) => ({
           ...f,

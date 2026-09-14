@@ -347,9 +347,9 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
   );
 }
 
-function safeParse(json: string): any {
+function safeParse(json: string): Record<string, unknown> | string {
   try {
-    return JSON.parse(json);
+    return JSON.parse(json) as Record<string, unknown>;
   } catch {
     return "";
   }

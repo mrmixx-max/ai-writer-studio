@@ -1,6 +1,6 @@
 // Diff-View: zwei Kapitel-Versionen nebeneinander mit hervorgehobenen Änderungen.
 import { useMemo } from "react";
-import { diffLines, diffStats } from "./diff";
+import { diffLines, diffStats, type DiffSegment } from "./diff";
 import "./compare.css";
 
 export interface CompareSelection {
@@ -24,8 +24,8 @@ export function CompareView({ left, right }: { left: CompareVersionMeta; right: 
   // "changed"-Zeilen erscheinen in beiden Spalten (mit Inline-Markup),
   // "delete" nur links, "insert" nur rechts — die Gegenstelle bleibt leer.
   const rows = useMemo(() => {
-    const leftRows: Array<{ op: string; segments: any[]; no?: number; ghost?: boolean }> = [];
-    const rightRows: Array<{ op: string; segments: any[]; no?: number; ghost?: boolean }> = [];
+    const leftRows: Array<{ op: string; segments: DiffSegment[]; no?: number; ghost?: boolean }> = [];
+    const rightRows: Array<{ op: string; segments: DiffSegment[]; no?: number; ghost?: boolean }> = [];
     for (const l of lines) {
       if (l.op === "equal") {
         leftRows.push({ op: "equal", segments: l.segments, no: l.leftNo });
@@ -81,7 +81,7 @@ export function CompareView({ left, right }: { left: CompareVersionMeta; right: 
   );
 }
 
-function DiffRow({ row, side }: { row: { op: string; segments: any[]; no?: number; ghost?: boolean }; side: "a" | "b" }) {
+function DiffRow({ row, side }: { row: { op: string; segments: DiffSegment[]; no?: number; ghost?: boolean }; side: "a" | "b" }) {
   if (row.ghost) return <div className={`diff-row diff-ghost diff-${side}-ghost`}>&nbsp;</div>;
   const cls =
     row.op === "equal"
