@@ -6,19 +6,25 @@ interface SpeechRecognition extends EventTarget {
   lang: string;
   interimResults: boolean;
   continuous: boolean;
+  maxAlternatives?: number;
+  onstart?: (() => void) | null;
   start(): void;
   stop(): void;
   abort(): void;
   onresult: ((event: SpeechRecognitionEvent) => void) | null;
-  onerror: ((event: { error: string }) => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
   onend: (() => void) | null;
 }
 interface SpeechRecognitionEvent {
-  results: { transcript: string }[][];
+  results: ArrayLike<ArrayLike<{ transcript?: unknown }>>;
 }
-declare const SpeechRecognition: {
-  new (): SpeechRecognition;
-};
+interface SpeechRecognitionErrorEvent {
+  error?: unknown;
+}
+interface SpeechWindow {
+  SpeechRecognition?: new () => SpeechRecognition;
+  webkitSpeechRecognition?: new () => SpeechRecognition;
+}
 
 interface Props {
   onResult: (text: string) => void;
@@ -31,14 +37,15 @@ export function WhisperButton({ onResult }: Props) {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   function start() {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
+    const w = window as unknown as SpeechWindow;
+    const Ctor = w.SpeechRecognition ?? w.webkitSpeechRecognition;
+    if (!Ctor) {
       setStatus("Spracherkennung nicht unterstützt");
       setTimeout(() => setStatus(""), 3000);
       return;
     }
 
-    const recognition = new SpeechRecognition();
+    const recognition = new Ctor();
     recognitionRef.current = recognition;
     recognition.lang = "de-DE";
     recognition.interimResults = false;
@@ -49,15 +56,18 @@ export function WhisperButton({ onResult }: Props) {
       setStatus("Aufnahme läuft…");
     };
 
-    recognition.onresult = (event: any) => {
-      const text = event.results[0][0].transcript;
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      const raw = event.results?.[0]?.[0]?.transcript;
+      const text = typeof raw === "string" ? raw : "";
+      if (!text) return;
       onResult(text);
       setStatus("Transkribiert");
       setTimeout(() => setStatus(""), 2000);
     };
 
-    recognition.onerror = (event: any) => {
-      setStatus(`Fehler: ${event.error}`);
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+      const code = typeof event?.error === "string" ? event.error : "unbekannt";
+      setStatus(`Fehler: ${code}`);
       setTimeout(() => setStatus(""), 3000);
     };
 
