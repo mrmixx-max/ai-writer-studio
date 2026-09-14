@@ -10,10 +10,10 @@ import {
   type TranslationRequest
 } from './translator';
 
-// Mock fetch for Ollama API
+// Mock fetch for Ollama API (greift über localFetch → window.fetch-Pfad in Tests)
 const mockFetch = async (url: string | URL, options?: RequestInit): Promise<Response> => {
   const urlStr = url.toString();
-  if (urlStr.includes('localhost:11434/api/generate')) {
+  if (urlStr.includes('127.0.0.1:11434/api/generate') || urlStr.includes('localhost:11434/api/generate')) {
     const body = JSON.parse(options?.body as string || '{}');
     
     // Simple mock translation - reverse the text for testing

@@ -157,21 +157,67 @@ export async function translate(request: TranslationRequest, opts: TranslateOpti
   }
 
   const prompt = buildTranslationPrompt(request);
+  // Test-Pfad: injizierter fetchFn (vitest) — sonst localFetch (Tauri-Proxy/Browser).
+  // WICHTIG: fetchFn gehört zu TranslateOptions (B3-Content-Pattern) und darf
+  // nicht still ignoriert werden — sonst testen wir Mocks, die nie greifen.
+  if (opts.fetchFn) {
+    try {
+      const response = await opts.fetchFn('http://localhost:11434/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: opts.model ?? 'llama3.2',
+          prompt: prompt,
+          stream: false
+        }),
+        signal: opts.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Ollama request failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const raw = typeof data.response === "string" ? data.response.trim() : "";
+      if (!raw) {
+        log.warn("leere Modell-Antwort — Fallback auf Originaltext.");
+        return {
+          translated: text,
+          sourceLang,
+          targetLang,
+          confidence: 0.0
+        };
+      }
+
+      return {
+        translated: raw,
+        sourceLang,
+        targetLang,
+        confidence: 0.85
+      };
+    } catch (error) {
+      if ((error as Error)?.name === "AbortError" || opts.signal?.aborted) throw error;
+      log.warn(`Translation failed: ${error instanceof Error ? error.message : String(error)} — Fallback auf Originaltext.`);
+      return {
+        translated: text,
+        sourceLang,
+        targetLang,
+        confidence: 0.0
+      };
+    }
+  }
 
   try {
-    // Call local Ollama instance
-    const response = await fetchFn('http://localhost:11434/api/generate', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: opts.model ?? 'llama3.2', // Default model, can be configured
-        prompt: prompt,
-        stream: false
-      }),
-      signal: opts.signal,
-    });
+    // Produkt-Pfad: localFetch (Tauri → Rust-Proxy ohne CORS-403,
+    // Browser/Test → window.fetch). localhost → 127.0.0.1 (IPv6-::1-Falle).
+    const { postLocalJson } = await import("@/services/llm/localFetch");
+    const { normalizeLocalBaseUrl } = await import("@/services/llm/baseUrl");
+    const base = normalizeLocalBaseUrl("http://localhost:11434");
+    const response = await postLocalJson(`${base}/api/generate`, {
+      model: opts.model ?? 'llama3.2', // Default model, can be configured
+      prompt: prompt,
+      stream: false
+    }, { ...(opts.signal ? { signal: opts.signal } : {}) });
 
     if (!response.ok) {
       throw new Error(`Ollama request failed: ${response.status}`);
