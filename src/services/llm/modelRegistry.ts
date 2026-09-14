@@ -55,6 +55,17 @@ export function labelFor(provider: ProviderId): string {
 /** Timeout pro Anbieterprüfung. Kurz halten: die UI darf nicht hängen. */
 const PROBE_TIMEOUT_MS = 2500;
 
+/**
+ * Großzügigeres Limit für lokale Provider (Ollama/LM Studio): Unter Last
+ * (Build, Inferenz, Modell-Ladung) antwortet 127.0.0.1 schon mal erst nach
+ * 3–4 s — kein Grund, die Karte rot zu zeigen, wenn der Server lebt.
+ */
+const LOCAL_PROBE_TIMEOUT_MS = 8000;
+
+function isLocalProvider(provider: ProviderId): boolean {
+  return provider === "ollama" || provider === "lmstudio";
+}
+
 /** Cache-Gültigkeit in Millisekunden (Standard). */
 const CACHE_TTL_MS = 60_000;
 
@@ -161,7 +172,8 @@ async function probeProvider(
 
   try {
     const instance = createProvider({ ...settings, provider });
-    const models = await withTimeout(instance.listModels(), PROBE_TIMEOUT_MS, signal);
+    const timeoutMs = isLocalProvider(provider) ? LOCAL_PROBE_TIMEOUT_MS : PROBE_TIMEOUT_MS;
+    const models = await withTimeout(instance.listModels(), timeoutMs, signal);
     if (signal?.aborted) return { ...base, message: "Abgebrochen." };
     if (models.length === 0) {
       return {
@@ -183,9 +195,10 @@ async function probeProvider(
       return { ...base, message: "Abgebrochen." };
     }
     if ((e as Error).message === "timeout") {
+      const secs = (isLocalProvider(provider) ? LOCAL_PROBE_TIMEOUT_MS : PROBE_TIMEOUT_MS) / 1000;
       return {
         ...base,
-        message: `${LABELS[provider]} antwortet nicht (Timeout nach ${PROBE_TIMEOUT_MS / 1000} s).`,
+        message: `${LABELS[provider]} antwortet nicht (Timeout nach ${secs} s).`,
       };
     }
     return {
