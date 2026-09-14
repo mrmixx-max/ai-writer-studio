@@ -1,8 +1,10 @@
 // Semantische Kartografie: Graph-Ansicht mit Knoten + Kanten.
+// Dialoge über AppDialog (keine nativen window.prompt/alert — WebView2-tot).
 import { useState, useEffect } from "react";
 import { listNodes, listEdges, createNode, createEdge } from "@/services/semantic";
 import { runKIAction } from "@/services/ki";
 import { loadSettings } from "@/services/settings";
+import { AppDialog, type DialogRequest } from "@/components/Dialog/AppDialog";
 
 const NODE_TYPES = ["Figur", "Motiv", "Ort", "Konflikt", "Begriff"];
 const COLORS: Record<string, string> = {
@@ -18,23 +20,31 @@ export function SemanticMap({ projectId }: { projectId: string }) {
   const [edges, setEdges] = useState(listEdges(projectId));
   const [selected, setSelected] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [dlg, setDlg] = useState<DialogRequest | null>(null);
+  const [analysis, setAnalysis] = useState<string | null>(null);
 
   useEffect(() => {
     setNodes(listNodes(projectId));
     setEdges(listEdges(projectId));
   }, [projectId]);
 
+  function ask(label: string, initial = "") {
+    return new Promise<string | null>((resolve) =>
+      setDlg({ kind: "prompt", label, initial, resolve }),
+    );
+  }
+
   async function addNode() {
-    const label = window.prompt("Bezeichnung:");
+    const label = await ask("Bezeichnung:");
     if (!label) return;
-    const type = window.prompt(`Typ (${NODE_TYPES.join(", ")}):`, "Figur") ?? "Figur";
+    const type = (await ask(`Typ (${NODE_TYPES.join(", ")}):`, "Figur")) ?? "Figur";
     await createNode(projectId, label, type, "", Math.random() * 600, Math.random() * 400);
     setNodes(listNodes(projectId));
   }
 
   async function linkNodes() {
     if (!selected) return;
-    const target = window.prompt("Verbinden mit (Node-ID oder Label):");
+    const target = await ask("Verbinden mit (Node-ID oder Label):");
     if (!target) return;
     const targetNode = nodes.find((n) => n.id === target || n.label === target);
     if (!targetNode) return;
@@ -54,17 +64,27 @@ export function SemanticMap({ projectId }: { projectId: string }) {
       },
       () => {},
     );
-    alert(res.text);
+    setAnalysis(res.text);
     setBusy(false);
   }
 
   return (
     <div className="semantic-map">
+      <AppDialog request={dlg} onDone={() => setDlg(null)} />
       <div className="map-toolbar">
         <button onClick={addNode}>+ Knoten</button>
         <button onClick={linkNodes} disabled={!selected}>Verbinden</button>
         <button onClick={aiAnalyze} disabled={busy}>KI-Analyse</button>
       </div>
+      {analysis && (
+        <div className="map-analysis" style={{ padding: "10px 12px", borderBottom: "1px solid var(--border)", fontSize: 12, whiteSpace: "pre-wrap", maxHeight: 220, overflowY: "auto" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+            <strong>KI-Analyse</strong>
+            <button onClick={() => setAnalysis(null)}>×</button>
+          </div>
+          {analysis}
+        </div>
+      )}
       <svg className="map-canvas" viewBox="0 0 800 500">
         {edges.map((e) => {
           const s = nodes.find((n) => n.id === e.sourceId);

@@ -6,6 +6,7 @@ import {
   loadPublishingHistory,
   type PublishingHistoryEntry,
 } from "@/services/kdp/history";
+import { AppDialog, type DialogRequest } from "@/components/Dialog/AppDialog";
 
 function formatDate(iso: string): string {
   const d = new Date(iso);
@@ -16,19 +17,24 @@ function formatDate(iso: string): string {
 
 export function PublishingHistory({ refreshKey }: { refreshKey: number }) {
   const [entries, setEntries] = useState<PublishingHistoryEntry[]>([]);
+  const [dlg, setDlg] = useState<DialogRequest | null>(null);
 
   useEffect(() => {
     setEntries(loadPublishingHistory());
   }, [refreshKey]);
 
   async function clearAll() {
-    if (!window.confirm("Publishing-Verlauf wirklich löschen?")) return;
+    const ok = await new Promise<boolean>((resolve) =>
+      setDlg({ kind: "confirm", message: "Publishing-Verlauf wirklich löschen?", resolve }),
+    );
+    if (!ok) return;
     await clearPublishingHistory();
     setEntries([]);
   }
 
   return (
     <section className="pub-section" data-testid="pub-history">
+      <AppDialog request={dlg} onDone={() => setDlg(null)} />
       {entries.length === 0 ? (
         <div className="pub-empty">Noch keine Uploads oder Exporte verzeichnet.</div>
       ) : (

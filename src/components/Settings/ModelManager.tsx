@@ -17,6 +17,7 @@ import {
   type PullProgress,
 } from "@/services/ollama/modelManager";
 import { useI18n } from "@/i18n";
+import { AppDialog, type DialogRequest } from "@/components/Dialog/AppDialog";
 import "./settings.css";
 
 export interface ModelManagerProps {
@@ -46,6 +47,7 @@ export default function ModelManager({
   const [progress, setProgress] = useState<PullProgress | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const [dlg, setDlg] = useState<DialogRequest | null>(null);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -92,7 +94,10 @@ export default function ModelManager({
 
   async function handleDelete(name: string) {
     if (deleting) return;
-    if (!window.confirm(t("modelmanager.deleteConfirm", { name }))) return;
+    const ok = await new Promise<boolean>((resolve) =>
+      setDlg({ kind: "confirm", message: t("modelmanager.deleteConfirm", { name }), resolve }),
+    );
+    if (!ok) return;
     setDeleting(name);
     setError(null);
     try {
@@ -111,6 +116,7 @@ export default function ModelManager({
 
   return (
     <section className="settings-panel" aria-label={t("modelmanager.ariaLabel")}>
+      <AppDialog request={dlg} onDone={() => setDlg(null)} />
       <h2>{t("modelmanager.title")}</h2>
       <p className="settings-hint">
         {t("modelmanager.hint", { baseUrl, dir: modelsDirHint })}
