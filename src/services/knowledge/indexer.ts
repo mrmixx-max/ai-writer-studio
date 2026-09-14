@@ -35,13 +35,20 @@ export interface IndexOptions {
 }
 
 /** Erzeugt Chunks passend zum Quellentyp. */
-function chunkSource(src: KnowledgeSource): Chunk[] {
-  if (src.sourceType === "chapter") {
-    // Kapitelinhalt liegt als TipTap-JSON vor
-    const looksJson = src.content.trim().startsWith("{");
-    return looksJson ? chunkTiptap(src.content, src.title) : chunkPlainText(src.content, src.title);
+export function chunkSource(src: KnowledgeSource): Chunk[] {
+  if (src.sourceType !== "chapter") return chunkPlainText(src.content, src.title);
+  // Kapitelinhalt liegt als TipTap-JSON vor — aber korrupte Inhalte (abgebrochener
+  // Autosave, kein valides JSON oder JSON ohne TipTap-Struktur) dürfen nicht still
+  // als „leer" indexiert werden, sondern fallen auf Plaintext-Chunking zurück.
+  const trimmed = src.content.trim();
+  if (!trimmed.startsWith("{")) return chunkPlainText(src.content, src.title);
+  try {
+    const doc = JSON.parse(src.content) as { content?: unknown };
+    if (doc && Array.isArray(doc.content)) return chunkTiptap(src.content, src.title);
+    return chunkPlainText(src.content, src.title);
+  } catch {
+    return chunkPlainText(src.content, src.title);
   }
-  return chunkPlainText(src.content, src.title);
 }
 
 /**

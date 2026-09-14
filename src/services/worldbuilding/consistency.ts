@@ -85,25 +85,31 @@ export function checkWorldConsistency(projectId: string): ConsistencyReport {
         }
       }
       if (found > 0) {
-        const m = charMentions.get(c.name)!;
-        m.total += found;
-        m.chapters.add(ch.title);
+        const m = charMentions.get(c.name);
+        if (m) {
+          m.total += found;
+          m.chapters.add(ch.title);
+        }
       }
     }
 
     for (const l of locations) {
-      const count = countMatches(ch.content, l.name);
+      // Wie Figuren (s. o.) und findLocationMentions: case-insensitiv, sonst melden
+      // kleingeschriebene Erwähnungen fälschlich „unerwähnt".
+      const count = countMatches(ch.content, l.name, false);
       if (count > 0) {
-        const m = locMentions.get(l.name)!;
-        m.total += count;
-        m.chapters.add(ch.title);
+        const m = locMentions.get(l.name);
+        if (m) {
+          m.total += count;
+          m.chapters.add(ch.title);
+        }
       }
     }
   }
 
   for (const c of characters) {
-    const m = charMentions.get(c.name)!;
-    if (m.total === 0) {
+    const m = charMentions.get(c.name);
+    if (m && m.total === 0) {
       findings.push({
         severity: "info", kind: "character", name: c.name,
         chapterId: "", chapterTitle: "",
@@ -112,8 +118,8 @@ export function checkWorldConsistency(projectId: string): ConsistencyReport {
     }
   }
   for (const l of locations) {
-    const m = locMentions.get(l.name)!;
-    if (m.total === 0) {
+    const m = locMentions.get(l.name);
+    if (m && m.total === 0) {
       findings.push({
         severity: "info", kind: "location", name: l.name,
         chapterId: "", chapterTitle: "",

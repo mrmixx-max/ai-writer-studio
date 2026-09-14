@@ -39,8 +39,12 @@ export function findWordRepetitions(text: string, language: "de" | "en" = "de"):
   let pos = 0;
   for (const word of words) {
     if (!stopwords.has(word)) {
-      if (!wordPositions.has(word)) wordPositions.set(word, []);
-      wordPositions.get(word)!.push(pos);
+      let list = wordPositions.get(word);
+      if (!list) {
+        list = [];
+        wordPositions.set(word, list);
+      }
+      list.push(pos);
     }
     pos++;
   }
@@ -80,8 +84,12 @@ export function findPhraseRepetitions(text: string, language: "de" | "en" = "de"
       const isOnlyStopwords = phraseWords.every((w) => stopwords.has(w));
       if (isOnlyStopwords) continue;
 
-      if (!phrasePositions.has(phrase)) phrasePositions.set(phrase, []);
-      phrasePositions.get(phrase)!.push(i);
+      let list = phrasePositions.get(phrase);
+      if (!list) {
+        list = [];
+        phrasePositions.set(phrase, list);
+      }
+      list.push(i);
     }
 
     for (const [phrase, positions] of phrasePositions) {

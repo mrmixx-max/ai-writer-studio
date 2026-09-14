@@ -131,7 +131,8 @@ export async function search(query: SearchQuery): Promise<SearchResult[]> {
   const n = candidates.length;
   const results: SearchResult[] = [];
   for (const entry of candidates) {
-    const counts = docsTerms.get(entry.id)!;
+    const counts = docsTerms.get(entry.id);
+    if (!counts) continue;
     let score = 0;
     for (const term of queryTerms) {
       const tf = counts.get(term) ?? 0;

@@ -96,7 +96,9 @@ export async function upsertResearchSource(
       ],
     );
     await persist();
-    return getResearchSource(id)!;
+    const updated = getResearchSource(id);
+    if (!updated) throw new Error(`Forschungsquelle nicht gefunden: ${id}`);
+    return updated;
   }
   const newId = uid("rsrc");
   db.run(
@@ -187,6 +189,7 @@ export async function upsertResearchQuote(
     );
     await persist();
     const res = getDb().exec(`SELECT ${QUOTE_COLS} FROM research_quotes WHERE id = ?`, [id]);
+    if (!res.length || !res[0].values.length) throw new Error(`Forschungszitat nicht gefunden: ${id}`);
     return rowToQuote(res[0].values[0]);
   }
   const newId = uid("rquote");
@@ -265,7 +268,9 @@ export async function upsertResearchNote(
       [input.title, input.content ?? "", input.tags ?? "", now, id],
     );
     await persist();
-    return getResearchNote(id)!;
+    const updated = getResearchNote(id);
+    if (!updated) throw new Error(`Forschungsnotiz nicht gefunden: ${id}`);
+    return updated;
   }
   const newId = uid("rnote");
   db.run(
@@ -362,6 +367,7 @@ export async function updateResearchClip(id: string, patch: ResearchClipUpdate):
   );
   await persist();
   const res = getDb().exec(`SELECT ${CLIP_COLS} FROM research_clips WHERE id = ?`, [id]);
+  if (!res.length || !res[0].values.length) throw new Error(`Web-Clip nicht gefunden: ${id}`);
   return rowToClip(res[0].values[0]);
 }
 

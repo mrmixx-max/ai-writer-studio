@@ -62,8 +62,12 @@ export function worldbuildingToMarkdown(bundle: WorldbuildingBundle): string {
     lines.push("## Glossar & Lore", "");
     const byCat = new Map<string, LoreEntry[]>();
     for (const e of bundle.lore) {
-      if (!byCat.has(e.category)) byCat.set(e.category, []);
-      byCat.get(e.category)!.push(e);
+      let list = byCat.get(e.category);
+      if (!list) {
+        list = [];
+        byCat.set(e.category, list);
+      }
+      list.push(e);
     }
     for (const [cat, entries] of byCat) {
       lines.push(`### ${cat}`, "");
