@@ -148,6 +148,7 @@ export function capMaxTokensForModel(model: string, requested: number): number {
  * den Tests als Header-Vertrag fixiert.
  */
 export const OLLAMA_CORS_ORIGINS = [
+  "https://tauri.localhost",
   "tauri://localhost",
   "http://tauri.localhost",
   "http://localhost:5173",

@@ -6,7 +6,8 @@
 
 import type { ChatMessage, ChatOptions, LLMProvider, LLMProviderCapabilities } from "@/types/llm";
 import { ProviderError } from "@/types/llm";
-import { assertOk, parseSse, fetchWithTimeout } from "./stream";
+import { assertOk, parseSse } from "./stream";
+import { getLocal, postLocalJson, type LocalFetchExtra } from "./localFetch";
 import { normalizeLocalBaseUrl } from "./baseUrl";
 
 // Sprint 19c (Send-Debug): 3s statt 5s — healthCheck blockiert den
@@ -52,6 +53,16 @@ export class OpenAICompatibleProvider implements LLMProvider {
     return `${this.label} (${this.baseUrl})`;
   }
 
+  /** true für Loopback-Endpunkte (LM Studio, gpt2api, opencode lokal). */
+  private isLocal(): boolean {
+    try {
+      const h = new URL(this.baseUrl).hostname.toLowerCase();
+      return h === "127.0.0.1" || h === "localhost" || h === "::1";
+    } catch {
+      return false;
+    }
+  }
+
   private headers(): Record<string, string> {
     const h: Record<string, string> = { "Content-Type": "application/json" };
     if (this.apiKey) h["Authorization"] = `Bearer ${this.apiKey}`;
@@ -60,10 +71,14 @@ export class OpenAICompatibleProvider implements LLMProvider {
 
   async healthCheck(): Promise<boolean> {
     try {
-      const res = await fetchWithTimeout(`${this.baseUrl}/models`, {
-        method: "GET",
-        headers: this.headers(),
-      }, HEALTH_TIMEOUT);
+      // Lokale Endpunkte (LM Studio/gpt2api/opencode) ohne Browser-CORS
+      // über localFetch, Cloud weiter über window.fetch.
+      const res = this.isLocal()
+        ? await getLocal(`${this.baseUrl}/models`, HEALTH_TIMEOUT, { headers: this.headers() })
+        : await (await import("./stream")).fetchWithTimeout(`${this.baseUrl}/models`, {
+            method: "GET",
+            headers: this.headers(),
+          }, HEALTH_TIMEOUT);
       return res.ok;
     } catch {
       return false;
@@ -72,9 +87,11 @@ export class OpenAICompatibleProvider implements LLMProvider {
 
   async listModels(): Promise<string[]> {
     try {
-      const res = await fetchWithTimeout(`${this.baseUrl}/models`, {
-        headers: this.headers(),
-      }, FETCH_TIMEOUT);
+      const res = this.isLocal()
+        ? await getLocal(`${this.baseUrl}/models`, FETCH_TIMEOUT, { headers: this.headers() })
+        : await (await import("./stream")).fetchWithTimeout(`${this.baseUrl}/models`, {
+            headers: this.headers(),
+          }, FETCH_TIMEOUT);
       await assertOk(res, `${this.label} listModels`);
       const data = (await res.json()) as { data?: Array<{ id?: unknown }> };
       return (data.data ?? [])
@@ -100,11 +117,22 @@ export class OpenAICompatibleProvider implements LLMProvider {
     };
     let res: Response;
     try {
-      res = await fetchWithTimeout(`${this.baseUrl}/chat/completions`, {
-        method: "POST",
-        headers: this.headers(),
-        body: JSON.stringify(payload),
-      }, options.timeoutMs ?? FETCH_TIMEOUT);
+      const extra: LocalFetchExtra = { timeoutMs: options.timeoutMs ?? FETCH_TIMEOUT };
+      if (this.isLocal()) {
+        // Lokale Endpunkte ohne Browser-CORS über das Tauri-HTTP-Plugin.
+        res = await postLocalJson(`${this.baseUrl}/chat/completions`, payload, {
+          ...extra,
+          headers: this.headers(),
+          ...(signal ? { signal } : {}),
+        });
+      } else {
+        const { fetchWithTimeout } = await import("./stream");
+        res = await fetchWithTimeout(`${this.baseUrl}/chat/completions`, {
+          method: "POST",
+          headers: this.headers(),
+          body: JSON.stringify(payload),
+        }, extra.timeoutMs);
+      }
     } catch (e) {
       throw new ProviderError(`${this.label} nicht erreichbar. Endpoint prüfen.`, e);
     }
