@@ -93,7 +93,11 @@ export function assemblePartialTranscripts(parts: unknown[]): string {
     .join(" ");
 }
 
-function extractEventTexts(event: any): string[] {
+interface SpeechEvent {
+  results?: ArrayLike<{ 0?: { transcript?: unknown }; isFinal?: unknown }>;
+}
+
+function extractEventTexts(event: SpeechEvent | null | undefined): string[] {
   const results = event?.results;
   if (!results || typeof results.length !== "number") return [];
   const out: string[] = [];
@@ -104,7 +108,7 @@ function extractEventTexts(event: any): string[] {
   return out;
 }
 
-function eventIsFinal(event: any): boolean {
+function eventIsFinal(event: SpeechEvent | null | undefined): boolean {
   const results = event?.results;
   if (!results || typeof results.length !== "number" || results.length === 0) return true;
   for (let i = 0; i < results.length; i++) {
@@ -114,7 +118,12 @@ function eventIsFinal(event: any): boolean {
 }
 
 function getCtor(): (new () => SpeechRecognition) | undefined {
-  const w = (globalThis as any).window ?? (typeof window !== "undefined" ? window : undefined);
+  const g = globalThis as unknown as {
+    window?: { SpeechRecognition?: new () => SpeechRecognition; webkitSpeechRecognition?: new () => SpeechRecognition };
+  };
+  const w = g.window ?? (typeof window !== "undefined"
+    ? (window as unknown as { SpeechRecognition?: new () => SpeechRecognition; webkitSpeechRecognition?: new () => SpeechRecognition })
+    : undefined);
   return w?.SpeechRecognition ?? w?.webkitSpeechRecognition;
 }
 

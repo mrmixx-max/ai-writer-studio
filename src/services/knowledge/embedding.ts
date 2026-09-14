@@ -305,10 +305,15 @@ async function embedOpenAI(
       const body = await res.text().catch(() => "");
       throw new Error(`${res.status}: ${body.slice(0, 200)}`);
     }
-    const data = await res.json();
+    const data = (await res.json()) as { data?: Array<{ embedding?: unknown }> };
     const arr = data?.data;
     if (!Array.isArray(arr)) throw new Error("Antwort enthielt kein data-Array.");
-    return arr.map((d: any) => d.embedding as number[]);
+    return arr.map((d) => {
+      if (!Array.isArray(d.embedding) || !d.embedding.every((n) => typeof n === "number")) {
+        throw new Error("Antwort enthielt kein gültiges Embedding.");
+      }
+      return d.embedding;
+    });
   } finally {
     cancel();
   }
