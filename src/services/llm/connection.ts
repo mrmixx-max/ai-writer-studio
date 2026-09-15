@@ -17,6 +17,7 @@ export async function testConnection(settings: AppSettings): Promise<ConnectionR
   // und: meldet sich das Tauri-Backend überhaupt? Das steht dann in der
   // Provider-Karte statt einer geratenen Ursache.
   const transport = isTauriRuntime() ? "rust-proxy" : "webview-fetch";
+  const cfgUrl = settings.ollamaBaseUrl || "(leer → fallback 127.0.0.1)";
   let tauriBridge: string;
   try {
     const { invoke } = await import("@tauri-apps/api/core");
@@ -25,6 +26,18 @@ export async function testConnection(settings: AppSettings): Promise<ConnectionR
     tauriBridge = "ok";
   } catch (e) {
     tauriBridge = `defekt (${e instanceof Error ? e.message : String(e)})`;
+  }
+  // Direkter Proxy-Selbsttest: zeigt den ECHTEN ollama_get-Fehler (statt raten).
+  let proxySelf: string;
+  try {
+    const { invoke } = await import("@tauri-apps/api/core");
+    const txt = await invoke<string>("ollama_get", {
+      url: "http://127.0.0.1:11434/api/tags",
+      timeout_secs: 5,
+    });
+    proxySelf = `ok (${txt.length} bytes)`;
+  } catch (e) {
+    proxySelf = `FEHLER: ${e instanceof Error ? e.message : String(e)}`.slice(0, 220);
   }
   try {
     const healthy = await provider.healthCheck();
@@ -50,7 +63,8 @@ export async function testConnection(settings: AppSettings): Promise<ConnectionR
         models: [],
         message:
           `${provider.describe()} nicht erreichbar. ${hint} ` +
-          `[transport=${transport}, tauri-bridge=${tauriBridge}]`,
+          `[transport=${transport}, tauri-bridge=${tauriBridge}, ` +
+          `cfg=${cfgUrl}, proxy-self=${proxySelf}]`,
       };
     }
     const models = await provider.listModels();
