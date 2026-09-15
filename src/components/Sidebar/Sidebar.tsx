@@ -98,6 +98,12 @@ const WatermarkPanel = lazy(() =>
 const TTSPanel = lazy(() =>
   import("@/components/Writing/TTSPanel").then((m) => ({ default: m.TTSPanel }))
 );
+const TeleprompterPanel = lazy(() =>
+  import("@/components/Writing/TeleprompterPanel").then((m) => ({ default: m.TeleprompterPanel }))
+);
+const RedenschreiberPanel = lazy(() =>
+  import("@/components/Writing/RedenschreiberPanel").then((m) => ({ default: m.RedenschreiberPanel }))
+);
 const MarkdownViewerPanel = lazy(() =>
   import("@/components/Writing/MarkdownViewerPanel").then((m) => ({ default: m.MarkdownViewerPanel }))
 );
@@ -288,6 +294,8 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
   { id: "watermark", key: "sidebar.mode.watermark", icon: "💧", descKey: "sidebar.modeDesc.watermark" },
   { id: "tts", key: "sidebar.mode.tts", icon: "🔊", descKey: "sidebar.modeDesc.tts" },
   { id: "bookwriter", key: "sidebar.mode.bookwriter", icon: "📖", descKey: "sidebar.modeDesc.bookwriter" },
+  { id: "redenschreiber", key: "sidebar.mode.redenschreiber", icon: "🎤", descKey: "sidebar.modeDesc.redenschreiber" },
+  { id: "teleprompter", key: "sidebar.mode.teleprompter", icon: "📜", descKey: "sidebar.modeDesc.teleprompter" },
   { id: "markdown", key: "sidebar.mode.markdown", icon: "📝", descKey: "sidebar.modeDesc.markdown" },
   { id: "wordstats", key: "sidebar.mode.wordstats", icon: "📊", descKey: "sidebar.modeDesc.wordstats" },
   { id: "ideas", key: "sidebar.mode.ideas", icon: "💡", descKey: "sidebar.modeDesc.ideas" },
@@ -695,6 +703,9 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "book-idea") return <BookIdeaPanel />;
     if (mode === "newspaper") return <NewsGeneratorPanel />;
     if (mode === "plugin-manager") return <PluginManagerPanel />;
+    // Sprint 32: Redenschreiber + Teleprompter (Voice-Features, standalone)
+    if (mode === "redenschreiber") return <RedenschreiberPanel />;
+    if (mode === "teleprompter") return <TeleprompterPanel />;
     if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }

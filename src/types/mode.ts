@@ -27,6 +27,8 @@ export type EditorMode =
   | "watermark"
   | "tts"
   | "bookwriter"
+  | "redenschreiber"
+  | "teleprompter"
   | "markdown"
   | "wordstats"
   | "ideas"
@@ -77,4 +79,6 @@ export type EditorMode =
   | "writing-pace"
   | "genre"
   | "book-idea"
-  | "chat";
+  | "chat"
+  | "redenschreiber"
+  | "teleprompter";
