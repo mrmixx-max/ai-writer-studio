@@ -30,40 +30,48 @@ export async function gotoApp(page: Page): Promise<void> {
     });
 }
 
+// Sprach-unabhängige Selektoren: Die App läuft je nach Browser-Locale auf
+// Deutsch ("+ Projekt") oder Englisch ("+ Project"). hasText mit Regex.
+const PROJECT_BTN = /^\+\s*(Projekt|Project)$/i;
+const CHAPTER_BTN = /^\+\s*(Kapitel|Chapter)$/i;
+
 /**
- * Legt per Sidebar ein Projekt + Kapitel an (window.prompt wird accepted),
+ * Legt per Sidebar ein Projekt + Kapitel an (AppDialog-In-App-Prompt),
  * sodass Editor und Export-Flows echte Daten haben.
+ *
+ * HINWEIS: Die App nutzt KEINEN nativen window.prompt (tot in Tauri-WebView2),
+ * sondern AppDialog (role=dialog). Deshalb hier kein page.on("dialog"),
+ * sondern Ausfüllen des Dialog-Inputs + OK-Button.
  */
 export async function createProjectWithChapter(
   page: Page,
   projectName = "E2E-Projekt",
   chapterTitle = "Kapitel 1",
 ): Promise<void> {
-  page.on("dialog", (d) => {
-    void d.accept(currentPromptValue(d.message(), projectName, chapterTitle));
-  });
+  const dlg = page.getByRole("dialog");
 
-  await page
-    .locator("#app-sidebar button", { hasText: "+ Projekt" })
-    .first()
-    .click();
+  // Sidebar zeigt ggf. den Modus-Switcher statt der Projektliste
+  // (Default-Tab kann "prompts" sein). Erst auf Projekte-Tab wechseln.
+  const projectsTab = page.locator("#app-sidebar nav button").first();
+  await expect(projectsTab).toBeVisible({ timeout: 10_000 });
+  await projectsTab.click();
+
+  await page.locator("#app-sidebar button", { hasText: PROJECT_BTN }).first().click();
+  await expect(dlg).toBeVisible({ timeout: 10_000 });
+  await dlg.locator("input").fill(projectName);
+  await dlg.getByRole("button", { name: /OK/i }).click();
   await expect(page.locator("#app-sidebar")).toContainText(projectName, {
     timeout: 10_000,
   });
 
-  await page
-    .locator("#app-sidebar button", { hasText: "+ Kapitel" })
-    .first()
-    .click();
+  await page.locator("#app-sidebar button", { hasText: CHAPTER_BTN }).first().click();
+  await expect(dlg).toBeVisible({ timeout: 10_000 });
+  await dlg.locator("input").fill(chapterTitle);
+  await dlg.getByRole("button", { name: /OK/i }).click();
   // Kapitel erscheint in der Sidebar → Projekt wurde geöffnet.
   await expect(page.locator("#app-sidebar")).toContainText(chapterTitle, {
     timeout: 10_000,
   });
-}
-
-function currentPromptValue(message: string, projectName: string, chapterTitle: string): string {
-  if (/Kapitel/i.test(message)) return chapterTitle;
-  return projectName;
 }
 
 // ---------------------------------------------------------------------------
