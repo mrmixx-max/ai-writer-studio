@@ -19,7 +19,7 @@ const OFFLINE_SETTINGS = {
 };
 
 function clearTables() {
-  const db = (globalThis as Record<string, { run: (s: string) => void } | undefined>).__aws_db;
+  const db = (globalThis as unknown as Record<string, { run: (s: string) => void } | undefined>).__aws_db;
   for (const t of ["knowledge_chunks", "knowledge_sources", "knowledge_index_jobs", "chapters", "projects"]) {
     db?.run(`DELETE FROM ${t}`);
   }
