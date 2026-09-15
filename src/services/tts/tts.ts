@@ -149,7 +149,10 @@ class PiperTTSProvider implements TTSProvider {
   async isAvailable(): Promise<boolean> {
     if (!this.config.piperUrl) return false;
     try {
-      const res = await fetch(`${this.config.piperUrl}/health`, { method: "HEAD" });
+      const { getLocal } = await import("@/services/llm/localFetch");
+      const { normalizeLocalBaseUrl } = await import("@/services/llm/baseUrl");
+      const base = normalizeLocalBaseUrl(this.config.piperUrl);
+      const res = await getLocal(`${base}/health`, 5000);
       return res.ok;
     } catch {
       return false;
@@ -160,14 +163,13 @@ class PiperTTSProvider implements TTSProvider {
     if (!this.config.piperUrl) throw new Error("Piper URL fehlt");
     if (!options.text || !options.text.trim()) throw new Error("Piper Fehler: kein Text");
 
-    const res = await fetch(`${this.config.piperUrl}/tts`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        text: options.text.slice(0, 2000),
-        voice: options.voice ?? "de_DE-thorsten-medium",
-        speed: normalizeTTSSpeed(options.speed),
-      }),
+    const { postLocalJson } = await import("@/services/llm/localFetch");
+    const { normalizeLocalBaseUrl } = await import("@/services/llm/baseUrl");
+    const base = normalizeLocalBaseUrl(this.config.piperUrl);
+    const res = await postLocalJson(`${base}/tts`, {
+      text: options.text.slice(0, 2000),
+      voice: options.voice ?? "de_DE-thorsten-medium",
+      speed: normalizeTTSSpeed(options.speed),
     });
 
     if (!res.ok) throw new Error(`Piper Fehler: ${res.status}`);
@@ -177,9 +179,12 @@ class PiperTTSProvider implements TTSProvider {
   async listVoices(): Promise<string[]> {
     if (!this.config.piperUrl) return [];
     try {
-      const res = await fetch(`${this.config.piperUrl}/voices`);
+      const { getLocal } = await import("@/services/llm/localFetch");
+      const { normalizeLocalBaseUrl } = await import("@/services/llm/baseUrl");
+      const base = normalizeLocalBaseUrl(this.config.piperUrl);
+      const res = await getLocal(`${base}/voices`);
       if (!res.ok) return [];
-      const data = await res.json();
+      const data = (await res.json()) as { voices?: string[] };
       return data.voices ?? [];
     } catch {
       return ["de_DE-thorsten-medium"];

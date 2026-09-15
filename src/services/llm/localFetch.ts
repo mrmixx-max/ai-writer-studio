@@ -31,6 +31,7 @@ export interface LocalFetchExtra {
   signal?: AbortSignal;
   timeoutMs?: number;
   headers?: Record<string, string>;
+  method?: string;
 }
 
 /** Baut einen Response aus Status + Body-String (Rust-Proxy-Pfad). */
@@ -45,6 +46,7 @@ function proxyResponse(status: number, bodyText: string): Response {
 export async function getLocal(url: string, timeoutMs = 30000, extra?: LocalFetchExtra): Promise<Response> {
   const headers = extra?.headers;
   const signal = extra?.signal;
+  const method = extra?.method ?? "GET";
   if (!isTauriRuntime()) {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), timeoutMs);
@@ -52,7 +54,7 @@ export async function getLocal(url: string, timeoutMs = 30000, extra?: LocalFetc
     if (signal && onAbort) signal.addEventListener("abort", onAbort);
     try {
       return await fetch(url, {
-        method: "GET",
+        method,
         ...(headers ? { headers } : {}),
         signal: ctrl.signal,
       });
