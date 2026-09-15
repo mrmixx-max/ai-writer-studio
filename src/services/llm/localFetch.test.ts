@@ -79,7 +79,7 @@ describe("getLocal (Tauri-Pfad)", () => {
     expect(invokeCalls[0].cmd).toBe("ollama_get");
     expect(invokeCalls[0].args).toMatchObject({
       url: "http://127.0.0.1:11434/api/tags",
-      timeoutSecs: 5,
+      timeout_secs: 5,
     });
     const data = (await res.json()) as { models: Array<{ name: string }> };
     expect(data.models[0].name).toBe("llama3.2");
@@ -105,7 +105,7 @@ describe("postLocalJson (Tauri-Pfad)", () => {
     expect(res.ok).toBe(true);
     expect(invokeCalls).toHaveLength(1);
     expect(invokeCalls[0].cmd).toBe("ollama_post");
-    expect(invokeCalls[0].args.timeoutSecs).toBe(20);
+    expect(invokeCalls[0].args.timeout_secs).toBe(20);
     const parsed = JSON.parse(String(invokeCalls[0].args.body)) as { model: string };
     expect(parsed.model).toBe("nomic-embed-text");
   });
