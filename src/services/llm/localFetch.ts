@@ -67,7 +67,7 @@ export async function getLocal(url: string, timeoutMs = 30000, extra?: LocalFetc
   if (signal?.aborted) throw new DOMException("Abgebrochen", "AbortError");
   const text = await invoke<string>("ollama_get", {
     url,
-    timeout_secs: Math.max(1, Math.round(timeoutMs / 1000)),
+    timeoutSecs: Math.max(1, Math.round(timeoutMs / 1000)),
   });
   return proxyResponse(200, text);
 }
@@ -126,7 +126,7 @@ export async function postLocalJson(
   const text = await invoke<string>("ollama_post", {
     url,
     body: payload,
-    timeout_secs: Math.max(1, Math.round((extra?.timeoutMs ?? 600000) / 1000)),
+    timeoutSecs: Math.max(1, Math.round((extra?.timeoutMs ?? 600000) / 1000)),
   });
   return proxyResponse(200, text);
 }
