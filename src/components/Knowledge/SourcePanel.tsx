@@ -4,7 +4,7 @@
 // fehlgeschlagen. Und: ob die Indexierung vollwertig (mit Einbettungen) oder
 // eingeschränkt (nur lexikalisch) gelaufen ist.
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import type { KnowledgeSource } from "@/types/knowledge";
 import { SOURCE_TYPE_LABELS } from "@/types/knowledge";
 import type { SourceStats } from "@/services/knowledge/sources";
@@ -18,6 +18,8 @@ interface Props {
   onSync: () => void;
   onIndexAll: (force: boolean) => void;
   onIndexOne: (sourceId: string) => void;
+  /** Datei (md/txt/docx) als Wissensquelle aufnehmen + indexieren. */
+  onAddDocument: (file: File) => void;
 }
 
 /** Zeitangabe in Klartext, ohne Bibliothek. */
@@ -49,8 +51,10 @@ export function SourcePanel({
   onSync,
   onIndexAll,
   onIndexOne,
+  onAddDocument,
 }: Props) {
   const [showAll, setShowAll] = useState(false);
+  const fileRef = useRef<HTMLInputElement | null>(null);
   const visible = showAll ? sources : sources.slice(0, 12);
 
   return (
@@ -83,6 +87,25 @@ export function SourcePanel({
         <button className="kw-btn" onClick={onSync} disabled={busy}>
           Quellen einlesen
         </button>
+        <button
+          className="kw-btn"
+          onClick={() => fileRef.current?.click()}
+          disabled={busy}
+          title="Buch/Dokument (.md, .txt, .docx) als Wissensquelle für RAG aufnehmen"
+        >
+          Datei hinzufügen
+        </button>
+        <input
+          ref={fileRef}
+          type="file"
+          accept=".md,.markdown,.txt,.text,.docx"
+          style={{ display: "none" }}
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            e.target.value = "";
+            if (f) onAddDocument(f);
+          }}
+        />
         <button className="kw-btn primary" onClick={() => onIndexAll(false)} disabled={busy}>
           Projektwissen aktualisieren
         </button>

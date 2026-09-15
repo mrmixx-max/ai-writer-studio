@@ -111,6 +111,37 @@ export function KnowledgePanel({ projectId }: Props) {
   }
 
   // --- Indexieren ----------------------------------------------------------
+  async function handleAddDocument(file: File) {
+    if (!projectId) return;
+    setBusy(true);
+    setNotice(null);
+    setProgress({ done: 0, total: 2, label: `„${file.name}“ wird eingelesen…` });
+    try {
+      const { readDocumentFile, addDocumentSource } = await import(
+        "@/services/knowledge/documents"
+      );
+      const { name, text } = await readDocumentFile(file);
+      setProgress({ done: 1, total: 2, label: `„${name}“ wird indexiert…` });
+      const settings = loadSettings();
+      await addDocumentSource(projectId, name, text, settings, (done, total, label) =>
+        setProgress({ done, total, label: label ?? "Wird indexiert…" }),
+      );
+      reload();
+      setNotice({
+        text: `„${name}“ als Wissensquelle aufgenommen und indexiert — ab sofort RAG-Faktenbasis für KI-Antworten.`,
+        kind: "ok",
+      });
+    } catch (e) {
+      setNotice({
+        text: `Datei konnte nicht aufgenommen werden: ${(e as Error)?.message ?? String(e)}`,
+        kind: "err",
+      });
+    } finally {
+      setProgress(null);
+      setBusy(false);
+    }
+  }
+
   async function handleIndexAll(force: boolean) {
     if (!projectId) return;
     setBusy(true);
@@ -269,6 +300,7 @@ export function KnowledgePanel({ projectId }: Props) {
           onSync={() => void handleSync()}
           onIndexAll={(force) => void handleIndexAll(force)}
           onIndexOne={(id) => void handleIndexOne(id)}
+          onAddDocument={(file) => void handleAddDocument(file)}
         />
 
         <SearchPanel
