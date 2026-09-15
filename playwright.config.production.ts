@@ -17,6 +17,7 @@ export default defineConfig({
   outputDir: "test-results",
   use: {
     baseURL: "http://localhost:1421",
+    locale: "de-DE",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     // Video bei Fehlversuchen aufheben — wichtig für Overlay-Timing-Flakiness.

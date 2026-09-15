@@ -6,6 +6,11 @@ export default defineConfig({
   test: {
     environment: "node",
     testTimeout: 30000,
+    // CI (windows-latest, 2 vCPU) fuhr Tests parallel → globale Mocks
+    // (localStorage-Stub, fetch) rannten ineinander (settings-roundtrip en-vs-de).
+    // Sequenziell: langsamer, aber deterministisch.
+    pool: "forks",
+    poolOptions: { forks: { singleFork: true } },
     // Component-Tests (React Testing Library) laufen in jsdom, alle anderen in node.
     // jsdom wird pro Testdatei via `@vitest-environment jsdom` Docblock gewählt.
     include: ["src/**/*.test.ts", "src/**/*.test.tsx", "tests/**/*.test.ts"],

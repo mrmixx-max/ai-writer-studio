@@ -90,14 +90,28 @@ export interface MockBookOptions {
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /**
- * Mockt POST [base]/api/chat für ein Vollautomatik-Buch (3 Kapitel).
- * Muss VOR dem Klick auf "Buch generieren" installiert werden.
+ * Mockt alle Ollama-Routen: GET [base]/api/tags (healthCheck/listModels)
+ * + POST [base]/api/chat (Vollautomatik-Buch, 3 Kapitel).
+ * Muss VOR gotoApp/page.goto installiert werden.
  */
 export async function mockOllamaBookGeneration(
   page: Page,
   opts: MockBookOptions = {},
 ): Promise<{ outlineCalls: () => number }> {
   let outlineCalls = 0;
+  // Health + Modellliste: App hält Provider für erreichbar (kein Offline-Fallback).
+  await page.route("**/api/tags", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        models: [
+          { name: "llama3.2:latest" },
+          { name: "llama3.1:8b" },
+        ],
+      }),
+    });
+  });
   await page.route("**/api/chat", async (route) => {
     let text: string;
     try {

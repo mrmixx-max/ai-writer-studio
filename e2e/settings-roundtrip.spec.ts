@@ -82,7 +82,7 @@ test("Modellwechsel: speichern, DB-Roundtrip, Modal-Reopen", async ({ page }) =>
   await gotoApp(page);
   const modal = await openSettings(page);
 
-  const modelInput = modal.locator('.settings-panel > label:has-text("Modell") input');
+  const modelInput = modal.locator('.settings-panel label:has-text("Modell") input');
   await expect(modelInput).toBeVisible({ timeout: 15_000 });
   await modelInput.fill("e2e-wechsel-modell");
 
@@ -99,7 +99,7 @@ test("Modellwechsel: speichern, DB-Roundtrip, Modal-Reopen", async ({ page }) =>
   await closeSettings(page);
   const modal2 = await openSettings(page);
   await expect(
-    modal2.locator('.settings-panel > label:has-text("Modell") input'),
+    modal2.locator('.settings-panel label:has-text("Modell") input'),
   ).toHaveValue("e2e-wechsel-modell");
 });
 
@@ -111,9 +111,9 @@ test("Temperatur + MaxTokens: speichern, DB-Roundtrip, Modal-Reopen", async ({
   await gotoApp(page);
   const modal = await openSettings(page);
 
-  const tempLabel = modal.locator('.settings-panel > label:has-text("Temperatur")');
+  const tempLabel = modal.locator('.settings-panel label:has-text("Temperatur")');
   await tempLabel.locator('input[type="range"]').fill("0.3");
-  const maxTokens = modal.locator('.settings-panel > label:has-text("Max Tokens") input');
+  const maxTokens = modal.locator('.settings-panel label:has-text("Max Tokens") input');
   await maxTokens.fill("4096");
   await expect(tempLabel).toContainText("0.3");
 
@@ -129,10 +129,10 @@ test("Temperatur + MaxTokens: speichern, DB-Roundtrip, Modal-Reopen", async ({
   await closeSettings(page);
   const modal2 = await openSettings(page);
   await expect(
-    modal2.locator('.settings-panel > label:has-text("Temperatur")'),
+    modal2.locator('.settings-panel label:has-text("Temperatur")'),
   ).toContainText("0.3");
   await expect(
-    modal2.locator('.settings-panel > label:has-text("Max Tokens") input'),
+    modal2.locator('.settings-panel label:has-text("Max Tokens") input'),
   ).toHaveValue("4096");
 });
 

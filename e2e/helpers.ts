@@ -83,7 +83,7 @@ export async function createProjectWithChapter(
 
 /** Öffnet den BookWriter-Modus und klappt das klassische Generierungs-Panel auf. */
 export async function openBookWriter(page: Page): Promise<void> {
-  await page.locator('.mode-switcher button[aria-label="BookWriter"]').click();
+  await page.locator('.mode-switcher button[data-mode="bookwriter"]').click();
   const toggle = page.locator(".bw-dash-classic button").first();
   await toggle.click();
   await expect(page.locator(".bookwriter-panel")).toBeVisible({ timeout: 10_000 });
@@ -103,9 +103,9 @@ export async function setupTestProject(
   await openBookWriter(page);
 }
 
-/** Wechselt im BookWriter-Panel auf den Klassik-Tab (Vollautomatik mit Start-Button). */
+/** Wechselt im BookWriter-Panel auf den Klassik-Tab (Vollautomatik mit Start-Button). Sprach-unabhängig (de/en). */
 export async function switchToClassicTab(page: Page): Promise<void> {
-  await page.locator(".bookwriter-panel .bw-tab", { hasText: "Klassisch" }).click();
+  await page.locator(".bookwriter-panel .bw-tab", { hasText: /Klassisch|Classic/i }).click();
 }
 
 /**

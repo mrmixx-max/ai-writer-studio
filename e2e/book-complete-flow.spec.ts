@@ -91,7 +91,7 @@ test("Komplett-Flow: KDP-Checkliste zeigt Buchdaten nach Generierung", async ({
   await waitForGeneration(page);
 
   // KDP-Modus: Checkliste für das aktive Projekt rendern.
-  await page.locator('.mode-switcher button[aria-label="KDP"]').click();
+  await page.locator('.mode-switcher button[data-mode="kdp"]').click();
   const kdp = page.locator(".kdp");
   await expect(kdp).toBeVisible({ timeout: 15_000 });
   // Entweder Checkliste mit Items oder Hinweis — aber kein Crash/Placeholder-Fehler.

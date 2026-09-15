@@ -36,13 +36,20 @@ async function startAndStopAfterChapterOne(
     .locator(".bookwriter-panel button.bw-start", { hasText: "Buch generieren" })
     .click();
 
-  // Warten bis Kapitel 1 committed ist, dann abbrechen. Der Confirm-Dialog
-  // wird vom permanenten Dialog-Handler aus helpers.ts akzeptiert.
+  // Warten bis Kapitel 1 committed ist, dann abbrechen. Der AppDialog-Confirm
+  // wird per OK-Button bestätigt (In-App, kein window.confirm).
   await expect(page.locator(".bookwriter-panel .bw-live pre")).toContainText(
     "✅ Kapitel 1 fertig",
     { timeout: 120_000 },
   );
   await page.locator(".bookwriter-panel button.bw-stop").click();
+  // Stop braucht Bestätigung im AppDialog (In-App-Confirm, kein window.confirm).
+  // Ohne OK hängt handleStop — die Generierung liefe einfach durch.
+  const stopDlg = page.getByRole("dialog");
+  await expect(stopDlg).toBeVisible({ timeout: 10_000 });
+  await stopDlg.getByRole("button", { name: /^OK$/i }).click();
+  // Danach kann panel-intern der Resume-Dialog "Generierung fortsetzen?"
+  // erscheinen — korrektes Verhalten, keine Prüfung nötig.
   // Generierung beendet → Start-Button wieder da.
   await expect(
     page.locator(".bookwriter-panel button.bw-start", { hasText: "Buch generieren" }),
@@ -55,8 +62,8 @@ test("Stop mitten in der Generierung → Recovery-Dialog → Fortsetzen beendet 
   await startAndStopAfterChapterOne(page, "Recovery-Projekt");
 
   // "Neustart": Modus wechseln (Panels unmounten) und zurückkehren.
-  await page.locator('.mode-switcher button[aria-label="Editor"]').click();
-  await page.locator('.mode-switcher button[aria-label="BookWriter"]').click();
+  await page.locator('.mode-switcher button[data-mode="editor"]').dispatchEvent("click");
+  await page.locator('.mode-switcher button[data-mode="bookwriter"]').dispatchEvent("click");
 
   // Dashboard-Recovery-Modal: 1 gespeichertes Kapitel, fortsetzbar ab Kapitel 2.
   const modal = page.locator(
@@ -76,8 +83,10 @@ test("Stop mitten in der Generierung → Recovery-Dialog → Fortsetzen beendet 
   // Fortsetzen → läuft ab Kapitel 2 weiter bis zum Ende.
   await resume.locator("button", { hasText: "Fortsetzen" }).click();
   await waitForGeneration(page);
+  // Panel-State wurde beim Resume zurückgesetzt (setChapters([])) — die UI
+  // zeigt die neu generierten Kapitel 2-3; Kapitel 1 liegt im Store.
   await expect(page.locator(".bookwriter-panel .bw-chapter")).toHaveCount(
-    MOCK_CHAPTER_COUNT,
+    MOCK_CHAPTER_COUNT - 1,
   );
 });
 
@@ -86,8 +95,8 @@ test("Recovery-Verwerfen löscht den Job, kein Resume-Dialog mehr", async ({
 }) => {
   await startAndStopAfterChapterOne(page, "Verwerfen-Projekt");
 
-  await page.locator('.mode-switcher button[aria-label="Editor"]').click();
-  await page.locator('.mode-switcher button[aria-label="BookWriter"]').click();
+  await page.locator('.mode-switcher button[data-mode="editor"]').dispatchEvent("click");
+  await page.locator('.mode-switcher button[data-mode="bookwriter"]').dispatchEvent("click");
 
   const modal = page.locator(
     '.bw-recovery-dialog[aria-label="Unterbrochene Buchgenerierung fortsetzen?"]',

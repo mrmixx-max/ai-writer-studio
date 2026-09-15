@@ -34,7 +34,7 @@ async function seedKdpRun(page: Page): Promise<void> {
 }
 
 async function openKdpMode(page: Page): Promise<void> {
-  await page.locator('.mode-switcher button[aria-label="KDP"]').click();
+  await page.locator('.mode-switcher button[data-mode="kdp"]').click();
   await expect(page.locator(".kdp")).toBeVisible({ timeout: 15_000 });
 }
 

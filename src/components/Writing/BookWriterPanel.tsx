@@ -218,6 +218,17 @@ export function BookWriterPanel() {
       const writtenChapters: BookChapter[] = [];
       await runGeneration(cfg, bookOutline, 1, writtenChapters, job);
 
+      // Abbruch (Stop-Button) bricht die Schleife via AbortError ab —
+      // der Job darf dann NICHT als fertig markiert werden, sonst gibt es
+      // kein Recovery (Race: handleStop setzt "interrupted", completeBookJob
+      // würde es mit "completed" überschreiben).
+      // WICHTIG: abortRef prüfen, nicht den äußeren ctrl — runGeneration
+      // erzeugt einen eigenen (inneren) Controller und hinterlegt ihn in
+      // abortRef; handleStop abortet genau diesen.
+      if (ctrl.signal.aborted || abortRef.current?.signal.aborted) {
+        await setBookJobStatus(job.id, "interrupted", "Vom Nutzer abgebrochen");
+        return;
+      }
       setLiveText((prev) => prev + "🎉 Buch fertig!");
       await completeBookJob(job.id);
     } catch (e: unknown) {
@@ -252,6 +263,12 @@ export function BookWriterPanel() {
     try {
       const writtenChapters: BookChapter[] = [];
       await runGeneration(cfg, job.outline, job.currentChapter + 1, writtenChapters, job);
+      // Gleicher Abort-Guard wie in handleGenerate: kein "completed" nach Stop
+      // (abortRef statt äußerem ctrl — siehe dort).
+      if (ctrl.signal.aborted || abortRef.current?.signal.aborted) {
+        await setBookJobStatus(job.id, "interrupted", "Vom Nutzer abgebrochen");
+        return;
+      }
       setLiveText((prev) => prev + "🎉 Buch fertig!");
       await completeBookJob(job.id);
     } catch (e: unknown) {

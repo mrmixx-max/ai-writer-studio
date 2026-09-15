@@ -17,6 +17,9 @@ export default defineConfig({
   outputDir: "test-results",
   use: {
     baseURL: "http://localhost:1420",
+    // Deutsch als Browser-Locale: Tests nutzen deutsche UI-Strings,
+    // CI-Runner laufen auf en-US (aria-labels/i18n wären Englisch).
+    locale: "de-DE",
     trace: "on-first-retry",
     screenshot: "only-on-failure",
     // Video bei Fehlversuchen aufheben — wichtig für Overlay-Timing-Flakiness.

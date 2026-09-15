@@ -2,8 +2,16 @@
 // Fallback, kein Ollama nötig), Chat-Eingabe, "In Dokument einfügen".
 import { expect, test } from "@playwright/test";
 import { createProjectWithChapter, gotoApp } from "./helpers";
+import { mockOllamaBookGeneration } from "./mock-ollama";
+
+/** Erzwingt Deutsch — CI-Browser laufen auf en-US. */
+async function pinGerman(page: import("@playwright/test").Page): Promise<void> {
+  await page.addInitScript(() => localStorage.setItem("app-lang", "de"));
+}
 
 test("KI-Panel ist sichtbar und bietet Aktionen", async ({ page }) => {
+  await mockOllamaBookGeneration(page);
+  await pinGerman(page);
   await gotoApp(page);
 
   const panel = page.locator("#app-ai-panel");
@@ -23,6 +31,8 @@ test("KI-Panel ist sichtbar und bietet Aktionen", async ({ page }) => {
 });
 
 test("KI weiterschreibt ein Kapitel und Output ist einfügbar", async ({ page }) => {
+  await mockOllamaBookGeneration(page);
+  await pinGerman(page);
   await gotoApp(page);
   await createProjectWithChapter(page, "KI-Projekt", "KI-Kapitel");
 
@@ -50,6 +60,8 @@ test("KI weiterschreibt ein Kapitel und Output ist einfügbar", async ({ page })
 });
 
 test("Freier Chat im KI-Panel liefert eine Antwort", async ({ page }) => {
+  await mockOllamaBookGeneration(page);
+  await pinGerman(page);
   await gotoApp(page);
 
   const panel = page.locator("#app-ai-panel");
