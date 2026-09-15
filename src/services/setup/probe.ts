@@ -4,9 +4,14 @@
 // Diese Prüfungen sind Diagnose, kein Gate. Sie liefern immer ein Ergebnis
 // und werfen nie — ein nicht laufendes Ollama ist ein normaler Zustand,
 // kein Fehler.
+//
+// Transport: Lokale Prüfungen (Ollama/LM Studio) laufen über das HTTP-Plugin
+// (Rust-Seite, kein Browser-Origin → kein CORS-403 der installierten App),
+// sonst über window.fetch (Browser/Tests).
 
 import type { AppSettings } from "@/types/config";
 import { getLocal } from "@/services/llm/localFetch";
+import { normalizeLocalBaseUrl } from "@/services/llm/baseUrl";
 
 /** Ergebnis einer Anbieterprüfung. */
 export interface ProviderProbe {
@@ -55,7 +60,7 @@ export async function probeOllama(baseUrl = "http://localhost:11434"): Promise<P
   };
 
   try {
-    const res = await fetchWithTimeout(`${baseUrl}/api/tags`);
+    const res = await fetchWithTimeout(`${normalizeLocalBaseUrl(baseUrl)}/api/tags`);
     if (!res.ok) {
       return {
         ...base,
@@ -107,7 +112,7 @@ export async function probeLmStudio(baseUrl = "http://localhost:1234"): Promise<
   };
 
   try {
-    const res = await fetchWithTimeout(`${baseUrl}/v1/models`);
+    const res = await fetchWithTimeout(`${normalizeLocalBaseUrl(baseUrl)}/v1/models`);
     if (!res.ok) {
       return {
         ...base,
