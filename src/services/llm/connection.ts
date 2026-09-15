@@ -2,6 +2,7 @@
 
 import type { AppSettings } from "@/types/config";
 import { createProvider } from "./index";
+import { isTauriRuntime } from "./localFetch";
 import { ProviderError } from "@/types/llm";
 
 export interface ConnectionResult {
@@ -12,6 +13,19 @@ export interface ConnectionResult {
 
 export async function testConnection(settings: AppSettings): Promise<ConnectionResult> {
   const provider = createProvider(settings);
+  // Transport-Diagnose: Welcher Pfad wird benutzt? (Rust-Proxy vs. WebView-fetch)
+  // und: meldet sich das Tauri-Backend überhaupt? Das steht dann in der
+  // Provider-Karte statt einer geratenen Ursache.
+  const transport = isTauriRuntime() ? "rust-proxy" : "webview-fetch";
+  let tauriBridge: string;
+  try {
+    const { invoke } = await import("@tauri-apps/api/core");
+    // Harmloser Backend-Ping: git_version existiert immer (kein Server nötig).
+    await invoke<string>("git_version");
+    tauriBridge = "ok";
+  } catch (e) {
+    tauriBridge = `defekt (${e instanceof Error ? e.message : String(e)})`;
+  }
   try {
     const healthy = await provider.healthCheck();
     if (!healthy) {
@@ -34,7 +48,9 @@ export async function testConnection(settings: AppSettings): Promise<ConnectionR
       return {
         ok: false,
         models: [],
-        message: `${provider.describe()} nicht erreichbar. ${hint}`,
+        message:
+          `${provider.describe()} nicht erreichbar. ${hint} ` +
+          `[transport=${transport}, tauri-bridge=${tauriBridge}]`,
       };
     }
     const models = await provider.listModels();
