@@ -115,10 +115,39 @@ export async function runKIAction(
   const withMemory = req.memoryContext
     ? `${req.memoryContext}\n\n${userContent}`
     : userContent;
+  // Dokumenten-RAG: relevante Chunks aus Büchern/Dokumenten des Projekts
+  // (Wissensindex) anhängen. Still bei leerem Index/Fehler — kein RAG.
+  let ragBlock = "";
+  let ragSources: string[] = [];
+  if (req.projectId && req.rag?.enabled !== false) {
+    try {
+      const query = (
+        req.chatMessage ||
+        req.selection ||
+        req.redeOpts?.kernpunkte ||
+        withMemory
+      ).slice(0, 1000);
+      const { searchKnowledge, formatContextBlock, formatSourceList } =
+        await import("@/services/knowledge/retrieval");
+      const result = await searchKnowledge(req.projectId, query, settings, {
+        limit: req.rag?.limit ?? 6,
+      });
+      const block = formatContextBlock(result, req.rag?.maxChars ?? 4000);
+      if (block) {
+        ragBlock =
+          `DOKUMENTE AUS DEINEN BÜCHERN/DATEIEN (Faktenbasis — nutze sie, ` +
+          `widersprich ihnen nicht):\n${block}`;
+        ragSources = formatSourceList(result);
+      }
+    } catch {
+      // RAG ist Zusatz — Fehler dürfen die Generierung nie blockieren.
+    }
+  }
+  const finalContent = ragBlock ? `${ragBlock}\n\n${withMemory}` : withMemory;
   const messages = [
     { role: "system" as const, content: SYSTEM_PROMPT },
     ...(req.history ?? []),
-    { role: "user" as const, content: withMemory },
+    { role: "user" as const, content: finalContent },
   ];
 
   let raw = "";
@@ -138,7 +167,7 @@ export async function runKIAction(
     }
     const msg = `Fehler bei KI-Aufruf: ${(e as Error).message}`;
     onToken(msg);
-    return { text: msg, offline: true };
+    return { text: msg, offline: true, ragSources };
   }
-  return { text: raw, offline: false };
+  return { text: raw, offline: false, ragSources };
 }

@@ -26,6 +26,10 @@ export interface KIRequest {
   rewriteOpts?: RewriteOptions; // erweiterte Umschreib-Optionen
   chatMessage?: string; // nur bei chat
   redeOpts?: RedeOptions; // nur bei rede
+  /** Projekt für Dokumenten-RAG (Wissensindex). null = kein RAG. */
+  projectId?: string | null;
+  /** RAG-Feinschliff: default aktiviert (limit 6, maxChars 4000). */
+  rag?: { enabled?: boolean; maxChars?: number; limit?: number };
   slotId?: string; // Multi-Modell: ID des zu nutzenden Modell-Slots
   history?: { role: "system" | "user" | "assistant"; content: string }[]; // Chatverlauf
   memoryContext?: string; // Langzeit-Gedächtnis: relevante Erinnerungen + Projektwissen als Block
@@ -55,4 +59,6 @@ export interface RedeOptions {
 export interface KIResult {
   text: string;
   offline: boolean;
+  /** Verwendete RAG-Quellen (Kurznamen) — leer ohne Treffer/Projekt. */
+  ragSources?: string[];
 }

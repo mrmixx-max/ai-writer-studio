@@ -600,6 +600,7 @@ export const es: TranslationDict = {
   "ki.title": "Asistente de IA",
   "ki.offline": "Modo sin conexión",
   "ki.offlineSuffix": " (offline)",
+  "ki.ragSources": "Fuentes",
   "ki.action.weiter": "Seguir escribiendo",
   "ki.action.umschreiben": "Reescribir",
   "ki.action.zusammenfassen": "Resumir",

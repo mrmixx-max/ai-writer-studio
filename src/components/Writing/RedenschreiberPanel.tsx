@@ -30,6 +30,7 @@ const REDE_TOENE: RedeTon[] = [
 export function RedenschreiberPanel() {
   const { t } = useI18n();
   const activeChapterId = useProjectStore((s) => s.activeChapterId);
+  const activeProjectId = useProjectStore((s) => s.activeProjectId);
   const chapters = useProjectStore((s) => s.chapters);
   const activeChapter = chapters.find((c: { id: string }) => c.id === activeChapterId);
 
@@ -149,6 +150,8 @@ export function RedenschreiberPanel() {
           action: "rede",
           selection: "",
           context: "",
+          // Dokumenten-RAG: Bücher/Dokumente des aktiven Projekts als Faktenbasis.
+          projectId: activeProjectId ?? null,
           redeOpts: {
             anlass: anlass.trim(),
             publikum: publikum.trim(),
@@ -175,7 +178,7 @@ export function RedenschreiberPanel() {
     } finally {
       if (mountedRef.current) setKiBusy(false);
     }
-  }, [kiBusy, anlass, publikum, funktion, ton, minuten, kernpunkte, gegenposition]);
+  }, [kiBusy, anlass, publikum, funktion, ton, minuten, kernpunkte, gegenposition, activeProjectId]);
 
   const useTemplateInEditor = useCallback(() => {
     if (!activeTemplate) return;

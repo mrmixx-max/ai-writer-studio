@@ -609,6 +609,7 @@ export const de = {
   "ki.title": "KI-Assistent",
   "ki.offline": "Offline-Modus",
   "ki.offlineSuffix": " (offline)",
+  "ki.ragSources": "Quellen",
   "ki.action.weiter": "Weiterschreiben",
   "ki.action.umschreiben": "Umschreiben",
   "ki.action.zusammenfassen": "Zusammenfassen",

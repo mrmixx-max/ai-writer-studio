@@ -96,6 +96,8 @@ export function KIPanel() {
   const abortRef = useRef<AbortController | null>(null);
   // Anzeige des bei der letzten Aktion verwendeten Modells ("→ ollama · llama3.2").
   const [usedModel, setUsedModel] = useState("");
+  // RAG-Quellen der letzten Antwort (Bücher/Dokumente aus dem Wissensindex).
+  const [ragSources, setRagSources] = useState<string[]>([]);
   const [activeAction, setActiveAction] = useState<KIAction | null>(null);
   const [rewriteOptions, setRewriteOptions] = useState<RewriteOptions>({
     style: "sachlich",
@@ -216,6 +218,7 @@ export function KIPanel() {
     setOutput("");
     setStreaming("");
     setOffline(false);
+    setRagSources([]);
     setAnalysis(null);
     try {
       await runActionInner(action, controller.signal);
@@ -271,6 +274,8 @@ export function KIPanel() {
         slotId,
         history: llmHistory,
         memoryContext: memoryBlock || undefined,
+        // Dokumenten-RAG: Bücher/Dokumente des aktiven Projekts als Faktenbasis.
+        projectId: projectId ?? null,
       },
       (chunk) => setStreaming((s) => s + chunk),
       { signal },
@@ -278,6 +283,7 @@ export function KIPanel() {
     setOutput(res.text);
     setStreaming("");
     setOffline(res.offline);
+    setRagSources(res.ragSources ?? []);
     setBusy(false);
     setChatInput("");
     await saveMsg("assistant", res.text);
@@ -501,6 +507,11 @@ export function KIPanel() {
         )}
         {streaming && <pre className="streaming">{streaming}</pre>}
         {output && <p>{output}</p>}
+        {ragSources.length > 0 && (
+          <p className="ki-rag-sources" data-testid="ki-rag-sources">
+            {t("ki.ragSources")}: {ragSources.join(" · ")}
+          </p>
+        )}
       </div>
 
       {output && !busy && (

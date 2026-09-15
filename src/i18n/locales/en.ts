@@ -597,6 +597,7 @@ export const en: TranslationDict = {
   "ki.title": "AI assistant",
   "ki.offline": "Offline mode",
   "ki.offlineSuffix": " (offline)",
+  "ki.ragSources": "Sources",
   "ki.action.weiter": "Continue writing",
   "ki.action.umschreiben": "Rewrite",
   "ki.action.zusammenfassen": "Summarize",
