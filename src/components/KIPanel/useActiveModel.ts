@@ -42,7 +42,20 @@ export function useActiveModel() {
   const selectModel = useCallback(
     (provider: ProviderId, model: string) => {
       setSettings((prev) => {
-        const next: AppSettings = { ...prev, provider, model };
+        // Slot-Sync (Modellwechsel-Bug 2026-09): runKIAction bevorzugt das
+        // Modell des aktiven Slots (Default-Slot "main" = llama3.2). Ohne Sync
+        // liefe jede Anfrage weiter auf dem Slot-Modell — der Picker-Wechsel
+        // wäre nur Anzeige, kein wirksamer Wechsel.
+        const prevSlots = prev.kiModelSlots;
+        let kiModelSlots = prevSlots;
+        if (prevSlots?.length) {
+          const copy = [...prevSlots];
+          const idx = copy.findIndex((s) => s.id === "main");
+          const at = idx >= 0 ? idx : 0;
+          copy[at] = { ...copy[at], provider, model };
+          kiModelSlots = copy;
+        }
+        const next: AppSettings = { ...prev, provider, model, kiModelSlots };
         // Persistenz; feuert das Sync-Event für alle anderen Komponenten.
         saveSettings(next).catch(() => {
           // Persistenz fehlgeschlagen (z. B. DB nicht initialisiert) —
