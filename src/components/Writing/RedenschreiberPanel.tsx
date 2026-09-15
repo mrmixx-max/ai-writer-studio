@@ -5,8 +5,27 @@ import { useProjectStore } from "@/store/projectStore";
 import { useEditorStore } from "@/store/editorStore";
 import { useI18n } from "@/i18n";
 import { recordAndTranscribe, stopRecording, DEFAULT_WHISPER_LANGUAGE } from "@/services/whisper";
+import { runKIAction } from "@/services/ki";
+import { loadSettings } from "@/services/settings";
+import type { RedeTon } from "@/services/ki/types";
+import type { TranslationKey } from "@/i18n/locales/de";
+import {
+  listSpeechTemplates,
+  getSpeechTemplate,
+  renderSpeechTemplate,
+} from "@/services/speech/speechTemplates";
 
 type Status = "idle" | "recording" | "paused" | "error";
+
+const REDE_TOENE: RedeTon[] = [
+  "feierlich",
+  "sachlich",
+  "motivierend",
+  "humorvoll",
+  "nachdenklich",
+  "kämpferisch",
+  "staatstragend",
+];
 
 export function RedenschreiberPanel() {
   const { t } = useI18n();
@@ -21,6 +40,24 @@ export function RedenschreiberPanel() {
   const [language, setLanguage] = useState(DEFAULT_WHISPER_LANGUAGE);
   const [autoScroll, setAutoScroll] = useState(true);
   const [punctuation, setPunctuation] = useState(true);
+
+  // KI-Rede-Generator (politische Reden per LLM).
+  const [anlass, setAnlass] = useState("");
+  const [publikum, setPublikum] = useState("");
+  const [funktion, setFunktion] = useState("");
+  const [ton, setTon] = useState<RedeTon>("kämpferisch");
+  const [minuten, setMinuten] = useState(5);
+  const [kernpunkte, setKernpunkte] = useState("");
+  const [gegenposition, setGegenposition] = useState("");
+  const [kiOutput, setKiOutput] = useState("");
+  const [kiBusy, setKiBusy] = useState(false);
+  const [kiError, setKiError] = useState<string | null>(null);
+  const [kiOffline, setKiOffline] = useState(false);
+
+  // Redetexte (Musterreden-Bibliothek, Schwerpunkt Politik).
+  const [templateId, setTemplateId] = useState("");
+  const [copied, setCopied] = useState(false);
+  const activeTemplate = templateId ? getSpeechTemplate(templateId) : undefined;
 
   const mountedRef = useRef(true);
 
@@ -99,6 +136,65 @@ export function RedenschreiberPanel() {
     setError(null);
   }, []);
 
+  const generateRede = useCallback(async () => {
+    if (kiBusy) return;
+    setKiError(null);
+    setKiOutput("");
+    setKiOffline(false);
+    setKiBusy(true);
+    try {
+      const res = await runKIAction(
+        loadSettings(),
+        {
+          action: "rede",
+          selection: "",
+          context: "",
+          redeOpts: {
+            anlass: anlass.trim(),
+            publikum: publikum.trim(),
+            ton,
+            minuten,
+            kernpunkte,
+            funktion: funktion.trim() || undefined,
+            gegenposition: gegenposition.trim() || undefined,
+          },
+        },
+        (chunk) => {
+          if (!mountedRef.current) return;
+          setKiOutput((prev) => prev + chunk);
+        },
+      );
+      if (mountedRef.current) {
+        // Offline: Hinweistext steht bereits per Stream in kiOutput.
+        setKiOffline(res.offline);
+      }
+    } catch (e) {
+      if (mountedRef.current) {
+        setKiError(e instanceof Error ? e.message : String(e));
+      }
+    } finally {
+      if (mountedRef.current) setKiBusy(false);
+    }
+  }, [kiBusy, anlass, publikum, funktion, ton, minuten, kernpunkte, gegenposition]);
+
+  const useTemplateInEditor = useCallback(() => {
+    if (!activeTemplate) return;
+    appendToEditor(renderSpeechTemplate(activeTemplate.text, {}));
+  }, [activeTemplate, appendToEditor]);
+
+  const copyTemplate = useCallback(async () => {
+    if (!activeTemplate) return;
+    try {
+      await navigator.clipboard.writeText(activeTemplate.text);
+      setCopied(true);
+      window.setTimeout(() => {
+        if (mountedRef.current) setCopied(false);
+      }, 2000);
+    } catch {
+      setCopied(false);
+    }
+  }, [activeTemplate]);
+
   return (
     <div className="redenschreiber" data-testid="redenschreiber">
       <div className="rs-controls">
@@ -166,6 +262,142 @@ export function RedenschreiberPanel() {
           <p className="rs-empty">{t("redenschreiber.empty")}</p>
         )}
         {interim && <p className="rs-interim">{interim}</p>}
+      </div>
+
+      <div className="rs-compose" data-testid="rs-compose">
+        <h4>{t("redenschreiber.compose.title")}</h4>
+        <div className="rs-row">
+          <label>{t("redenschreiber.compose.occasion")}:</label>
+          <input
+            type="text"
+            value={anlass}
+            onChange={(e) => setAnlass(e.target.value)}
+            placeholder={t("redenschreiber.compose.occasionPh")}
+            disabled={kiBusy}
+          />
+        </div>
+        <div className="rs-row">
+          <label>{t("redenschreiber.compose.audience")}:</label>
+          <input
+            type="text"
+            value={publikum}
+            onChange={(e) => setPublikum(e.target.value)}
+            placeholder={t("redenschreiber.compose.audiencePh")}
+            disabled={kiBusy}
+          />
+        </div>
+        <div className="rs-row">
+          <label>{t("redenschreiber.compose.funktion")}:</label>
+          <input
+            type="text"
+            value={funktion}
+            onChange={(e) => setFunktion(e.target.value)}
+            placeholder={t("redenschreiber.compose.funktionPh")}
+            disabled={kiBusy}
+          />
+        </div>
+        <div className="rs-row">
+          <label>{t("redenschreiber.compose.tone")}:</label>
+          <select
+            value={ton}
+            onChange={(e) => setTon(e.target.value as RedeTon)}
+            disabled={kiBusy}
+          >
+            {REDE_TOENE.map((x) => (
+              <option key={x} value={x}>
+                {t(`redenschreiber.compose.tone.${x}` as TranslationKey)}
+              </option>
+            ))}
+          </select>
+          <label>{t("redenschreiber.compose.minutes")}:</label>
+          <input
+            type="number"
+            min={1}
+            max={60}
+            value={minuten}
+            onChange={(e) => setMinuten(Number(e.target.value))}
+            disabled={kiBusy}
+            style={{ width: 64 }}
+          />
+        </div>
+        <div className="rs-row">
+          <label>{t("redenschreiber.compose.points")}:</label>
+          <textarea
+            value={kernpunkte}
+            onChange={(e) => setKernpunkte(e.target.value)}
+            placeholder={t("redenschreiber.compose.pointsPh")}
+            disabled={kiBusy}
+            rows={3}
+          />
+        </div>
+        <div className="rs-row">
+          <label>{t("redenschreiber.compose.gegenposition")}:</label>
+          <textarea
+            value={gegenposition}
+            onChange={(e) => setGegenposition(e.target.value)}
+            placeholder={t("redenschreiber.compose.gegenpositionPh")}
+            disabled={kiBusy}
+            rows={2}
+          />
+        </div>
+        <div className="rs-actions">
+          <button className="rs-primary" onClick={generateRede} disabled={kiBusy}>
+            {kiBusy
+              ? t("redenschreiber.compose.generating")
+              : t("redenschreiber.compose.generate")}
+          </button>
+          {kiOutput && !kiBusy && (
+            <button onClick={() => appendToEditor(kiOutput)}>
+              {t("redenschreiber.compose.useInEditor")}
+            </button>
+          )}
+        </div>
+        {kiError && (
+          <div className="rs-error" role="alert">
+            {kiError}
+          </div>
+        )}
+        {(kiOutput || kiBusy) && (
+          <div className="rs-output" data-testid="rs-compose-output">
+            {kiOffline && <span className="model-offline">{t("redenschreiber.compose.offline")}</span>}
+            <p style={{ whiteSpace: "pre-wrap" }}>{kiOutput}</p>
+          </div>
+        )}
+      </div>
+
+      <div className="rs-templates" data-testid="rs-templates">
+        <h4>{t("redenschreiber.templates.title")}</h4>
+        <div className="rs-row">
+          <label>{t("redenschreiber.templates.select")}:</label>
+          <select
+            value={templateId}
+            onChange={(e) => setTemplateId(e.target.value)}
+          >
+            <option value="">—</option>
+            {listSpeechTemplates().map((tpl) => (
+              <option key={tpl.id} value={tpl.id}>
+                {tpl.titel} ({tpl.anlass}, ca. {tpl.minuten} Min.)
+              </option>
+            ))}
+          </select>
+        </div>
+        {activeTemplate && (
+          <>
+            <div className="rs-output" data-testid="rs-template-preview">
+              <p style={{ whiteSpace: "pre-wrap" }}>{activeTemplate.text}</p>
+            </div>
+            <div className="rs-actions">
+              <button onClick={useTemplateInEditor}>
+                {t("redenschreiber.templates.useInEditor")}
+              </button>
+              <button onClick={copyTemplate}>
+                {copied
+                  ? t("redenschreiber.templates.copied")
+                  : t("redenschreiber.templates.copy")}
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

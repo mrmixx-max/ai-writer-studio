@@ -30,7 +30,60 @@ const ACTION_PROMPTS: Record<string, (req: KIRequest) => string> = {
 
   chat: (req) =>
     `Dokumentkontext (falls relevant):\n${req.context}\n\nNutzerfrage: ${req.chatMessage ?? ""}`,
+
+  rede: (req) => buildRedePrompt(req),
 };
+
+/** Richtwert: gesprochene Wörter pro Minute (deutsch, Redetempo). */
+export const REDE_WOERTER_PRO_MINUTE = 130;
+
+/**
+ * Baut den Generierungs-Prompt für eine komplette, vortragsfertige Rede.
+ * Exportiert für Tests und Wiederverwendung (z. B. Redenschreiber-Panel).
+ */
+export function buildRedePrompt(req: KIRequest): string {
+  const o = req.redeOpts ?? {
+    anlass: "",
+    publikum: "",
+    ton: "sachlich" as const,
+    minuten: 5,
+    kernpunkte: "",
+  };
+  const minuten = Math.min(60, Math.max(1, Math.floor(o.minuten) || 5));
+  const woerter = minuten * REDE_WOERTER_PRO_MINUTE;
+  const punkte = o.kernpunkte
+    .split("\n")
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .map((p) => `- ${p}`)
+    .join("\n");
+  const gegen = (o.gegenposition ?? "")
+    .split("\n")
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .map((p) => `- ${p}`)
+    .join("\n");
+  return (
+    `Schreibe eine komplette, vortragsfertige politische Rede auf Deutsch.\n\n` +
+    `ANLASS: ${o.anlass.trim() || "(nicht angegeben)"}\n` +
+    `PUBLIKUM: ${o.publikum.trim() || "(nicht angegeben)"}\n` +
+    (o.funktion?.trim() ? `FUNKTION DER REDNERIN / DES REDNERS: ${o.funktion.trim()}\n` : "") +
+    `TON: ${o.ton}\n` +
+    `ZIELLÄNGE: ca. ${minuten} Minuten Redezeit (ca. ${woerter} Wörter)\n\n` +
+    `KERNPUNKTE (unbedingt einbauen):\n${punkte || "- (keine vorgegeben)"}\n\n` +
+    (gegen
+      ? `GEGENPOSITIONEN (sachlich entkräften, ohne Polemik):\n${gegen}\n\n`
+      : "") +
+    (req.context.trim()
+      ? `DOKUMENTKONTEXT (Stil-/Themenreferenz, falls relevant):\n${req.context}\n\n`
+      : "") +
+    `Anforderungen (politische Rhetorik): starke Eröffnung mit Hook oder aktuellem ` +
+    `Bezug, klarer roter Faden mit 2–4 Hauptteilen, konkrete Forderungen statt ` +
+    `Floskeln, einprägsamer Schluss mit Appell zum Handeln. Direkte Ansprache des ` +
+    `Publikums („wir“-Perspektive), Sprechsprache (keine Schachtelsätze, ` +
+    `Zwischenrufe einkalkulieren). Gib NUR den Redetext aus, keine Metakommentare.`
+  );
+}
 
 const SYSTEM_PROMPT =
   "Du bist ein hilfreicher Schreibassistent für Autoren. Antworte auf Deutsch, präzise, im Ton des Textes. Keine Einleitungsfloskel.";
