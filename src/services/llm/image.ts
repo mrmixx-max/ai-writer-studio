@@ -184,7 +184,10 @@ class SDWebUIProvider implements ImageProvider {
   async isAvailable(): Promise<boolean> {
     if (!this.config.sdWebuiUrl) return false;
     try {
-      const res = await fetch(`${this.config.sdWebuiUrl}/sdapi/v1/options`);
+      const { getLocal } = await import("@/services/llm/localFetch");
+      const { normalizeLocalBaseUrl } = await import("@/services/llm/baseUrl");
+      const base = normalizeLocalBaseUrl(this.config.sdWebuiUrl);
+      const res = await getLocal(`${base}/sdapi/v1/options`, 5000);
       return res.ok;
     } catch {
       return false;
@@ -213,11 +216,10 @@ class SDWebUIProvider implements ImageProvider {
       headers["Authorization"] = `Basic ${token}`;
     }
 
-    const res = await fetch(`${url}/sdapi/v1/txt2img`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(body),
-    });
+    const { postLocalJson } = await import("@/services/llm/localFetch");
+    const { normalizeLocalBaseUrl } = await import("@/services/llm/baseUrl");
+    const base = normalizeLocalBaseUrl(url);
+    const res = await postLocalJson(`${base}/sdapi/v1/txt2img`, body, { headers });
 
     if (!res.ok) {
       const err = await res.text();

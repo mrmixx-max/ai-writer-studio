@@ -291,14 +291,27 @@ async function embedOpenAI(
   const base = baseUrl.replace(/\/+$/, "");
   const { signal, cancel } = withTimeout(EMBED_TIMEOUT_MS);
   try {
-    const headers: Record<string, string> = { "Content-Type": "application/json" };
-    if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
-    const res = await fetch(`${base}/embeddings`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify({ model, input: texts }),
-      signal,
-    });
+    // Tauri-Build: lokale Endpunkte (LM Studio, Ollama) über den Rust-Proxy
+    // (kein CORS-403), Cloud/OpenAI weiter über fetch.
+    let res: Response;
+    if (/^https?:\/\/(127\.0\.0\.1|localhost|::1)/i.test(base)) {
+      const { postLocalJson } = await import("@/services/llm/localFetch");
+      const { normalizeLocalBaseUrl } = await import("@/services/llm/baseUrl");
+      const normBase = normalizeLocalBaseUrl(base);
+      res = await postLocalJson(`${normBase}/embeddings`, {
+        model,
+        input: texts,
+      }, { ...(signal ? { signal } : {}) });
+    } else {
+      const headers: Record<string, string> = { "Content-Type": "application/json" };
+      if (apiKey) headers.Authorization = `Bearer ${apiKey}`;
+      res = await fetch(`${base}/embeddings`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ model, input: texts }),
+        signal,
+      });
+    }
     if (!res.ok) {
       const body = await res.text().catch(() => "");
       throw new Error(`${res.status}: ${body.slice(0, 200)}`);

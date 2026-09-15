@@ -12,6 +12,7 @@ import type {
   ExtractedPage,
 } from "@/types/research";
 import { uid } from "./util";
+import { isTauriRuntime } from "@/services/llm/localFetch";
 
 // ---------------------------------------------------------------------------
 // Hilfs-Rowlayer
@@ -388,7 +389,15 @@ export async function deleteResearchClip(id: string): Promise<void> {
  * saveResearchClip speichert dann nur die URL weiter.
  */
 export async function extractWebContent(url: string): Promise<ExtractedPage> {
-  const res = await fetch(url, { headers: { Accept: "text/html" } });
+  // Tauri-Webview: Externe URLs werden über den Rust-Proxy geholt
+  // (CORS-403, Zertifikate, Mixed-Content). Im Browser/Test direkt.
+  let res: Response;
+  if (isTauriRuntime()) {
+    const { getLocal } = await import("@/services/llm/localFetch");
+    res = await getLocal(url, 15000, { method: "GET", headers: { Accept: "text/html" } });
+  } else {
+    res = await fetch(url, { headers: { Accept: "text/html" } });
+  }
   if (!res.ok) throw new Error(`HTTP ${res.status} beim Abrufen von ${url}`);
   const html = await res.text();
   const doc = new DOMParser().parseFromString(html, "text/html");
