@@ -21,18 +21,43 @@ test("Production: Redenschreiber öffnet mit korrekten Steuerelementen", async (
   await expect(page.locator('[data-testid="redenschreiber"]')).toBeVisible();
 
   // Sprachauswahl vorhanden
-  await expect(page.locator('[data-testid="redenschreiber"] select')).toBeVisible();
+  await expect(page.locator('[data-testid="redenschreiber"] .rs-controls select')).toBeVisible();
   // Start-Button vorhanden
   await expect(page.locator('[data-testid="redenschreiber"] button', { hasText: /Start|starten/i })).toBeVisible();
   // Status-Anzeige
   await expect(page.locator('[data-testid="redenschreiber"] .rs-status')).toBeVisible();
+  // KI-Rede-Generator + Redetexte
+  await expect(page.locator('[data-testid="rs-compose"]')).toBeVisible();
+  await expect(page.locator('[data-testid="rs-templates"]')).toBeVisible();
+});
+
+test("Production: Redenschreiber KI-Generator + Vorlage wählbar", async ({ page }) => {
+  await gotoApp(page);
+
+  await page.locator('.mode-switcher button[data-mode="redenschreiber"]').click();
+  await expect(page.locator('[data-testid="rs-compose"]')).toBeVisible();
+
+  // Anlass-Feld + Generieren-Button
+  await expect(
+    page.locator('[data-testid="rs-compose"] input[type="text"]').first(),
+  ).toBeVisible();
+  await expect(
+    page.locator('[data-testid="rs-compose"] button', { hasText: /Rede schreiben/i }),
+  ).toBeVisible();
+
+  // Vorlage wählen → Vorschau erscheint
+  const tplSelect = page.locator('[data-testid="rs-templates"] select');
+  await tplSelect.selectOption("wahlkampf-auftakt");
+  await expect(page.locator('[data-testid="rs-template-preview"]')).toContainText(
+    /Richtungsentscheidung/,
+  );
 });
 
 test("Production: Redenschreiber Sprachauswahl zeigt alle Sprachen", async ({ page }) => {
   await gotoApp(page);
 
   await page.locator('.mode-switcher button[data-mode="redenschreiber"]').click();
-  const select = page.locator('[data-testid="redenschreiber"] select');
+  const select = page.locator('[data-testid="redenschreiber"] .rs-controls select');
   await expect(select).toBeVisible();
 
   const options = await select.locator("option").allTextContents();
