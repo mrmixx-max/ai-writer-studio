@@ -32,7 +32,11 @@ describe("Sidebar — standalone modes ohne Kapitel", () => {
   it("chat rendert das Chat-Panel ohne Projekt", async () => {
     render(<Sidebar />);
     fireEvent.click(screen.getByRole("button", { name: /chat/i }));
-    await waitFor(() => expect(screen.getByText("💬 CHAT")).toBeInTheDocument());
+    // Lazy-Panel braucht einen Tick (Suspense) + i18n-Init.
+    await waitFor(() => expect(screen.getByText("💬 CHAT")).toBeInTheDocument(), {
+      timeout: 10_000,
+      interval: 100,
+    });
     expect(screen.getByPlaceholderText(/nachricht eingeben/i)).toBeInTheDocument();
   });
 
