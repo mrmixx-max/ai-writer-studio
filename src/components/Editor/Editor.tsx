@@ -203,14 +203,36 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
         <button onClick={() => {
           const { from, empty } = editor.state.selection;
           if (empty) {
-            // Keine Markierung: nur aktuelle Zeile als Heading
+            // Keine Markierung: nur aktuelle Zeile als Heading.
+            // setTextSelection bricht die Browser-Selektion — danach übernehmen
+            // wir den Text in setNode statt toggleNode: toggleNode erweitert
+            // die Umwandlung über die Selektionsgrenzen hinaus (Bug: unmarkierter
+            // Text wurde mit umgestellt).
             const $pos = editor.state.doc.resolve(from);
             const fromPos = $pos.start($pos.depth);
             const toPos = $pos.end($pos.depth);
-            editor.chain().focus().setTextSelection({ from: fromPos, to: toPos }).toggleHeading({ level: 1 }).run();
+            editor.chain().focus().setTextSelection({ from: fromPos, to: toPos }).setHeading({ level: 1 }).run();
           } else {
-            // Markierung: nur markierten Text
-            editor.chain().focus().toggleHeading({ level: 1 }).run();
+            // Markierung: Blöcke der Auswahl einzeln begrenzen — toggleHeading
+            // über Blockgrenzen (teilmarkierte Absätze) trifft sonst auch
+            // unmarkierte Nachbar-Blöcke.
+            const { from: sFrom, to: sTo } = editor.state.selection;
+            const ranges: { from: number; to: number }[] = [];
+            editor.state.doc.nodesBetween(sFrom, sTo, (node, pos) => {
+              if (node.isTextblock) {
+                const start = Math.max(pos, sFrom);
+                const end = Math.min(pos + node.nodeSize - 2, sTo);
+                if (end > start) ranges.push({ from: start, to: end });
+              }
+              return true;
+            });
+            if (!ranges.length) {
+              editor.chain().focus().toggleHeading({ level: 1 }).run();
+            } else {
+              const chain = editor.chain().focus();
+              for (const r of ranges) chain.setTextSelection(r).setHeading({ level: 1 });
+              chain.run();
+            }
           }
         }} className={editor.isActive("heading", { level: 1 }) ? "active" : ""}>
           H1
@@ -221,9 +243,25 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
             const $pos = editor.state.doc.resolve(from);
             const start = $pos.start($pos.depth);
             const end = $pos.end($pos.depth);
-            editor.chain().focus().setTextSelection({ from: start, to: end }).toggleHeading({ level: 2 }).run();
+            editor.chain().focus().setTextSelection({ from: start, to: end }).setHeading({ level: 2 }).run();
           } else {
-            editor.chain().focus().toggleHeading({ level: 2 }).run();
+            const { from: sFrom, to: sTo } = editor.state.selection;
+            const ranges: { from: number; to: number }[] = [];
+            editor.state.doc.nodesBetween(sFrom, sTo, (node, pos) => {
+              if (node.isTextblock) {
+                const start = Math.max(pos, sFrom);
+                const end = Math.min(pos + node.nodeSize - 2, sTo);
+                if (end > start) ranges.push({ from: start, to: end });
+              }
+              return true;
+            });
+            if (!ranges.length) {
+              editor.chain().focus().toggleHeading({ level: 2 }).run();
+            } else {
+              const chain = editor.chain().focus();
+              for (const r of ranges) chain.setTextSelection(r).setHeading({ level: 2 });
+              chain.run();
+            }
           }
         }} className={editor.isActive("heading", { level: 2 }) ? "active" : ""}>
           H2
@@ -234,9 +272,25 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
             const $pos = editor.state.doc.resolve(from);
             const start = $pos.start($pos.depth);
             const end = $pos.end($pos.depth);
-            editor.chain().focus().setTextSelection({ from: start, to: end }).toggleHeading({ level: 3 }).run();
+            editor.chain().focus().setTextSelection({ from: start, to: end }).setHeading({ level: 3 }).run();
           } else {
-            editor.chain().focus().toggleHeading({ level: 3 }).run();
+            const { from: sFrom, to: sTo } = editor.state.selection;
+            const ranges: { from: number; to: number }[] = [];
+            editor.state.doc.nodesBetween(sFrom, sTo, (node, pos) => {
+              if (node.isTextblock) {
+                const start = Math.max(pos, sFrom);
+                const end = Math.min(pos + node.nodeSize - 2, sTo);
+                if (end > start) ranges.push({ from: start, to: end });
+              }
+              return true;
+            });
+            if (!ranges.length) {
+              editor.chain().focus().toggleHeading({ level: 3 }).run();
+            } else {
+              const chain = editor.chain().focus();
+              for (const r of ranges) chain.setTextSelection(r).setHeading({ level: 3 });
+              chain.run();
+            }
           }
         }} className={editor.isActive("heading", { level: 3 }) ? "active" : ""}>
           H3

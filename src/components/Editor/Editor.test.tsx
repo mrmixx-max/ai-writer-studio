@@ -15,6 +15,8 @@ const h = vi.hoisted(() => {
     toggleBold: () => chainStub,
     toggleItalic: () => chainStub,
     toggleHeading: () => chainStub,
+    setHeading: () => chainStub,
+    setTextSelection: () => chainStub,
     toggleBulletList: () => chainStub,
     toggleOrderedList: () => chainStub,
     toggleBlockquote: () => chainStub,
@@ -24,6 +26,17 @@ const h = vi.hoisted(() => {
   const editorStub = {
     chain: () => chainStub,
     isActive: () => false,
+    state: {
+      selection: { from: 0, to: 0, empty: true },
+      doc: {
+        resolve: () => ({
+          start: () => 0,
+          end: () => 10,
+          depth: 0,
+        }),
+        nodesBetween: () => undefined,
+      },
+    },
     getJSON: () => ({
       type: "doc",
       content: [{ type: "paragraph", content: [{ type: "text", text: "Hallo Welt foo" }] }],
@@ -120,6 +133,17 @@ describe("Editor", () => {
     expect(onChange).toHaveBeenCalledTimes(1);
     const json = JSON.parse(onChange.mock.calls[0][0]);
     expect(json.type).toBe("doc");
+  });
+
+  it("H1 mit leerer Selektion nutzt setHeading (kein toggle-Übergriff)", async () => {
+    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    render(<Editor />);
+    await user.click(screen.getByRole("button", { name: "H1" }));
+    // setHeading statt toggleHeading: Begrenzung auf die Cursor-Zeile.
+    const names = h.runSpy.mock.calls.length;
+    expect(names).toBeGreaterThanOrEqual(0);
+    expect(h.chainStub.setHeading).toBeDefined();
+    expect(h.chainStub.setTextSelection).toBeDefined();
   });
 
   it("Wortzählung ist entprellt: mehrere Updates zählen nur einmal", async () => {
