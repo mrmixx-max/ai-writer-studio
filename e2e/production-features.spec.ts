@@ -51,6 +51,14 @@ test("Production: Redenschreiber KI-Generator + Vorlage wählbar", async ({ page
   await expect(page.locator('[data-testid="rs-template-preview"]')).toContainText(
     /Richtungsentscheidung/,
   );
+
+  // Drucken + Teleprompter-Buttons erscheinen mit Vorschau
+  await expect(
+    page.locator('[data-testid="rs-templates"] button', { hasText: /Drucken|Print|Imprimer/i }),
+  ).toBeVisible();
+  await expect(
+    page.locator('[data-testid="rs-templates"] button', { hasText: /Teleprompter|prompteur/i }),
+  ).toBeVisible();
 });
 
 test("Production: Redenschreiber Sprachauswahl zeigt alle Sprachen", async ({ page }) => {
