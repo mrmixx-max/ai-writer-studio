@@ -180,6 +180,8 @@ export const es: TranslationDict = {
   "redenschreiber.templates.useInEditor": "Insertar en el editor",
   "redenschreiber.templates.copy": "Copiar",
   "redenschreiber.templates.copied": "¡Copiado!",
+  "redenschreiber.read.start": "Leer en voz alta",
+  "redenschreiber.read.stop": "Detener",
 
   // Teleprompter (Sprint 32)
   "teleprompter.speed": "Velocidad",
@@ -229,6 +231,8 @@ export const es: TranslationDict = {
   "bookwriter.audience": "Audiencia:",
   "bookwriter.topic": "Tema:",
   "bookwriter.chapters": "Capítulos:",
+  "bookwriter.wordsPerChapter": "Palabras/capítulo:",
+  "bookwriter.wordsPerChapterHint": "Objetivo global de palabras — válido para todos los capítulos.",
   "bookwriter.regenOutline": "🔄 Regenerar esquema",
   "bookwriter.regenOutlineTitle": "Recrear solo el esquema — los capítulos terminados se conservan",
   "bookwriter.regenOutlineProgress": "Regenerando esquema…",

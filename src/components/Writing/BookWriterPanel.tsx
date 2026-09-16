@@ -65,6 +65,8 @@ export function BookWriterPanel() {
   const [genre, setGenre] = useState("Sachbuch");
   const [targetAudience, setTargetAudience] = useState("Erwachsene");
   const [chapterCount, setChapterCount] = useState(8);
+  // Globale Zielwortzahl pro Kapitel (klassisch): gilt für ALLE Kapitel des Laufs.
+  const [wordsPerChapter, setWordsPerChapter] = useState(1000);
   const [tone, setTone] = useState("");
   // Beschreibung des gewählten Stil-Presets (Transparenz: der Nutzer sieht,
   // was das Preset macht) — leer bei "Kein Stil-Preset".
@@ -120,11 +122,12 @@ export function BookWriterPanel() {
     genre,
     targetAudience,
     chapterCount,
+    wordsPerChapter,
     model: settings.model,
     baseUrl: settings.ollamaBaseUrl || "http://127.0.0.1:11434",
     language,
     tone: tone.trim() || undefined,
-  }), [topic, genre, targetAudience, chapterCount, language, tone, settings]);
+  }), [topic, genre, targetAudience, chapterCount, wordsPerChapter, language, tone, settings]);
 
   // ---------------------------------------------------------------------------
   // Kernschleife: Kapitel generieren, SOFORT speichern, Job-Fortschritt
@@ -198,7 +201,7 @@ export function BookWriterPanel() {
 
     // Job anlegen VOR der Outline — crash-sicher ab hier (C1).
     const cfg = {
-      topic: topic.trim(), genre, targetAudience, chapterCount,
+      topic: topic.trim(), genre, targetAudience, chapterCount, wordsPerChapter,
       model: settings.model, baseUrl: settings.ollamaBaseUrl || "http://127.0.0.1:11434", language,
       tone: tone.trim() || undefined,
     };
@@ -417,7 +420,7 @@ export function BookWriterPanel() {
     try {
       const bookOutline = await generateOutline(
         {
-          topic: topic.trim(), genre, targetAudience, chapterCount,
+          topic: topic.trim(), genre, targetAudience, chapterCount, wordsPerChapter,
           model: settings.model, baseUrl: settings.ollamaBaseUrl || "http://127.0.0.1:11434", language,
           tone: tone.trim() || undefined,
         },
@@ -680,6 +683,17 @@ export function BookWriterPanel() {
      <label>
        {t("bookwriter.chapters")}
        <input type="number" min={3} max={30} value={chapterCount} onChange={(e) => setChapterCount(Number(e.target.value))} />
+     </label>
+     <label title={t("bookwriter.wordsPerChapterHint")}>
+       {t("bookwriter.wordsPerChapter")}
+       <input
+         type="number"
+         min={200}
+         max={8000}
+         step={100}
+         value={wordsPerChapter}
+         onChange={(e) => setWordsPerChapter(Math.min(8000, Math.max(200, Number(e.target.value) || 1000)))}
+       />
      </label>
    </div>
       )}

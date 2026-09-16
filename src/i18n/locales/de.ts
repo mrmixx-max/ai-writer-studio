@@ -256,6 +256,8 @@ export const de = {
   "bookwriter.audience": "Zielgruppe:",
   "bookwriter.topic": "Thema:",
   "bookwriter.chapters": "Kapitel:",
+  "bookwriter.wordsPerChapter": "Wörter/Kapitel:",
+  "bookwriter.wordsPerChapterHint": "Globale Zielwortzahl — gilt für alle Kapitel dieses Laufs.",
   "bookwriter.regenOutline": "🔄 Gliederung neu generieren",
   "bookwriter.regenOutlineTitle": "Nur die Gliederung neu erstellen — fertige Kapitel bleiben erhalten",
   "bookwriter.regenOutlineProgress": "Gliederung wird neu erstellt…",
@@ -505,6 +507,8 @@ export const de = {
   "redenschreiber.templates.useInEditor": "In Editor übernehmen",
   "redenschreiber.templates.copy": "Kopieren",
   "redenschreiber.templates.copied": "Kopiert!",
+  "redenschreiber.read.start": "Vorlesen",
+  "redenschreiber.read.stop": "Stopp",
 
   // Teleprompter (Sprint 32)
   "teleprompter.speed": "Geschwindigkeit",

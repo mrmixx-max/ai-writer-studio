@@ -60,6 +60,20 @@ export function RedenschreiberPanel() {
   const [copied, setCopied] = useState(false);
   const activeTemplate = templateId ? getSpeechTemplate(templateId) : undefined;
 
+  // Vorlesefunktion (Web Speech API, wie TTSPanel — Gerätelautsprecher, kein Server).
+  const [reading, setReading] = useState<string | null>(null);
+
+  // Bei Unmount laufende Sprachausgabe stoppen.
+  useEffect(() => {
+    return () => {
+      try {
+        window.speechSynthesis?.cancel();
+      } catch {
+        /* ignore */
+      }
+    };
+  }, []);
+
   const mountedRef = useRef(true);
 
   useEffect(() => {
@@ -197,6 +211,40 @@ export function RedenschreiberPanel() {
       setCopied(false);
     }
   }, [activeTemplate]);
+
+  /**
+   * Liest einen Text per Web Speech API vor (Toggle: Klick = Start,
+   * erneuter Klick = Stopp). `id` unterscheidet KI-Output vs. Vorlage,
+   * damit der Button-Text pro Quelle stimmt.
+   */
+  const toggleRead = useCallback(
+    (id: string, text: string) => {
+      try {
+        const synth = window.speechSynthesis;
+        if (!synth) return;
+        if (reading === id) {
+          synth.cancel();
+          setReading(null);
+          return;
+        }
+        synth.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.lang = "de-DE";
+        utter.rate = 1.0;
+        utter.onend = () => {
+          if (mountedRef.current) setReading(null);
+        };
+        utter.onerror = () => {
+          if (mountedRef.current) setReading(null);
+        };
+        setReading(id);
+        synth.speak(utter);
+      } catch {
+        setReading(null);
+      }
+    },
+    [reading],
+  );
 
   return (
     <div className="redenschreiber" data-testid="redenschreiber">
@@ -354,6 +402,13 @@ export function RedenschreiberPanel() {
               {t("redenschreiber.compose.useInEditor")}
             </button>
           )}
+          {kiOutput && !kiBusy && (
+            <button onClick={() => toggleRead("ki", kiOutput)}>
+              {reading === "ki"
+                ? t("redenschreiber.read.stop")
+                : t("redenschreiber.read.start")}
+            </button>
+          )}
         </div>
         {kiError && (
           <div className="rs-error" role="alert">
@@ -397,6 +452,11 @@ export function RedenschreiberPanel() {
                 {copied
                   ? t("redenschreiber.templates.copied")
                   : t("redenschreiber.templates.copy")}
+              </button>
+              <button onClick={() => toggleRead("template", activeTemplate.text)}>
+                {reading === "template"
+                  ? t("redenschreiber.read.stop")
+                  : t("redenschreiber.read.start")}
               </button>
             </div>
           </>

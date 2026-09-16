@@ -45,4 +45,12 @@ describe("RedenschreiberPanel: KI-Rede + Redetexte", () => {
       /Richtungsentscheidung/,
     );
   });
+
+  it("Vorlese-Buttons für KI-Output und Vorlage vorhanden", () => {
+    render(<RedenschreiberPanel />);
+    const tplSelect = screen.getByTestId("rs-templates").querySelector("select");
+    fireEvent.change(tplSelect!, { target: { value: "wahlkampf-auftakt" } });
+    // Vorlage: Vorlesen-Button erscheint mit Auswahl
+    expect(screen.getByRole("button", { name: "Vorlesen" })).toBeInTheDocument();
+  });
 });

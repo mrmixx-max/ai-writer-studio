@@ -14,6 +14,8 @@ export interface SpeechTemplate {
   titel: string;
   /** Anlass, z. B. "Wahlkampf". */
   anlass: string;
+  /** Rubrik für Gruppierung: Politik, Privat oder Geschäftlich. */
+  kategorie: "politik" | "privat" | "geschaeftlich";
   /** Geschätzte Redezeit in Minuten (~130 Wörter/Min). */
   minuten: number;
   /** Verwendete Platzhalter, z. B. ["Name", "Ort"]. */
@@ -37,6 +39,7 @@ export const SPEECH_TEMPLATES: SpeechTemplate[] = [
     id: "wahlkampf-auftakt",
     titel: "Wahlkampfrede (Auftakt)",
     anlass: "Wahlkampf",
+    kategorie: "politik",
     minuten: 7,
     platzhalter: ["Ort", "Name", "Wahltermin"],
     text: [
@@ -57,6 +60,7 @@ export const SPEECH_TEMPLATES: SpeechTemplate[] = [
     id: "parteitag-grundsatz",
     titel: "Parteitagsrede (Grundsatz)",
     anlass: "Parteitag",
+    kategorie: "politik",
     minuten: 8,
     platzhalter: ["Name", "Partei"],
     text: [
@@ -77,6 +81,7 @@ export const SPEECH_TEMPLATES: SpeechTemplate[] = [
     id: "parlament-haushalt",
     titel: "Parlamentsrede (Haushaltsdebatte)",
     anlass: "Parlament / Haushaltsdebatte",
+    kategorie: "politik",
     minuten: 6,
     platzhalter: ["Name", "Fraktion", "Beispiel"],
     text: [
@@ -97,6 +102,7 @@ export const SPEECH_TEMPLATES: SpeechTemplate[] = [
     id: "kommune-buergerdialog",
     titel: "Bürgeransprache (Kommune)",
     anlass: "Bürgerversammlung / Kommune",
+    kategorie: "politik",
     minuten: 5,
     platzhalter: ["Ort", "Name", "Vorhaben"],
     text: [
@@ -115,6 +121,7 @@ export const SPEECH_TEMPLATES: SpeechTemplate[] = [
     id: "gedenkrede",
     titel: "Gedenkrede (politisch)",
     anlass: "Gedenkveranstaltung",
+    kategorie: "politik",
     minuten: 5,
     platzhalter: ["Anlass", "Name"],
     text: [
@@ -135,6 +142,7 @@ export const SPEECH_TEMPLATES: SpeechTemplate[] = [
     id: "krisenansprache",
     titel: "Krisenansprache",
     anlass: "Krise / Notlage",
+    kategorie: "politik",
     minuten: 4,
     platzhalter: ["Name", "Funktion", "Lage"],
     text: [
@@ -153,6 +161,7 @@ export const SPEECH_TEMPLATES: SpeechTemplate[] = [
     id: "neujahrsansprache",
     titel: "Neujahrsansprache (politisch)",
     anlass: "Jahreswechsel",
+    kategorie: "politik",
     minuten: 4,
     platzhalter: ["Ort", "Name"],
     text: [
@@ -173,6 +182,7 @@ export const SPEECH_TEMPLATES: SpeechTemplate[] = [
     id: "erwiderung-debatte",
     titel: "Erwiderung (Schlussplädoyer Debatte)",
     anlass: "Debatte / Erwiderung",
+    kategorie: "politik",
     minuten: 4,
     platzhalter: ["Name", "Fraktion", "Kernforderung"],
     text: [
@@ -191,17 +201,25 @@ export const SPEECH_TEMPLATES: SpeechTemplate[] = [
   },
 ];
 
-/** Alle Vorlagen (id + titel + anlass + minuten) für Auswahl-Listen. */
+/** Alle Vorlagen (id + titel + anlass + kategorie + minuten) für Auswahl-Listen. */
 export function listSpeechTemplates(): Pick<
   SpeechTemplate,
-  "id" | "titel" | "anlass" | "minuten"
+  "id" | "titel" | "anlass" | "kategorie" | "minuten"
 >[] {
-  return SPEECH_TEMPLATES.map(({ id, titel, anlass, minuten }) => ({
+  return SPEECH_TEMPLATES.map(({ id, titel, anlass, kategorie, minuten }) => ({
     id,
     titel,
     anlass,
+    kategorie,
     minuten,
   }));
+}
+
+/** Vorlagen einer Kategorie (z. B. nur "privat"). */
+export function listSpeechTemplatesByKategorie(
+  kategorie: SpeechTemplate["kategorie"],
+): SpeechTemplate[] {
+  return SPEECH_TEMPLATES.filter((t) => t.kategorie === kategorie);
 }
 
 /** Vorlage per ID holen (undefined, wenn unbekannt). */
