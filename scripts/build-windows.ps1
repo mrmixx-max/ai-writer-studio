@@ -211,7 +211,16 @@ if ($SkipIcons) {
 #  5. Frontend
 # ---------------------------------------------------------------------------
 Write-Step 'Frontend bauen (Vite)'
-if (Test-Path $DistDir) { Remove-Item $DistDir -Recurse -Force }
+if (Test-Path $DistDir) {
+  # dist ggf. durch anderen Prozess gesperrt (z.B. statischer Server) —
+  # kurz warten und ignorierten, falls es nicht klappt.
+  try { Remove-Item $DistDir -Recurse -Force -ErrorAction Stop } catch {
+    Start-Sleep -Seconds 3
+    try { Remove-Item $DistDir -Recurse -Force -ErrorAction Stop } catch {
+      Write-Warning "dist konnte nicht entfernt werden: $_ — fahre fort"
+    }
+  }
+}
 Invoke-Checked -Exe 'npm' -Arguments @('run','build') -What 'Frontend-Build'
 
 # Source-Maps duerfen nicht ins Release gelangen
