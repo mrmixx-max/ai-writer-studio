@@ -9,6 +9,8 @@ interface ChapterPlannerProps {
   onUpdateChapter: (id: string, updates: Partial<Chapter>) => void;
   onDeleteChapter: (id: string) => void;
   onReorderChapters: (from: number, to: number) => void;
+  /** Kontext für KI-Vorschläge (Thema/Genre aus dem BookWriter-Formular). */
+  suggestContext?: { topic: string; genre: string };
 }
 
 const STATUS_LABELS: Record<ChapterStatus, string> = {
@@ -44,11 +46,16 @@ export function ChapterPlanner({
   onUpdateChapter,
   onDeleteChapter,
   onReorderChapters,
+  suggestContext,
 }: ChapterPlannerProps) {
   const [newTitle, setNewTitle] = useState("");
   const [newTarget, setNewTarget] = useState(2000);
   const [newPurpose, setNewPurpose] = useState("");
   const [newSynopsis, setNewSynopsis] = useState("");
+  // KI-Vorschläge (Titel + Stil + Wortzahl) — lazy geladen, kein Auto-Call.
+  const [suggestion, setSuggestion] = useState<import("@/services/writing/chapterSuggest").ChapterSuggestion | null>(null);
+  const [suggestBusy, setSuggestBusy] = useState(false);
+  const [suggestError, setSuggestError] = useState<string | null>(null);
 
   const totalTarget = chapters.reduce((sum, ch) => sum + ch.targetWordCount, 0);
   const totalCurrent = chapters.reduce((sum, ch) => sum + ch.currentWordCount, 0);
@@ -61,6 +68,31 @@ export function ChapterPlanner({
     setNewTarget(2000);
     setNewPurpose("");
     setNewSynopsis("");
+    setSuggestion(null);
+    setSuggestError(null);
+  };
+
+  const handleSuggest = async () => {
+    if (suggestBusy) return;
+    setSuggestBusy(true);
+    setSuggestError(null);
+    try {
+      const { suggestChapter } = await import("@/services/writing/chapterSuggest");
+      const s = await suggestChapter({
+        topic: suggestContext?.topic ?? "",
+        genre: suggestContext?.genre ?? "",
+        synopsis: newSynopsis,
+        purpose: newPurpose,
+      });
+      setSuggestion(s);
+      // Ersten Titel-Vorschlag + Wortzahl direkt übernehmen (editierbar).
+      if (s.titles[0] && !newTitle.trim()) setNewTitle(s.titles[0].title);
+      setNewTarget(s.length.words);
+    } catch (e) {
+      setSuggestError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setSuggestBusy(false);
+    }
   };
 
   const validationErrors = validateChapterPlan({ targetWordCount: newTarget });
@@ -124,6 +156,45 @@ export function ChapterPlanner({
         <button onClick={handleAdd} disabled={!newTitle.trim()} className="cp-add-btn">
           + Kapitel hinzufügen
         </button>
+        <button
+          onClick={() => void handleSuggest()}
+          disabled={suggestBusy}
+          className="cp-suggest-btn"
+          title="KI schlägt Titel, Stil und Wortzahl aus Thema/Synopsis vor"
+        >
+          {suggestBusy ? "Schlägt vor …" : "✨ KI-Vorschlag"}
+        </button>
+        {suggestError && (
+          <div className="cp-warnings">
+            <span className="cp-warning">⚠ {suggestError}</span>
+          </div>
+        )}
+        {suggestion && (
+          <div className="cp-suggest" data-testid="cp-suggest">
+            <div className="cp-suggest-titles">
+              {suggestion.titles.map((st, i) => (
+                <button
+                  key={i}
+                  className="cp-suggest-title"
+                  title={st.reason}
+                  onClick={() => setNewTitle(st.title)}
+                >
+                  {st.title}
+                </button>
+              ))}
+            </div>
+            <div className="cp-suggest-meta">
+              <span title={suggestion.style.reason}>🎨 {suggestion.style.style}</span>
+              <button
+                title={suggestion.length.reason}
+                onClick={() => setNewTarget(suggestion.length.words)}
+              >
+                📏 {suggestion.length.words.toLocaleString("de-DE")} Wörter
+              </button>
+              {!suggestion.usedLLM && <span title="Offline-Heuristik"> (offline)</span>}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Kapitelliste */}

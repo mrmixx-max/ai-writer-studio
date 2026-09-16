@@ -574,6 +574,7 @@ export function BookWriterPanel() {
             onUpdateChapter={updateChapter}
             onDeleteChapter={handleDeleteChapter}
             onReorderChapters={reorderChapters}
+            suggestContext={{ topic, genre }}
           />
           <div className="cp-generation">
             <button
