@@ -63,6 +63,8 @@ function installRouter(outline: BookOutline): void {
   FakeOllamaProvider.router = (prompt: string) => {
     if (prompt.includes("Erstelle eine detaillierte Gliederung")) return goodOutlineJson(8);
     if (prompt.includes("Schreibe Kapitel")) return chapterText();
+    // Veredelungs-Pass (zweiter KI-Durchlauf): Text gleicher Länge zurück.
+    if (prompt.includes("Veredle das folgende Kapitel")) return chapterText();
     if (prompt.includes("Erstelle eine Zusammenfassung")) return fakeWords(160);
     if (prompt.includes("extrahiere die zentralen Entitäten")) {
       return JSON.stringify({ entities: ["Dr. Weber", "Quantencomputer", "1989"] });
