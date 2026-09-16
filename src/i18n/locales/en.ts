@@ -322,6 +322,8 @@ export const en: TranslationDict = {
   "bookwriter.chapters": "Chapters:",
   "bookwriter.wordsPerChapter": "Words/chapter:",
   "bookwriter.wordsPerChapterHint": "Global target word count — applies to all chapters of this run.",
+  "bookwriter.polish": "Polish (2nd AI pass)",
+  "bookwriter.polishHint": "Each chapter is sent to the model a second time for stylistic refinement (style, rhythm, dialogue). Costs one extra call per chapter.",
   "bookwriter.regenOutline": "🔄 Regenerate outline",
   "bookwriter.regenOutlineTitle": "Recreate only the outline — finished chapters are kept",
   "bookwriter.regenOutlineProgress": "Regenerating outline…",

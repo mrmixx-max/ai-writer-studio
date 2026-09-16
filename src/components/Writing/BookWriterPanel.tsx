@@ -67,6 +67,8 @@ export function BookWriterPanel() {
   const [chapterCount, setChapterCount] = useState(8);
   // Globale Zielwortzahl pro Kapitel (klassisch): gilt für ALLE Kapitel des Laufs.
   const [wordsPerChapter, setWordsPerChapter] = useState(1000);
+  // Veredelung (zweiter KI-Durchlauf): default an.
+  const [polish, setPolish] = useState(true);
   const [tone, setTone] = useState("");
   // Beschreibung des gewählten Stil-Presets (Transparenz: der Nutzer sieht,
   // was das Preset macht) — leer bei "Kein Stil-Preset".
@@ -127,7 +129,7 @@ export function BookWriterPanel() {
     baseUrl: settings.ollamaBaseUrl || "http://127.0.0.1:11434",
     language,
     tone: tone.trim() || undefined,
-  }), [topic, genre, targetAudience, chapterCount, wordsPerChapter, language, tone, settings]);
+  }), [topic, genre, targetAudience, chapterCount, wordsPerChapter, polish, language, tone, settings]);
 
   // ---------------------------------------------------------------------------
   // Kernschleife: Kapitel generieren, SOFORT speichern, Job-Fortschritt
@@ -201,7 +203,7 @@ export function BookWriterPanel() {
 
     // Job anlegen VOR der Outline — crash-sicher ab hier (C1).
     const cfg = {
-      topic: topic.trim(), genre, targetAudience, chapterCount, wordsPerChapter,
+      topic: topic.trim(), genre, targetAudience, chapterCount, wordsPerChapter, polish,
       model: settings.model, baseUrl: settings.ollamaBaseUrl || "http://127.0.0.1:11434", language,
       tone: tone.trim() || undefined,
     };
@@ -420,7 +422,7 @@ export function BookWriterPanel() {
     try {
       const bookOutline = await generateOutline(
         {
-          topic: topic.trim(), genre, targetAudience, chapterCount, wordsPerChapter,
+          topic: topic.trim(), genre, targetAudience, chapterCount, wordsPerChapter, polish,
           model: settings.model, baseUrl: settings.ollamaBaseUrl || "http://127.0.0.1:11434", language,
           tone: tone.trim() || undefined,
         },
@@ -694,6 +696,14 @@ export function BookWriterPanel() {
          value={wordsPerChapter}
          onChange={(e) => setWordsPerChapter(Math.min(8000, Math.max(200, Number(e.target.value) || 1000)))}
        />
+     </label>
+     <label title={t("bookwriter.polishHint")}>
+       <input
+         type="checkbox"
+         checked={polish}
+         onChange={(e) => setPolish(e.target.checked)}
+       />
+       {t("bookwriter.polish")}
      </label>
    </div>
       )}

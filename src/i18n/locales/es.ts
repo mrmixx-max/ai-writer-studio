@@ -237,6 +237,8 @@ export const es: TranslationDict = {
   "bookwriter.chapters": "Capítulos:",
   "bookwriter.wordsPerChapter": "Palabras/capítulo:",
   "bookwriter.wordsPerChapterHint": "Objetivo global de palabras — válido para todos los capítulos.",
+  "bookwriter.polish": "Pulido (2.ª pasada IA)",
+  "bookwriter.polishHint": "Cada capítulo se envía una segunda vez al modelo para refinamiento estilístico. Cuesta una llamada adicional por capítulo.",
   "bookwriter.regenOutline": "🔄 Regenerar esquema",
   "bookwriter.regenOutlineTitle": "Recrear solo el esquema — los capítulos terminados se conservan",
   "bookwriter.regenOutlineProgress": "Regenerando esquema…",

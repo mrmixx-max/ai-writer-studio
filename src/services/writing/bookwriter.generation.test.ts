@@ -20,7 +20,7 @@ vi.mock("@/services/llm/ollama", () => ({
   },
 }));
 
-import { generateChapter, evaluateWordCount, type BookOutline } from "./bookwriter";
+import { generateChapter, evaluateWordCount, buildPolishPrompt, polishChapter, type BookOutline } from "./bookwriter";
 
 const config = {
   topic: "KI im Alltag",
@@ -31,6 +31,7 @@ const config = {
   baseUrl: "http://127.0.0.1:11434",
   language: "Deutsch",
   wordsPerChapter: 1000,
+  polish: false,
 };
 
 const outline: BookOutline = {
@@ -124,5 +125,42 @@ describe("generateChapter: Nachsteuer bei Abweichung > 20%", () => {
     expect(chatCalls[1].messages[0].content).toContain("zu lang");
     expect(result.status).toBe("draft");
     expect(evaluateWordCount(result.content, 1000).wordCount).toBe(1000);
+  });
+});
+describe("generateChapter: Veredelung (zweiter KI-Durchlauf)", () => {
+  it("polish=true (default): Nachsteuer + Veredelung = +1 Call", async () => {
+    mockResponses = [words(1000), "Veredelter Text mit Stil und Schliff."];
+    const result = await generateChapter({ ...config, polish: true }, outline, 1, []);
+    expect(chatCalls.length).toBe(2);
+    expect(chatCalls[1].messages[0].content).toContain("Veredle");
+    expect(result.content).toContain("Veredelter Text");
+  });
+
+  it("polish=false: kein Veredelungs-Call", async () => {
+    mockResponses = [words(1000)];
+    const result = await generateChapter({ ...config, polish: false }, outline, 1, []);
+    expect(chatCalls.length).toBe(1);
+    expect(result.content).toContain("Wort0");
+  });
+
+  it("leere Veredelungs-Antwort → Original bleibt", async () => {
+    mockResponses = [words(1000), "   "];
+    const result = await generateChapter({ ...config, polish: true }, outline, 1, []);
+    expect(result.content).toContain("Wort0");
+  });
+
+  it("buildPolishPrompt enthält Lektor-Anweisung ohne Metakommentare", () => {
+    const p = buildPolishPrompt("K1", "Buch", "Roman", "Deutsch", "Es war einmal ein Text hier.");
+    expect(p).toContain("Lektor");
+    expect(p).toContain("Es war einmal");
+    expect(p).toContain("NUR mit dem veredelten Kapiteltext");
+  });
+
+  it("polishChapter direkt: nutzt Inhalt, behält bei Leer-Antwort", async () => {
+    mockResponses = ["Feinschliff-Text."];
+    const out = await polishChapter(config, outline, "Kapitel 1", "Rohtext hier.");
+    expect(chatCalls.length).toBe(1);
+    expect(chatCalls[0].messages[0].content).toContain("Rohtext hier.");
+    expect(out).toBe("Feinschliff-Text.");
   });
 });

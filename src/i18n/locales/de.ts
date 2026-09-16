@@ -258,6 +258,8 @@ export const de = {
   "bookwriter.chapters": "Kapitel:",
   "bookwriter.wordsPerChapter": "Wörter/Kapitel:",
   "bookwriter.wordsPerChapterHint": "Globale Zielwortzahl — gilt für alle Kapitel dieses Laufs.",
+  "bookwriter.polish": "Veredelung (2. KI-Durchlauf)",
+  "bookwriter.polishHint": "Jedes Kapitel wird nach der Generierung erneut ans Modell gegeben und sprachlich vervollkommnet (Stil, Rhythmus, Dialoge). Kostet einen zusätzlichen Call pro Kapitel.",
   "bookwriter.regenOutline": "🔄 Gliederung neu generieren",
   "bookwriter.regenOutlineTitle": "Nur die Gliederung neu erstellen — fertige Kapitel bleiben erhalten",
   "bookwriter.regenOutlineProgress": "Gliederung wird neu erstellt…",

@@ -237,6 +237,8 @@ export const fr: TranslationDict = {
   "bookwriter.chapters": "Chapitres :",
   "bookwriter.wordsPerChapter": "Mots/chapitre :",
   "bookwriter.wordsPerChapterHint": "Objectif global — s applique à tous les chapitres.",
+  "bookwriter.polish": "Polissage (2e passe IA)",
+  "bookwriter.polishHint": "Chaque chapitre est renvoyé au modèle pour un raffinement stylistique. Coûte un appel supplémentaire par chapitre.",
   "bookwriter.regenOutline": "🔄 Régénérer le plan",
   "bookwriter.regenOutlineTitle": "Recréer uniquement le plan — les chapitres terminés sont conservés",
   "bookwriter.regenOutlineProgress": "Régénération du plan…",

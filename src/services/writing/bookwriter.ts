@@ -167,6 +167,12 @@ export interface BookWriterConfig {
   wordsPerChapter?: number;
   /** INTERFACE-CHANGE: Stil/Ton der Generierung (z.B. "sachlich-nah", "dramatisch"). */
   tone?: string;
+  /**
+   * Zweiter KI-Durchlauf (Veredelung): Nach der Wortzahl-Steuerung wird der
+   * Kapiteltext erneut ans Modell gegeben und sprachlich vervollkommnet.
+   * Default true — kostet einen zusätzlichen Call pro Kapitel.
+   */
+  polish?: boolean;
 }
 
 // --- B1/B3 Konstanten -------------------------------------------------------
@@ -441,6 +447,73 @@ Antworte NUR mit dem vollständigen gekürzten Kapiteltext. Keine Überschriften
   return wordCount < min
     ? content + "\n\n" + adjustment
     : adjustment;
+}
+
+/**
+ * Veredelungs-Prompt (zweiter KI-Durchlauf): Der erstgenerierte Kapiteltext
+ * wird erneut ans Modell gegeben und sprachlich vervollkommnet — Stil,
+ * Rhythmus, Bildsprache, Dialogschliff — bei gleichem Inhalt und gleicher
+ * Länge (±10 %). Reine Qualitätsstufe, keine Wortzahl-Steuerung.
+ */
+export function buildPolishPrompt(
+  chapterTitle: string,
+  bookTitle: string,
+  genre: string,
+  language: string,
+  content: string,
+): string {
+  return (
+    `Du bist ein erfahrener Lektor. Veredle das folgende Kapitel aus "${bookTitle}" ` +
+    `(Kapitel "${chapterTitle}", Genre: ${genre}, Sprache: ${language}):\n\n` +
+    `- Behalte Inhalt, Fakten, Namen und Reihenfolge exakt bei — erfinde nichts hinzu, streiche nichts.\n` +
+    `- Verbessere Stil und Lesefluss: Satzrhythmus variieren, Füllwörter tilgen, ` +
+    `Wiederholungen auflösen, starke Verben statt Adjektivhäufung.\n` +
+    `- Schärfe Dialoge (Stimme der Figuren) und Bilder (konkret statt abstrakt).\n` +
+    `- Länge halten (±10 % der Wortzahl).\n\n` +
+    `Kapiteltext:\n${truncate(content, 12000)}\n\n` +
+    `Antworte NUR mit dem veredelten Kapiteltext. Keine Überschriften, keine Erklärungen.`
+  );
+}
+
+/**
+ * Zweiter KI-Durchlauf: veredelt einen generierten Kapiteltext.
+ * Leer-Antwort → Original bleibt (niemals Datenverlust).
+ */
+export async function polishChapter(
+  config: BookWriterConfig,
+  outline: BookOutline,
+  chapterTitle: string,
+  content: string,
+  signal?: AbortSignal,
+): Promise<string> {
+  const provider = new OllamaProvider(config.baseUrl);
+  const polishModel = pickModelForTask(
+    "repair",
+    {
+      main: config.model,
+      strong: (config as BookWriterConfig & { strongModel?: string }).strongModel,
+    },
+    [config.model],
+  );
+  const prompt = buildPolishPrompt(
+    chapterTitle,
+    outline.title,
+    outline.genre,
+    config.language,
+    content,
+  );
+  const chunks: string[] = [];
+  for await (
+    const chunk of provider.chat(
+      [{ role: "user", content: prompt }],
+      { model: polishModel, maxTokens: 8192, temperature: 0.6, timeoutMs: 180000 },
+      signal,
+    )
+  ) {
+    chunks.push(chunk);
+  }
+  const polished = chunks.join("").trim();
+  return polished || content;
 }
 
 // --- B4: Outline-Qualitätsgate ---------------------------------------------
@@ -718,6 +791,13 @@ Schreibe nur den Kapiteltext (ca. ${targetWords} Wörter, mindestens ${min} Wör
       config, outline, chapter.title, content, evaluation, signal,
     );
     content = adjusted;
+    evaluation = evaluateWordCount(content, targetWords);
+  }
+
+  // Veredelung (zweiter KI-Durchlauf, default an): sprachliche Vervollkommnung
+  // bei gleichem Inhalt. Opt-out via config.polish === false.
+  if (config.polish !== false) {
+    content = await polishChapter(config, outline, chapter.title, content, signal);
     evaluation = evaluateWordCount(content, targetWords);
   }
 
