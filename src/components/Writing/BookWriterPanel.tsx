@@ -76,6 +76,9 @@ export function BookWriterPanel() {
   const [language] = useState("Deutsch");
   const [viewMode, setViewMode] = useState<"classic" | "planner">("planner");
   const [premise, setPremise] = useState("");
+  // Ganzes Buchkonzept (Generierprompt): fließt bindend in Gliederung + Kapitel ein.
+  const [concept, setConcept] = useState("");
+  const [isSuggestingConcept, setIsSuggestingConcept] = useState(false);
   const [outline, setOutline] = useState<BookOutline | null>(null);
   const [chapters, setChapters] = useState<BookChapter[]>([]);
   const [currentChapter, setCurrentChapter] = useState(0);
@@ -125,11 +128,13 @@ export function BookWriterPanel() {
     targetAudience,
     chapterCount,
     wordsPerChapter,
+    polish,
     model: settings.model,
     baseUrl: settings.ollamaBaseUrl || "http://127.0.0.1:11434",
     language,
     tone: tone.trim() || undefined,
-  }), [topic, genre, targetAudience, chapterCount, wordsPerChapter, polish, language, tone, settings]);
+    concept: concept.trim() || undefined,
+  }), [topic, genre, targetAudience, chapterCount, wordsPerChapter, polish, concept, language, tone, settings]);
 
   // ---------------------------------------------------------------------------
   // Kernschleife: Kapitel generieren, SOFORT speichern, Job-Fortschritt
@@ -206,6 +211,7 @@ export function BookWriterPanel() {
       topic: topic.trim(), genre, targetAudience, chapterCount, wordsPerChapter, polish,
       model: settings.model, baseUrl: settings.ollamaBaseUrl || "http://127.0.0.1:11434", language,
       tone: tone.trim() || undefined,
+      concept: concept.trim() || undefined,
     };
     const job = createBookJob(activeProjectId, cfg);
     activeJobIdRef.current = job.id;
@@ -425,6 +431,7 @@ export function BookWriterPanel() {
           topic: topic.trim(), genre, targetAudience, chapterCount, wordsPerChapter, polish,
           model: settings.model, baseUrl: settings.ollamaBaseUrl || "http://127.0.0.1:11434", language,
           tone: tone.trim() || undefined,
+          concept: concept.trim() || undefined,
         },
         ctrl.signal,
       );
@@ -450,6 +457,7 @@ export function BookWriterPanel() {
       targetAudience,
       language,
       premise,
+      concept: concept.trim() || undefined,
     };
 
     const result = await generateChapterChunked(
@@ -576,6 +584,44 @@ export function BookWriterPanel() {
             onReorderChapters={reorderChapters}
             suggestContext={{ topic, genre }}
           />
+          <div className="bw-concept">
+            <label>
+              {t("bookwriter.concept")}
+              <textarea
+                value={concept}
+                onChange={(e) => setConcept(e.target.value)}
+                placeholder={t("bookwriter.conceptPh")}
+                rows={6}
+                data-testid="bw-concept"
+              />
+            </label>
+            <button
+              onClick={async () => {
+                if (isSuggestingConcept || !topic.trim()) return;
+                setIsSuggestingConcept(true);
+                setError(null);
+                try {
+                  const { suggestConcept } = await import("@/services/writing/conceptSuggest");
+                  const { concept: c } = await suggestConcept({
+                    topic: topic.trim(),
+                    genre,
+                    targetAudience,
+                    language,
+                  });
+                  setConcept(c);
+                } catch (e) {
+                  if (e instanceof Error && e.name !== "AbortError") setError(e.message);
+                } finally {
+                  setIsSuggestingConcept(false);
+                }
+              }}
+              disabled={isSuggestingConcept || !topic.trim()}
+              className="cp-suggest-btn"
+              title={t("bookwriter.conceptSuggestTitle")}
+            >
+              {isSuggestingConcept ? t("bookwriter.conceptSuggestBusy") : t("bookwriter.conceptSuggest")}
+            </button>
+          </div>
           <div className="cp-generation">
             <button
               onClick={handleRegenerateOutline}
@@ -663,6 +709,16 @@ export function BookWriterPanel() {
      <label>
        {t("bookwriter.audience")}
        <input value={targetAudience} onChange={(e) => setTargetAudience(e.target.value)} />
+     </label>
+     <label>
+       {t("bookwriter.concept")}
+       <textarea
+         value={concept}
+         onChange={(e) => setConcept(e.target.value)}
+         placeholder={t("bookwriter.conceptPh")}
+         rows={6}
+         data-testid="bw-concept"
+       />
      </label>
      <label>
        {t("bookwriter.style")}

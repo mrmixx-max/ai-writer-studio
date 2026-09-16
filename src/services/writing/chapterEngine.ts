@@ -11,6 +11,7 @@ export interface BookContext {
   language: string;
   premise?: string;       // Exposé/Prämisse
   synopsis?: string;      // Kurzzusammenfassung
+  concept?: string;       // Ganzes Buchkonzept (Generierprompt)
 }
 
 export interface ChunkPlan {
@@ -108,7 +109,7 @@ async function generateChunk(
   const prompt = `Schreibe einen Abschnitt für Kapitel "${chapter.title}" von "${book.title}".
 Genre: ${book.genre} | Zielgruppe: ${book.targetAudience} | Sprache: ${book.language}
 
-${book.premise ? `Buch-Prämisse: ${book.premise}\n` : ""}
+${book.premise ? `Buch-Prämisse: ${book.premise}\n` : ""}${book.concept?.trim() ? `Buchkonzept (bindend — Figuren, Welt, Erzählstimme und Spannungsbogen einhalten):\n${book.concept.trim().slice(0, 4000)}\n` : ""}
 ${chapter.synopsis ? `Kapitel-Synopsis: ${chapter.synopsis}\n` : ""}
 ${chapter.purpose ? `Kapitel-Funktion: ${chapter.purpose}\n` : ""}
 

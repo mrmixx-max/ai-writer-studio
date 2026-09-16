@@ -168,6 +168,12 @@ export interface BookWriterConfig {
   /** INTERFACE-CHANGE: Stil/Ton der Generierung (z.B. "sachlich-nah", "dramatisch"). */
   tone?: string;
   /**
+   * Ganzes Buchkonzept (Generierprompt): Prämisse, Figuren/Welt, Erzählstimme,
+   * Spannungsbogen, Themen. Fließt in Gliederungs- und Kapitel-Prompts ein.
+   * Leer = bisheriges Verhalten (nur Thema/Genre/Zielgruppe).
+   */
+  concept?: string;
+  /**
    * Zweiter KI-Durchlauf (Veredelung): Nach der Wortzahl-Steuerung wird der
    * Kapiteltext erneut ans Modell gegeben und sprachlich vervollkommnet.
    * Default true — kostet einen zusätzlichen Call pro Kapitel.
@@ -643,7 +649,7 @@ ${issues.map((i) => `- ${i}`).join("\n")}
 
 Vorgaben:
 - Thema: ${config.topic} | Genre: ${config.genre} | Zielgruppe: ${config.targetAudience}
-- Genau ${config.chapterCount} Kapitel, fortlaufend nummeriert (1..${config.chapterCount})
+${config.concept?.trim() ? `- Buchkonzept (bindend):\n${config.concept.trim().slice(0, 2000)}\n` : ''}- Genau ${config.chapterCount} Kapitel, fortlaufend nummeriert (1..${config.chapterCount})
 - Jeder Kapiteltitel eindeutig
 - Jede Zusammenfassung mindestens 20 Wörter
 - Logischer Bogen: Kapitel 1 führt ein, höchstens ein Fazit-Kapitel am Ende
@@ -687,7 +693,7 @@ export async function generateOutline(
 - Kapitel: ${config.chapterCount}
 - Sprache: ${config.language}
 ${config.tone ? `- Stil/Ton: ${config.tone}` : ''}
-
+${config.concept?.trim() ? `\nBuchkonzept (bindend — Gliederung daraus ableiten):\n${config.concept.trim().slice(0, 4000)}\n` : ''}
 Vorgaben: Jeder Kapiteltitel ist eindeutig, jede Zusammenfassung hat mindestens 20 Wörter. Kapitel 1 führt ein, höchstens ein Fazit-Kapitel am Ende.
 
 Antwitte NUR als JSON-Objekt:
@@ -761,6 +767,7 @@ export async function generateChapter(
 
   const prompt = `Schreibe Kapitel ${chapterNumber} von "${outline.title}".
 Genre: ${outline.genre} | Zielgruppe: ${outline.targetAudience} | Sprache: ${config.language}${config.tone ? ` | Stil/Ton: ${config.tone}` : ''}
+${config.concept?.trim() ? `\nBuchkonzept (bindend — Figuren, Welt, Erzählstimme und Spannungsbogen einhalten):\n${config.concept.trim().slice(0, 4000)}\n` : ''}
 
 ${context}
 
