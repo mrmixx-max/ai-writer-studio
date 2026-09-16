@@ -162,7 +162,7 @@ export function ChapterPlanner({
           className="cp-suggest-btn"
           title="KI schlägt Titel, Stil und Wortzahl aus Thema/Synopsis vor"
         >
-          {suggestBusy ? "Schlägt vor …" : "✨ KI-Vorschlag"}
+          {suggestBusy ? "Lädt Modell & schlägt vor …" : "✨ KI-Vorschlag"}
         </button>
         {suggestError && (
           <div className="cp-warnings">

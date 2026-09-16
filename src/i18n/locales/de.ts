@@ -269,6 +269,7 @@ export const de = {
   "bookwriter.regenOutlineTitle": "Nur die Gliederung neu erstellen — fertige Kapitel bleiben erhalten",
   "bookwriter.regenOutlineProgress": "Gliederung wird neu erstellt…",
   "bookwriter.genChapter": "✍️ Kapitel generieren: {{title}}",
+  "bookwriter.suggestLoadingModel": "Lädt Modell & schlägt vor …",
   "bookwriter.exportTitle": "📦 Export",
   "bookwriter.format": "Format:",
   "bookwriter.exportFormatLabel": "Exportformat",

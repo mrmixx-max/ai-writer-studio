@@ -248,6 +248,7 @@ export const es: TranslationDict = {
   "bookwriter.regenOutlineTitle": "Recrear solo el esquema — los capítulos terminados se conservan",
   "bookwriter.regenOutlineProgress": "Regenerando esquema…",
   "bookwriter.genChapter": "✍️ Generar capítulo: {{title}}",
+  "bookwriter.suggestLoadingModel": "Cargando modelo y sugiriendo …",
   "bookwriter.exportTitle": "📦 Exportación",
   "bookwriter.format": "Formato:",
   "bookwriter.exportFormatLabel": "Formato de exportación",

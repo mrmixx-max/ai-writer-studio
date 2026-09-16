@@ -248,6 +248,7 @@ export const fr: TranslationDict = {
   "bookwriter.regenOutlineTitle": "Recréer uniquement le plan — les chapitres terminés sont conservés",
   "bookwriter.regenOutlineProgress": "Régénération du plan…",
   "bookwriter.genChapter": "✍️ Générer le chapitre : {{title}}",
+  "bookwriter.suggestLoadingModel": "Chargement du modèle …",
   "bookwriter.exportTitle": "📦 Export",
   "bookwriter.format": "Format :",
   "bookwriter.exportFormatLabel": "Format d'export",

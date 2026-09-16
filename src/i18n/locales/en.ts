@@ -333,6 +333,7 @@ export const en: TranslationDict = {
   "bookwriter.regenOutlineTitle": "Recreate only the outline — finished chapters are kept",
   "bookwriter.regenOutlineProgress": "Regenerating outline…",
   "bookwriter.genChapter": "✍️ Generate chapter: {{title}}",
+  "bookwriter.suggestLoadingModel": "Loading model & suggesting …",
   "bookwriter.exportTitle": "📦 Export",
   "bookwriter.format": "Format:",
   "bookwriter.exportFormatLabel": "Export format",
