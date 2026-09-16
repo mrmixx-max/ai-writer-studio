@@ -720,6 +720,32 @@ export function BookWriterPanel() {
          data-testid="bw-concept"
        />
      </label>
+     <button
+       onClick={async () => {
+         if (isSuggestingConcept || !topic.trim()) return;
+         setIsSuggestingConcept(true);
+         setError(null);
+         try {
+           const { suggestConcept } = await import("@/services/writing/conceptSuggest");
+           const { concept: c } = await suggestConcept({
+             topic: topic.trim(),
+             genre,
+             targetAudience,
+             language,
+           });
+           setConcept(c);
+         } catch (e) {
+           if (e instanceof Error && e.name !== "AbortError") setError(e.message);
+         } finally {
+           setIsSuggestingConcept(false);
+         }
+       }}
+       disabled={isSuggestingConcept || !topic.trim()}
+       className="cp-suggest-btn"
+       title={t("bookwriter.conceptSuggestTitle")}
+     >
+       {isSuggestingConcept ? t("bookwriter.conceptSuggestBusy") : t("bookwriter.conceptSuggest")}
+     </button>
      <label>
        {t("bookwriter.style")}
        <select
