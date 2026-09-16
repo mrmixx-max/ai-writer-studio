@@ -13,6 +13,8 @@ import {
   listSpeechTemplates,
   getSpeechTemplate,
   renderSpeechTemplate,
+  printSpeech,
+  requestTeleprompterWithText,
 } from "@/services/speech/speechTemplates";
 
 type Status = "idle" | "recording" | "paused" | "error";
@@ -409,6 +411,24 @@ export function RedenschreiberPanel() {
                 : t("redenschreiber.read.start")}
             </button>
           )}
+          {kiOutput && !kiBusy && (
+            <button
+              onClick={() =>
+                printSpeech(
+                  anlass.trim() || t("redenschreiber.compose.title"),
+                  publikum.trim(),
+                  kiOutput,
+                )
+              }
+            >
+              {t("redenschreiber.print")}
+            </button>
+          )}
+          {kiOutput && !kiBusy && (
+            <button onClick={() => requestTeleprompterWithText(kiOutput)}>
+              {t("redenschreiber.toTeleprompter")}
+            </button>
+          )}
         </div>
         {kiError && (
           <div className="rs-error" role="alert">
@@ -457,6 +477,16 @@ export function RedenschreiberPanel() {
                 {reading === "template"
                   ? t("redenschreiber.read.stop")
                   : t("redenschreiber.read.start")}
+              </button>
+              <button
+                onClick={() =>
+                  printSpeech(activeTemplate.titel, activeTemplate.anlass, activeTemplate.text)
+                }
+              >
+                {t("redenschreiber.print")}
+              </button>
+              <button onClick={() => requestTeleprompterWithText(activeTemplate.text)}>
+                {t("redenschreiber.toTeleprompter")}
               </button>
             </div>
           </>
