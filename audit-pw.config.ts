@@ -3,7 +3,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./e2e",
-  testMatch: "audit-author.spec.ts",
+  testMatch: "audit-author*.spec.ts",
   fullyParallel: false,
   retries: 0,
   workers: 1,

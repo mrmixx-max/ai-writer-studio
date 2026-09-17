@@ -159,7 +159,7 @@ export function BookWriterPanel() {
         // Agent-1-Retry: JSON-/Netzwerkfehler werden bis zu 3× wiederholt;
         // der Versuchszähler landet im UI (Retry-Badge).
         const chapter = await withRetry(
-          () => generateChapter(cfg, bookOutline, i, written, ctrl.signal),
+          () => generateChapter(cfg, bookOutline, i, written, ctrl.signal, (m) => setLiveText((prev) => prev + m + "\n")),
           {
             attempts: 3,
             baseDelayMs: 1000,

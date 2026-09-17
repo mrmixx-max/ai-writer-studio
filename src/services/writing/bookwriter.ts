@@ -659,7 +659,7 @@ Fehlerhafte Gliederung:
 ${JSON.stringify(outline)}
 
 Antworte NUR als korrigiertes JSON-Objekt:
-{"title": "Titel", "genre": "${config.genre}", "targetAudience": "${config.targetAudience}", "chapters": [{"number": 1, "title": "...", "summary": "..."}]}`;
+{"title": "Titel", "genre": "${config.genre}", "targetAudience": "${config.targetAudience}", "chapters": [{"number": 1, "title": "...", "summary": "..."}]}` + STRICT_JSON_SUFFIX;
 
   // B3: repair → Hauptmodell (konservativ, hohe Qualität für Struktur-Fixes).
   const repairModel = pickModelForTask("repair", {
@@ -802,6 +802,7 @@ export async function generateChapter(
   chapterNumber: number,
   previousChapters: BookChapter[],
   signal?: AbortSignal,
+  onEvent?: (msg: string) => void,
 ): Promise<BookChapter> {
   const provider = new OllamaProvider(config.baseUrl);
   const chapter = outline.chapters.find((c) => Number(c.number) === chapterNumber)
@@ -851,7 +852,13 @@ Schreibe nur den Kapiteltext (ca. ${targetWords} Wörter, mindestens ${min} Wör
 
   // Veredelung (zweiter KI-Durchlauf, default an): sprachliche Vervollkommnung
   // bei gleichem Inhalt. Opt-out via config.polish === false.
+  // Fortschritt offenlegen (Audit Runde 2: kein stiller 2. Call).
   if (config.polish !== false) {
+    try {
+      onEvent?.(`✨ Veredele Kapitel ${chapterNumber} (2. KI-Durchlauf)…`);
+    } catch {
+      /* Diagnose-Hook darf die Generierung nie brechen. */
+    }
     content = await polishChapter(config, outline, chapter.title, content, signal);
     evaluation = evaluateWordCount(content, targetWords);
   }
