@@ -114,6 +114,35 @@ function cacheKey(settings: AppSettings): string {
 export function clearModelCache(): void {
   cache.clear();
   inflight = null;
+  deadHosts.clear();
+}
+
+/**
+ * Tote Hosts (Audit L1): Wer einmal nicht antwortet, wird 5 Minuten lang
+ * nicht erneut angefragt — sonst spammen optionale lokale Server (LM Studio,
+ * gpt2api), die gar nicht installiert sind, bei jedem Panel-Wechsel die
+ * Browser-Konsole mit ERR_CONNECTION_REFUSED voll. Schlüssel = Anbieter +
+ * Basis-URL (URL-Wechsel hebt die Sperre sofort auf).
+ */
+const DEAD_HOST_TTL_MS = 5 * 60_000;
+const deadHosts = new Map<string, number>();
+
+/** Basis-URL je Anbieter (Cloud → "" — dort zählt nur der Anbieter). */
+function baseFor(provider: ProviderId, settings: AppSettings): string {
+  switch (provider) {
+    case "ollama":
+      return settings.ollamaBaseUrl || "";
+    case "lmstudio":
+      return settings.lmstudioBaseUrl || "";
+    case "gpt2api":
+      return settings.gpt2apiBaseUrl || "";
+    case "opencode":
+      return settings.opencodeBaseUrl || "";
+    case "nous":
+      return settings.nousBaseUrl || "";
+    default:
+      return "";
+  }
 }
 
 /** Bricht ein Promise nach ms ab; respektiert ein äußeres AbortSignal. */
@@ -170,11 +199,21 @@ async function probeProvider(
     return { ...base, message: "Kein API-Schlüssel eingetragen." };
   }
 
+  // Toter Host (Audit L1): kürzlich gescheitert → kein erneuter Fetch
+  // (kein Console-Spam), nur das gemerkte unreachable-Ergebnis.
+  const deadKey = `${provider}@${baseFor(provider, settings)}`;
+  const deadAt = deadHosts.get(deadKey);
+  if (deadAt !== undefined && Date.now() - deadAt < DEAD_HOST_TTL_MS) {
+    return { ...base, message: `${LABELS[provider]} zuletzt nicht erreichbar — wird später erneut geprüft.` };
+  }
+
   try {
     const instance = createProvider({ ...settings, provider });
     const timeoutMs = isLocalProvider(provider) ? LOCAL_PROBE_TIMEOUT_MS : PROBE_TIMEOUT_MS;
     const models = await withTimeout(instance.listModels(), timeoutMs, signal);
     if (signal?.aborted) return { ...base, message: "Abgebrochen." };
+    // Geantwortet → Host lebt (Tot-Eintrag löschen, auch bei leerer Liste).
+    deadHosts.delete(deadKey);
     if (models.length === 0) {
       return {
         ...base,
@@ -194,6 +233,9 @@ async function probeProvider(
     if (signal?.aborted || (e as Error).message === "aborted") {
       return { ...base, message: "Abgebrochen." };
     }
+    // Gescheitert (Timeout oder Fehler) → Host für 5 Min merken, damit
+    // Folge-Prüfungen keinen erneuten Fetch (Console-Spam) auslösen.
+    deadHosts.set(deadKey, Date.now());
     if ((e as Error).message === "timeout") {
       const secs = (isLocalProvider(provider) ? LOCAL_PROBE_TIMEOUT_MS : PROBE_TIMEOUT_MS) / 1000;
       return {

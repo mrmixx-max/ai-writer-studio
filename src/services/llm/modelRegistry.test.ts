@@ -116,4 +116,51 @@ describe("modelRegistry", () => {
     expect(openai.message).toContain("Kein API-Schlüssel");
     expect(createProvider).not.toHaveBeenCalledWith(expect.objectContaining({ provider: "openai" }));
   });
+
+  it("fragt toten Host kein zweites Mal (kein Fetch-Spam, Audit L1)", async () => {
+    stub("ollama", ["a"]);
+    stub("lmstudio", "throw");
+    stub("openai", ["m"]);
+    stub("openrouter", ["m"]);
+    stub("gpt2api", ["m"]);
+    stub("nous", ["m"]);
+    await discoverModels(SETTINGS, { force: true });
+    expect(providers["lmstudio"].listModels).toHaveBeenCalledTimes(1);
+    const res = await discoverModels(SETTINGS, { force: true });
+    // Trotz force kein zweiter Fetch — gemerktes Ergebnis ohne Netz.
+    expect(providers["lmstudio"].listModels).toHaveBeenCalledTimes(1);
+    const lm = res.find((r) => r.provider === "lmstudio")!;
+    expect(lm.reachable).toBe(false);
+    expect(lm.message).toContain("zuletzt nicht erreichbar");
+  });
+
+  it("URL-Wechsel hebt die Tot-Sperre sofort auf", async () => {
+    stub("ollama", ["a"]);
+    stub("lmstudio", "throw");
+    stub("openai", ["m"]);
+    stub("openrouter", ["m"]);
+    stub("gpt2api", ["m"]);
+    stub("nous", ["m"]);
+    await discoverModels(SETTINGS, { force: true });
+    expect(providers["lmstudio"].listModels).toHaveBeenCalledTimes(1);
+    await discoverModels(
+      { ...SETTINGS, lmstudioBaseUrl: "http://127.0.0.1:9999/v1" },
+      { force: true },
+    );
+    expect(providers["lmstudio"].listModels).toHaveBeenCalledTimes(2);
+  });
+
+  it("clearModelCache setzt tote Hosts zurück (Aktualisieren-Button)", async () => {
+    stub("ollama", ["a"]);
+    stub("lmstudio", "throw");
+    stub("openai", ["m"]);
+    stub("openrouter", ["m"]);
+    stub("gpt2api", ["m"]);
+    stub("nous", ["m"]);
+    await discoverModels(SETTINGS, { force: true });
+    expect(providers["lmstudio"].listModels).toHaveBeenCalledTimes(1);
+    clearModelCache();
+    await discoverModels(SETTINGS, { force: true });
+    expect(providers["lmstudio"].listModels).toHaveBeenCalledTimes(2);
+  });
 });
