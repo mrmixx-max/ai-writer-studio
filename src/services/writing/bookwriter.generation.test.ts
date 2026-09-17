@@ -20,7 +20,7 @@ vi.mock("@/services/llm/ollama", () => ({
   },
 }));
 
-import { generateChapter, evaluateWordCount, buildPolishPrompt, polishChapter, type BookOutline } from "./bookwriter";
+import { generateChapter, evaluateWordCount, buildPolishPrompt, polishChapter, estimateOutlineTimeoutMs, type BookOutline } from "./bookwriter";
 
 const config = {
   topic: "KI im Alltag",
@@ -162,5 +162,25 @@ describe("generateChapter: Veredelung (zweiter KI-Durchlauf)", () => {
     expect(chatCalls.length).toBe(1);
     expect(chatCalls[0].messages[0].content).toContain("Rohtext hier.");
     expect(out).toBe("Feinschliff-Text.");
+  });
+});
+
+describe("estimateOutlineTimeoutMs (Audit H1: Budget aus Modellname)", () => {
+  it("kleine Modelle (<=4B) bekommen 90s", () => {
+    expect(estimateOutlineTimeoutMs("llama3.2")).toBe(90_000);
+    expect(estimateOutlineTimeoutMs("heretic-2b")).toBe(90_000);
+    expect(estimateOutlineTimeoutMs("qwen3-4b")).toBe(90_000);
+  });
+
+  it("mittlere Modelle (<=14B) bekommen 180s", () => {
+    expect(estimateOutlineTimeoutMs("gemma4-12b")).toBe(180_000);
+    expect(estimateOutlineTimeoutMs("phi4-14b")).toBe(180_000);
+  });
+
+  it("grosse und unbekannte Modelle bekommen 300s (konservativ)", () => {
+    expect(estimateOutlineTimeoutMs("qwen3-30b")).toBe(300_000);
+    expect(estimateOutlineTimeoutMs("eurollm-22b")).toBe(300_000);
+    expect(estimateOutlineTimeoutMs("mock")).toBe(300_000);
+    expect(estimateOutlineTimeoutMs("")).toBe(300_000);
   });
 });

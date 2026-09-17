@@ -319,6 +319,8 @@ export const en: TranslationDict = {
   "bookwriter.conceptSuggest": "✨ Generate concept",
   "bookwriter.conceptSuggestBusy": "Generating concept …",
   "bookwriter.conceptSuggestTitle": "AI drafts a full book concept from topic/genre/audience",
+  "bookwriter.conceptThinNotice": "Concept very short ({{chars}} chars) — please expand or choose a stronger model.",
+  "bookwriter.conceptOfflineNotice": "Offline concept (template) — please fill in your own content so outline and chapters have substance.",
   "bookwriter.style": "Style/tone:",
   "bookwriter.noStyle": "No style preset",
   "bookwriter.genre": "Genre:",

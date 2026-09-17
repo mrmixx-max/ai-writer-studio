@@ -14,6 +14,19 @@ export interface ConceptSuggestInput {
   language?: string;
 }
 
+/**
+ * Mindestmaß für ein tragfähiges Konzept (Audit M2): Ein 6-Abschnitte-Konzept
+ * mit je 2–5 Sätzen liegt deutlich darüber; darunter steuert das Konzept
+ * Gliederung + Kapitel nur dünn — der Autor bekommt einen Hinweis statt
+ * stiller Akzeptanz.
+ */
+export const CONCEPT_MIN_CHARS = 300;
+
+/** true, wenn das Konzept zu dünn ist, um Gliederung + Kapitel zu tragen. */
+export function isThinConcept(concept: string): boolean {
+  return concept.trim().length < CONCEPT_MIN_CHARS;
+}
+
 /** Platzhalter-Konzept ohne Modell (Template aus den Formulardaten). */
 export function suggestConceptOffline(input: ConceptSuggestInput): string {
   const topic = input.topic.trim() || "Unbenanntes Buch";

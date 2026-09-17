@@ -255,6 +255,8 @@ export const de = {
   "bookwriter.conceptSuggest": "✨ Konzept generieren",
   "bookwriter.conceptSuggestBusy": "Generiere Konzept …",
   "bookwriter.conceptSuggestTitle": "KI entwirft ein ganzes Buchkonzept aus Thema/Genre/Zielgruppe",
+  "bookwriter.conceptThinNotice": "Konzept sehr kurz ({{chars}} Zeichen) — für ein tragfähiges Buch bitte ergänzen oder ein stärkeres Modell wählen.",
+  "bookwriter.conceptOfflineNotice": "Offline-Konzept (Vorlage) — bitte mit eigenen Inhalten füllen, damit Gliederung und Kapitel Substanz haben.",
   "bookwriter.style": "Stil/Ton:",
   "bookwriter.noStyle": "Kein Stil-Preset",
   "bookwriter.genre": "Genre:",

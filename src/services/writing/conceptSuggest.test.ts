@@ -2,6 +2,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   buildConceptSuggestPrompt,
+  isThinConcept,
   suggestConcept,
   suggestConceptOffline,
 } from "./conceptSuggest";
@@ -48,6 +49,21 @@ describe("buildConceptSuggestPrompt", () => {
     expect(p).toContain("SciFi");
     expect(p).toContain("Spannungsbogen");
     expect(p).toContain("Stil-Vorgaben");
+  });
+});
+
+describe("isThinConcept", () => {
+  it("kurzes Konzept → true", () => {
+    expect(isThinConcept("Prämisse: Ein Imker.")).toBe(true);
+  });
+
+  it("tragfähiges Konzept → false", () => {
+    expect(isThinConcept("x".repeat(300))).toBe(false);
+    expect(isThinConcept("y".repeat(1200))).toBe(false);
+  });
+
+  it("Whitespace zählt nicht mit", () => {
+    expect(isThinConcept("   \n  ")).toBe(true);
   });
 });
 

@@ -217,9 +217,11 @@ export function BookWriterPanel() {
     activeJobIdRef.current = job.id;
 
     try {
-      // Schritt 1: Outline
+      // Schritt 1: Outline (Fortschritt aus der Pipeline in den Live-Text —
+      // Audit H1: Versuch x/3 + Budget statt stillem Warten).
       setLiveText("📋 Erstelle Gliederung...\n");
-      const bookOutline = await generateOutline(cfg, ctrl.signal);
+      const appendLive = (m: string) => setLiveText((prev) => prev + m + "\n");
+      const bookOutline = await generateOutline(cfg, ctrl.signal, undefined, appendLive);
       setOutline(bookOutline);
       // Outline am Job persistieren → Resume kennt Titel/Struktur.
       await setBookJobOutline(job.id, bookOutline);
@@ -434,6 +436,8 @@ export function BookWriterPanel() {
           concept: concept.trim() || undefined,
         },
         ctrl.signal,
+        undefined,
+        (m) => setLiveText((prev) => prev + m + "\n"),
       );
       setOutline(bookOutline);
       // Store-Reconcile: fertige Kapitel behalten, betroffene markieren.
@@ -601,14 +605,22 @@ export function BookWriterPanel() {
                 setIsSuggestingConcept(true);
                 setError(null);
                 try {
-                  const { suggestConcept } = await import("@/services/writing/conceptSuggest");
-                  const { concept: c } = await suggestConcept({
+                  const { suggestConcept, isThinConcept } = await import("@/services/writing/conceptSuggest");
+                  const { concept: c, usedLLM } = await suggestConcept({
                     topic: topic.trim(),
                     genre,
                     targetAudience,
                     language,
                   });
                   setConcept(c);
+                  // Audit M2: dünnes Konzept nicht still akzeptieren.
+                  setPanelNotice(
+                    !usedLLM
+                      ? t("bookwriter.conceptOfflineNotice")
+                      : isThinConcept(c)
+                        ? t("bookwriter.conceptThinNotice", { chars: c.trim().length })
+                        : null,
+                  );
                 } catch (e) {
                   if (e instanceof Error && e.name !== "AbortError") setError(e.message);
                 } finally {
@@ -726,14 +738,22 @@ export function BookWriterPanel() {
          setIsSuggestingConcept(true);
          setError(null);
          try {
-           const { suggestConcept } = await import("@/services/writing/conceptSuggest");
-           const { concept: c } = await suggestConcept({
+           const { suggestConcept, isThinConcept } = await import("@/services/writing/conceptSuggest");
+           const { concept: c, usedLLM } = await suggestConcept({
              topic: topic.trim(),
              genre,
              targetAudience,
              language,
            });
            setConcept(c);
+           // Audit M2: dünnes Konzept nicht still akzeptieren.
+           setPanelNotice(
+             !usedLLM
+               ? t("bookwriter.conceptOfflineNotice")
+               : isThinConcept(c)
+                 ? t("bookwriter.conceptThinNotice", { chars: c.trim().length })
+                 : null,
+           );
          } catch (e) {
            if (e instanceof Error && e.name !== "AbortError") setError(e.message);
          } finally {

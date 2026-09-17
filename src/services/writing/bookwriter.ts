@@ -680,11 +680,50 @@ Antworte NUR als korrigiertes JSON-Objekt:
 
 // --- Kernfunktionen ----------------------------------------------------------
 
+/**
+ * Schätzt das Outline-Zeitbudget aus dem Modellnamen (Audit H1): Kleine
+ * Modelle antworten schnell oder gar nicht, große brauchen Minuten. Das
+ * Budget wird im Live-Log offengelegt, statt still zu kaskadieren.
+ * Unbekannt → konservativ groß (kein vorzeitiger Abbruch).
+ */
+export function estimateOutlineTimeoutMs(model: string): number {
+  const num = (s: string) => Number(s.replace(",", "."));
+  // 1) Explizite B-Angabe gewinnt ("qwen3-30b" → 30, nicht 3).
+  const b = /(\d+(?:[.,]\d+)?)\s*b\b/i.exec(model || "");
+  if (b && Number.isFinite(num(b[1]))) {
+    return budgetForBillions(num(b[1]));
+  }
+  // 2) Fallback: letzte Zahl im Namen ("llama3.2" → 3.2).
+  const all = (model || "").match(/(\d+(?:[.,]\d+)?)/g);
+  if (all?.length) {
+    const last = num(all[all.length - 1]);
+    if (Number.isFinite(last)) return budgetForBillions(last);
+  }
+  return 300_000;
+}
+
+/** Staffel zum Budget (klein → schnell oder gar nicht, groß → Minuten). */
+function budgetForBillions(billions: number): number {
+  if (billions <= 4) return 90_000;
+  if (billions <= 14) return 180_000;
+  return 300_000;
+}
+
 export async function generateOutline(
   config: BookWriterConfig,
   signal?: AbortSignal,
-  timeoutMs = 120000,
+  timeoutMs?: number,
+  onEvent?: (msg: string) => void,
 ): Promise<BookOutline> {
+  // Timeout an Modellgröße koppeln (Audit H1); explizit übergeben schlägt vor.
+  const budgetMs = timeoutMs ?? estimateOutlineTimeoutMs(config.model);
+  const emit = (msg: string) => {
+    try {
+      onEvent?.(msg);
+    } catch {
+      /* Diagnose-Hook darf die Generierung nie brechen. */
+    }
+  };
   const provider = new OllamaProvider(config.baseUrl);
   const basePrompt = `Erstelle eine detaillierte Gliederung für ein Buch:
 - Thema: ${config.topic}
@@ -705,14 +744,22 @@ Antwitte NUR als JSON-Objekt:
     strong: (config as BookWriterConfig & { strongModel?: string }).strongModel,
   }, [config.model]);
   // A2: bis zu 3 Versuche; bei wiederholtem JSON-Fehler schärferer Prompt.
+  // Jeder Versuch + Reparatur wird über onEvent offengelegt (Audit H1:
+  // keine stille Kaskade mehr — der Autor sieht Versuch x/3 und Budget).
+  const budgetS = Math.round(budgetMs / 1000);
   const raw = await withRetry(
-    async (_attempt, isJsonRetry) => {
+    async (attempt, isJsonRetry) => {
+      emit(
+        isJsonRetry
+          ? `Gliederung: Versuch ${attempt}/3 (Budget ${budgetS}s) — vorige Antwort unbrauchbar, schärferer Prompt…`
+          : `Gliederung: Versuch ${attempt}/3 (Budget ${budgetS}s)…`,
+      );
       const prompt = isJsonRetry ? basePrompt + STRICT_JSON_SUFFIX : basePrompt;
       const text = await collectChatRouted(
         "outline",
         prompt,
         config,
-        { model: outlineModel, maxTokens: 4096, temperature: 0.8, timeoutMs },
+        { model: outlineModel, maxTokens: 4096, temperature: 0.8, timeoutMs: budgetMs },
         signal,
         provider,
       );
@@ -730,6 +777,7 @@ Antwitte NUR als JSON-Objekt:
   // B4: Outline-Qualitätsgate — Validierung, EIN Reparatur-Call, sonst Fehler an den Nutzer.
   let issues = validateOutline(outline, config);
   if (issues.length > 0) {
+    emit(`Gliederung: Reparatur-Durchlauf (${issues.length} Befund(e), Budget ${budgetS}s)…`);
     outline = await repairOutline(config, outline, issues, signal);
     issues = validateOutline(outline, config);
     if (issues.length > 0) {
