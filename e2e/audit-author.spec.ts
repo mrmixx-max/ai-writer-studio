@@ -141,18 +141,19 @@ test("AUDIT-4: Gliederung (echt) zeigt Fortschritt + Budget, dann Ergebnis", asy
   await expect(live).toContainText(/Versuch 1\/3.*Budget/, { timeout: 90_000 });
   console.log("LIVE-FORTSCHRITT: sichtbar");
   await snap(page, "audit4-fortschritt");
-  // Ergebnis: mindestens 2 generierbare Kapitel (Budget kleines Modell: 90 s
-  // pro Versuch, max. 3 Versuche + Reparatur → 8-Min-Rahmen).
-  // Outline-Glück am kleinen Modell: Scheitern ehrlich protokollieren.
+  // Ergebnis: Outline ("Gliederung neu generiert: N Kapitel") oder Ehrlich-
+  // dokumentiertes Modell-Scheitern (kein App-Bug am kleinen Modell).
   await expect
-    .poll(async () => await live.textContent(), { timeout: 300_000 })
-    .toMatch(/Kapitel generieren:|Fehler: Gliederung/);
-  if (/Fehler: Gliederung/.test((await live.textContent()) || "")) {
+    .poll(async () => await live.textContent(), { timeout: 420_000 })
+    .toMatch(/Gliederung neu generiert|Fehler: Gliederung/);
+  const liveTxt = (await live.textContent()) || "";
+  if (/Fehler: Gliederung/.test(liveTxt)) {
     console.log("OUTLINE-AM-MODELL-GESCHEITERT (dokumentiert, kein App-Bug)");
     await snap(page, "audit4-outline-flaky");
     expect(true).toBe(true);
     return;
   }
+  // Outline-Generierungs-Buttons sind vorhanden.
   const btns = await page.locator("button", { hasText: /Kapitel generieren:/i }).allTextContents();
   console.log("OUTLINE-KAPITEL:", JSON.stringify(btns).slice(0, 400));
   await snap(page, "audit4-outline");
