@@ -58,7 +58,7 @@ test("Gewählter Ton landet im Generierungs-Prompt und Buch wird fertig", async 
     .fill("Der weiße Fleck");
   await enterCustomTone(page, "noir");
   await page
-    .locator('.bookwriter-panel label:has-text("Kapitel") input')
+    .locator('.bookwriter-panel label', { hasText: /^Kapitel:/ }).locator('input')
     .fill(String(MOCK_CHAPTER_COUNT));
   await page
     .locator(".bookwriter-panel button.bw-start", { hasText: "Buch generieren" })

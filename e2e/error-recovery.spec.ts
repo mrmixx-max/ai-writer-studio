@@ -60,7 +60,7 @@ test("Gliederung scheitert → Fehler-UI → nach Recovery erfolgreich", async (
   await page.unroute("**/api/chat");
   await mockOllamaBookGeneration(page);
   await page
-    .locator('.bookwriter-panel label:has-text("Kapitel") input')
+    .locator('.bookwriter-panel label', { hasText: /^Kapitel:/ }).locator('input')
     .fill(String(MOCK_CHAPTER_COUNT));
   await page
     .locator(".bookwriter-panel button.bw-start", { hasText: "Buch generieren" })
@@ -84,7 +84,7 @@ test("Transienter Outline-Fehler wird per Retry automatisch geheilt", async ({
     .locator('.bookwriter-panel label:has-text("Thema") input')
     .fill("Der weiße Fleck");
   await page
-    .locator('.bookwriter-panel label:has-text("Kapitel") input')
+    .locator('.bookwriter-panel label', { hasText: /^Kapitel:/ }).locator('input')
     .fill(String(MOCK_CHAPTER_COUNT));
   await page
     .locator(".bookwriter-panel button.bw-start", { hasText: "Buch generieren" })

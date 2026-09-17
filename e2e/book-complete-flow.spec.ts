@@ -30,7 +30,7 @@ test("Kompletter Buch-Flow: generieren, Kapitel anlegen, Markdown exportieren", 
 
   // 3 Kapitel ( passend zum Mock ).
   await page
-    .locator('.bookwriter-panel label:has-text("Kapitel") input')
+    .locator('.bookwriter-panel label', { hasText: /^Kapitel:/ }).locator('input')
     .fill(String(MOCK_CHAPTER_COUNT));
 
   await page
@@ -83,7 +83,7 @@ test("Komplett-Flow: KDP-Checkliste zeigt Buchdaten nach Generierung", async ({
     .locator('.bookwriter-panel label:has-text("Thema") input')
     .fill("Der weiße Fleck");
   await page
-    .locator('.bookwriter-panel label:has-text("Kapitel") input')
+    .locator('.bookwriter-panel label', { hasText: /^Kapitel:/ }).locator('input')
     .fill(String(MOCK_CHAPTER_COUNT));
   await page
     .locator(".bookwriter-panel button.bw-start", { hasText: "Buch generieren" })
