@@ -247,6 +247,8 @@ export function BookWriterPanel() {
     } catch (e: unknown) {
       if (e instanceof Error && e.name !== "AbortError") {
         setError(e.message);
+        // Live-Log abschliessen (Audit-Fund: kein ewiges Haengen im Fortschritt).
+        setLiveText((prev) => prev + `❌ Fehler: ${e.message.split("\n")[0]}\n`);
         await setBookJobStatus(job.id, "interrupted", e.message);
       }
     } finally {
@@ -287,6 +289,8 @@ export function BookWriterPanel() {
     } catch (e: unknown) {
       if (e instanceof Error && e.name !== "AbortError") {
         setError(e.message);
+        // Live-Log abschliessen (Audit-Fund: kein ewiges Haengen im Fortschritt).
+        setLiveText((prev) => prev + `❌ Fehler: ${e.message.split("\n")[0]}\n`);
         await setBookJobStatus(job.id, "interrupted", e.message);
       }
     } finally {
@@ -444,7 +448,12 @@ export function BookWriterPanel() {
       reconcileOutline(bookOutline.chapters.map((c) => ({ title: c.title, summary: c.summary })));
       setLiveText((prev) => prev + `🔄 Gliederung neu generiert (${bookOutline.chapters.length} Kapitel) — fertige Kapitel blieben erhalten.\n`);
     } catch (e: unknown) {
-      if (e instanceof Error && e.name !== "AbortError") setError(e.message);
+      if (e instanceof Error && e.name !== "AbortError") {
+        setError(e.message);
+        // Live-Log abschliessen: Der Autor sieht sonst ewig
+        // "Reparatur-Durchlauf…" ohne Ergebnis (Audit-Fund).
+        setLiveText((prev) => prev + `❌ Fehler: Gliederung — ${e.message.split("\n")[0]}\n`);
+      }
     } finally {
       setIsRegeneratingOutline(false);
     }
