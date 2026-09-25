@@ -18,11 +18,13 @@ export interface AppSettings {
   gpt2apiBaseUrl: string;
   gpt2apiApiKey: string;
   nousApiKey: string;
-  nousBaseUrl: string;
-  deepseekApiKey: string;
-  deepseekBaseUrl: string;
-  opencodeBaseUrl: string;
-  opencodeApiKey: string;
+    nousBaseUrl: string;
+    deepseekApiKey: string;
+    deepseekBaseUrl: string;
+    kiloApiKey: string;
+    kiloBaseUrl: string;
+    opencodeBaseUrl: string;
+    opencodeApiKey: string;
   // Bildgenerierung
   imageProvider: "openai-dalle" | "openrouter-flux" | "sd-webui" | "none";
   sdWebuiUrl: string;
@@ -63,6 +65,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   nousBaseUrl: "https://inference-api.nousresearch.com/v1",
   deepseekApiKey: "",
   deepseekBaseUrl: "https://api.deepseek.com/v1",
+  kiloApiKey: "",
+  kiloBaseUrl: "https://api.kilocode.ai/v1",
   opencodeBaseUrl: "http://localhost:8080/v1",
   opencodeApiKey: "",
   imageProvider: "none",

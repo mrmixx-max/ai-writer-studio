@@ -39,6 +39,7 @@ const KEY_PREFIX: Partial<Record<ProviderId, { re: RegExp; hint: string }>> = {
   openai: { re: /^sk-/, hint: "OpenAI-Schlüssel beginnen mit „sk-…“." },
   openrouter: { re: /^sk-or-/, hint: "OpenRouter-Schlüssel beginnen mit „sk-or-…“." },
   nous: { re: /^nous-/, hint: "Nous-Schlüssel beginnen mit „nous-…“." },
+  kilo: { re: /^sk-/, hint: "Kilo Code-Schlüssel beginnen mit „sk-…“." },
 };
 
 /** Deutsche Hilfetexte je Anbieter-Feld. */
@@ -53,6 +54,10 @@ const FIELD_HELP: Record<ProviderId, { key?: string; url?: string }> = {
   },
   nous: { key: "Schlüssel der Nous Research Inference API. Wird nur lokal gespeichert.", },
   opencode: { url: "Adresse des OpenCode-Servers, z. B. http://localhost:8080/v1" },
+  kilo: {
+    key: "Persönlicher Schlüssel von kilocode.ai. Wird nur lokal gespeichert.",
+    url: "OpenAI-kompatible API-Endpunkt, z. B. https://api.kilocode.ai/v1",
+  },
 };
 
 interface ProviderCardProps {
@@ -90,7 +95,7 @@ function ProviderCard({
   const keyValue = (settings[keyField] as string | undefined) ?? "";
   const urlValue = (settings[urlField] as string | undefined) ?? "";
   const hasKey = KEY_PREFIX[provider] !== undefined || provider === "gpt2api";
-  const hasUrl = provider === "ollama" || provider === "lmstudio" || provider === "gpt2api" || provider === "opencode";
+    const hasUrl = provider === "ollama" || provider === "lmstudio" || provider === "gpt2api" || provider === "opencode" || provider === "kilo";
 
   const keyInvalid = hasKey && KEY_PREFIX[provider] && keyValue.trim() && !KEY_PREFIX[provider]!.re.test(keyValue.trim());
   const urlInvalid = hasUrl && !isValidUrl(urlValue);
@@ -208,13 +213,14 @@ export function SettingsPanel() {
   }
 
   const dirty = useMemo(() => {
-    const keys = [
-      "provider", "model", "temperature", "maxTokens", "systemPrompt", "theme", "language", "highContrast",
-      "ollamaBaseUrl", "lmstudioBaseUrl", "openaiApiKey", "openrouterApiKey",
-      "gpt2apiBaseUrl", "gpt2apiApiKey", "nousBaseUrl", "nousApiKey",
-    ] as (keyof AppSettings)[];
-    return keys.some((k) => s[k] !== initial[k]);
-  }, [s, initial]);
+      const keys = [
+        "provider", "model", "temperature", "maxTokens", "systemPrompt", "theme", "language", "highContrast",
+        "ollamaBaseUrl", "lmstudioBaseUrl", "openaiApiKey", "openrouterApiKey",
+        "gpt2apiBaseUrl", "gpt2apiApiKey", "nousBaseUrl", "nousApiKey",
+        "kiloBaseUrl", "kiloApiKey",
+      ] as (keyof AppSettings)[];
+      return keys.some((k) => s[k] !== initial[k]);
+    }, [s, initial]);
 
   function save() {
     saveSettings(s);
@@ -239,7 +245,7 @@ export function SettingsPanel() {
       .catch(() => { if (!cancelled) setDiscovered([]); })
       .finally(() => { if (!cancelled) setDiscovering(false); });
     return () => { cancelled = true; };
-  }, [s.provider, s.ollamaBaseUrl, s.lmstudioBaseUrl, s.openaiApiKey, s.openrouterApiKey, s.gpt2apiBaseUrl, s.gpt2apiApiKey, s.nousBaseUrl, s.nousApiKey, s.privacyMode]);
+  }, [s.provider, s.ollamaBaseUrl, s.lmstudioBaseUrl, s.openaiApiKey, s.openrouterApiKey, s.gpt2apiBaseUrl, s.gpt2apiApiKey, s.nousBaseUrl, s.nousApiKey, s.kiloBaseUrl, s.kiloApiKey, s.privacyMode]);
 
   // Entdeckte Modelle des aktiven Anbieters (kein statisches Liste-Mehr).
   const activeDiscovery = discovered.find((d) => d.provider === s.provider) ?? null;
@@ -264,13 +270,14 @@ export function SettingsPanel() {
             discovering={discovering && !discovered.some((d) => d.provider === p)}
             isActive={s.provider === p}
             dirty={
-              p === "ollama" ? s.ollamaBaseUrl !== initial.ollamaBaseUrl
-              : p === "lmstudio" ? s.lmstudioBaseUrl !== initial.lmstudioBaseUrl
-              : p === "openai" ? s.openaiApiKey !== initial.openaiApiKey
-              : p === "openrouter" ? s.openrouterApiKey !== initial.openrouterApiKey
-              : p === "gpt2api" ? (s.gpt2apiBaseUrl !== initial.gpt2apiBaseUrl || s.gpt2apiApiKey !== initial.gpt2apiApiKey)
-              : (s.nousBaseUrl !== initial.nousBaseUrl || s.nousApiKey !== initial.nousApiKey)
-            }
+                          p === "ollama" ? s.ollamaBaseUrl !== initial.ollamaBaseUrl
+                          : p === "lmstudio" ? s.lmstudioBaseUrl !== initial.lmstudioBaseUrl
+                          : p === "openai" ? s.openaiApiKey !== initial.openaiApiKey
+                          : p === "openrouter" ? s.openrouterApiKey !== initial.openrouterApiKey
+                          : p === "gpt2api" ? (s.gpt2apiBaseUrl !== initial.gpt2apiBaseUrl || s.gpt2apiApiKey !== initial.gpt2apiApiKey)
+                          : p === "kilo" ? (s.kiloBaseUrl !== initial.kiloBaseUrl || s.kiloApiKey !== initial.kiloApiKey)
+                          : (s.nousBaseUrl !== initial.nousBaseUrl || s.nousApiKey !== initial.nousApiKey)
+                        }
             onUse={() => update("provider", p)}
             onField={(field, value) => update(field, value as never)}
           />

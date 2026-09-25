@@ -7,7 +7,8 @@ export type ProviderId =
   | "openrouter"
   | "gpt2api"
   | "nous"
-  | "opencode";
+  | "opencode"
+  | "kilo";
 
 export interface ChatMessage {
   role: "system" | "user" | "assistant";

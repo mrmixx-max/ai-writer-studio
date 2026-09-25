@@ -9,6 +9,7 @@ import { OpenAIProvider } from "./openai";
 import { OpenRouterProvider } from "./openrouter";
 import { Gpt2ApiProvider } from "./gpt2api";
 import { NousProvider } from "./nous";
+import { KiloProvider } from "./kilo";
 import { OpenAICompatibleProvider } from "./openai-compatible";
 import { isCloudProvider, requireCloudAllowed } from "@/services/security/privacy";
 
@@ -30,8 +31,10 @@ export function createProvider(settings: AppSettings): LLMProvider {
     case "gpt2api":
       return new Gpt2ApiProvider(settings.gpt2apiBaseUrl, settings.gpt2apiApiKey);
     case "nous":
-      return new NousProvider(settings.nousApiKey, settings.nousBaseUrl);
-    default:
+          return new NousProvider(settings.nousApiKey, settings.nousBaseUrl);
+        case "kilo":
+          return new KiloProvider(settings.kiloApiKey, settings.kiloBaseUrl);
+        default:
       throw new Error(`Unbekannter Provider: ${settings.provider}`);
   }
 }
@@ -81,5 +84,6 @@ export {
   OpenRouterProvider,
   Gpt2ApiProvider,
   NousProvider,
+  KiloProvider,
   OpenAICompatibleProvider,
 };

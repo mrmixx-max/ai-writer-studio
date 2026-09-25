@@ -35,6 +35,8 @@ export const REGISTRY_PROVIDERS: ProviderId[] = [
   "openrouter",
   "gpt2api",
   "nous",
+  "opencode",
+  "kilo",
 ];
 
 const LABELS: Record<ProviderId, string> = {
@@ -45,6 +47,7 @@ const LABELS: Record<ProviderId, string> = {
   gpt2api: "gpt2api",
   nous: "Nous Research",
   opencode: "OpenCode",
+  kilo: "Kilo Code",
 };
 
 /** Anzeigename für einen Provider-Schlüssel. */
@@ -106,6 +109,8 @@ function cacheKey(settings: AppSettings): string {
     ga: settings.gpt2apiApiKey ? "1" : "",
     n: settings.nousBaseUrl,
     na: settings.nousApiKey ? "1" : "",
+    k: settings.kiloBaseUrl,
+    ka: settings.kiloApiKey ? "1" : "",
     p: settings.privacyMode,
   });
 }
@@ -135,13 +140,15 @@ function baseFor(provider: ProviderId, settings: AppSettings): string {
     case "lmstudio":
       return settings.lmstudioBaseUrl || "";
     case "gpt2api":
-      return settings.gpt2apiBaseUrl || "";
-    case "opencode":
-      return settings.opencodeBaseUrl || "";
-    case "nous":
-      return settings.nousBaseUrl || "";
-    default:
-      return "";
+          return settings.gpt2apiBaseUrl || "";
+        case "opencode":
+          return settings.opencodeBaseUrl || "";
+        case "nous":
+          return settings.nousBaseUrl || "";
+        case "kilo":
+          return settings.kiloBaseUrl || "";
+        default:
+          return "";
   }
 }
 
