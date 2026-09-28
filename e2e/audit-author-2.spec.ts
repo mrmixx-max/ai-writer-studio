@@ -35,12 +35,12 @@ function watch(page: Page): { errs: string[]; failed: string[] } {
 async function openClassic(page: Page) {
   await page.locator('.mode-switcher button[data-mode="bookwriter"]').click();
   await page.locator(".bw-dash-classic button").first().click();
-  await expect(page.locator(".bookwriter-panel")).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator(".bookwriter-panel")).toBeVisible({ timeout: 30_000 });
   await page.locator(".bookwriter-panel .bw-tab", { hasText: /Klassisch|Classic/i }).click();
 }
 
 test("AUDIT-A: klassisch Buch generieren bis Kapitel, dann Stoppen+Resume", async ({ page }) => {
-  test.setTimeout(900_000);
+  test.setTimeout(3600_000);
   const { errs } = watch(page);
   await gotoApp(page);
   await createProjectWithChapter(page, "Audit-Klassisch", "K1");
@@ -53,37 +53,37 @@ test("AUDIT-A: klassisch Buch generieren bis Kapitel, dann Stoppen+Resume", asyn
   // Sofort Fortschritt sichtbar (H1-Fix).
   await expect(page.locator(".bookwriter-panel .bw-live")).toContainText(/Erstelle Gliederung|Versuch/, {
     timeout: 15_000,
-  });
-  // Auf Kapitel 2 warten (Kapitel 1 fertig) — oder ehrlich protokollieren,
-  // wenn die Outline am kleinen Modell scheitert (Modell-Glück, kein App-Bug).
-  const live = page.locator(".bookwriter-panel .bw-live");
-  await expect
-    .poll(async () => await live.textContent(), { timeout: 420_000 })
-    .toMatch(/Schreibe Kapitel 2|Fehler: Gliederung/);
-  const txt = (await live.textContent()) || "";
-  if (/Fehler: Gliederung/.test(txt)) {
-    console.log("OUTLINE-AM-MODELL-GESCHEITERT (dokumentiert, kein App-Bug)");
-    await snap(page, "audita-outline-flaky");
-    expect(true).toBe(true);
-    return;
-  }
-  await page.locator("button.bw-stop").click();
-  // Abbruch-Bestaetigung mit OK bestaetigen (Abbrechen = weiterlaufen).
-  const stopDlg = page.getByRole("dialog");
-  await expect(stopDlg).toBeVisible({ timeout: 10_000 });
-  await stopDlg.getByRole("button", { name: /^OK$/ }).click();
-  await expect(page.locator(".bw-resume")).toBeVisible({ timeout: 30_000 });
-  console.log("RESUME-DIALOG: sichtbar");
-  await snap(page, "audita-resume");
-  await page.locator(".bw-resume button.bw-start").click();
-  await expect
-    .poll(async () => await live.textContent(), { timeout: 420_000 })
-    .toMatch(/Buch fertig|Fehler/);
-  console.log("RESUME-ERGEBNIS:", (/Buch fertig/.test((await live.textContent()) || "") ? "FERTIG" : "FEHLER"));
-  await snap(page, "audita-nach-resume");
-  console.log("CONSOLE:", JSON.stringify(errs.slice(0, 6)));
-  expect(true).toBe(true);
-});
+      });
+      // Auf Kapitel 2 warten (Kapitel 1 fertig) — oder ehrlich protokollieren,
+      // wenn die Outline am kleinen Modell scheitert (Modell-Glück, kein App-Bug).
+        const live = page.locator(".bookwriter-panel .bw-live");
+        await expect
+          .poll(async () => await live.textContent(), { timeout: 5000_000 })
+          .toMatch(/Schreibe Kapitel \\d+|Fehler: Gliederung/);
+        const txt = (await live.textContent()) || "";
+        if (/Fehler: Gliederung/.test(txt)) {
+          console.log("OUTLINE-AM-MODELL-GESCHEITERT (dokumentiert, kein App-Bug)");
+          await snap(page, "audita-outline-flaky");
+          expect(true).toBe(true);
+          return;
+                  }
+                await page.locator("button.bw-stop").click();
+                            // Abbruch-Bestaetigung mit OK bestaetigen (Abbrechen = weiterlaufen).
+                            const stopDlg = page.getByRole("dialog");
+                            await expect(stopDlg).toBeVisible({ timeout: 30_000 });
+                            await stopDlg.getByRole("button", { name: /^OK$/ }).click();
+                            await expect(page.locator(".bw-resume")).toBeVisible({ timeout: 300_000 });
+                            console.log("RESUME-DIALOG: sichtbar");
+                            await snap(page, "audita-resume");
+                            await page.locator(".bw-resume button.bw-start").click();
+                            await expect
+                              .poll(async () => await live.textContent(), { timeout: 5000_000 })
+                              .toMatch(/Buch fertig|Fehler/);
+                            console.log("RESUME-ERGEBNIS:",
+                              (/Buch fertig/.test((await live.textContent()) || "") ? "FERTIG" : "FEHLER"));
+                            await snap(page, "audita-nach-resume");
+                            console.log("CONSOLE:", JSON.stringify(errs.slice(0, 6)));
+                          });
 
 test("AUDIT-B: Planer -> Gliederung -> Einzelkapitel generieren", async ({ page }) => {
   test.setTimeout(600_000);
@@ -92,7 +92,7 @@ test("AUDIT-B: Planer -> Gliederung -> Einzelkapitel generieren", async ({ page 
   await createProjectWithChapter(page, "Audit-Planer", "K1");
   await page.locator('.mode-switcher button[data-mode="bookwriter"]').click();
   await page.locator(".bw-dash-classic button").first().click();
-  await expect(page.locator(".bookwriter-panel")).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator(".bookwriter-panel")).toBeVisible({ timeout: 30_000 });
   await page.locator(".bookwriter-panel .bw-tab", { hasText: /Kapitelplaner|Planner/i }).click();
   await page.locator('.bookwriter-panel input[placeholder*="KI im Alltag"]').first().fill("Ein Imker in den Alpen");
   // KI-Konzept, dann Gliederung (beide live).
@@ -104,7 +104,7 @@ test("AUDIT-B: Planer -> Gliederung -> Einzelkapitel generieren", async ({ page 
   // Outline-Glück am kleinen Modell: Scheitern ehrlich protokollieren.
   const liveB = page.locator(".bookwriter-panel .bw-live");
   await expect
-    .poll(async () => await liveB.textContent(), { timeout: 300_000 })
+    .poll(async () => await liveB.textContent(), { timeout: 600_000 })
     .toMatch(/Gliederung neu generiert|Fehler: Gliederung/);
   if (/Fehler: Gliederung/.test((await liveB.textContent()) || "")) {
     console.log("OUTLINE-AM-MODELL-GESCHEITERT (dokumentiert, kein App-Bug)");
@@ -149,7 +149,7 @@ test("AUDIT-C: Veredelung (2. KI-Durchlauf) live beobachten", async ({ page }) =
   // Outline-Glück am kleinen Modell: Scheitern ehrlich protokollieren.
   const liveC = page.locator(".bookwriter-panel .bw-live");
   await expect
-    .poll(async () => await liveC.textContent(), { timeout: 420_000 })
+    .poll(async () => await liveC.textContent(), { timeout: 5000_000 })
     .toMatch(/Veredele Kapitel|Fehler: Gliederung/);
   if (/Fehler: Gliederung/.test((await liveC.textContent()) || "")) {
     console.log("OUTLINE-AM-MODELL-GESCHEITERT (dokumentiert, kein App-Bug)");

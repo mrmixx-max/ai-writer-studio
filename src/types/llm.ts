@@ -7,7 +7,6 @@ export type ProviderId =
   | "openrouter"
   | "gpt2api"
   | "nous"
-  | "opencode"
   | "kilo";
 
 export interface ChatMessage {

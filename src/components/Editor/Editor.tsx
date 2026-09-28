@@ -110,7 +110,7 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
     lastLoadedRef.current = initialContent;
     const parsed = safeParse(initialContent);
     // setContent mit emitUpdate=false: kein Autosave-Trigger beim reinen Laden.
-    editor.commands?.setContent?.(parsed, true);
+    editor.commands?.setContent?.(parsed, { emitUpdate: false });
     const text = tiptapToText(editor.getJSON());
     setCounts(countWords(text), countChars(text));
   }, [editor, initialContent, setCounts]);
@@ -128,7 +128,7 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
       const { text } = (e as CustomEvent).detail;
       if (editor && text) {
         const html = markdownToHtml(text);
-        editor.commands.setContent(html, true);
+        editor.commands.setContent(html, { emitUpdate: false });
       }
     };
     window.addEventListener("bookwriter:insert", handler);

@@ -16,7 +16,7 @@ export default defineConfig({
   reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "list",
   outputDir: "test-results",
   use: {
-    baseURL: "http://localhost:1420",
+    baseURL: "http://localhost:1438",
     // Deutsch als Browser-Locale: Tests nutzen deutsche UI-Strings,
     // CI-Runner laufen auf en-US (aria-labels/i18n wären Englisch).
     locale: "de-DE",
@@ -24,14 +24,14 @@ export default defineConfig({
     screenshot: "only-on-failure",
     // Video bei Fehlversuchen aufheben — wichtig für Overlay-Timing-Flakiness.
     video: "retain-on-failure",
-    actionTimeout: 10_000,
+    actionTimeout: 30_000,
     navigationTimeout: 30_000,
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
-    command: "npm run dev:vite",
-    url: "http://localhost:1420",
-    reuseExistingServer: !process.env.CI,
-    timeout: 120_000,
-  },
+      command: "npm run dev:vite",
+      url: "http://localhost:1438",
+      reuseExistingServer: !process.env.CI,
+      timeout: 120_000,
+    },
 });

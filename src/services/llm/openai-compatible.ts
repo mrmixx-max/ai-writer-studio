@@ -53,8 +53,8 @@ export class OpenAICompatibleProvider implements LLMProvider {
     return `${this.label} (${this.baseUrl})`;
   }
 
-  /** true für Loopback-Endpunkte (LM Studio, gpt2api, opencode lokal). */
-  private isLocal(): boolean {
+  /** true für Loopback-Endpunkte (LM Studio, gpt2api lokal). */
+    private isLocal(): boolean {
     try {
       const h = new URL(this.baseUrl).hostname.toLowerCase();
       return h === "127.0.0.1" || h === "localhost" || h === "::1";
@@ -71,7 +71,7 @@ export class OpenAICompatibleProvider implements LLMProvider {
 
   async healthCheck(): Promise<boolean> {
     try {
-      // Lokale Endpunkte (LM Studio/gpt2api/opencode) ohne Browser-CORS
+      // Lokale Endpunkte (LM Studio/gpt2api) ohne Browser-CORS
       // über localFetch, Cloud weiter über window.fetch.
       const res = this.isLocal()
         ? await getLocal(`${this.baseUrl}/models`, HEALTH_TIMEOUT, { headers: this.headers() })

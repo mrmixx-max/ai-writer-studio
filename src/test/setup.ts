@@ -5,6 +5,42 @@ import { afterEach, vi } from "vitest";
 import { cleanup } from "@testing-library/react";
 
 // ---------------------------------------------------------------------------
+// localStorage / sessionStorage Polyfill  (siehe unten)
+// ---------------------------------------------------------------------------
+interface StorageLike {
+  readonly length: number;
+  clear(): void;
+  getItem(key: string): string | null;
+  key(index: number): string | null;
+  removeItem(key: string): void;
+  setItem(key: string, value: string): void;
+}
+const makeStorage = (): StorageLike => {
+  const store: Record<string, string> = {};
+  return {
+    get length() { return Object.keys(store).length; },
+    clear: () => { for (const k in store) delete store[k]; },
+    getItem: (k: string) => (k in store ? store[k] : null),
+    key: (i: number) => Object.keys(store)[i] ?? null,
+    removeItem: (k: string) => { delete store[k]; },
+    setItem: (k: string, v: string) => { store[k] = String(v); },
+  };
+};
+const ensureStorage = (name: "localStorage" | "sessionStorage") => {
+  let ok = false;
+  try { ok = typeof (globalThis as unknown as Record<string, { getItem?: unknown }>)[name]?.getItem === "function"; } catch { /* kein storage-Accessor (SSR/jsdom) — ok bleibt false */ }
+  if (!ok) {
+    try {
+      Object.defineProperty(globalThis, name, {
+        value: makeStorage(), configurable: true, writable: true, enumerable: true,
+      });
+    } catch { /* experimental getter non-configurable — leave as-is */ }
+  }
+};
+ensureStorage("localStorage");
+ensureStorage("sessionStorage");
+
+// ---------------------------------------------------------------------------
 // Browser-API-Stubs (jsdom kennt sie nicht, Komponenten setzen sie voraus)
 // ---------------------------------------------------------------------------
 if (typeof window !== "undefined") {

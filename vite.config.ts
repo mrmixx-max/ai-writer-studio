@@ -27,12 +27,21 @@ export default defineConfig({
   },
   clearScreen: false,
   server: {
-    port: 1420,
-    strictPort: true,
-    watch: {
-      ignored: ["**/src-tauri/**"],
-    },
-  },
+        port: 1438,
+        strictPort: true,
+        // Dev-only-Proxy: Browser-Origin (localhost:1438) → lokale Provider.
+        // Im Release läuft der Transport über den Rust-Proxy (ollama_proxy.rs);
+        // hier per Proxy, damit der Browser nicht cross-origin zu 127.0.0.1 zieht (CORS).
+        proxy: {
+          "/kilo":{ target: "https://api.kilocode.ai", changeOrigin: true, secure: false, rewrite: (p) => p.replace(/^\/kilo/, ""), proxyTimeout: 2000 },
+          "/v1":   { target: "http://127.0.0.1:8000",  changeOrigin: true, secure: false, proxyTimeout: 2000 },
+          "/api":  { target: "http://127.0.0.1:11434", changeOrigin: true, secure: false, proxyTimeout: 2000 },
+          "/sdapi":{ target: "http://127.0.0.1:7860",  changeOrigin: true, secure: false, proxyTimeout: 2000 },
+        },
+        watch: {
+          ignored: ["**/src-tauri/**"],
+        },
+      },
   // Release-Build: keine Source-Maps (würden im Installer landen),
   // aufgeteilte Vendor-Chunks für schnelleren Start.
   build: {

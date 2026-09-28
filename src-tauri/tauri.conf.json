@@ -4,11 +4,11 @@
   "version": "1.0.0",
   "identifier": "com.aiwriterstudio.app",
   "build": {
-    "frontendDist": "../dist",
-    "devUrl": "http://localhost:1420",
-    "beforeDevCommand": "npm run dev:vite",
-    "beforeBuildCommand": "npm run build"
-  },
+      "frontendDist": "../dist",
+      "devUrl": "http://localhost:1438",
+      "beforeDevCommand": "npm run dev:vite",
+      "beforeBuildCommand": "npm run build"
+    },
   "app": {
     "withGlobalTauri": true,
     "windows": [

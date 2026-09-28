@@ -50,7 +50,7 @@ describe("modelRegistry", () => {
     stub("nous", ["Hermes-4-405B"]);
 
     const res = await discoverModels(SETTINGS);
-    expect(res).toHaveLength(6);
+    expect(res).toHaveLength(7);
     const ollama = res.find((r) => r.provider === "ollama")!;
     expect(ollama.reachable).toBe(true);
     expect(ollama.models).toEqual(["llama3.2", "mistral"]);

@@ -27,6 +27,21 @@ export function isTauriRuntime(): boolean {
   return typeof window !== "undefined" && !!window.__TAURI_INTERNALS__;
 }
 
+/**
+ * Dev-Browser: lokale Provider-URLs (http://127.0.0.1:PORT/...) relativ
+ * machen (→ Vite-Proxy), statt cross-origin fetch (CORS-Fehler).
+ * Tauri (Rust-Proxy) + Node/vitest (absolute nötig) bleiben unberührt.
+ */
+function toDevUrl(url: string): string {
+  if (isTauriRuntime() || typeof window === "undefined") return url;
+  try {
+    const u = new URL(url);
+    return u.pathname + u.search + u.hash;
+  } catch {
+    return url;
+  }
+}
+
 export interface LocalFetchExtra {
   signal?: AbortSignal;
   timeoutMs?: number;
@@ -53,7 +68,7 @@ export async function getLocal(url: string, timeoutMs = 30000, extra?: LocalFetc
     const onAbort = signal ? () => ctrl.abort() : null;
     if (signal && onAbort) signal.addEventListener("abort", onAbort);
     try {
-      return await fetch(url, {
+      return await fetch(toDevUrl(url), {
         method,
         ...(headers ? { headers } : {}),
         signal: ctrl.signal,
@@ -76,7 +91,7 @@ export async function getLocal(url: string, timeoutMs = 30000, extra?: LocalFetc
 export async function deleteLocal(url: string, body: unknown): Promise<Response> {
   const payload = JSON.stringify(body);
   if (!isTauriRuntime()) {
-    return fetch(url, {
+    return fetch(toDevUrl(url), {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: payload,
@@ -97,7 +112,7 @@ export async function postLocalJson(
   if (!isTauriRuntime()) {
     const ms = extra?.timeoutMs;
     if (ms == null) {
-      return fetch(url, {
+      return fetch(toDevUrl(url), {
         method: "POST",
         headers,
         body: payload,
@@ -109,7 +124,7 @@ export async function postLocalJson(
     const onAbort = extra?.signal ? () => ctrl.abort() : null;
     if (extra?.signal && onAbort) extra.signal.addEventListener("abort", onAbort);
     try {
-      return await fetch(url, {
+      return await fetch(toDevUrl(url), {
         method: "POST",
         headers,
         body: payload,

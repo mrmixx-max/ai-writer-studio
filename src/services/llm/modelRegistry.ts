@@ -35,7 +35,6 @@ export const REGISTRY_PROVIDERS: ProviderId[] = [
   "openrouter",
   "gpt2api",
   "nous",
-  "opencode",
   "kilo",
 ];
 
@@ -46,7 +45,6 @@ const LABELS: Record<ProviderId, string> = {
   openrouter: "OpenRouter",
   gpt2api: "gpt2api",
   nous: "Nous Research",
-  opencode: "OpenCode",
   kilo: "Kilo Code",
 };
 
@@ -140,15 +138,13 @@ function baseFor(provider: ProviderId, settings: AppSettings): string {
     case "lmstudio":
       return settings.lmstudioBaseUrl || "";
     case "gpt2api":
-          return settings.gpt2apiBaseUrl || "";
-        case "opencode":
-          return settings.opencodeBaseUrl || "";
-        case "nous":
-          return settings.nousBaseUrl || "";
-        case "kilo":
-          return settings.kiloBaseUrl || "";
-        default:
-          return "";
+      return settings.gpt2apiBaseUrl || "";
+    case "nous":
+      return settings.nousBaseUrl || "";
+    case "kilo":
+      return settings.kiloBaseUrl || "";
+    default:
+      return "";
   }
 }
 

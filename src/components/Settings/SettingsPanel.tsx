@@ -19,7 +19,7 @@ import { UpdateCheck } from "./UpdateCheck";
 import { importHermesKeys } from "@/services/settings/hermesImport";
 import "./settings.css";
 
-const PROVIDERS: ProviderId[] = ["ollama", "lmstudio", "openai", "openrouter", "gpt2api", "nous", "opencode"];
+const PROVIDERS: ProviderId[] = ["ollama", "lmstudio", "openai", "openrouter", "gpt2api", "nous", "kilo"];
 
 // ---- Feld-Validierung ------------------------------------------------------
 
@@ -49,15 +49,14 @@ const FIELD_HELP: Record<ProviderId, { key?: string; url?: string }> = {
   openai: { key: "Persönlicher Schlüssel von platform.openai.com. Wird nur lokal gespeichert.", },
   openrouter: { key: "Persönlicher Schlüssel von openrouter.ai/keys. Wird nur lokal gespeichert." },
   gpt2api: {
-    key: "Optional: Schlüssel, falls dein gpt2api-Gateway eines verlangt.",
-    url: "Adresse des gpt2api-Gateways, z. B. http://localhost:8080/v1",
-  },
-  nous: { key: "Schlüssel der Nous Research Inference API. Wird nur lokal gespeichert.", },
-  opencode: { url: "Adresse des OpenCode-Servers, z. B. http://localhost:8080/v1" },
-  kilo: {
-    key: "Persönlicher Schlüssel von kilocode.ai. Wird nur lokal gespeichert.",
-    url: "OpenAI-kompatible API-Endpunkt, z. B. https://api.kilocode.ai/v1",
-  },
+      key: "Optional: Schlüssel, falls dein gpt2api-Gateway eines verlangt.",
+      url: "Adresse des gpt2api-Gateways, z. B. http://localhost:8080/v1",
+    },
+    nous: { key: "Schlüssel der Nous Research Inference API. Wird nur lokal gespeichert.", },
+    kilo: {
+      key: "Persönlicher Schlüssel von kilocode.ai. Wird nur lokal gespeichert.",
+      url: "OpenAI-kompatible API-Endpunkt, z. B. https://api.kilocode.ai/v1",
+    },
 };
 
 interface ProviderCardProps {
@@ -95,7 +94,7 @@ function ProviderCard({
   const keyValue = (settings[keyField] as string | undefined) ?? "";
   const urlValue = (settings[urlField] as string | undefined) ?? "";
   const hasKey = KEY_PREFIX[provider] !== undefined || provider === "gpt2api";
-    const hasUrl = provider === "ollama" || provider === "lmstudio" || provider === "gpt2api" || provider === "opencode" || provider === "kilo";
+    const hasUrl = provider === "ollama" || provider === "lmstudio" || provider === "gpt2api" || provider === "kilo";
 
   const keyInvalid = hasKey && KEY_PREFIX[provider] && keyValue.trim() && !KEY_PREFIX[provider]!.re.test(keyValue.trim());
   const urlInvalid = hasUrl && !isValidUrl(urlValue);

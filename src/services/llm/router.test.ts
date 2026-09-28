@@ -162,7 +162,9 @@ describe("B2: Fallback-Routing", () => {
 
   it("OpenRouter ohne API-Key wird übersprungen (Kette nur Ollama)", async () => {
     const chain = defaultChain({ ollamaBaseUrl: "http://127.0.0.1:11434" });
-    expect(chain.length).toBe(1);
+    // LM Studio ist per dirty-Tree bewusst in der Default-Chain (lokal, keyless).
+    expect(chain.length).toBe(2);
+    expect(new Set(chain.map((c) => c.provider))).toEqual(new Set(["ollama", "lmstudio"]));
     const router = new BookwriterRouter({ chain: [
       { provider: "ollama", baseUrl: "http://127.0.0.1:11434", models: { main: "m" } },
       { provider: "openrouter" }, // kein Key → übersprungen

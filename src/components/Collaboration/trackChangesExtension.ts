@@ -3,6 +3,7 @@
 // via Callback aufgezeichnet (der Text ist nach dem Entfernen nicht mehr im Dok).
 // Befehle: acceptTrackChanges / rejectTrackChanges (global oder auf Auswahl).
 import { Extension, Mark, mergeAttributes } from "@tiptap/core";
+import { Plugin, PluginKey } from "@tiptap/pm/state";
 import type { Transaction } from "@tiptap/pm/state";
 import type { EditorState } from "@tiptap/pm/state";
 
@@ -99,37 +100,44 @@ export const TrackChangesExtension = Extension.create<Record<string, never>, Tra
     };
   },
 
-  appendTransaction(transactions: Transaction[], oldState: EditorState, newState: EditorState) {
-    const storage = this.storage as TrackChangesStorage;
-    if (!storage.enabled) return null;
-    if (!transactions.some((tr) => tr.docChanged)) return null;
+  addProseMirrorPlugins() {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const self = this;
+    return [
+      new Plugin({
+        key: new PluginKey("trackChanges"),
+        appendTransaction: (transactions: readonly Transaction[], oldState: EditorState, newState: EditorState) => {
+          const storage = self.storage as TrackChangesStorage;
+          if (!storage.enabled) return null;
+          if (!transactions.some((tr) => tr.docChanged)) return null;
 
-    const insertType = newState.schema.marks.tcInsert;
-    const tr = newState.tr;
-    let touched = false;
+          const insertType = newState.schema.marks.tcInsert;
+          const tr = newState.tr;
+          let touched = false;
 
-    for (const transaction of transactions) {
-      transaction.mapping.maps.forEach((map) => {
-        map.forEach((oldStart, oldEnd, newStart, newEnd) => {
-          // Eingefügter Text → tcInsert-Mark + Callback
-          if (newEnd > newStart) {
-            const text = newState.doc.textBetween(newStart, newEnd, "\n");
-            if (text.trim()) {
-              tr.addMark(newStart, newEnd, insertType.create());
-              touched = true;
-              storage.callbacks.onInsert?.(newStart, text);
-            }
+          for (const transaction of transactions) {
+            transaction.mapping.maps.forEach((map) => {
+              map.forEach((oldStart, oldEnd, newStart, newEnd) => {
+                if (newEnd > newStart) {
+                  const text = newState.doc.textBetween(newStart, newEnd, "\n");
+                  if (text.trim()) {
+                    tr.addMark(newStart, newEnd, insertType.create());
+                    touched = true;
+                    storage.callbacks.onInsert?.(newStart, text);
+                  }
+                }
+                if (oldEnd > oldStart) {
+                  const text = oldState.doc.textBetween(oldStart, oldEnd, "\n");
+                  if (text.trim()) {
+                    storage.callbacks.onDelete?.(oldStart, text);
+                  }
+                }
+              });
+            });
           }
-          // Gelöschter Text → Callback (nicht mehr im neuen Dok)
-          if (oldEnd > oldStart) {
-            const text = oldState.doc.textBetween(oldStart, oldEnd, "\n");
-            if (text.trim()) {
-              storage.callbacks.onDelete?.(oldStart, text);
-            }
-          }
-        });
-      });
-    }
-    return touched ? tr : null;
+          return touched ? tr : null;
+        },
+      }),
+    ];
   },
 });

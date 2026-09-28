@@ -12,7 +12,10 @@ import { getLogger } from "@/services/logger";
 
 const log = getLogger("llm/router");
 import { OllamaProvider } from "./ollama";
+import { LMStudioProvider } from "./lmstudio";
+import { OpenAIProvider } from "./openai";
 import { OpenRouterProvider } from "./openrouter";
+import { KiloProvider } from "./kilo";
 import { classifyError } from "@/services/writing/retry";
 import { RouterRequestLog } from "./requestLog";
 import { isTimeoutError, resolveDowngradeModel } from "./timeoutDowngrade";
@@ -147,7 +150,7 @@ export function estimateTokensRouter(text: string): number {
   return Math.ceil(text.length / 4);
 }
 
-export type RouterProviderId = "ollama" | "openrouter";
+export type RouterProviderId = "ollama" | "openrouter" | "lmstudio" | "openai" | "kilo";
 
 export interface RouterChainSpec {
   provider: RouterProviderId;
@@ -217,9 +220,17 @@ export function instantiateChainSpec(spec: RouterChainSpec): { id: RouterProvide
   switch (spec.provider) {
     case "ollama":
       return { id: "ollama", provider: new OllamaProvider(spec.baseUrl ?? "http://127.0.0.1:11434") };
+    case "lmstudio":
+      return { id: "lmstudio", provider: new LMStudioProvider(spec.baseUrl ?? "http://localhost:1234/v1") };
+    case "openai":
+      if (!spec.apiKey) return null;
+      return { id: "openai", provider: new OpenAIProvider(spec.apiKey) };
     case "openrouter":
-      if (!spec.apiKey) return null; // ohne Key keine Cloud-Kette
+      if (!spec.apiKey) return null;
       return { id: "openrouter", provider: new OpenRouterProvider(spec.apiKey) };
+    case "kilo":
+      if (!spec.apiKey) return null;
+      return { id: "kilo", provider: new KiloProvider(spec.apiKey, spec.baseUrl ?? "https://api.kilocode.ai/v1") };
     default:
       return null;
   }
@@ -476,11 +487,25 @@ export class BookwriterRouter {
   }
 }
 
-/** Default-Kette: Ollama zuerst, OpenRouter als Cloud-Fallback (B2). */
-export function defaultChain(settingsLike: { ollamaBaseUrl?: string; openrouterApiKey?: string }): RouterChainSpec[] {
+/** Default-Kette: Ollama zuerst, dann LM Studio, OpenAI, Kilo Code, OpenRouter als Cloud-Fallback (B2). */
+export function defaultChain(settingsLike: { 
+  ollamaBaseUrl?: string; 
+  lmstudioBaseUrl?: string;
+  openaiApiKey?: string;
+  kiloApiKey?: string;
+  kiloBaseUrl?: string;
+  openrouterApiKey?: string 
+}): RouterChainSpec[] {
   const chain: RouterChainSpec[] = [
     { provider: "ollama", baseUrl: settingsLike.ollamaBaseUrl ?? "http://127.0.0.1:11434" },
+    { provider: "lmstudio", baseUrl: settingsLike.lmstudioBaseUrl ?? "http://localhost:1234/v1" },
   ];
+  if (settingsLike.openaiApiKey) {
+    chain.push({ provider: "openai", apiKey: settingsLike.openaiApiKey });
+  }
+  if (settingsLike.kiloApiKey) {
+    chain.push({ provider: "kilo", apiKey: settingsLike.kiloApiKey, baseUrl: settingsLike.kiloBaseUrl ?? "https://api.kilocode.ai/v1" });
+  }
   if (settingsLike.openrouterApiKey) {
     chain.push({ provider: "openrouter", apiKey: settingsLike.openrouterApiKey });
   }
