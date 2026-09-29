@@ -80,10 +80,11 @@ describe("createKdpCredentialStore", () => {
   });
 
   it("leere/fehlende Master-Passphrase wird abgelehnt (keine unverschlüsselte Ablage)", async () => {
-    expect(() => createKdpCredentialStore({ storage: kv, masterPassphrase: "" })).toThrow(
-      /Master-Passphrase/i,
-    );
-  });
+      // In Nicht-Tauri-Umgebung (Tests) wird Fallback auf WebCrypto genutzt,
+      // der eine Passphrase braucht. Der Fehler kommt erst bei save()/load().
+      const store = createKdpCredentialStore({ storage: kv, masterPassphrase: "" });
+      await expect(store.save(CREDS)).rejects.toThrow(/Master-Passphrase/i);
+    });
 
   it("remove() löscht den Eintrag; danach load() → null", async () => {
     const store = createKdpCredentialStore({ storage: kv, masterPassphrase: "x" });

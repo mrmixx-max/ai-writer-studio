@@ -4,23 +4,20 @@
 // im Settings-KV-Store. AKZEPTANZKRITERIUM: Credentials werden NIE im Code
 // oder im Klartext persistiert:
 //
-//   - Payload wird per AES-256-GCM (WebCrypto, AWS1-Format aus
-//     src/services/security/crypto.ts) verschlüsselt abgelegt.
+//   - Payload wird per Windows DPAPI (CryptProtectData) verschlüsselt abgelegt.
+//     Der Schlüssel wird vom OS verwaltet (User-Profil), keine Passwort-Ableitung nötig.
+//   - Für Cross-Platform (später macOS/Linux): Fallback auf AES-256-GCM (WebCrypto).
 //   - Die Master-Passphrase wird NIE gespeichert — sie kommt zur Laufzeit vom
 //     User (App-PIN-Verifikation, CLI-Prompt oder injizierte Callback).
-//   - Falsche Passphrase → GCM-Authentizitätsprüfung schlägt fehl → sprechender
-//     Fehler; Klartext fließt nie über die Platte.
+//   - Falsche Passphrase / DPAPI-Fehler → sprechender Fehler; Klartext fließt nie über die Platte.
 //   - Für CI/CLI ohne gespeicherte Credentials: Env-Override `KDP_API_KEY`
 //     (wird VOR dem Store geprüft, damit keine Klartext-Notlage entsteht).
 //
 // Die eigentliche IO (Tauri-Settings-KV) ist über `CredentialKV` injizierbar —
 // damit ist die Logik ohne Tauri-Kontext vollständig testbar.
 
-import {
-  encryptString,
-  decryptString,
-  isEncryptedPayload,
-} from "@/services/security/crypto";
+import { invoke } from "@tauri-apps/api/core";
+import { encryptString, decryptString, isEncryptedPayload } from "@/services/security/crypto";
 
 /** Ein KDP-Credential-Satz (OAuth2-Client-Credentials + Refresh-Token). */
 export interface KdpCredentials {
@@ -65,8 +62,8 @@ export const MEMORY_CREDENTIAL_STORE: CredentialKV = (() => {
 export interface KdpCredentialStoreOptions {
   /** KV-Backend (Settings-Store in der App, In-Memory in Tests). */
   storage: CredentialKV;
-  /** Master-Passphrase — wird NIE persistiert. */
-  masterPassphrase: string;
+  /** Master-Passphrase — wird NIE persistiert (nur für Legacy-Fallback). */
+  masterPassphrase?: string;
 }
 
 /** Fehler bei Credential-Operationen (sprechende User-Meldung). */
@@ -85,18 +82,18 @@ export function credentialFromEnv(env: Record<string, string | undefined> = proc
   return key && key.trim() ? key.trim() : null;
 }
 
+/** App-spezifische Entropy für DPAPI (bindet Ciphertext an diese App). */
+const DPAPI_ENTROPY = "ai-writer-studio-kdp-credentials";
+
 /**
- * Erstellt den Credential-Store. Die Passphrase wird ausschließlich im
- * Speicher der Instanz gehalten — nicht persistiert, nicht geloggt.
+ * Erstellt den Credential-Store. Verwendet Windows DPAPI (Current User).
+ * Fallback auf AES-256-GCM (WebCrypto) wenn DPAPI nicht verfügbar.
  */
 export function createKdpCredentialStore(options: KdpCredentialStoreOptions) {
   const { storage, masterPassphrase } = options;
 
-  if (!masterPassphrase || !masterPassphrase.trim()) {
-    throw new KdpCredentialError(
-      "KDP-Credential-Store benötigt eine Master-Passphrase (wird nicht gespeichert).",
-    );
-  }
+  // DPAPI nutzt keine Master-Passphrase; aber für Legacy-Migration/Fallback brauchen wir sie optional
+  const useDpapi = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 
   return {
     /** true, wenn (verschlüsselte) Credentials im Store liegen. */
@@ -104,23 +101,65 @@ export function createKdpCredentialStore(options: KdpCredentialStoreOptions) {
       return storage.load() !== null;
     },
 
-    /** Speichert die Credentials verschlüsselt (AES-256-GCM / AWS1). */
+    /** Speichert die Credentials verschlüsselt (DPAPI auf Windows, sonst AES-GCM). */
     async save(credentials: KdpCredentials): Promise<void> {
       const payload = JSON.stringify(credentials);
-      const cipher = await encryptString(payload, masterPassphrase);
-      storage.save(cipher);
+
+      if (useDpapi) {
+        // DPAPI: Entropy an App binden, damit Ciphertext nicht portabel ist
+        const cipher = await invoke<string>("dpapi_protect", {
+          data: payload,
+          entropy: DPAPI_ENTROPY,
+        });
+        storage.save(cipher);
+      } else {
+        // Fallback: WebCrypto AES-256-GCM (benötigt Passphrase)
+        if (!masterPassphrase || !masterPassphrase.trim()) {
+          throw new KdpCredentialError(
+            "Master-Passphrase erforderlich für Nicht-Windows-Plattformen.",
+          );
+        }
+        const cipher = await encryptString(payload, masterPassphrase);
+        storage.save(cipher);
+      }
     },
 
     /**
-     * Lädt und entschlüsselt die Credentials. Wirft KdpCredentialError bei
-     * falscher Passphrase oder beschädigten Daten.
+     * Lädt und entschlüsselt die Credentials.
+     * Erkennt Format automatisch (DPAPI: Base64 ohne AWS1-Prefix, Legacy: AWS1|...).
      */
     async load(): Promise<KdpCredentials | null> {
       const raw = storage.load();
       if (!raw) return null;
+
+      if (useDpapi) {
+        try {
+          // DPAPI-Ciphertext ist reines Base64 (kein AWS1| Prefix)
+          if (!raw.startsWith("AWS1|")) {
+            const plain = await invoke<string>("dpapi_unprotect", {
+              ciphertext_b64: raw,
+              entropy: DPAPI_ENTROPY,
+            });
+            return JSON.parse(plain) as KdpCredentials;
+          }
+          // Legacy AWS1 Format -> Fallback auf WebCrypto
+        } catch (err) {
+          throw new KdpCredentialError(
+            "Entschlüsselung der KDP-Credentials fehlgeschlagen (DPAPI).",
+            { cause: err },
+          );
+        }
+      }
+
+      // Legacy / Fallback: WebCrypto AES-GCM
+      if (!masterPassphrase || !masterPassphrase.trim()) {
+        throw new KdpCredentialError(
+          "Master-Passphrase erforderlich für Legacy-Credentials.",
+        );
+      }
       if (!isEncryptedPayload(raw)) {
         throw new KdpCredentialError(
-          "Gespeicherte KDP-Credentials liegen nicht im verschlüsselten Format vor (AWS1 erwartet).",
+          "Gespeicherte KDP-Credentials liegen nicht im erwarteten Format vor.",
         );
       }
       try {
@@ -128,7 +167,7 @@ export function createKdpCredentialStore(options: KdpCredentialStoreOptions) {
         return JSON.parse(plain) as KdpCredentials;
       } catch (err) {
         throw new KdpCredentialError(
-          "Entschlüsselung der KDP-Credentials fehlgeschlagen: falsche Master-Passphrase oder beschädigte Daten.",
+          "Entschlüsselung der KDP-Credentials fehlgeschlagen: falsche Passphrase oder beschädigte Daten.",
           { cause: err },
         );
       }
@@ -143,8 +182,6 @@ export function createKdpCredentialStore(options: KdpCredentialStoreOptions) {
      * Liefert ein nutzbares Access-Token:
      *   1. Env-Override `KDP_API_KEY` (CI/CLI) — gewinnt, umgeht den Store.
      *   2. Entschlüsselte Credentials aus dem Store (null, wenn leer).
-     * In einer späteren Ausbaustufe tauscht (1)+(2) hier den OAuth2-Flow
-     * gegen ein kurzlebiges Access-Token (LWA grant_type=refresh_token).
      */
     async getAccessToken(env: Record<string, string | undefined> = process.env): Promise<string | null> {
       const envKey = credentialFromEnv(env);

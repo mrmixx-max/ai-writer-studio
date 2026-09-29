@@ -18,6 +18,7 @@ mod updater;
 mod windows;
 mod hermes_import;
 mod ollama_proxy;
+mod dpapi;
 
 const USER_DIRS: [&str; 4] = ["user_data", "logs", "exports", "backups"];
 
@@ -127,22 +128,24 @@ fn main() {
         // Client ohne Browser-Origin, daher kein CORS-403.
         .plugin(tauri_plugin_updater::Builder::new().build())
         .invoke_handler(tauri::generate_handler![
-            log_message,
-            app_info,
-            user_paths,
-            startup_file,
-            windows::set_taskbar_progress,
-            hermes_import::import_hermes_keys,
-            windows::add_recent_document,
-            updater::check_for_updates,
-            updater::download_and_install_update,
-            updater::relaunch_app,
-            git::git_version,
-            git::run_git,
-            ollama_proxy::ollama_get,
-            ollama_proxy::ollama_post,
-            ollama_proxy::ollama_delete
-        ])
+                    log_message,
+                    app_info,
+                    user_paths,
+                    startup_file,
+                    windows::set_taskbar_progress,
+                    hermes_import::import_hermes_keys,
+                    windows::add_recent_document,
+                    updater::check_for_updates,
+                    updater::download_and_install_update,
+                    updater::relaunch_app,
+                    git::git_version,
+                    git::run_git,
+                    ollama_proxy::ollama_get,
+                    ollama_proxy::ollama_post,
+                    ollama_proxy::ollama_delete,
+                    dpapi::dpapi_protect,
+                    dpapi::dpapi_unprotect
+                ])
         .setup(|app| {
             log::info!("App started (setup)");
             ensure_user_dirs(app.handle());

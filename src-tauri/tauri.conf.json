@@ -26,9 +26,9 @@
         "decorations": true,
         "transparent": false,
         "theme": "Dark",
-        "titleBarStyle": "Visible",
-        "visible": true,
-        "dragDropEnabled": true
+                "titleBarStyle": "Visible",
+                "visible": true,
+                "dragDropEnabled": false
       }
     ],
     "security": {
@@ -52,8 +52,8 @@
     "shortDescription": "Lokales Manuskriptstudio mit KI",
     "longDescription": "AI Writer Studio ist ein lokales Manuskriptstudio für Romane, Sachbücher und KDP-Projekte. Schreiben, Projektwissen aufbauen, Konsistenz prüfen und exportieren – mit KI-Unterstützung durch Ollama, LM Studio oder OpenAI. Lokal-first, ohne Cloud-Zwang.",
     "licenseFile": "../LICENSE.txt",
-    "resources": [],
-    "fileAssociations": [
+        "resources": [],
+        "fileAssociations": [
       {
         "ext": [
           "awproject",

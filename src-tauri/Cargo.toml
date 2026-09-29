@@ -4,7 +4,7 @@ version = "1.0.0"
 description = "AI Writer Studio - Lokales Manuskriptstudio mit KI"
 authors = ["Erik Gieske"]
 edition = "2021"
-rust-version = "1.77"
+rust-version = "1.80"
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
@@ -33,6 +33,7 @@ schemars = "=0.8.22"
 chrono = "0.4"
 log = "0.4"
 reqwest = { version = "0.13.3", features = ["json"] }
+base64 = "0.22"
 
 [features]
 default = []

@@ -20,6 +20,9 @@ jobs:
       - name: Install (legacy-peer-deps, Tauri-Projekt mit Pinning)
         run: npm ci --legacy-peer-deps
 
+      - name: Security Audit (npm audit)
+        run: npm audit --audit-level=high
+
       - name: Typecheck
         run: npm run typecheck
 
@@ -54,6 +57,9 @@ jobs:
       - name: Install
         run: npm ci --legacy-peer-deps
 
+      - name: Security Audit (npm audit)
+        run: npm audit --audit-level=high
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
@@ -67,3 +73,40 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 14
+
+  tauri:
+      name: Tauri Build (Windows)
+      runs-on: windows-latest
+      steps:
+        - uses: actions/checkout@v4
+
+        - uses: dtolnay/rust-toolchain@stable
+          with:
+            targets: x86_64-pc-windows-msvc
+
+        - uses: actions/setup-node@v4
+          with:
+            node-version: 22
+            cache: npm
+
+        - name: Install dependencies
+          run: npm ci --legacy-peer-deps
+          working-directory: ./src-tauri
+
+        - name: Cargo Security Audit
+          run: |
+            cargo install cargo-audit
+            cargo audit
+          working-directory: ./src-tauri
+
+        - name: Build Tauri App
+          uses: tauri-apps/tauri-action@v0
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          with:
+            tagName: v__VERSION__
+            releaseName: 'AI Writer Studio v__VERSION__'
+            releaseBody: 'See the assets to download this version and install.'
+            releaseDraft: true
+            prerelease: false
+            args: --target x86_64-pc-windows-msvc

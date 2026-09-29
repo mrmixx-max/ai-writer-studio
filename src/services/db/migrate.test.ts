@@ -8,7 +8,7 @@ describe("DB migration", () => {
   beforeEach(async () => {
     const SQL = await initSqlJs();
     db = new SQL.Database();
-    migrate(db);
+    await migrate(db);
   });
 
   it("erstellt writing_prompts-Tabelle", () => {
@@ -25,7 +25,7 @@ describe("DB migration", () => {
     expect(res[0].values[0][0]).toBe("Testprompt");
   });
 
-  it("idempotent: zweite Migration wirft nicht", () => {
-    expect(() => migrate(db)).not.toThrow();
+  it("idempotent: zweite Migration wirft nicht", async () => {
+    await expect(migrate(db)).resolves.not.toThrow();
   });
 });

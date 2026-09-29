@@ -34,6 +34,15 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps
 
+      - name: Security Audit (npm audit)
+        run: npm audit --audit-level=high
+
+      - name: Cargo Security Audit
+        run: |
+          cargo install cargo-audit
+          cargo audit
+        working-directory: ./src-tauri
+
       - name: Typecheck (tsc --noEmit)
         run: npm run typecheck
 

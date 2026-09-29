@@ -25,21 +25,13 @@
     "fs:allow-appdata-read-recursive",
     "fs:allow-appdata-write-recursive",
     "fs:allow-appdata-meta-recursive",
-    "fs:allow-read-file",
-    "fs:allow-write-file",
-    "fs:allow-mkdir",
-    "fs:allow-exists",
-    "fs:allow-read-dir",
-    "fs:allow-remove",
-    "fs:allow-copy-file",
     {
       "identifier": "fs:scope",
       "allow": [
-        { "path": "$APPDATA/**" },
-        { "path": "$APPDATA" },
-        { "path": "$DOCUMENT/**" },
-        { "path": "$DOWNLOAD/**" },
-        { "path": "$DESKTOP/**" }
+        { "path": "$APPDATA/com.aiwriterstudio.app/**" },
+        { "path": "$APPDATA/com.aiwriterstudio.app" },
+        { "path": "$DOCUMENT/ai-writer-studio/**" },
+        { "path": "$DOCUMENT/ai-writer-studio" }
       ]
     }
   ]
