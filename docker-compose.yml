@@ -13,6 +13,7 @@
 #   Volume (ollama-data), keine Abhängigkeit vom Studio-Netzverkehr.
 # - Persistenz: Projekt-DB (sql.js/SQLite-Dateien) unter ./data/db,
 #   App-Logs (app-2026-09.log …) unter ./data/logs.
+# - Security: Non-root containers, read-only rootfs, dropped capabilities, resource limits.
 
 services:
   # ── AI Writer Studio (statischer Vite-Build + Reverse-Proxy) ──────────
@@ -26,7 +27,7 @@ services:
     ports:
       - "8080:80"
     volumes:
-      # Projekt-Datenbanken (sql.jspersistierte SQLite-Dateien)
+      # Projekt-Datenbanken (sql.js persistierte SQLite-Dateien)
       - ./data/db:/data/db
       # Rotierende Logdateien (app-YYYY-MM.log)
       - ./data/logs:/data/logs
@@ -49,16 +50,31 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+    # Security Hardening
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/run
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 256M
 
   # ── Ollama (isolierte lokale LLM-Instanz) ─────────────────────────────
   ollama:
     image: ollama/ollama:latest
     container_name: ai-writer-studio-ollama
     restart: unless-stopped
-    ports:
-      # Für die Browser-App: Ollama muss vom Host aus erreichbar sein
-      # (Browser-Fetch läuft außerhalb des Compose-Netzes).
-      - "127.0.0.1:11434:11434"
+    # KEIN Host-Port Mapping — nur intern über Compose-Netz erreichbar
+    # Browser-App nutzt VITE_OLLAMA_BASE_URL=http://localhost:11434
+    # → Host-Mapping nur temporär für Debugging: - "127.0.0.1:11434:11434"
+    ports: []
     volumes:
       - ollama-data:/root/.ollama
     environment:
@@ -77,6 +93,20 @@ services:
     #         - driver: nvidia
     #           count: all
     #           capabilities: [gpu]
+    # Security Hardening
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 8G
+        reservations:
+          cpus: '1.0'
+          memory: 2G
 
 volumes:
   ollama-data:
@@ -87,4 +117,4 @@ networks:
     name: ai-writer-studio-net
   ollama-net:
     name: ai-writer-studio-ollama-net
-    internal: false # Browser-Zugriff via Host-Port 11434
+    internal: false # Browser-Zugriff via Host-Port 11434 (nur bei ports-Mapping)

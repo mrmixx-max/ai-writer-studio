@@ -10,7 +10,7 @@ jobs:
     name: Typecheck · Lint · Test (+Coverage) · Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
 
       - uses: actions/setup-node@v4
         with:
@@ -22,6 +22,11 @@ jobs:
 
       - name: Security Audit (npm audit)
         run: npm audit --audit-level=high
+
+      - name: Secret Scan (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          config: .gitleaks.toml
 
       - name: Typecheck
         run: npm run typecheck
@@ -47,7 +52,7 @@ jobs:
     name: Playwright E2E
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.2.2
 
       - uses: actions/setup-node@v4
         with:
@@ -59,6 +64,11 @@ jobs:
 
       - name: Security Audit (npm audit)
         run: npm audit --audit-level=high
+
+      - name: Secret Scan (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          config: .gitleaks.toml
 
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
@@ -75,38 +85,62 @@ jobs:
           retention-days: 14
 
   tauri:
-      name: Tauri Build (Windows)
-      runs-on: windows-latest
-      steps:
-        - uses: actions/checkout@v4
+    name: Tauri Build (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
 
-        - uses: dtolnay/rust-toolchain@stable
-          with:
-            targets: x86_64-pc-windows-msvc
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
 
-        - uses: actions/setup-node@v4
-          with:
-            node-version: 22
-            cache: npm
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
 
-        - name: Install dependencies
-          run: npm ci --legacy-peer-deps
-          working-directory: ./src-tauri
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps
+        working-directory: ./src-tauri
 
-        - name: Cargo Security Audit
-          run: |
-            cargo install cargo-audit
-            cargo audit
-          working-directory: ./src-tauri
+      - name: Cargo Security Audit
+        uses: rustsec/audit-check@v1.2.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-        - name: Build Tauri App
-          uses: tauri-apps/tauri-action@v0
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          with:
-            tagName: v__VERSION__
-            releaseName: 'AI Writer Studio v__VERSION__'
-            releaseBody: 'See the assets to download this version and install.'
-            releaseDraft: true
-            prerelease: false
-            args: --target x86_64-pc-windows-msvc
+      - name: Build Tauri App
+        uses: tauri-apps/tauri-action@v0.59.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: v__VERSION__
+          releaseName: 'AI Writer Studio v__VERSION__'
+          releaseBody: 'See the assets to download this version and install.'
+          releaseDraft: true
+          prerelease: false
+          args: --target x86_64-pc-windows-msvc
+
+  # Container Security Scan
+  container-scan:
+    name: Container Security Scan
+    runs-on: ubuntu-latest
+    needs: [quality]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    steps:
+      - uses: actions/checkout@v4.2.2
+
+      - name: Build Docker Image
+        run: docker build -t ai-writer-studio:scan .
+
+      - name: Run Trivy Vulnerability Scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'ai-writer-studio:scan'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy Results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'

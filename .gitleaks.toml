@@ -1,0 +1,106 @@
+# .gitleaks.toml - Secret Detection Configuration
+# https://github.com/gitleaks/gitleaks
+
+[allowlist]
+description = "Allowlisted patterns that are not secrets"
+paths = [
+    "package-lock.json",
+    "yarn.lock",
+    "Cargo.lock",
+    "*.md",
+    "*.txt",
+    "docs/**",
+    "*.spec.ts",
+    "*.test.ts",
+    "e2e/**",
+    "*.lock",
+    "dist/**",
+    "build/**",
+    "coverage/**",
+    ".git/**",
+    "node_modules/**",
+    "target/**"
+]
+regexes = [
+    # Allow test/example credentials
+    '''(?i)(test|example|mock|fake|dummy|placeholder)[-_]?(key|secret|token|password)["']?\s*[:=]\s*["']?[a-z0-9]{10,}["']?''',
+    # Allow local dev URLs
+    '''(?i)(localhost|127\.0\.0\.1|0\.0\.0\.0)[:/]''',
+    # Allow obvious placeholders
+    '''(?i)(your[-_]?api[-_]?key|insert[-_]?key[-_]?here|change[-_]?me|xxx+)''',
+]
+
+[[rules]]
+description = "Generic API Key"
+regex = '''(?i)(api[-_]?key|apikey)["']?\s*[:=]\s*["']?[a-zA-Z0-9_\-]{20,}["']?'''
+tags = ["key", "api"]
+
+[[rules]]
+description = "Generic Secret"
+regex = '''(?i)(secret|secret[-_]?key)["']?\s*[:=]\s*["']?[a-zA-Z0-9_\-]{20,}["']?'''
+tags = ["secret"]
+
+[[rules]]
+description = "AWS Access Key ID"
+regex = '''(?i)(aws[-_]?access[-_]?key[-_]?id)["']?\s*[:=]\s*["']?(AKIA|ASIA|AROA|AIDA)[A-Z0-9]{16}["']?'''
+tags = ["aws", "key"]
+
+[[rules]]
+description = "AWS Secret Access Key"
+regex = '''(?i)(aws[-_]?secret[-_]?access[-_]?key)["']?\s*[:=]\s*["']?[A-Za-z0-9/+=]{40}["']?'''
+tags = ["aws", "secret"]
+
+[[rules]]
+description = "GitHub Personal Access Token"
+regex = '''(?i)(ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{36}'''
+tags = ["github", "token"]
+
+[[rules]]
+description = "GitHub OAuth Token"
+regex = '''(?i)(github[-_]?token)["']?\s*[:=]\s*["']?gh[ousr]_[A-Za-z0-9]{36}["']?'''
+tags = ["github", "token"]
+
+[[rules]]
+description = "Generic Bearer Token"
+regex = '''(?i)(bearer|token)["']?\s*[:=]\s*["']?[A-Za-z0-9_\-]{20,}["']?'''
+tags = ["token", "bearer"]
+
+[[rules]]
+description = "JWT Token"
+regex = '''(?i)(jwt|jwt[-_]?token)["']?\s*[:=]\s*["']?eyJ[A-Za-z0-9_\-]+\.eyJ[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+["']?'''
+tags = ["jwt", "token"]
+
+[[rules]]
+description = "Database Connection String"
+regex = '''(?i)(postgres|mysql|mongodb|redis|sqlserver)://[^:\s]+:[^@\s]+@[^/\s]+'''
+tags = ["database", "connection"]
+
+[[rules]]
+description = "Private Key"
+regex = '''(?i)(-----BEGIN (RSA|DSA|EC|OPENSSH) PRIVATE KEY-----)'''
+tags = ["private-key", "ssh"]
+
+[[rules]]
+description = "Slack Token"
+regex = '''(?i)(xox[baprs]-[A-Za-z0-9]{10,})'''
+tags = ["slack", "token"]
+
+[[rules]]
+description = "OpenAI API Key"
+regex = '''(?i)(sk-[A-Za-z0-9]{48,})'''
+tags = ["openai", "key"]
+
+[[rules]]
+description = "Amazon PA-API Credentials"
+regex = '''(?i)(accessKeyId|secretAccessKey|partnerTag)["']?\s*[:=]\s*["']?[A-Za-z0-9/+=]{20,}["']?'''
+tags = ["amazon", "paapi", "credentials"]
+
+[[rules]]
+description = "High Entropy String (Base64, 32+ chars)"
+regex = '''(?i)(password|passwd|pwd)["']?\s*[:=]\s*["']?[A-Za-z0-9+/=]{32,}["']?'''
+tags = ["password", "entropy"]
+
+[[rules]]
+description = "High Entropy String (Hex, 64+ chars)"
+regex = '''(?i)(secret|key|token)["']?\s*[:=]\s*["']?[A-Fa-f0-9]{64,}["']?'''
+tags = ["secret", "entropy"]

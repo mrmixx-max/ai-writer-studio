@@ -23,7 +23,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -37,10 +37,15 @@ jobs:
       - name: Security Audit (npm audit)
         run: npm audit --audit-level=high
 
+      - name: Secret Scan (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        with:
+          config: .gitleaks.toml
+
       - name: Cargo Security Audit
-        run: |
-          cargo install cargo-audit
-          cargo audit
+        uses: rustsec/audit-check@v1.2.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
         working-directory: ./src-tauri
 
       - name: Typecheck (tsc --noEmit)
