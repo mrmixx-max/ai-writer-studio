@@ -74,17 +74,32 @@ export interface RotationPlan {
  * Plant die Rotation: Wenn size >= maxBytes, werden bestehende rotierte
  * Dateien in absteigender Nummerierung eine Stufe weitergeschoben und die
  * aktive Datei wird zur .1.log (startet danach leer).
+ *
+ * `activeFile` ist injizierbar, damit diese Funktion KEINE echte Uhr liest
+ * (siehe Modul-Doku: deterministisch testbar). Ohne Angabe wird die aktive
+ * Monatsdatei von heute verwendet.
  */
 export function planRotation(
   size: number,
   maxBytes: number,
   existingRotated: string[] = [],
+  activeFile: string = monthlyLogFileName(),
 ): RotationPlan {
   if (size < maxBytes) return { rotate: false, renames: [] };
 
+  // Nur rotierte Dateien DESSELBEN Monats verschieben. Fremde Monate haben
+  // ihre eigene Rotationskette und dürfen nicht mitgezogen werden.
+  const active = parseMonthlyLogFileName(activeFile);
+  const sameMonth = active
+    ? existingRotated.filter((n) => {
+        const p = parseMonthlyLogFileName(n);
+        return p !== null && p.year === active.year && p.month === active.month;
+      })
+    : existingRotated;
+
   // Absteigend sortieren: höchste Rotationsnummer zuerst verschieben,
   // sonst überschreiben sich die Dateien gegenseitig.
-  const sorted = [...existingRotated].sort(
+  const sorted = [...sameMonth].sort(
     (a, b) =>
       (parseMonthlyLogFileName(b)?.rotated ?? 0) -
       (parseMonthlyLogFileName(a)?.rotated ?? 0),
@@ -96,13 +111,8 @@ export function planRotation(
     renames.push({ from: name, to: rotatedName(name), sequence: seq++ });
   }
   // Aktive Datei zuletzt (nach allen .n → .n+1 Verschiebungen).
-  renames.push({ from: monthlyLogFileName(), to: `${monthlyBaseName()}.1.log`, sequence: seq });
+  renames.push({ from: activeFile, to: rotatedName(activeFile), sequence: seq });
   return { rotate: true, renames };
-}
-
-function monthlyBaseName(): string {
-  // "app-2026-09" aus der aktiven Monatsdatei ableiten.
-  return monthlyLogFileName().replace(/\.log$/, "");
 }
 
 /** Standard-Größenlimit je Logdatei: 5 MiB. */

@@ -56,12 +56,16 @@ describe("rotatedName", () => {
 });
 
 describe("planRotation", () => {
+  // Feste aktive Datei: macht den Test unabhängig vom echten Kalenderdatum.
+  // Vorher las planRotation die echte Uhr und brach bei jedem Monatswechsel.
+  const ACTIVE = "app-2026-09.log";
+
   it("rotiert nicht unterhalb des Limits", () => {
     expect(planRotation(10, DEFAULT_MAX_FILE_BYTES - 1)).toEqual({ rotate: false, renames: [] });
   });
 
   it("rotiert ab Limit-Schwellwert (>= maxBytes)", () => {
-    const plan = planRotation(DEFAULT_MAX_FILE_BYTES, DEFAULT_MAX_FILE_BYTES);
+    const plan = planRotation(DEFAULT_MAX_FILE_BYTES, DEFAULT_MAX_FILE_BYTES, [], ACTIVE);
     expect(plan.rotate).toBe(true);
     // Aktive Datei wird .1.log; .1 wird .2 … (hier noch keine rotierten Dateien vorhanden)
     expect(plan.renames).toEqual([
@@ -73,12 +77,26 @@ describe("planRotation", () => {
     const plan = planRotation(DEFAULT_MAX_FILE_BYTES, DEFAULT_MAX_FILE_BYTES, [
       "app-2026-09.1.log",
       "app-2026-09.2.log",
-    ]);
+    ], ACTIVE);
     expect(plan.rotate).toBe(true);
     expect(plan.renames).toEqual([
       { from: "app-2026-09.2.log", to: "app-2026-09.3.log", sequence: 0 },
       { from: "app-2026-09.1.log", to: "app-2026-09.2.log", sequence: 1 },
       { from: "app-2026-09.log", to: "app-2026-09.1.log", sequence: 2 },
+    ]);
+  });
+
+  it("verschiebt keine rotierten Dateien fremder Monate", () => {
+    // Nur der aktive Monat hat eine eigene Rotationskette; ein Vormonat darf
+    // nicht in denselben Rename-Plan gezogen werden.
+    const plan = planRotation(DEFAULT_MAX_FILE_BYTES, DEFAULT_MAX_FILE_BYTES, [
+      "app-2026-08.1.log",
+      "app-2026-09.1.log",
+    ], ACTIVE);
+    expect(plan.rotate).toBe(true);
+    expect(plan.renames).toEqual([
+      { from: "app-2026-09.1.log", to: "app-2026-09.2.log", sequence: 0 },
+      { from: "app-2026-09.log", to: "app-2026-09.1.log", sequence: 1 },
     ]);
   });
 

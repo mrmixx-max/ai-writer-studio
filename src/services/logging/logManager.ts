@@ -123,13 +123,17 @@ export class LogManager implements LogSink {
     // 2) Rotation prüfen (NUR die aktive Datei)
     const size = this.flushedBytes.get(this.activeFile) ?? 0;
     const all = await a.list();
-    // Nur wirklich rotierte Dateien des aktuellen Monats — die aktive
-    // Datei selbst darf NICHT im Rename-Plan landen (Doppel-Rename).
+    // Nur wirklich rotierte Dateien des AKTIVEN Monats — die aktive Datei
+    // selbst darf NICHT im Rename-Plan landen (Doppel-Rename), und die
+    // Rotationsketten anderer Monate bleiben unangetastet.
+    const activeParsed = parseMonthlyLogFileName(this.activeFile);
     const rotated = all.filter((f) => {
       const p = parseMonthlyLogFileName(f);
-      return p !== null && p.rotated !== null;
+      if (p === null || p.rotated === null) return false;
+      if (!activeParsed) return true;
+      return p.year === activeParsed.year && p.month === activeParsed.month;
     });
-    const plan = planRotation(size, this.opts.maxFileBytes, rotated);
+    const plan = planRotation(size, this.opts.maxFileBytes, rotated, this.activeFile);
     if (plan.rotate) {
       for (const step of plan.renames) {
         await a.rename(step.from, step.to);
