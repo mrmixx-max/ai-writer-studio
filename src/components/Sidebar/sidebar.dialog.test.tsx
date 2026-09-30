@@ -26,7 +26,7 @@ vi.mock("@/store/projectStore", () => ({
     typeof sel === "function" ? sel(mockStoreState) : mockStoreState,
 }));
 
-vi.mock("@/services/project", () => ({
+vi.mock("@/types/project", () => ({
   listProjects: vi.fn(() => []),
   listChapters: vi.fn(() => []),
   createProject: vi.fn(() => ({ id: "p1", name: "P1" })),

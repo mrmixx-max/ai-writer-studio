@@ -11,7 +11,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { memo, act } from "react";
 import { render } from "@testing-library/react";
-import { ChapterRow, ProjectRow, Sidebar, type RowActions } from "./Sidebar";
+import { ChapterRow, ProjectRow } from "./components/ProjectTree";
+import { Sidebar } from "./Sidebar";
+import type { RowActions } from "./types";
 import { useProjectStore } from "@/store/projectStore";
 import type { Chapter, Project } from "@/types/project";
 
@@ -28,6 +30,8 @@ vi.mock("@/services/project", () => ({
   getChapterDecrypted: vi.fn(async () => null),
   updateChapter: vi.fn(async () => undefined),
   updateChapterFields: vi.fn(async () => undefined),
+  newProject: vi.fn(async (name: string) => ({ id: "p-new", name, createdAt: 0, updatedAt: 0 })),
+  newChapter: vi.fn(async (_pid: string, title: string) => ({ id: "c-new", title, content: "{}", projectId: _pid, orderIndex: 0, createdAt: 0, updatedAt: 0 })),
 }));
 
 const N = 200;
