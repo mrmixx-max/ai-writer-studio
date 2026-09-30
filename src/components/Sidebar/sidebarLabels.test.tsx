@@ -7,7 +7,7 @@ import { render, screen, within } from "@testing-library/react";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-vi.mock("@/types/project", () => ({
+vi.mock("@/services/project", () => ({
   listProjects: vi.fn(() => []) as never,
   listChapters: vi.fn(() => []) as never,
   createProject: vi.fn(async (name: string) => ({ id: "p-new", name, createdAt: 0, updatedAt: 0 })),

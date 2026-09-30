@@ -1,85 +1,498 @@
 // Sidebar mit Avantgarde-Modus-Switcher + Projekt-Baum.
 // Bloomberg-Terminal-Thema (Sprint 18, Agent 2): Stile in sidebar.css.
 import "./sidebar.css";
-
+import { memo, useCallback, useMemo, useState, useEffect, useRef, lazy, Suspense } from "react";
+import type { Project, Chapter } from "@/types/project";
+import type { TranslationChapter } from "@/services/bookwriter/translatorService";
 import { useProjectStore } from "@/store/projectStore";
+import { usePromptStore } from "@/store/promptStore";
 import { useI18n } from "@/i18n";
+import { AppDialog, type DialogRequest } from "@/components/Dialog/AppDialog";
+
+// Modi, die die Sidebar ebenfalls verbreitern ("wide") — als Set, damit die
+// JSX-Bedingung kurz bleibt und navigation.test.ts die Struktur pruefen kann.
+const WIDE_EXTRA_MODES = new Set<string>([
+  "research", "publishing", "investigate", "watermark", "tts",
+  "bookwriter", "markdown", "wordstats", "ideas",
+  "newspaper", "textquality", "bilingual", "amazon", "shortprose",
+  "templates", "voice", "style-analyzer", "websearch", "outliner",
+  "scene-breakdown", "feedback", "sessions", "backup", "search", "prompt-library",
+  "readability", "cloud-sync", "translator", "plot-analyzer", "mindmap", "summarizer",
+  "consistency", "repetition", "rewrite", "expand", "condense", "emotional-arc",
+  "hook", "tension", "character-arc", "pacing-map", "conflict-map", "story-structure",
+  "chat", "book-idea", "newspaper", "plugin-manager",
+]);
+
+// Lazy-loaded Panels — werden erst beim ersten Zugriff geladen
+const PromptGenerator = lazy(() =>
+  import("@/components/PromptGenerator/PromptGenerator").then((m) => ({ default: m.PromptGenerator }))
+);
+const KnowledgePanel = lazy(() =>
+  import("@/components/Knowledge/KnowledgePanel").then((m) => ({ default: m.KnowledgePanel }))
+);
+const DiagnosticsPanel = lazy(() =>
+  import("@/components/Diagnostics/DiagnosticsPanel").then((m) => ({ default: m.DiagnosticsPanel }))
+);
+const PreflightPanel = lazy(() =>
+  import("@/components/Preflight/PreflightPanel").then((m) => ({ default: m.PreflightPanel }))
+);
+const SnapshotPanel = lazy(() =>
+  import("@/components/Preflight/SnapshotPanel").then((m) => ({ default: m.SnapshotPanel }))
+);
+const KdpChecklistPanel = lazy(() =>
+  import("@/components/KDP/KdpChecklistPanel").then((m) => ({ default: m.KdpChecklistPanel }))
+);
+const PublishingAssistantPanel = lazy(() =>
+  import("@/components/Publishing/PublishingAssistantPanel").then((m) => ({ default: m.PublishingAssistantPanel }))
+);
+const FragmentPanel = lazy(() =>
+  import("@/components/Fragment/FragmentPanel").then((m) => ({ default: m.FragmentPanel }))
+);
+const VoiceLab = lazy(() =>
+  import("@/components/VoiceLab/VoiceLab").then((m) => ({ default: m.VoiceLab }))
+);
+const SemanticMap = lazy(() =>
+  import("@/components/SemanticMap/SemanticMap").then((m) => ({ default: m.SemanticMap }))
+);
+const DialoguePanel = lazy(() =>
+  import("@/components/Dialogue/DialoguePanel").then((m) => ({ default: m.DialoguePanel }))
+);
+const VersionsPanel = lazy(() =>
+  import("@/components/Versions/VersionsPanel").then((m) => ({ default: m.VersionsPanel }))
+);
+const ObstructionPanel = lazy(() =>
+  import("@/components/Obstruction/ObstructionPanel").then((m) => ({ default: m.ObstructionPanel }))
+);
+const DreamLogicPanel = lazy(() =>
+  import("@/components/DreamLogic/DreamLogicPanel").then((m) => ({ default: m.DreamLogicPanel }))
+);
+// Sprint 6 (Agent 5): BookWriter-Dashboard — eigener Modus mit Übersicht,
+// Live-Fortschritt und Steuerung. Braucht kein offenes Kapitel.
+const BookWriterDashboardPanel = lazy(() =>
+  import("@/components/BookWriter/BookWriterDashboard").then((m) => ({ default: m.BookWriterDashboardPanel }))
+);
+const ImageGenerationPanel = lazy(() =>
+  import("@/components/ImageGen/ImageGenPanel").then((m) => ({ default: m.ImageGenerationPanel }))
+);
+const CoverGenPanel = lazy(() =>
+  import("@/components/CoverGen/CoverGenPanel").then((m) => ({ default: m.CoverGenPanel }))
+);
+const BlurbGenPanel = lazy(() =>
+  import("@/components/BlurbGen/BlurbGenPanel").then((m) => ({ default: m.BlurbGenPanel }))
+);
+const ScientificWritingPanel = lazy(() =>
+  import("@/components/ScientificWriting/ScientificWritingPanel").then((m) => ({ default: m.ScientificWritingPanel }))
+);
+const TimelinePanel = lazy(() =>
+  import("@/components/Timeline/TimelinePanel").then((m) => ({ default: m.TimelinePanel }))
+);
+const WorldbuildingPanel = lazy(() =>
+  import("@/components/Worldbuilding/WorldbuildingPanel").then((m) => ({ default: m.WorldbuildingPanel }))
+);
+const InvestigatePanel = lazy(() =>
+  import("@/components/Writing/InvestigatePanel").then((m) => ({ default: m.InvestigatePanel }))
+);
+const WatermarkPanel = lazy(() =>
+  import("@/components/Writing/WatermarkPanel").then((m) => ({ default: m.WatermarkPanel }))
+);
+const TTSPanel = lazy(() =>
+  import("@/components/Writing/TTSPanel").then((m) => ({ default: m.TTSPanel }))
+);
+const TeleprompterPanel = lazy(() =>
+  import("@/components/Writing/TeleprompterPanel").then((m) => ({ default: m.TeleprompterPanel }))
+);
+const RedenschreiberPanel = lazy(() =>
+  import("@/components/Writing/RedenschreiberPanel").then((m) => ({ default: m.RedenschreiberPanel }))
+);
+const MarkdownViewerPanel = lazy(() =>
+  import("@/components/Writing/MarkdownViewerPanel").then((m) => ({ default: m.MarkdownViewerPanel }))
+);
+const WordStatsPanel = lazy(() =>
+  import("@/components/Writing/WordStatsPanel").then((m) => ({ default: m.WordStatsPanel }))
+);
+const IdeasPanel = lazy(() =>
+  import("@/components/Writing/IdeasPanel").then((m) => ({ default: m.IdeasPanel }))
+);
+const ConsistencyPanel = lazy(() =>
+  import("@/components/Consistency/ConsistencyPanel").then((m) => ({ default: m.ConsistencyPanel }))
+);
+const RepetitionPanel = lazy(() =>
+  import("@/components/Repetition/RepetitionPanel").then((m) => ({ default: m.RepetitionPanel }))
+);
+const RewritePanel = lazy(() =>
+  import("@/components/Rewrite/RewritePanel").then((m) => ({ default: m.RewritePanel }))
+);
+const ExpandPanel = lazy(() =>
+  import("@/components/Expand/ExpandPanel").then((m) => ({ default: m.ExpandPanel }))
+);
+const CondensePanel = lazy(() =>
+  import("@/components/Condense/CondensePanel").then((m) => ({ default: m.CondensePanel }))
+);
+const EmotionalArcPanel = lazy(() =>
+  import("@/components/Emotion/EmotionalArcPanel").then((m) => ({ default: m.EmotionalArcPanel }))
+);
+const HookPanel = lazy(() =>
+  import("@/components/Hook/HookPanel").then((m) => ({ default: m.HookPanel }))
+);
+const TensionCurvePanel = lazy(() =>
+  import("@/components/Tension/TensionCurvePanel").then((m) => ({ default: m.TensionCurvePanel }))
+);
+const CharacterArcPanel = lazy(() =>
+  import("@/components/Arc/CharacterArcPanel").then((m) => ({ default: m.CharacterArcPanel }))
+);
+const PacingMapPanel = lazy(() =>
+  import("@/components/Pacing/PacingMapPanel").then((m) => ({ default: m.PacingMapPanel }))
+);
+const ConflictMapPanel = lazy(() =>
+  import("@/components/Conflict/ConflictMapPanel").then((m) => ({ default: m.ConflictMapPanel }))
+);
+const StoryStructurePanel = lazy(() =>
+  import("@/components/Structure/StoryStructurePanel").then((m) => ({ default: m.StoryStructurePanel }))
+);
+const SceneBreakdownPanel = lazy(() =>
+  import("@/components/SceneBreakdown/SceneBreakdownPanel").then((m) => ({ default: m.SceneBreakdownPanel }))
+);
+const CharacterNetworkPanel = lazy(() =>
+  import("@/components/Network/CharacterNetworkPanel").then((m) => ({ default: m.CharacterNetworkPanel }))
+);
+const WritingPacePanel = lazy(() =>
+  import("@/components/Pace/WritingPacePanel").then((m) => ({ default: m.WritingPacePanel }))
+);
+const StyleAnalyzerPanel = lazy(() =>
+  import("@/components/StyleAnalyzer/StyleAnalyzerPanel").then((m) => ({ default: m.StyleAnalyzerPanel }))
+);
+const GenrePanel = lazy(() =>
+  import("@/components/Genre/GenrePanel").then((m) => ({ default: m.GenrePanel }))
+);
+const NewsGeneratorPanel = lazy(() =>
+  import("@/components/News/NewsGeneratorPanel").then((m) => ({ default: m.NewsGeneratorPanel }))
+);
+const BookIdeaPanel = lazy(() =>
+  import("@/components/BookIdea/BookIdeaPanel").then((m) => ({ default: m.BookIdeaPanel }))
+);
+const ChatPanel = lazy(() =>
+  import("@/components/Chat/ChatPanel").then((m) => ({ default: m.ChatPanel }))
+);
+const TextQualityPanel = lazy(() =>
+  import("@/components/BookWriter/TextQualityPanel").then((m) => ({ default: m.TextQualityPanel }))
+);
+const PluginManagerPanel = lazy(() =>
+  import("@/components/Plugin/PluginManagerPanel").then((m) => ({ default: m.PluginManagerPanel }))
+);
+const BilingualPanel = lazy(() =>
+  import("@/components/BookWriter/BilingualPanel").then((m) => ({ default: m.BilingualPanel }))
+);
+const ShortprosePanel = lazy(() =>
+  import("@/components/BookWriter/ShortprosePanel").then((m) => ({ default: m.ShortprosePanel }))
+);
+const CollabPanel = lazy(() =>
+  import("@/components/Collab/CollabPanel").then((m) => ({ default: m.CollabPanel }))
+);
+const TemplatePanel = lazy(() =>
+  import("@/components/Templates/TemplatePanel").then((m) => ({ default: m.TemplatePanel }))
+);
+const ResearchPanel = lazy(() =>
+  import("@/components/Research/ResearchPanel").then((m) => ({ default: m.ResearchPanel }))
+);
+const OutlinerPanel = lazy(() =>
+  import("@/components/Outliner/OutlinerPanel").then((m) => ({ default: m.OutlinerPanel }))
+);
+const AmazonPanel = lazy(() =>
+  import("@/components/Amazon/AmazonPanel").then((m) => ({ default: m.AmazonPanel }))
+);
+const CharactersPanel = lazy(() =>
+  import("@/components/Characters/CharactersPanel").then((m) => ({ default: m.CharactersPanel }))
+);
+// Sprint 22 (Agent 6): Stil-Analyse — Autoren-Vergleich, standalone (kein Kapitel nötig).
+const VoiceLabPanel = lazy(() =>
+  import("@/components/VoiceLab/VoiceLabPanel").then((m) => ({ default: m.VoiceLabPanel }))
+);
+const WebsearchPanel = lazy(() =>
+  import("@/components/Websearch/WebsearchPanel").then((m) => ({ default: m.WebsearchPanel }))
+);
+const ImporterPanel = lazy(() =>
+  import("@/components/Importer/ImporterPanel").then((m) => ({ default: m.ImporterPanel }))
+);
+// Sprint 23 (Agent 2): KI-Review — freier Text, standalone (kein Kapitel nötig).
+const FeedbackPanel = lazy(() =>
+  import("@/components/Feedback/FeedbackPanel").then((m) => ({ default: m.FeedbackPanel }))
+);
+// Sprint 24 (Agent 4): Prompt-Bibliothek — eigene Sammlung, standalone (kein Kapitel nötig).
+const PromptLibraryPanel = lazy(() =>
+  import("@/components/PromptLibrary/PromptLibraryPanel").then((m) => ({ default: m.PromptLibraryPanel }))
+);
+// Sprint 24 (Agent 5): Erweiterte Formatierung — Markdown-Toolbar + Shortcuts, standalone.
+const FormattingPanel = lazy(() =>
+  import("@/components/Formatting/FormattingPanel").then((m) => ({ default: m.FormattingPanel }))
+);
+// Sprint 24 (Agent 6): Automatisches Backup — Backup-Liste + Zeitplan, standalone.
+const BackupPanel = lazy(() =>
+  import("@/components/Backup/BackupPanel").then((m) => ({ default: m.BackupPanel }))
+);
+// Sprint 24 (Agent 3): Sitzungs-Manager — Sessions speichern/laden, standalone.
+const SessionPanel = lazy(() =>
+  import("@/components/Session/SessionPanel").then((m) => ({ default: m.SessionPanel }))
+);
+// Sprint 25 (Agent 4): Lesbarkeits-Metriken — 6 Metriken + Radar, standalone.
+const ReadabilityPanel = lazy(() =>
+  import("@/components/Readability/ReadabilityPanel").then((m) => ({ default: m.ReadabilityPanel }))
+);
+// Sprint 24 (Agent 1): Cloud-Sync — Dropbox/GDrive/OneDrive/WebDAV, standalone.
+const CloudSyncPanel = lazy(() =>
+  import("@/components/CloudSync/CloudSyncPanel").then((m) => ({ default: m.CloudSyncPanel }))
+);
+// Sprint 24 (Agent 2): Volltextsuche + Ersetzen — projektuebergreifend, standalone.
+const SearchPanel = lazy(() =>
+  import("@/components/Search/SearchPanel").then((m) => ({ default: m.SearchPanel }))
+);
+// Sprint 25 (Agent 1): Translator — DE↔EN mit Glossar, standalone.
+const TranslatorPanel = lazy(() =>
+  import("@/components/Translator/TranslatorPanel").then((m) => ({ default: m.TranslatorPanel }))
+);
+// Sprint 25 (Agent 2): Mindmap — interaktive Mindmap aus Text.
+const MindmapPanel = lazy(() =>
+  import("@/components/Mindmap/MindmapPanel").then((m) => ({ default: m.MindmapPanel }))
+);
+// Sprint 25 (Agent 3): Summarizer — Zusammenfassung mit Länge-Stufen.
+const SummarizerPanel = lazy(() =>
+  import("@/components/Summarizer/SummarizerPanel").then((m) => ({ default: m.SummarizerPanel }))
+);
+// Sprint 25 (Agent 5): Plot-Analyse — Handlungsstruktur + Konflikte, standalone.
+const PlotAnalyzerPanel = lazy(() =>
+  import("@/components/PlotAnalyzer/PlotAnalyzerPanel").then((m) => ({ default: m.PlotAnalyzerPanel }))
+);
+import {
+  renameProject, renameChapter, deleteProject, deleteChapter,
+} from "@/services/project";
 import type { EditorMode } from "@/types/mode";
 
-import { ModeSwitcher } from "./components/ModeSwitcher";
-import { ProjectTab } from "./components/ProjectTab";
-import { PromptTab } from "./components/PromptTab";
-import { ModePanel } from "./panels/ModePanel";
-import { useSidebarState, useModeValidation } from "./hooks/useSidebarState";
-import { isWideMode } from "./modeRegistry";
+const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = [
+  { id: "editor", key: "sidebar.mode.editor", icon: "📝", descKey: "sidebar.modeDesc.editor" },
+  { id: "prompts", key: "sidebar.mode.prompts", icon: "💡", descKey: "sidebar.modeDesc.prompts" },
+  { id: "knowledge", key: "sidebar.mode.knowledge", icon: "📚", descKey: "sidebar.modeDesc.knowledge" },
+  { id: "diagnostics", key: "sidebar.mode.diagnostics", icon: "🔍", descKey: "sidebar.modeDesc.diagnostics" },
+  { id: "preflight", key: "sidebar.mode.preflight", icon: "✅", descKey: "sidebar.modeDesc.preflight" },
+  { id: "snapshots", key: "sidebar.mode.snapshots", icon: "📂", descKey: "sidebar.modeDesc.snapshots" },
+  { id: "kdp", key: "sidebar.mode.kdp", icon: "🚀", descKey: "sidebar.modeDesc.kdp" },
+  { id: "publishing", key: "sidebar.mode.publishing", icon: "📦", descKey: "sidebar.modeDesc.publishing" },
+  { id: "fragments", key: "sidebar.mode.fragments", icon: "🧩", descKey: "sidebar.modeDesc.fragments" },
+  { id: "voices", key: "sidebar.mode.voices", icon: "🎭", descKey: "sidebar.modeDesc.voices" },
+  { id: "map", key: "sidebar.mode.map", icon: "🗺️", descKey: "sidebar.modeDesc.map" },
+  { id: "dialogue", key: "sidebar.mode.dialogue", icon: "💬", descKey: "sidebar.modeDesc.dialogue" },
+  { id: "versions", key: "sidebar.mode.versions", icon: "🕐", descKey: "sidebar.modeDesc.versions" },
+  { id: "obstruction", key: "sidebar.mode.obstruction", icon: "⛓️", descKey: "sidebar.modeDesc.obstruction" },
+  { id: "dream", key: "sidebar.mode.dream", icon: "🌙", descKey: "sidebar.modeDesc.dream" },
+  { id: "imagegen", key: "sidebar.mode.imagegen", icon: "🖼️", descKey: "sidebar.modeDesc.imagegen" },
+  { id: "covergen", key: "sidebar.mode.covergen", icon: "📚", descKey: "sidebar.modeDesc.covergen" },
+  { id: "blurbgen", key: "sidebar.mode.blurbgen", icon: "📝", descKey: "sidebar.modeDesc.blurbgen" },
+  { id: "scientificwriting", key: "sidebar.mode.scientificwriting", icon: "🎓", descKey: "sidebar.modeDesc.scientificwriting" },
+  { id: "timeline", key: "sidebar.mode.timeline", icon: "📅", descKey: "sidebar.modeDesc.timeline" },
+  { id: "characters", key: "sidebar.mode.characters", icon: "👥", descKey: "sidebar.modeDesc.characters" },
+  { id: "worldbuilding", key: "sidebar.mode.worldbuilding", icon: "🌍", descKey: "sidebar.modeDesc.worldbuilding" },
+  { id: "research", key: "sidebar.mode.research", icon: "🔎", descKey: "sidebar.modeDesc.research" },
+  { id: "investigate", key: "sidebar.mode.investigate", icon: "🕵️", descKey: "sidebar.modeDesc.investigate" },
+  { id: "watermark", key: "sidebar.mode.watermark", icon: "💧", descKey: "sidebar.modeDesc.watermark" },
+  { id: "tts", key: "sidebar.mode.tts", icon: "🔊", descKey: "sidebar.modeDesc.tts" },
+  { id: "bookwriter", key: "sidebar.mode.bookwriter", icon: "📖", descKey: "sidebar.modeDesc.bookwriter" },
+  { id: "redenschreiber", key: "sidebar.mode.redenschreiber", icon: "🎤", descKey: "sidebar.modeDesc.redenschreiber" },
+  { id: "teleprompter", key: "sidebar.mode.teleprompter", icon: "📜", descKey: "sidebar.modeDesc.teleprompter" },
+  { id: "markdown", key: "sidebar.mode.markdown", icon: "📝", descKey: "sidebar.modeDesc.markdown" },
+  { id: "wordstats", key: "sidebar.mode.wordstats", icon: "📊", descKey: "sidebar.modeDesc.wordstats" },
+  { id: "ideas", key: "sidebar.mode.ideas", icon: "💡", descKey: "sidebar.modeDesc.ideas" },
+  { id: "newspaper", key: "sidebar.mode.newspaper", icon: "📰", descKey: "sidebar.modeDesc.newspaper" },
+  { id: "textquality", key: "sidebar.mode.textquality", icon: "📊", descKey: "sidebar.modeDesc.textquality" },
+  { id: "bilingual", key: "sidebar.mode.bilingual", icon: "🌐", descKey: "sidebar.modeDesc.bilingual" },
+  { id: "amazon", key: "sidebar.mode.amazon", icon: "🛒", descKey: "sidebar.modeDesc.amazon" },
+  { id: "shortprose", key: "sidebar.mode.shortprose", icon: "✍️", descKey: "sidebar.modeDesc.shortprose" },
+  { id: "templates", key: "sidebar.mode.templates", icon: "📝", descKey: "sidebar.modeDesc.templates" },
+  { id: "collab", key: "sidebar.mode.collab", icon: "👥", descKey: "sidebar.modeDesc.collab" },
+  { id: "voice", key: "sidebar.mode.voice", icon: "🎙️", descKey: "sidebar.modeDesc.voice" },
+  { id: "style-analyzer", key: "sidebar.mode.style-analyzer", icon: "🎨", descKey: "sidebar.modeDesc.style-analyzer" },
+  { id: "importer", key: "sidebar.mode.importer", icon: "📥", descKey: "sidebar.modeDesc.importer" },
+  { id: "websearch", key: "sidebar.mode.websearch", icon: "🔍", descKey: "sidebar.modeDesc.websearch" },
+  { id: "outliner", key: "sidebar.mode.outliner", icon: "🌳", descKey: "sidebar.modeDesc.outliner" },
+  { id: "feedback", key: "sidebar.mode.feedback", icon: "🔍", descKey: "sidebar.modeDesc.feedback" },
+  { id: "cloud-sync", key: "sidebar.mode.cloud-sync", icon: "☁️", descKey: "sidebar.modeDesc.cloud-sync" },
+  { id: "sessions", key: "sidebar.mode.sessions", icon: "💾", descKey: "sidebar.modeDesc.sessions" },
+  { id: "formatting", key: "sidebar.mode.formatting", icon: "✨", descKey: "sidebar.modeDesc.formatting" },
+  { id: "backup", key: "sidebar.mode.backup", icon: "🔒", descKey: "sidebar.modeDesc.backup" },
+  { id: "search", key: "sidebar.mode.search", icon: "🔎", descKey: "sidebar.modeDesc.search" },
+  { id: "prompt-library", key: "sidebar.mode.prompt-library", icon: "💡", descKey: "sidebar.modeDesc.prompt-library" },
+  { id: "readability", key: "sidebar.mode.readability", icon: "📊", descKey: "sidebar.modeDesc.readability" },
+  { id: "translator", key: "sidebar.mode.translator", icon: "🌐", descKey: "sidebar.modeDesc.translator" },
+  { id: "plot-analyzer", key: "sidebar.mode.plot-analyzer", icon: "📈", descKey: "sidebar.modeDesc.plot-analyzer" },
+  { id: "mindmap", key: "sidebar.mode.mindmap", icon: "🧠", descKey: "sidebar.modeDesc.mindmap" },
+  { id: "summarizer", key: "sidebar.mode.summarizer", icon: "📝", descKey: "sidebar.modeDesc.summarizer" },
+  { id: "consistency", key: "sidebar.mode.consistency", icon: "🔍", descKey: "sidebar.modeDesc.consistency" },
+  { id: "repetition", key: "sidebar.mode.repetition", icon: "🔁", descKey: "sidebar.modeDesc.repetition" },
+  { id: "rewrite", key: "sidebar.mode.rewrite", icon: "✏️", descKey: "sidebar.modeDesc.rewrite" },
+  { id: "expand", key: "sidebar.mode.expand", icon: "📐", descKey: "sidebar.modeDesc.expand" },
+  { id: "condense", key: "sidebar.mode.condense", icon: "📉", descKey: "sidebar.modeDesc.condense" },
+  { id: "emotional-arc", key: "sidebar.mode.emotional-arc", icon: "💔", descKey: "sidebar.modeDesc.emotional-arc" },
+  { id: "scene-breakdown", key: "sidebar.mode.scene-breakdown", icon: "🎬", descKey: "sidebar.modeDesc.scene-breakdown" },
+  { id: "character-network", key: "sidebar.mode.character-network", icon: "🌐", descKey: "sidebar.modeDesc.character-network" },
+  { id: "writing-pace", key: "sidebar.mode.writing-pace", icon: "🏃", descKey: "sidebar.modeDesc.writing-pace" },
+  { id: "genre", key: "sidebar.mode.genre", icon: "🎭", descKey: "sidebar.modeDesc.genre" },
+  { id: "hook", key: "sidebar.mode.hook", icon: "🎣", descKey: "sidebar.modeDesc.hook" },
+  { id: "tension", key: "sidebar.mode.tension", icon: "📈", descKey: "sidebar.modeDesc.tension" },
+  { id: "character-arc", key: "sidebar.mode.character-arc", icon: "👤", descKey: "sidebar.modeDesc.character-arc" },
+  { id: "pacing-map", key: "sidebar.mode.pacing-map", icon: "🗺️", descKey: "sidebar.modeDesc.pacing-map" },
+  { id: "conflict-map", key: "sidebar.mode.conflict-map", icon: "⚔️", descKey: "sidebar.modeDesc.conflict-map" },
+  { id: "story-structure", key: "sidebar.mode.story-structure", icon: "📜", descKey: "sidebar.modeDesc.story-structure" },
+  { id: "plugin-manager", key: "sidebar.mode.plugin-manager", icon: "🧩", descKey: "sidebar.modeDesc.plugin-manager" },
+  { id: "book-idea", key: "sidebar.mode.book-idea", icon: "💡", descKey: "sidebar.modeDesc.book-idea" },
+  { id: "chat", key: "sidebar.mode.chat", icon: "💬", descKey: "sidebar.modeDesc.chat" },
+];
 
-/**
- * Sidebar — Hauptkomponente der linken Navigationsleiste.
- * 
- * Refactored: Aufgeteilt in:
- * - types.ts: TypeScript-Interfaces
- * - modeRegistry.ts: Zentrale Mode-Definitionen (65+ Modi)
- * - hooks/useSidebarState.tsx: State-Management & Actions
- * - components/ModeSwitcher.tsx: Modus-Schalter
- * - components/ProjectTab.tsx: Projekte-Tab
- * - components/PromptTab.tsx: Prompts-Tab
- * - components/ProjectTree.tsx: ProjectRow + ChapterRow (memoized)
- * - panels/ModePanel.tsx: Panel-Dispatcher für alle Modi
- * 
- * Ursprüngliche Größe: 756 Zeilen → jetzt ~150 Zeilen
- */
 export function Sidebar() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
+  const [tab, setTab] = useState<"projects" | "prompts">("projects");
+  const [mode, setMode] = useState<EditorMode>("editor");
+  // Bloomberg-Terminal (Sprint 18, Agent 2): Modi-Sektion ist kollabierbar.
+  // Standard: aufgeklappt — bestehende Navigation bleibt unverändert.
+  const [modesCollapsed, setModesCollapsed] = useState(false);
+
+  // In-App-Dialog (Sprint 32): Ersatz fuer window.prompt/confirm —
+  // native Dialoge existieren in Tauri-WebView2 nicht (prompt→null,
+  // confirm→false), alle Baum-Aktionen waren installiert tot.
+  const [dlg, setDlg] = useState<DialogRequest | null>(null);
+  const askPrompt = useCallback(
+    (label: string, initial = "") =>
+      new Promise<string | null>((resolve) => setDlg({ kind: "prompt", label, initial, resolve })),
+    [],
+  );
+  const askConfirm = useCallback(
+    (message: string) =>
+      new Promise<boolean>((resolve) => setDlg({ kind: "confirm", message, resolve })),
+    [],
+  );
+  const dlgEl = <AppDialog request={dlg} onDone={() => setDlg(null)} />;
   const activeProjectId = useProjectStore((s) => s.activeProjectId);
   const activeChapterId = useProjectStore((s) => s.activeChapterId);
   const projects = useProjectStore((s) => s.projects);
   const chapters = useProjectStore((s) => s.chapters);
+  const refresh = useProjectStore((s) => s.refresh);
+  const newProject = useProjectStore((s) => s.newProject);
+  const newChapter = useProjectStore((s) => s.newChapter);
+  const openProject = useProjectStore((s) => s.openProject);
+  const openChapter = useProjectStore((s) => s.openChapter);
+  const prompt = usePromptStore();
 
-  // State & Actions aus Hook
-  const [state, actions, rowActions, dlgEl, { askPrompt }] = useSidebarState();
-  const { tab, mode, modesCollapsed } = state;
-  const { setTab, setMode, toggleModesCollapsed } = actions;
+  // Stabilisierte Handler: Nur so kann memoized ProjectRow auf Rerenders
+  // der Sidebar verzichten, wenn sich Projekt-/Kapitelliste nicht geändert hat.
+  // tRef-Trick (Sprint 13): useI18n() ohne Provider liefert pro Render eine
+  // neue t-Identität — Deps auf `t` würden rowActions bei jedem Render
+  // invalidieren und das Row-Memo aushebeln. `lang` als Dep genügt, weil sich
+  // Labels nur beim Sprachwechsel ändern; die aktuelle t-Funktion wird per Ref
+  // zum Event-Zeitpunkt gelesen.
+  const tRef = useRef(t);
+  tRef.current = t;
 
-  // Mode-Validierung: prüft ob Projekt/Kapitel für aktuellen Modus vorhanden
-  const { valid: modeValid, fallback } = useModeValidation(mode, activeProjectId, activeChapterId);
+  const handleRenameProject = useCallback((id: string, name: string) => {
+    void (async () => {
+      const n = await askPrompt(tRef.current("sidebar.promptNewName"), name);
+      if (n) { renameProject(id, n); refresh(); }
+    })();
+  }, [refresh, lang, askPrompt]);
 
-  // ModeSwitcher-Handler: Editor/Prompts Tabs synchron halten
-  const handleModeChange = (newMode: EditorMode) => {
-    setMode(newMode);
-    if (newMode === "editor") setTab("projects");
-    if (newMode === "prompts") setTab("prompts");
-  };
+  const handleDeleteProject = useCallback((id: string) => {
+    void (async () => {
+      if (await askConfirm(tRef.current("sidebar.confirmDeleteProject"))) { deleteProject(id); refresh(); }
+    })();
+  }, [refresh, lang, askConfirm]);
 
-  // Breiten-Check für Sidebar-Klasse
-  const isWide = isWideMode(mode);
+  const handleRenameChapter = useCallback((pid: string, id: string, title: string) => {
+    void (async () => {
+      const n = await askPrompt(tRef.current("sidebar.promptNewName"), title);
+      if (n) { renameChapter(id, n); openProject(pid); }
+    })();
+  }, [openProject, lang, askPrompt]);
 
-  // Spezial-Modus: nicht Editor und nicht Prompts
+  const handleDeleteChapter = useCallback((pid: string, id: string) => {
+    void (async () => {
+      if (await askConfirm(tRef.current("sidebar.confirmDeleteChapter"))) { deleteChapter(id); openProject(pid); }
+    })();
+  }, [openProject, lang, askConfirm]);
+
+  const rowActions = useMemo<RowActions>(() => ({
+    onOpenProject: openProject,
+    onOpenChapter: openChapter,
+    onRenameProject: handleRenameProject,
+    onDeleteProject: handleDeleteProject,
+    onRenameChapter: handleRenameChapter,
+    onDeleteChapter: handleDeleteChapter,
+  }), [openProject, openChapter, handleRenameProject, handleDeleteProject, handleRenameChapter, handleDeleteChapter]);
+
+  useEffect(() => {
+    refresh();
+  }, []);
+
+  // Sprint 6 (Agent 5): Recovery-Dialog/Dashboard bitten per Fenster-Event um
+  // den Wechsel in den BookWriter-Modus (nach dem Öffnen des Projekts).
+  useEffect(() => {
+    const onOpenMode = (e: Event) => {
+      const target = (e as CustomEvent<string>).detail;
+      if (typeof target === "string" && target) setMode(target as EditorMode);
+    };
+    window.addEventListener("bookwriter:open-mode", onOpenMode);
+    return () => window.removeEventListener("bookwriter:open-mode", onOpenMode);
+  }, []);
+
+  // Avantgarde-Modus aktiv? Der Switcher wird weiter unten definiert und hier
+  // wiederverwendet — deshalb erst nach dessen Deklaration prüfen.
   const inSpecialMode = mode !== "editor" && mode !== "prompts";
 
-  // Fallback wenn Modus ungültig (z.B. BookWriter ohne Projekt/Kapitel)
-  if (!modeValid && fallback) {
-    setMode(fallback);
-    if (fallback === "editor") setTab("projects");
-  }
-
-  // ===== RENDER =====
-
-  // 1. Spezial-Modi (Knowledge, Diagnostics, BookWriter, etc.)
-  if (inSpecialMode) {
-    return (
-      <aside
-        id="app-sidebar"
-        tabIndex={-1}
-        aria-label={t("sidebar.listLabel")}
-        className={`sidebar${isWide ? " wide" : ""}`}
+  // Modus-Switcher — MUSS in jedem Zweig erscheinen, sonst sind die
+  // Spezialbereiche (Projektwissen, Fragmente, Stimmen …) unerreichbar.
+  // Genau dieser Fehler hat alle acht Modi unbenutzbar gemacht.
+  const switcher = (
+    <section className="sb-modes">
+      <button
+        className="sb-section-toggle"
+        aria-expanded={!modesCollapsed}
+        onClick={() => setModesCollapsed((v) => !v)}
       >
-        <ModeSwitcher
-          mode={mode}
-          modesCollapsed={modesCollapsed}
-          onModeChange={handleModeChange}
-          onToggleCollapsed={toggleModesCollapsed}
-        />
-        {dlgEl}
+        <span aria-hidden="true">{modesCollapsed ? "▸" : "▾"}</span> MODES
+      </button>
+      {!modesCollapsed && (
+        <nav className="mode-switcher" aria-label={t("sidebar.modesLabel")}>
+          {MODES.map((m) => {
+            const label = t(m.key as any);
+            return (
+              <button
+                key={m.id}
+                title={label}
+                aria-label={`${label} – ${t(m.descKey as any)}`}
+                aria-pressed={mode === m.id}
+                data-mode={m.id}
+                className={mode === m.id ? "active" : ""}
+                onClick={() => {
+                  setMode(m.id);
+                  // Editor und Prompts sind gleichzeitig Tabs — synchron halten.
+                  if (m.id === "editor") setTab("projects");
+                  if (m.id === "prompts") setTab("prompts");
+                }}
+              >
+                <span aria-hidden="true">{m.icon}</span>
+                <span className="sb-label">{label}</span>
+              </button>
+            );
+          })}
+        </nav>
+      )}
+    </section>
+  );
+
+  if (inSpecialMode) {
+    // Zwei verkürzte Prädikate statt einer Riesen-Bedingung im JSX: Gleiche
+    // Logik, aber die textlastigen Kern-Modi bleiben strukturell nahe an der
+    // "wide"-Klasse (so prueft es navigation.test.ts).
+    const wideCore = mode === "knowledge" || mode === "diagnostics" || mode === "preflight" || mode === "snapshots" || mode === "kdp";
+    const wideExtra = WIDE_EXTRA_MODES.has(mode);
+    return (
+      <aside id="app-sidebar" tabIndex={-1} aria-label={t("sidebar.listLabel")} className={`sidebar${wideCore || wideExtra ? " wide" : ""}`}>
+        {switcher}
+      {dlgEl}
         <div className="sidebar-content">
           <ModePanel mode={mode} projectId={activeProjectId} chapterId={activeChapterId} />
         </div>
@@ -87,46 +500,257 @@ export function Sidebar() {
     );
   }
 
-  // 2. Prompts-Tab
   if (tab === "prompts") {
     return (
-      <PromptTab
-        onSwitchToProjects={() => {
-          setTab("projects");
-          setMode("editor");
-        }}
-      />
+      <aside id="app-sidebar" tabIndex={-1} aria-label={t("sidebar.listLabel")} className="sidebar">
+        {switcher}
+      {dlgEl}
+        <nav className="sidebar-tabs">
+          <button onClick={() => { setTab("projects"); setMode("editor"); }}>{t("sidebar.projectsTab")}</button>
+          <button className="active" aria-current="page" onClick={() => prompt.set("tab", "generate")}>{t("sidebar.promptsTab")}</button>
+        </nav>
+        <div className="sidebar-content"><Suspense fallback={<div className="mode-placeholder">{t("sidebar.loading")}</div>}><PromptGenerator /></Suspense></div>
+      </aside>
     );
   }
 
-  // 3. Standard: Projects-Tab (Editor-Modus)
   return (
-    <ProjectTab
-      projects={projects}
-      activeProjectId={activeProjectId}
-      activeChapterId={activeChapterId}
-      chapters={chapters}
-      rowActions={rowActions}
-      onNewProject={() => {
-        void (async () => {
-          const n = await askPrompt(t("sidebar.promptProjectName"));
-          if (n) {
-            useProjectStore.getState().newProject(n);
-          }
-        })();
-      }}
-      onNewChapter={() => {
-        void (async () => {
-          const n = await askPrompt(t("sidebar.promptChapterTitle"));
-          if (n) {
-            useProjectStore.getState().newChapter(n);
-          }
-        })();
-      }}
-      onSwitchToPrompts={() => {
-        setTab("prompts");
-        setMode("prompts");
-      }}
-    />
+    <aside id="app-sidebar" tabIndex={-1} aria-label={t("sidebar.listLabel")} className="sidebar">
+      {switcher}
+      {dlgEl}
+      <nav className="sidebar-tabs">
+        <button className="active" aria-current="page" onClick={() => setTab("projects")}>{t("sidebar.projectsTab")}</button>
+        <button onClick={() => { setTab("prompts"); setMode("prompts"); }}>{t("sidebar.promptsTab")}</button>
+      </nav>
+      <div className="sidebar-content">
+        <div className="project-toolbar">
+          <button onClick={() => { void (async () => { const n = await askPrompt(t("sidebar.promptProjectName")); if (n) newProject(n); })(); }}>{t("sidebar.newProject")}</button>
+          {activeProjectId && (
+            <button onClick={() => { void (async () => { const t2 = await askPrompt(t("sidebar.promptChapterTitle")); if (t2) newChapter(t2); })(); }}>{t("sidebar.newChapter")}</button>
+          )}
+        </div>
+        <ul className="project-tree">
+          {projects.map((p) => (
+            <ProjectRow
+              key={p.id}
+              project={p}
+              active={activeProjectId === p.id}
+              activeChapterId={activeChapterId}
+              chapters={activeProjectId === p.id ? chapters : EMPTY_CHAPTERS}
+              actions={rowActions}
+            />
+          ))}
+        </ul>
+      </div>
+    </aside>
   );
+}
+
+// Rendert das Panel für den aktiven Avantgarde-Modus.
+// ---------------------------------------------------------------------------
+// Memoized Listenzeilen: Ein Tastendruck im Editor rerendert die Sidebar, aber
+// nicht jede Projekt-/Kapitelzeile neu, solange sich die Props nicht ändern.
+// ---------------------------------------------------------------------------
+
+const EMPTY_CHAPTERS: Chapter[] = [];
+
+export type RowActions = {
+  onOpenProject: (id: string) => void;
+  onOpenChapter: (id: string) => void;
+  onRenameProject: (id: string, name: string) => void;
+  onDeleteProject: (id: string) => void;
+  onRenameChapter: (projectId: string, id: string, title: string) => void;
+  onDeleteChapter: (projectId: string, id: string) => void;
+};
+
+export const ChapterRow = memo(function ChapterRow({
+  chapter, projectId, active, actions,
+}: {
+  chapter: Chapter;
+  projectId: string;
+  active: boolean;
+  actions: RowActions;
+}) {
+  const { t } = useI18n();
+  return (
+    <li className={active ? "active" : ""}>
+      <div
+        className="node"
+        role="button"
+        tabIndex={0}
+        aria-label={t("sidebar.openChapter", { title: chapter.title })}
+        onClick={() => actions.onOpenChapter(chapter.id)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); actions.onOpenChapter(chapter.id); }
+        }}
+      >
+        📄 {chapter.title}
+        <span className="node-actions">
+          <button aria-label={t("sidebar.renameChapter", { title: chapter.title })} onClick={(e) => { e.stopPropagation(); actions.onRenameChapter(projectId, chapter.id, chapter.title); }}>✎</button>
+          <button aria-label={t("sidebar.deleteChapter", { title: chapter.title })} onClick={(e) => { e.stopPropagation(); actions.onDeleteChapter(projectId, chapter.id); }}>🗑</button>
+        </span>
+      </div>
+    </li>
+  );
+});
+
+export const ProjectRow = memo(function ProjectRow({
+  project, active, activeChapterId, chapters, actions,
+}: {
+  project: Project;
+  active: boolean;
+  activeChapterId: string | null;
+  chapters: Chapter[];
+  actions: RowActions;
+}) {
+  const { t } = useI18n();
+  return (
+    <li className={active ? "active" : ""}>
+      <div
+        className="node"
+        role="button"
+        tabIndex={0}
+        aria-label={t("sidebar.openProject", { name: project.name })}
+        onClick={() => actions.onOpenProject(project.id)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); actions.onOpenProject(project.id); }
+        }}
+      >
+        📁 {project.name}
+        <span className="node-actions">
+          <button aria-label={t("sidebar.renameProject", { name: project.name })} onClick={(e) => { e.stopPropagation(); actions.onRenameProject(project.id, project.name); }}>✎</button>
+          <button aria-label={t("sidebar.deleteProject", { name: project.name })} onClick={(e) => { e.stopPropagation(); actions.onDeleteProject(project.id); }}>🗑</button>
+        </span>
+      </div>
+      {active && (
+        <ul className="chapter-tree">
+          {chapters.map((c) => (
+            <ChapterRow
+              key={c.id}
+              chapter={c}
+              projectId={project.id}
+              active={activeChapterId === c.id}
+              actions={actions}
+            />
+          ))}
+        </ul>
+      )}
+    </li>
+  );
+});
+
+function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId: string | null; chapterId: string | null }) {
+  const { t } = useI18n();
+  const chapter = useProjectStore((s) => 
+    s.chapters.find((c) => c.id === s.activeChapterId) as TranslationChapter | undefined
+  );
+  const panel = (() => {
+    if (mode === "knowledge") return <KnowledgePanel projectId={projectId} />;
+    if (mode === "research") return <ResearchPanel projectId={projectId} />;
+    if (mode === "diagnostics") return <DiagnosticsPanel projectId={projectId} chapterId={chapterId} />;
+    if (mode === "preflight") return <PreflightPanel projectId={projectId} chapterId={chapterId} />;
+    if (mode === "snapshots") return <SnapshotPanel projectId={projectId} />;
+    if (mode === "kdp") return <KdpChecklistPanel projectId={projectId} />;
+    if (mode === "publishing") return <PublishingAssistantPanel projectId={projectId} />;
+    // Sprint 6 (Agent 5): BookWriter-Dashboard braucht kein offenes Kapitel —
+    // es arbeitet projektübergreifend auf dem Job-Store.
+    if (mode === "bookwriter") return <BookWriterDashboardPanel />;
+    // Sprint 19f: Amazon-Panel braucht kein offenes Kapitel (projektübergreifend).
+    if (mode === "amazon") return <AmazonPanel />;
+    // Sprint 20 (Agent 2): Kurzprosa-Generator braucht kein offenes Kapitel.
+    if (mode === "shortprose") return <ShortprosePanel projectId={projectId ?? undefined} chapterId={chapterId ?? undefined} />;
+    // Sprint 20 (Agent 2): Voice-Lab braucht kein offenes Kapitel (Aufnahme + Transkription standalone).
+    if (mode === "voice") return <VoiceLabPanel />;
+    // Sprint 20 (Agent 3): Collab-Panel braucht kein offenes Kapitel (projektbezogen).
+    if (mode === "collab") return <CollabPanel projectId={projectId ?? undefined} />;
+    // Sprint 20 (Agent 5): Template-Panel braucht kein offenes Kapitel (projektübergreifend).
+    if (mode === "templates") return <TemplatePanel />;
+    // Sprint 22 (Agent 5): Outliner braucht kein offenes Kapitel (eigene Gliederung).
+    if (mode === "outliner") return <OutlinerPanel />;
+    // Sprint 22 (Agent 1): Importer arbeitet dateibasiert (projektübergreifend).
+    if (mode === "importer") return <ImporterPanel />;
+    // Sprint 22 (Agent 6): Stil-Analyse arbeitet auf freiem Text (standalone).
+    if (mode === "style-analyzer") return <StyleAnalyzerPanel />;
+    // Sprint 22 (Agent 3): Web-Recherche braucht kein offenes Kapitel (projektuebergreifend).
+    if (mode === "websearch") return <WebsearchPanel />;
+    // Sprint 23 (Agent 2): KI-Review arbeitet auf freiem Text (standalone).
+    if (mode === "feedback") return <FeedbackPanel />;
+    // Sprint 24 (Agent 4): Prompt-Bibliothek arbeitet auf eigener Sammlung (standalone).
+    if (mode === "prompt-library") return <PromptLibraryPanel />;
+    // Sprint 24 (Agent 5): Formatierung arbeitet auf freiem Text (standalone).
+    if (mode === "formatting") return <FormattingPanel />;
+    // Sprint 24 (Agent 6): Backup arbeitet projektuebergreifend (standalone).
+    if (mode === "backup") return <BackupPanel />;
+    // Sprint 24 (Agent 3): Sitzungs-Manager arbeitet projektuebergreifend (standalone).
+    if (mode === "sessions") return <SessionPanel />;
+    // Sprint 24 (Agent 1): Cloud-Sync arbeitet projektuebergreifend (standalone).
+    if (mode === "cloud-sync") return <CloudSyncPanel />;
+    // Sprint 24 (Agent 2): Volltextsuche arbeitet projektuebergreifend (standalone).
+    if (mode === "search") return <SearchPanel />;
+    // Sprint 25 (Agent 4): Lesbarkeit arbeitet auf freiem Text (standalone).
+    if (mode === "readability") return <ReadabilityPanel />;
+    // Sprint 25 (Agent 1): Translator arbeitet auf freiem Text (standalone).
+    if (mode === "translator") return <TranslatorPanel />;
+    // Sprint 25 (Agent 2): Mindmap — interaktive Mindmap aus Text.
+    if (mode === "mindmap") return <MindmapPanel />;
+    // Sprint 25 (Agent 3): Summarizer — Zusammenfassung mit Länge-Stufen.
+    if (mode === "summarizer") return <SummarizerPanel />;
+    // Sprint 25 (Agent 5): Plot-Analyse — Handlungsstruktur + Konflikte, standalone.
+    if (mode === "plot-analyzer") return <PlotAnalyzerPanel />;
+    // Sprint 29: Chat, Buchideen, News und Plugin-Manager sind standalone
+    // (eigenes Eingabefeld) — duerfen NICHT hinter den Kapitel-Guard.
+    if (mode === "chat") return <ChatPanel />;
+    if (mode === "book-idea") return <BookIdeaPanel />;
+    if (mode === "newspaper") return <NewsGeneratorPanel />;
+    if (mode === "plugin-manager") return <PluginManagerPanel />;
+    // Sprint 32: Redenschreiber + Teleprompter (Voice-Features, standalone)
+    if (mode === "redenschreiber") return <RedenschreiberPanel />;
+    if (mode === "teleprompter") return <TeleprompterPanel />;
+    if (!projectId || !chapterId) {
+      return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
+    }
+    switch (mode) {
+      case "fragments": return <FragmentPanel chapterId={chapterId} />;
+      case "voices": return <VoiceLab text="(Text aus Editor wählen)" />;
+      case "map": return <SemanticMap projectId={projectId} />;
+      case "versions": return <VersionsPanel chapterId={chapterId} content="(Inhalt)" />;
+      case "obstruction": return <ObstructionPanel text="(Text aus Editor wählen)" />;
+      case "dream": return <DreamLogicPanel text="(Text aus Editor wählen)" />;
+      case "imagegen": return <ImageGenerationPanel />;
+      case "covergen": return <CoverGenPanel />;
+      case "blurbgen": return <BlurbGenPanel />;
+      case "scientificwriting": return <ScientificWritingPanel />;
+      case "timeline": return <TimelinePanel projectId={projectId} />;
+      case "characters": return <CharactersPanel projectId={projectId} />;
+      case "worldbuilding": return <WorldbuildingPanel projectId={projectId} />;
+      case "investigate": return <InvestigatePanel />;
+      case "watermark": return <WatermarkPanel />;
+      case "tts": return <TTSPanel />;
+      case "markdown": return <MarkdownViewerPanel />;
+      case "wordstats": return <WordStatsPanel />;
+      case "ideas": return <IdeasPanel />;
+      case "consistency": return <ConsistencyPanel />;
+      case "repetition": return <RepetitionPanel />;
+      case "rewrite": return <RewritePanel />;
+      case "expand": return <ExpandPanel />;
+      case "condense": return <CondensePanel />;
+      case "emotional-arc": return <EmotionalArcPanel />;
+      case "hook": return <HookPanel />;
+      case "tension": return <TensionCurvePanel />;
+      case "character-arc": return <CharacterArcPanel />;
+      case "pacing-map": return <PacingMapPanel />;
+      case "conflict-map": return <ConflictMapPanel />;
+      case "story-structure": return <StoryStructurePanel />;
+      case "scene-breakdown": return <SceneBreakdownPanel />;
+      case "dialogue": return <DialoguePanel />;
+      case "character-network": return <CharacterNetworkPanel />;
+      case "writing-pace": return <WritingPacePanel />;
+      case "genre": return <GenrePanel />;
+      case "textquality": return <TextQualityPanel projectId={projectId} chapterId={chapterId} />;
+      case "bilingual": return chapter ? <BilingualPanel chapter={chapter} /> : <div className="mode-placeholder">Bitte ein Kapitel auswählen</div>;
+      default: return null;
+    }
+  })();
+
+  return <Suspense fallback={<div className="mode-placeholder">{t("sidebar.loading")}</div>}>{panel}</Suspense>;
 }

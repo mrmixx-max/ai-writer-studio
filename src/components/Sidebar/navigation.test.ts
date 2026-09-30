@@ -1,7 +1,13 @@
-// Tests: Sidebar-Navigation (refactored).
+// Tests: Sidebar-Navigation.
 //
-// Nach dem Refactoring (Sprint 18) ist die Sidebar in eigenständige
-// Komponenten aufgeteilt. Diese Tests prüfen die neue Struktur.
+// Anlass: Der Modus-Switcher war nur in dem Zweig gerendert, den man erst NACH
+// einem Moduswechsel erreicht. Dadurch waren alle acht Spezialbereiche
+// (Projektwissen, Fragmente, Stimmen, Karte, Dialog, Versionen, Obstruktion,
+// Traumlogik) unerreichbar — bei grüner Typprüfung und grünen Tests.
+//
+// Diese Tests prüfen die Navigationsstruktur, damit derselbe Fehler nicht
+// unbemerkt zurückkommt. Kein DOM-Rendering: geprüft wird die Quelldatei,
+// weil genau die Struktur das Problem war, nicht das Verhalten einer Funktion.
 
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
@@ -12,105 +18,79 @@ const SIDEBAR = readFileSync(
   "utf-8",
 );
 
-const MODE_REGISTRY = readFileSync(
-  join(process.cwd(), "src/components/Sidebar/modeRegistry.ts"),
+const MODE_TYPES = readFileSync(
+  join(process.cwd(), "src/types/mode.ts"),
   "utf-8",
 );
 
 describe("Modus-Switcher ist erreichbar", () => {
-  it("wird als ModeSwitcher-Komponente importiert und gerendert", () => {
-    // ModeSwitcher wird importiert
-    expect(SIDEBAR).toContain("import { ModeSwitcher }");
-    // Und im Spezial-Modus-Zweig gerendert
-    expect(SIDEBAR).toContain("<ModeSwitcher");
+  it("wird als gemeinsame Variable definiert, nicht je Zweig kopiert", () => {
+    // Eine einzige Definition verhindert, dass Zweige auseinanderlaufen.
+    const defs = SIDEBAR.match(/const switcher =/g) ?? [];
+    expect(defs.length).toBe(1);
   });
 
-  it("erscheint im Spezial-Modus-Zweig (inSpecialMode)", () => {
-    // Der ModeSwitcher wird im Spezial-Modus-Zweig gerendert
-    const specialModeIndex = SIDEBAR.indexOf("inSpecialMode");
-    const switcherIndex = SIDEBAR.indexOf("<ModeSwitcher");
-    expect(specialModeIndex).toBeGreaterThan(-1);
-    expect(switcherIndex).toBeGreaterThan(specialModeIndex);
-  });
-});
-
-describe("Alle Modi sind in der Registry definiert", () => {
-  it("hat 65+ Modi in MODES Array", () => {
-    const modeMatches = MODE_REGISTRY.match(/id:\s*"[^"]+"/g) ?? [];
-    expect(modeMatches.length).toBeGreaterThanOrEqual(65);
+  it("erscheint in jedem der drei Rückgabezweige", () => {
+    // Jeder return-Zweig der Sidebar muss {switcher} enthalten, sonst ist der
+    // Bereich, in dem man gerade steckt, eine Falle ohne Ausweg.
+    const uses = SIDEBAR.match(/\{switcher\}/g) ?? [];
+    expect(uses.length).toBe(3);
   });
 
-  it("enthält knowledge Modus", () => {
-    expect(MODE_REGISTRY).toContain('id: "knowledge"');
+  it("enthält jeden Modus aus dem Typ genau einmal in MODES", () => {
+    // Verhindert, dass ein neuer Modus im Typ landet, aber nicht im Switcher —
+    // dann wäre er wieder unerreichbar.
+    const typeModes = [...MODE_TYPES.matchAll(/\|\s*"([a-z]+)"/g)].map((m) => m[1]);
+    expect(typeModes.length).toBeGreaterThanOrEqual(10);
+
+    for (const mode of typeModes) {
+      const entries = SIDEBAR.match(new RegExp(`id:\\s*"${mode}"`, "g")) ?? [];
+      expect(entries.length, `Modus "${mode}" fehlt in MODES`).toBe(1);
+    }
   });
 
-  it("enthält diagnostics Modus", () => {
-    expect(MODE_REGISTRY).toContain('id: "diagnostics"');
-  });
-
-  it("enthält preflight Modus", () => {
-    expect(MODE_REGISTRY).toContain('id: "preflight"');
-  });
-
-  it("enthält snapshots Modus", () => {
-    expect(MODE_REGISTRY).toContain('id: "snapshots"');
-  });
-
-  it("enthält kdp Modus", () => {
-    expect(MODE_REGISTRY).toContain('id: "kdp"');
-  });
-
-  it("enthält bookwriter Modus", () => {
-    expect(MODE_REGISTRY).toContain('id: "bookwriter"');
-  });
-
-  it("enthält standalone-Modi (publishing, amazon, etc.)", () => {
-    expect(MODE_REGISTRY).toContain('id: "publishing"');
-    expect(MODE_REGISTRY).toContain('id: "amazon"');
-    expect(MODE_REGISTRY).toContain('id: "shortprose"');
-    expect(MODE_REGISTRY).toContain('id: "voice"');
+  it("führt knowledge im Modus-Typ", () => {
+    expect(MODE_TYPES).toContain('"knowledge"');
   });
 });
 
-describe("Sidebar-Breite über modeRegistry", () => {
-  it("nutzt isWideMode aus modeRegistry", () => {
-    expect(SIDEBAR).toContain("import { isWideMode");
-    expect(SIDEBAR).toContain("isWideMode(mode)");
+describe("Projektwissen braucht kein offenes Kapitel", () => {
+  it("wird vor der Kapitelprüfung behandelt", () => {
+    // Projektwissen arbeitet auf Projektebene. Läge die Behandlung nach der
+    // Prüfung auf chapterId, wäre der Bereich bei leerem Projekt gesperrt —
+    // also genau dann, wenn man ihn zum Aufbau am nötigsten braucht.
+    const knowledgeCheck = SIDEBAR.indexOf('mode === "knowledge"');
+    const chapterGuard = SIDEBAR.indexOf("!projectId || !chapterId");
+
+    expect(knowledgeCheck).toBeGreaterThan(-1);
+    expect(chapterGuard).toBeGreaterThan(-1);
+    expect(knowledgeCheck).toBeLessThan(chapterGuard);
   });
 
-  it("hat wide-Klasse im Stylesheet", () => {
+  it("übergibt projectId an das Panel", () => {
+    expect(SIDEBAR).toMatch(/<KnowledgePanel\s+projectId=\{projectId\}/);
+  });
+});
+
+describe("Sidebar-Breite", () => {
+  it("verbreitert sich in den textlastigen Modi", () => {
+    // 320 px sind für Fließtext (Suchtreffer, KI-Antworten, Befundlisten)
+    // unlesbar. Projektwissen, Manuskriptprüfung, Exportprüfung, Snapshots
+    // und KDP brauchen mehr Platz.
+    expect(SIDEBAR).toContain('" wide"');
+    expect(SIDEBAR).toMatch(/mode === "knowledge"[\s\S]{0,300}" wide"/);
+    expect(SIDEBAR).toMatch(/mode === "diagnostics"[\s\S]{0,300}" wide"/);
+    expect(SIDEBAR).toMatch(/mode === "preflight"[\s\S]{0,300}" wide"/);
+    expect(SIDEBAR).toMatch(/mode === "snapshots"[\s\S]{0,300}" wide"/);
+    expect(SIDEBAR).toMatch(/mode === "kdp"[\s\S]{0,300}" wide"/);
+  });
+
+  it("hat die wide-Klasse im Stylesheet", () => {
     const css = readFileSync(
       join(process.cwd(), "src/components/Sidebar/sidebar.css"),
       "utf-8",
     );
     expect(css).toContain(".sidebar.wide");
     expect(css).toMatch(/\.sidebar\.wide\s*\{[^}]*width:\s*4\d\dpx/);
-  });
-});
-
-describe("ModePanel wird für alle Spezial-Modi gerendert", () => {
-  it("rendert ModePanel im Spezial-Modus-Zweig", () => {
-    expect(SIDEBAR).toContain("<ModePanel");
-    const panelIndex = SIDEBAR.indexOf("<ModePanel");
-    const specialModeIndex = SIDEBAR.indexOf("inSpecialMode");
-    expect(panelIndex).toBeGreaterThan(specialModeIndex);
-  });
-
-  it("übergeben projectId und chapterId an ModePanel", () => {
-    expect(SIDEBAR).toContain("projectId={activeProjectId}");
-    expect(SIDEBAR).toContain("chapterId={activeChapterId}");
-  });
-});
-
-describe("Mode-Validierung", () => {
-  it("nutzt useModeValidation Hook", () => {
-    expect(SIDEBAR).toContain("import { useSidebarState, useModeValidation }");
-    expect(SIDEBAR).toContain("useModeValidation(");
-  });
-
-  it("hat Fallback-Logik für ungültige Modi", () => {
-    expect(SIDEBAR).toContain("modeValid");
-    expect(SIDEBAR).toContain("fallback");
-    expect(SIDEBAR).toContain("setMode(fallback)");
   });
 });

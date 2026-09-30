@@ -10,7 +10,7 @@ import { join } from "node:path";
 
 const C1 = { id: "c1", title: "Kapitel 1", content: "{}", projectId: "p1", orderIndex: 0, createdAt: 0, updatedAt: 0, status: "planned" as const, targetWordCount: 2000, minimumWordCount: 1600, maximumWordCount: 2400, currentWordCount: 0 };
 
-vi.mock("@/types/project", () => ({
+vi.mock("@/services/project", () => ({
   listProjects: vi.fn(() => [
     { id: "p1", name: "Mein Roman", createdAt: 0, updatedAt: 0 },
     { id: "p2", name: "Zweites Projekt", createdAt: 0, updatedAt: 0 },

@@ -23,7 +23,28 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      // Eindeutige React-Aliase auf das Root-node_modules: verhindert, dass
+      // Peer-Dependencies (@tiptap/react, zustand) eine zweite React-Instanz
+      // auflösen. Zwei Instanzen => zwei ReactSharedInternals-Dispatcher =>
+      // "Invalid hook call" / "Cannot read properties of null (reading 'useState')".
+      react: path.resolve(__dirname, "node_modules/react"),
+      "react-dom": path.resolve(__dirname, "node_modules/react-dom"),
     },
+    // Doppelte React-Kopien im Graph hart zusammenführen (Dev + Build).
+    dedupe: ["react", "react-dom"],
+  },
+  optimizeDeps: {
+    // Alle Pakete, die React direkt importieren, in denselben Prebundle-Graph
+    // zwingen — sonst legt Vite im Dev-Modus separate Chunks mit je eigener
+    // React-Instanz an.
+    include: [
+      "react",
+      "react-dom",
+      "react-dom/client",
+      "react/jsx-runtime",
+      "@tiptap/react",
+      "zustand",
+    ],
   },
   clearScreen: false,
   server: {

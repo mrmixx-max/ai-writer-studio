@@ -5,7 +5,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 
-vi.mock("@/types/project", () => ({
+vi.mock("@/services/project", () => ({
   listProjects: vi.fn(() => [
     { id: "p1", name: "Mein Roman", createdAt: 0, updatedAt: 0 },
   ] as never),

@@ -105,10 +105,15 @@ function ModalFallback() {
 
 /** Wurzel: stellt I18n-Kontext für die gesamte App bereit. */
 export function App() {
+  // ErrorBoundary bewusst AUSSERHALB von I18nProvider: ein Fehler im Provider
+  // selbst (z. B. Hook-/Dispatcher-Fehler) würde sonst am inneren Boundary
+  // vorbeilaufen und die App ohne Fallback-UI abstürzen lassen.
   return (
-    <I18nProvider>
-      <AppInner />
-    </I18nProvider>
+    <ErrorBoundary>
+      <I18nProvider>
+        <AppInner />
+      </I18nProvider>
+    </ErrorBoundary>
   );
 }
 

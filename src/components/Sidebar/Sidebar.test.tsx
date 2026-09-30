@@ -20,8 +20,6 @@ vi.mock("@/services/project", () => ({
   getChapter: vi.fn(() => null),
   getChapterDecrypted: vi.fn(async () => null),
   updateChapter: vi.fn(async () => undefined),
-  newProject: vi.fn(async (name: string) => ({ id: "p-new", name, createdAt: 0, updatedAt: 0 })),
-  newChapter: vi.fn(async (_pid: string, title: string) => ({ id: "c-new", title, content: "{}", projectId: _pid, orderIndex: 0, createdAt: 0, updatedAt: 0 })),
 }));
 
 vi.mock("@/components/PromptGenerator/PromptGenerator", () => ({
