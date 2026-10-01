@@ -5,6 +5,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { generateOutline, generateChapter, type BookOutline, type BookChapter } from "@/services/writing/bookwriter";
 import { generateChapterChunked, type BookContext } from "@/services/writing/chapterEngine";
+import { buildWorldContext } from "@/services/bookwriter/worldContext";
 import { withRetry } from "@/services/resilience/retry";
 import {
   createBookJob, setBookJobOutline, updateBookJobProgress, setBookJobStatus,
@@ -464,6 +465,15 @@ export function BookWriterPanel() {
     setIsGenerating(true);
     updateChapter(chapter.id, { status: "generating" });
 
+    // Welt-Kontext (RAG-Light): World-Bible und Lore des Projekts. Die
+    // Szenen-Beschreibung dient als Relevanz-Signal — erwähnte Lore-Einträge
+    // kommen bevorzugt in den Prompt. Ohne Welt-Daten bleibt der Block leer.
+    // Chapter kennt nur title/purpose/synopsis (kein goal/conflict/outcome).
+    const sceneText = [chapter.title, chapter.purpose, chapter.synopsis]
+      .filter(Boolean)
+      .join(" ");
+    const world = buildWorldContext(activeProjectId, sceneText);
+
     const bookCtx: BookContext = {
       title: topic || "Unbenanntes Buch",
       genre,
@@ -471,6 +481,7 @@ export function BookWriterPanel() {
       language,
       premise,
       concept: concept.trim() || undefined,
+      extraContext: world.text || undefined,
     };
 
     const result = await generateChapterChunked(

@@ -2,6 +2,14 @@
 import { OllamaProvider } from "@/services/llm/ollama";
 import { countWords, computeWordStats } from "./chapterPlan";
 import { withRetry, isAbortError, createTimeoutController } from "./retry";
+import {
+  availablePromptTokens,
+  fitToBudget,
+  renderSections,
+  truncateToTokens,
+  SECTION_PRIORITY,
+  type ContextSection,
+} from "@/services/llm/contextBudget";
 import type { Chapter } from "@/types/project";
 
 export interface BookContext {
@@ -12,6 +20,11 @@ export interface BookContext {
   premise?: string;       // Exposé/Prämisse
   synopsis?: string;      // Kurzzusammenfassung
   concept?: string;       // Ganzes Buchkonzept (Generierprompt)
+  /**
+   * Vorgerenderter Welt-/Fakten-Kontext (World-Bible, Lore, Fakten-Base).
+   * Wird gegen das Kontextfenster budgetiert und bei Platzmangel gekürzt.
+   */
+  extraContext?: string;
 }
 
 export interface ChunkPlan {
@@ -89,6 +102,14 @@ export function planChunks(
 }
 
 /**
+ * Fasst einen Chunk zu einer knappen Kontext-Zeile zusammen.
+ * Kürzt an der Satzgrenze, damit der Rolling Context nicht mitten im Wort endet.
+ */
+function summarizeChunk(text: string, maxTokens: number): string {
+  return truncateToTokens(text.replace(/\s+/g, " ").trim(), maxTokens);
+}
+
+/**
  * Generiert einen einzelnen Chunk via Ollama.
  */
 async function generateChunk(
@@ -98,25 +119,40 @@ async function generateChunk(
   previousChunks: ChunkResult[],
   config: GenerationConfig,
   signal?: AbortSignal,
+  /** Zusätzlicher Kontext (Fakten-Base, Welt-Kontext) — wird budgetiert. */
+  extraContext = "",
 ): Promise<ChunkResult> {
   const provider = new OllamaProvider(config.baseUrl);
 
-  // Kontext zusammenstellen: Zusammenfassung vorheriger Chunks (nicht vollständig)
+  // Kontext zusammenstellen: Zusammenfassungen vorheriger Chunks (nicht der
+  // Volltext). Die Zahl der berücksichtigten Chunks und ihre Länge richten
+  // sich nach dem Kontextfenster des Modells — vorher waren es pauschal die
+  // letzten 200 Zeichen je Chunk, unabhängig vom Modell.
+  const budget = availablePromptTokens(config.model);
   const previousSummary = previousChunks.length > 0
-    ? previousChunks.map((c, i) => `Teil ${i + 1}: ${c.text.slice(0, 200)}...`).join("\n")
+    ? previousChunks
+        .map((c, i) => `Teil ${i + 1}: ${summarizeChunk(c.text, 90)}`)
+        .join("\n")
     : "";
+
+  // Bausteine mit Kürzungs-Priorität: Das Konzept ist entbehrlicher als der
+  // unmittelbare Rolling Context, die Recherche/Fakten am wenigsten.
+  const sections: ContextSection[] = [];
+  if (book.premise) sections.push({ name: "premise", text: `Buch-Prämisse: ${book.premise}`, priority: SECTION_PRIORITY.concept });
+  if (book.concept?.trim()) sections.push({ name: "concept", text: `Buchkonzept (bindend — Figuren, Welt, Erzählstimme und Spannungsbogen einhalten):\n${book.concept.trim()}`, priority: SECTION_PRIORITY.concept });
+  if (extraContext.trim()) sections.push({ name: "world", text: extraContext.trim(), priority: SECTION_PRIORITY.world });
+  if (previousSummary) sections.push({ name: "previousChapters", text: `Bisheriger Kontext:\n${previousSummary}`, priority: SECTION_PRIORITY.previousChapters });
+
+  const fitted = fitToBudget(sections, config.model, budget);
 
   const prompt = `Schreibe einen Abschnitt für Kapitel "${chapter.title}" von "${book.title}".
 Genre: ${book.genre} | Zielgruppe: ${book.targetAudience} | Sprache: ${book.language}
 
-${book.premise ? `Buch-Prämisse: ${book.premise}\n` : ""}${book.concept?.trim() ? `Buchkonzept (bindend — Figuren, Welt, Erzählstimme und Spannungsbogen einhalten):\n${book.concept.trim().slice(0, 4000)}\n` : ""}
-${chapter.synopsis ? `Kapitel-Synopsis: ${chapter.synopsis}\n` : ""}
-${chapter.purpose ? `Kapitel-Funktion: ${chapter.purpose}\n` : ""}
+${chapter.synopsis ? `Kapitel-Synopsis: ${chapter.synopsis}\n` : ""}${chapter.purpose ? `Kapitel-Funktion: ${chapter.purpose}\n` : ""}
+${renderSections(fitted.sections)}
 
 Aufgabe für diesen Abschnitt: ${chunk.purpose}
 Ziel: ca. ${chunk.targetWords} Wörter.
-
-${previousSummary ? `Bisheriger Kontext (letzte Zusammenfassung):\n${previousSummary}\n` : ""}
 
 Schreibe NUR den Kapiteltext. Keine Überschriften. Keine Erklärungen.
 WICHTIG: Nutze Absätze (doppelter Zeilenumbruch zwischen Textblöcken).`;
@@ -191,7 +227,7 @@ export async function generateChapterChunked(
       }
 
       const chunkResult = await withRetry(
-        () => generateChunk(chunkPlans[i], book, chapter, chunks, cfg, signal),
+        () => generateChunk(chunkPlans[i], book, chapter, chunks, cfg, signal, book.extraContext ?? ""),
         signal,
       );
       chunks.push(chunkResult);
@@ -291,8 +327,8 @@ Ergänze den Inhalt um ca. ${wordsNeeded} Wörter. Füge sinnvolle inhaltliche E
 
 Genre: ${book.genre} | Sprache: ${book.language}
 
-Bisheriger Inhalt:
-${chapter.content.slice(-500)}
+${book.extraContext?.trim() ? `${truncateToTokens(book.extraContext.trim(), Math.floor(availablePromptTokens(cfg.model) * 0.4))}\n\n` : ""}Bisheriger Inhalt:
+${truncateToTokens(chapter.content, 400)}
 
 Schreibe NUR den ergänzenden Text (der an den bestehenden Inhalt angehängt wird). Keine Überschriften.`;
 
