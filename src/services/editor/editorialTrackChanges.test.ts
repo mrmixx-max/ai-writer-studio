@@ -14,6 +14,10 @@ import {
   applyPatchesAsTrackChanges,
   acceptTrackChange,
   rejectTrackChange,
+  acceptAllTrackChanges,
+  rejectAllTrackChanges,
+  hasOpenTrackChanges,
+  countOpenTrackChanges,
   type AppliedTrackChange,
 } from "./editorialTrackChanges";
 import type { TextPatch } from "@/services/llm/textPatch";
@@ -30,9 +34,11 @@ const schema = new Schema({
   },
   marks: {
     tcDelete: {
+      attrs: { "data-reason": { default: null } },
       toDOM: () => ["del", { class: "tc-delete" }, 0],
     },
     tcInsert: {
+      attrs: { "data-reason": { default: null } },
       toDOM: () => ["ins", { class: "tc-insert" }, 0],
     },
   },
@@ -120,6 +126,22 @@ describe("applyPatchAsTrackChange", () => {
       return true;
     });
     expect(hasInsert).toBe(true);
+  });
+
+  it("hinterlegt die Begründung als data-reason Attribut", () => {
+    const state = makeState("Der Hund ist braun.");
+    const patch: TextPatch = { search: "braun", replace: "schwarz", reason: "Farbe präzisiert" };
+    const result = applyPatchAsTrackChange(state, patch);
+    const newState = result!.state;
+    const deleteType = schema.marks.tcDelete;
+    let hasReason = false;
+    newState.doc.descendants((node) => {
+      if (node.marks.some((m) => m.type === deleteType && m.attrs["data-reason"] === "Farbe präzisiert")) {
+        hasReason = true;
+      }
+      return true;
+    });
+    expect(hasReason).toBe(true);
   });
 });
 
@@ -227,5 +249,90 @@ describe("rejectTrackChange", () => {
     const newState = rejectTrackChange(applied.state, change);
     const text = newState.doc.textContent;
     expect(text).toContain("braun");
+  });
+});
+
+describe("acceptAllTrackChanges", () => {
+  it("entfernt alle Marks", () => {
+    const state = makeState("Der Hund ist braun.");
+    const patch: TextPatch = { search: "braun", replace: "schwarz" };
+    const applied = applyPatchAsTrackChange(state, patch)!;
+    const newState = acceptAllTrackChanges(applied.state);
+    const deleteType = schema.marks.tcDelete;
+    const insertType = schema.marks.tcInsert;
+    let hasDelete = false;
+    let hasInsert = false;
+    newState.doc.descendants((node) => {
+      if (node.marks.some((m) => m.type === deleteType)) hasDelete = true;
+      if (node.marks.some((m) => m.type === insertType)) hasInsert = true;
+      return true;
+    });
+    expect(hasDelete).toBe(false);
+    expect(hasInsert).toBe(false);
+  });
+
+  it("behält den neuen Text", () => {
+    const state = makeState("Der Hund ist braun.");
+    const patch: TextPatch = { search: "braun", replace: "schwarz" };
+    const applied = applyPatchAsTrackChange(state, patch)!;
+    const newState = acceptAllTrackChanges(applied.state);
+    expect(newState.doc.textContent).toContain("schwarz");
+  });
+});
+
+describe("rejectAllTrackChanges", () => {
+  it("entfernt alle Marks", () => {
+    const state = makeState("Der Hund ist braun.");
+    const patch: TextPatch = { search: "braun", replace: "schwarz" };
+    const applied = applyPatchAsTrackChange(state, patch)!;
+    const newState = rejectAllTrackChanges(applied.state);
+    const deleteType = schema.marks.tcDelete;
+    const insertType = schema.marks.tcInsert;
+    let hasDelete = false;
+    let hasInsert = false;
+    newState.doc.descendants((node) => {
+      if (node.marks.some((m) => m.type === deleteType)) hasDelete = true;
+      if (node.marks.some((m) => m.type === insertType)) hasInsert = true;
+      return true;
+    });
+    expect(hasDelete).toBe(false);
+    expect(hasInsert).toBe(false);
+  });
+
+  it("behält den alten Text", () => {
+    const state = makeState("Der Hund ist braun.");
+    const patch: TextPatch = { search: "braun", replace: "schwarz" };
+    const applied = applyPatchAsTrackChange(state, patch)!;
+    const newState = rejectAllTrackChanges(applied.state);
+    expect(newState.doc.textContent).toContain("braun");
+  });
+});
+
+describe("hasOpenTrackChanges", () => {
+  it("gibt false zurück wenn keine Changes existieren", () => {
+    const state = makeState("Der Hund ist braun.");
+    expect(hasOpenTrackChanges(state)).toBe(false);
+  });
+
+  it("gibt true zurück wenn Changes existieren", () => {
+    const state = makeState("Der Hund ist braun.");
+    const patch: TextPatch = { search: "braun", replace: "schwarz" };
+    const applied = applyPatchAsTrackChange(state, patch)!;
+    expect(hasOpenTrackChanges(applied.state)).toBe(true);
+  });
+});
+
+describe("countOpenTrackChanges", () => {
+  it("zählt 0 wenn keine Changes existieren", () => {
+    const state = makeState("Der Hund ist braun.");
+    expect(countOpenTrackChanges(state)).toBe(0);
+  });
+
+  it("zählt 2 für einen Patch (tcDelete + tcInsert)", () => {
+    const state = makeState("Der Hund ist braun.");
+    const patch: TextPatch = { search: "braun", replace: "schwarz" };
+    const applied = applyPatchAsTrackChange(state, patch)!;
+    // Ein Patch erzeugt zwei Marks: einen tcDelete und einen tcInsert
+    expect(countOpenTrackChanges(applied.state)).toBe(2);
   });
 });

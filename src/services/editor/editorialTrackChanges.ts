@@ -73,11 +73,13 @@ export function applyPatchAsTrackChange(
 
   if (!deleteType || !insertType) return null;
 
-  // 1. Den alten Text mit tcDelete markieren
-  tr.addMark(pos.from, pos.to, deleteType.create());
+  // 1. Den alten Text mit tcDelete markieren (mit Begründung als Attribut)
+  const deleteAttrs = patch.reason ? { "data-reason": patch.reason } : undefined;
+  tr.addMark(pos.from, pos.to, deleteType.create(deleteAttrs));
 
-  // 2. Den neuen Text einfügen und mit tcInsert markieren
-  const insertNode = state.schema.text(patch.replace, [insertType.create()]);
+  // 2. Den neuen Text einfügen und mit tcInsert markieren (mit Begründung)
+  const insertAttrs = patch.reason ? { "data-reason": patch.reason } : undefined;
+  const insertNode = state.schema.text(patch.replace, [insertType.create(insertAttrs)]);
   tr.insert(pos.to, insertNode);
 
   return { state: state.apply(tr), insertPos: pos.to };
@@ -172,4 +174,87 @@ export function rejectTrackChange(
   }
 
   return state.apply(tr);
+}
+
+/**
+ * Akzeptiert ALLE Track-Changes im Dokument.
+ * Entfernt alle tcDelete- und tcInsert-Marks, behält den neuen Text.
+ */
+export function acceptAllTrackChanges(state: EditorState): EditorState {
+  const tr = state.tr;
+  const deleteType = state.schema.marks.tcDelete;
+  const insertType = state.schema.marks.tcInsert;
+
+  if (deleteType) {
+    tr.removeMark(0, state.doc.content.size, deleteType);
+  }
+  if (insertType) {
+    tr.removeMark(0, state.doc.content.size, insertType);
+  }
+
+  return state.apply(tr);
+}
+
+/**
+ * Lehnt ALLE Track-Changes ab.
+ * Entfernt alle tcInsert-Marks und stellt den alten Text wieder her.
+ */
+export function rejectAllTrackChanges(state: EditorState): EditorState {
+  const tr = state.tr;
+  const deleteType = state.schema.marks.tcDelete;
+  const insertType = state.schema.marks.tcInsert;
+
+  // Erst alle tcInsert-Marks entfernen (neuer Text verschwindet)
+  if (insertType) {
+    tr.removeMark(0, state.doc.content.size, insertType);
+  }
+  // Dann alle tcDelete-Marks entfernen (alter Text bleibt)
+  if (deleteType) {
+    tr.removeMark(0, state.doc.content.size, deleteType);
+  }
+
+  return state.apply(tr);
+}
+
+/**
+ * Prüft, ob noch offene Track-Changes im Dokument existieren.
+ * Für den Export-Guard: Vor dem Export prüfen, ob noch Lektoratsänderungen
+ * offen sind, die der Autor akzeptieren oder ablehnen sollte.
+ */
+export function hasOpenTrackChanges(state: EditorState): boolean {
+  const deleteType = state.schema.marks.tcDelete;
+  const insertType = state.schema.marks.tcInsert;
+  let hasChanges = false;
+
+  state.doc.descendants((node) => {
+    if (hasChanges) return false;
+    if (deleteType && node.marks.some((m) => m.type === deleteType)) {
+      hasChanges = true;
+      return false;
+    }
+    if (insertType && node.marks.some((m) => m.type === insertType)) {
+      hasChanges = true;
+      return false;
+    }
+    return true;
+  });
+
+  return hasChanges;
+}
+
+/**
+ * Zählt die offenen Track-Changes im Dokument.
+ */
+export function countOpenTrackChanges(state: EditorState): number {
+  const deleteType = state.schema.marks.tcDelete;
+  const insertType = state.schema.marks.tcInsert;
+  let count = 0;
+
+  state.doc.descendants((node) => {
+    if (deleteType && node.marks.some((m) => m.type === deleteType)) count++;
+    if (insertType && node.marks.some((m) => m.type === insertType)) count++;
+    return true;
+  });
+
+  return count;
 }

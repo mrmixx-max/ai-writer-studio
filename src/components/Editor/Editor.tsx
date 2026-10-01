@@ -31,7 +31,13 @@ import { useActiveModel } from "@/components/KIPanel/useActiveModel";
 import { completeOnce } from "@/services/llm";
 import { suggestContinuation } from "@/services/editor/ghostText";
 import { runEditorialReview } from "@/services/llm/editorialLoop";
-import { applyPatchesAsTrackChanges } from "@/services/editor/editorialTrackChanges";
+import {
+  applyPatchesAsTrackChanges,
+  acceptAllTrackChanges,
+  rejectAllTrackChanges,
+  hasOpenTrackChanges,
+  countOpenTrackChanges,
+} from "@/services/editor/editorialTrackChanges";
 import { QuickActionsMenu } from "./QuickActionsMenu";
 import { LiveConsistencyPanel } from "./LiveConsistencyPanel";
 
@@ -122,6 +128,10 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
         const text = tiptapToText(editor.getJSON());
         setCounts(countWords(text), countChars(text));
       }, 300);
+
+      // Offene Track-Changes zählen (für Batch-Buttons)
+      const count = hasOpenTrackChanges(editor.state) ? countOpenTrackChanges(editor.state) : 0;
+      setOpenTrackChanges(count);
     },
     editorProps: {
       attributes: {
@@ -203,6 +213,23 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
   }, [focusMode]);
 
   const [editorialLoading, setEditorialLoading] = useState(false);
+  const [openTrackChanges, setOpenTrackChanges] = useState(0);
+
+  const handleAcceptAll = useCallback(() => {
+    if (!editor) return;
+    const newState = acceptAllTrackChanges(editor.state);
+    editor.view.dispatch(newState.tr);
+    onChange?.(JSON.stringify(editor.getJSON()));
+    setOpenTrackChanges(0);
+  }, [editor, onChange]);
+
+  const handleRejectAll = useCallback(() => {
+    if (!editor) return;
+    const newState = rejectAllTrackChanges(editor.state);
+    editor.view.dispatch(newState.tr);
+    onChange?.(JSON.stringify(editor.getJSON()));
+    setOpenTrackChanges(0);
+  }, [editor, onChange]);
 
   const handleEditorialReview = useCallback(async () => {
     if (!editor || editorialLoading) return;
@@ -223,6 +250,7 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
       if (applied) {
         editor.view.dispatch(applied.state.tr);
         onChange?.(JSON.stringify(editor.getJSON()));
+        setOpenTrackChanges(countOpenTrackChanges(editor.state));
       }
     } catch {
       // Ein fehlgeschlagenes Lektorat darf das Schreiben nicht stören.
@@ -389,6 +417,22 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
         >
           {editorialLoading ? "Lektorat…" : "Lektorat"}
         </button>
+        {openTrackChanges > 0 && (
+          <>
+            <button
+              onClick={handleAcceptAll}
+              title={`Alle ${openTrackChanges} Lektoratsänderungen annehmen`}
+            >
+              ✓ Alle
+            </button>
+            <button
+              onClick={handleRejectAll}
+              title={`Alle ${openTrackChanges} Lektoratsänderungen ablehnen`}
+            >
+              ✗ Alle
+            </button>
+          </>
+        )}
         <button
           onClick={() => setSelectionMode(!selectionMode)}
           className={selectionMode ? "active" : ""}
