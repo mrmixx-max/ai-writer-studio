@@ -100,15 +100,16 @@ function sanitize(s: string): string {
 
 async function pruneSnapshots(dbPath: string, keep: number): Promise<void> {
   try {
-    const prefix = `${dbPath}.snapshot-`;
-    const entries = await fs!.readDir(await dirOf(dbPath));
+    const dir = await dirOf(dbPath);
+    const prefix = snapshotPrefix(dbPath);
+    const entries = await fs!.readDir(dir);
     const snaps = entries
-      .filter((e) => e.name?.startsWith("app.db.snapshot-") && e.isFile)
+      .filter((e) => e.name?.startsWith(prefix) && e.isFile)
       .map((e) => e.name!)
       .sort(); // Timestamp im Namen → lexikographisch = chronologisch
     const excess = snaps.slice(0, Math.max(0, snaps.length - keep));
     for (const name of excess) {
-      const full = `${await dirOf(dbPath)}${name}`;
+      const full = `${dir}${name}`;
       try {
         await fs!.remove(full);
         log.debug(`Alten Snapshot entfernt: ${name}`);
@@ -116,10 +117,23 @@ async function pruneSnapshots(dbPath: string, keep: number): Promise<void> {
         /* ignore */
       }
     }
-    void prefix;
   } catch {
     /* ignore */
   }
+}
+
+/**
+ * Präfix der Snapshot-Dateien für einen DB-Pfad.
+ *
+ * Bewusst aus `dbPath` abgeleitet statt hartcodiert "app.db.snapshot-":
+ * Der Dateiname ist zwar heute "app.db" (siehe db/path.ts), aber eine
+ * Umbenennung würde die Snapshot-Erkennung lautlos brechen — die Rotation
+ * würde dann nie greifen und die Aufbewahrung ins Leere laufen.
+ */
+export function snapshotPrefix(dbPath: string): string {
+  const idx = Math.max(dbPath.lastIndexOf("/"), dbPath.lastIndexOf("\\"));
+  const base = idx >= 0 ? dbPath.slice(idx + 1) : dbPath;
+  return `${base}.snapshot-`;
 }
 
 async function dirOf(p: string): Promise<string> {
@@ -160,9 +174,10 @@ export async function loadWithRecovery(
   // Snapshots, jüngster zuerst
   try {
     const dir = await dirOf(dbPath);
+    const prefix = snapshotPrefix(dbPath);
     const entries = await fs!.readDir(dir);
     const snaps = entries
-      .filter((e) => e.name?.startsWith("app.db.snapshot-") && e.isFile)
+      .filter((e) => e.name?.startsWith(prefix) && e.isFile)
       .map((e) => e.name!)
       .sort()
       .reverse();
