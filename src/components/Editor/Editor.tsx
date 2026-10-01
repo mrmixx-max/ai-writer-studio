@@ -31,6 +31,7 @@ import { useActiveModel } from "@/components/KIPanel/useActiveModel";
 import { completeOnce } from "@/services/llm";
 import { suggestContinuation } from "@/services/editor/ghostText";
 import { QuickActionsMenu } from "./QuickActionsMenu";
+import { LiveConsistencyPanel } from "./LiveConsistencyPanel";
 
 interface EditorProps {
   /** Wird bei jeder Änderung (debounced via Autosave) aufgerufen. */
@@ -60,6 +61,8 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
   const [editorInstance, setEditorInstance] = useState<TipTapEditor | null>(null);
   const [trackChangesEnabled, setTrackChangesEnabled] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
+  // Text fuer den Konsistenzwaechter: entprellt geprueft, nicht bei jedem Tastendruck.
+  const liveCheckText = useEditorStore((s) => s.content);
   // Dezentes Modell-Badge in der Editor-Kopfzeile: aktives Modell, Klick öffnet
   // dasselbe ModelPicker-Popover wie im KI-Panel (keine Duplikation der Auswahl).
   const { settings, selectModel } = useActiveModel();
@@ -399,6 +402,8 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
       <div className="editor-body">
         <EditorContent editor={editor} className="editor-content" />
         <QuickActionsMenu editor={editorInstance} />
+        {/* Live-Konsistenzwaechter (WP3.1): Hinweise am Rand, keine Blockade. */}
+        <LiveConsistencyPanel text={liveCheckText} enabled={!focusMode} />
         {showOutline && (
           <aside className="editor-outline-sidebar">
             <ChapterOutlinePanel editor={editorInstance} />

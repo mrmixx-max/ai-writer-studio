@@ -269,3 +269,63 @@
   color: #f87171;
   font-size: 0.75rem;
 }
+
+/* --- Live-Konsistenzwaechter (WP3.1) ------------------------------------
+   Diskret am Rand: Der Autor soll beim Schreiben nicht unterbrochen werden.
+   Ein Widerspruch ist ein Hinweis, keine Blockade — es kann gewollt sein. */
+.live-consistency {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  max-width: 320px;
+  border: 1px solid var(--border, #374151);
+  border-radius: 8px;
+  background: var(--card, #1f2937);
+  font-size: 0.78rem;
+  opacity: 0.92;
+  z-index: 5;
+}
+
+.live-consistency-toggle {
+  display: block;
+  width: 100%;
+  padding: 5px 10px;
+  border: none;
+  background: transparent;
+  color: var(--fg, #e5e7eb);
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.78rem;
+}
+
+.live-consistency-list {
+  margin: 0;
+  padding: 0 10px 8px;
+  list-style: none;
+}
+
+.live-consistency-item {
+  padding: 4px 0;
+  border-top: 1px solid var(--border, #374151);
+}
+
+.lc-character {
+  display: block;
+  font-weight: 600;
+  color: var(--fg, #e5e7eb);
+}
+
+.lc-detail {
+  display: block;
+  color: #fbbf24;
+}
+
+.lc-excerpt {
+  display: block;
+  margin-top: 2px;
+  color: var(--fg-muted, #9ca3af);
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
