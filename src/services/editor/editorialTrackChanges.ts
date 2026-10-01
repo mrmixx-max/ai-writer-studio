@@ -222,8 +222,11 @@ export function rejectAllTrackChanges(state: EditorState): EditorState {
  * offen sind, die der Autor akzeptieren oder ablehnen sollte.
  */
 export function hasOpenTrackChanges(state: EditorState): boolean {
+  if (!state.schema?.marks) return false;
   const deleteType = state.schema.marks.tcDelete;
   const insertType = state.schema.marks.tcInsert;
+  // Wenn das Schema keine Track-Changes-Marks kennt, gibt es keine Changes.
+  if (!deleteType && !insertType) return false;
   let hasChanges = false;
 
   state.doc.descendants((node) => {
@@ -248,6 +251,7 @@ export function hasOpenTrackChanges(state: EditorState): boolean {
 export function countOpenTrackChanges(state: EditorState): number {
   const deleteType = state.schema.marks.tcDelete;
   const insertType = state.schema.marks.tcInsert;
+  if (!deleteType && !insertType) return 0;
   let count = 0;
 
   state.doc.descendants((node) => {
