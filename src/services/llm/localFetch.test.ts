@@ -56,17 +56,37 @@ describe("isTauriRuntime", () => {
 });
 
 describe("getLocal (Browser-Pfad)", () => {
-  it("GET über window.fetch mit .ok und JSON", async () => {
+  it("GET über window.fetch — im Dev-Browser relativ (Vite-Proxy gegen CORS)", async () => {
     setTauri(false);
     const fetchFn = vi.fn(async () => jsonResponse({ models: [] }));
     vi.stubGlobal("fetch", fetchFn);
     const res = await getLocal("http://127.0.0.1:11434/api/tags", 5000);
     expect(res.ok).toBe(true);
+    // Im Browser wird die absolute Provider-URL RELATIV gemacht, damit der
+    // Vite-Proxy (vite.config.ts, "/api" → 127.0.0.1:11434) greift. Ein
+    // cross-origin-fetch auf 127.0.0.1 würde am CORS scheitern.
+    // In Tauri und in Node/vitest bleibt die URL absolut (siehe Tests unten).
     expect(fetchFn).toHaveBeenCalledWith(
-      "http://127.0.0.1:11434/api/tags",
+      "/api/tags",
       expect.objectContaining({ method: "GET" }),
     );
     expect(invokeCalls).toHaveLength(0);
+  });
+
+  it("reicht Query und Hash an den Proxy-Pfad durch", async () => {
+    setTauri(false);
+    const fetchFn = vi.fn(async (_url: string) => jsonResponse({}));
+    vi.stubGlobal("fetch", fetchFn);
+    await getLocal("http://127.0.0.1:11434/api/tags?limit=5", 5000);
+    expect(fetchFn.mock.calls[0][0]).toBe("/api/tags?limit=5");
+  });
+
+  it("lässt nicht-parsebare URLs unverändert (kein Absturz)", async () => {
+    setTauri(false);
+    const fetchFn = vi.fn(async (_url: string) => jsonResponse({}));
+    vi.stubGlobal("fetch", fetchFn);
+    await getLocal("/schon-relativ", 5000);
+    expect(fetchFn.mock.calls[0][0]).toBe("/schon-relativ");
   });
 });
 

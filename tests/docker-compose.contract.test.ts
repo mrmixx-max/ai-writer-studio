@@ -62,6 +62,11 @@ describe("docker-compose.yml", () => {
     const df = readFileSync(path.join(ROOT, "Dockerfile"), "utf8");
     expect(df).toContain("FROM node:22-alpine AS build");
     expect(df).toContain("npm run build");
-    expect(df).toContain("COPY --from=build /app/dist");
+    // Der Runtime-Layer laeuft als Non-root (Security-Hardening): Der Copy
+    // setzt deshalb den Eigentuemer explizit. Frueher stand hier der nackte
+    // Pfad ohne --chown; die Erwartung wurde nachgezogen.
+    expect(df).toContain("COPY --from=build --chown=caddy:caddy /app/dist /srv");
+    // Und der Runtime-Layer ist tatsaechlich nicht root.
+    expect(df).toMatch(/^USER caddy$/m);
   });
 });
