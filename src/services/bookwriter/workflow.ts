@@ -5,6 +5,7 @@
 
 import { loadSettings } from "@/services/settings";
 import { completeOnce } from "@/services/llm";
+import { z } from "zod";
 import { createChapter } from "@/services/project";
 import { getLogger } from "@/services/logger";
 
@@ -55,134 +56,70 @@ export interface ChapterData {
 function countWords(text: string): number {
   return (text.match(/[\p{L}\p{N}]+(?:[-'’][\p{L}\p{N}]+)*/gu) ?? []).length;
 }
-
-/** Versucht, einen String als JSON zu parsen (null statt Throw). */
-function tryParse<T>(text: string): T | null {
-  try {
-    return JSON.parse(text) as T;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Extrahiert Markdown-Code-Blöcke (```json ... ``` oder ``` ... ```).
- * Gibt alle Block-Inhalte zurück (innere zuerst, dann äußere).
- */
-function extractCodeBlocks(raw: string): string[] {
-  const out: string[] = [];
-  const re = /```(?:json)?\s*([\s\S]*?)```/gi;
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(raw)) !== null) {
-    const inner = m[1].trim();
-    if (inner) out.push(inner);
-  }
-  return out;
-}
-
-/**
- * Isoliert die erste [...] oder {...}-Sequenz aus freiem Text.
- * Klammer-Matching ist string-sensitiv (ignoriert Klammern in Strings
- * und escaped Quotes). Gibt null zurück, wenn nichts Balanciertes da ist.
- */
-function isolateJsonSequence(raw: string): string | null {
-  const startIdx = (() => {
-    const a = raw.indexOf("[");
-    const b = raw.indexOf("{");
-    if (a === -1) return b;
-    if (b === -1) return a;
-    return Math.min(a, b);
-  })();
-  if (startIdx === -1) return null;
-  const pairs: Record<string, string> = { "[": "]", "{": "}" };
-  const stack: string[] = [];
-  let inStr: string | null = null;
-  for (let i = startIdx; i < raw.length; i++) {
-    const ch = raw[i];
-    if (inStr) {
-      if (ch === "\\") {
-        i++; // escaped Zeichen überspringen
-      } else if (ch === inStr) {
-        inStr = null;
-      }
-      continue;
-    }
-    if (ch === '"' || ch === "'") {
-      inStr = ch;
-    } else if (ch === "[" || ch === "{") {
-      stack.push(ch);
-    } else if (ch === "]" || ch === "}") {
-      const open = stack.pop();
-      if (!open || pairs[open] !== ch) return null; // unbalanciert
-      if (stack.length === 0) return raw.slice(startIdx, i + 1);
-    }
-  }
-  return null;
-}
-
-/**
- * Repariert häufige LLM-JSON-Fehler:
- * - Single-Quotes → Double-Quotes
- * - unquotete Keys ({title: ...} → {"title": ...})
- * - unquotete String-Werte (: Anfang, → : "Anfang",; Zahlen/bool/null bleiben)
- * - Trailing Commas vor ] oder }
- * - Steuerzeichen entfernen, Whitespace normalisieren
- */
-function repairJson(text: string): string {
-  let s = text
-    // eslint-disable-next-line no-control-regex
-    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")
-    .trim();
-  // Single-quoted Strings → double-quoted (simple Fälle: '...' ohne Innen-Quotes).
-  s = s.replace(/'([^'\\]*(?:\\.[^'\\]*)*)'/g, (_, inner: string) => `"${(inner as string).replace(/"/g, '\\"')}"`);
-  // Unquotete Keys quoten.
-  s = s.replace(/([{,]\s*)([A-Za-z_][A-Za-z0-9_-]*)\s*:/g, '$1"$2":');
-  // Unquotete String-Werte quoten (Zahlen, true/false/null auslassen).
-  s = s.replace(/:\s*([A-Za-zÄÖÜäöüß][^,{}[\]"]*?)\s*([,}])/g, (m, val: string, end: string) => {
-    const v = (val as string).trim();
-    if (/^(true|false|null)$/.test(v) || /^-?\d+(\.\d+)?$/.test(v) || v.startsWith('"')) return m;
-    return `: "${v}"${end}`;
-  });
-  // Trailing Commas entfernen.
-  s = s.replace(/,(\s*[}\]])/g, "$1");
-  return s;
-}
-
-/**
- * Parst JSON aus einer LLM-Antwort (Sprint 19e: LFM2-24B Wort-Salat-robust).
- *
- * Strategie (der Reihe nach, erster Treffer gewinnt):
- *  1. Direkt parsen (bereits valides JSON).
- *  2. Markdown-Code-Blöcke extrahieren und parsen.
- *  3. JSON-Sequenz ([...]/ {...}) aus Fließtext isolieren und parsen.
- *  4. Reparaturversuch (Quotes, Kommas, Keys) auf 1.–3.
- *
- * Gibt null zurück, wenn nichts davon valides JSON liefert
- * (z. B. reiner Wort-Salat ohne JSON-Struktur).
- */
-export function parseJson<T>(raw: string): T | null {
-  if (!raw || !raw.trim()) return null;
-  const clean = raw.replace(/^\uFEFF/, "").trim();
-
-  const candidates: string[] = [clean, ...extractCodeBlocks(clean)];
-  const isolated = isolateJsonSequence(clean);
-  if (isolated && !candidates.includes(isolated)) candidates.push(isolated);
-
-  for (const c of candidates) {
-    const direct = tryParse<T>(c);
-    if (direct !== null) return direct;
-  }
-  for (const c of candidates) {
-    const repaired = tryParse<T>(repairJson(c));
-    if (repaired !== null) return repaired;
-  }
-  return null;
-}
+// JSON-Extraktion, Reparatur und Zod-Validierung liegen in der LLM-Schicht
+// (src/services/llm/structured.ts). Re-Export, damit bestehende Aufrufer und
+// Tests unverändert bleiben; zusätzlich importiert, weil Re-Exporte hier keinen
+// lokalen Namen binden.
+export {
+  tryParse,
+  extractCodeBlocks,
+  isolateJsonSequence,
+  repairJson,
+  parseJson,
+  parseStructuredJson,
+  buildRepairPrompt,
+} from "@/services/llm/structured";
+export type { ValidationFailure, StructuredOutcome } from "@/services/llm/structured";
+import { parseStructuredJson } from "@/services/llm/structured";
 
 /** Max. Versuche für die Outline-Generierung (Erstversuch + 2 Retries). */
 export const OUTLINE_MAX_ATTEMPTS = 3;
 /** Deterministische Temperatur für Retries (statt z. B. 0.7). */
 export const OUTLINE_RETRY_TEMPERATURE = 0.1;
+
+// ---------------------------------------------------------------------------
+// Outline-Schema
+// ---------------------------------------------------------------------------
+
+/**
+ * Struktur einer Modell-Gliederung.
+ *
+ * Tolerant gehalten, wo Modelle realistisch abweichen:
+ * - `estimatedWords` ist optional und darf als String kommen ("800") — kleine
+ *   Modelle quoten Zahlen gern. Es wird auf eine Zahl normalisiert.
+ * - Zusätzliche Felder werden verworfen statt abgelehnt (.strip() ist in Zod
+ *   das Standardverhalten für Objekte), damit ein schwatzhaftes Modell nicht
+ *   die ganze Gliederung ungültig macht.
+ *
+ * Streng dort, wo die Anwendungslogik bricht:
+ * - Es MUSS ein Array mit mindestens einem Eintrag sein.
+ * - Jeder Eintrag braucht einen nicht-leeren Titel. Ohne Titel kann die
+ *   Outline-Phase keine Kapitel anlegen.
+ */
+export const outlineChapterSchema = z.object({
+  // Zod 4: `error` am Typ, damit auch ein FEHLENDES Feld die sprechende
+  // Meldung liefert (ohne wäre es "expected string, received undefined").
+  title: z.string({ error: "Titel fehlt" }).trim().min(1, "Titel fehlt"),
+  // .optional() statt .default(""): Die Validierung prüft die Form, sie
+  // ERFINDET keine Felder. Ein nachträglich eingefügtes `summary: ""` würde
+  // Downstream als "das Modell hat eine leere Zusammenfassung geliefert"
+  // gelesen — und den Aufrufer überraschen, der nur {title} erwartet.
+  summary: z.string().optional(),
+  goal: z.string().optional(),
+  estimatedWords: z
+    .union([z.number(), z.string()])
+    .optional()
+    .transform((v) => {
+      if (v === undefined) return undefined;
+      const n = typeof v === "number" ? v : Number(v);
+      return Number.isFinite(n) ? Math.round(n) : undefined;
+    }),
+});
+
+export const outlineArraySchema = z.array(outlineChapterSchema).min(1, "Gliederung ist leer");
+
+/** Eine validierte Kapitel-Zeile der Gliederung. */
+export type OutlineChapter = z.infer<typeof outlineChapterSchema>;
 
 /**
  * Härtet den Outline-Prompt (Sprint 19e): explizite NUR-JSON-Forderung mit
@@ -204,25 +141,51 @@ export function appendJsonOnlyInstruction(prompt: string, chapterCount: number):
  * Erstversuch mit Basis-Temperatur, danach bis zu 2 Retries mit
  * OUTLINE_RETRY_TEMPERATURE (0.1, deterministisch).
  *
+ * Zwei Stufen, bewusst getrennt:
+ *  1. Der Retry-Loop behandelt TRANSPORT-/Formatfehler — gar kein JSON,
+ *     Wort-Salat. Jeder Versuch bekommt eine neue, deterministischere
+ *     Temperatur.
+ *  2. Ist JSON da, aber strukturell falsch (kein Array, Eintrag ohne Titel),
+ *     greift EIN Zod-Reparaturversuch über `completeOnce`. Das ist ein
+ *     anderer Fehler als Wort-Salat und braucht einen anderen Prompt.
+ *
  * `fetchRaw` injiziert den LLM-Call (produktiv: completeOnce mit
  * überschriebener Temperatur) — dadurch ohne LLM-Mock testbar.
+ * `repairRaw` injiziert den Reparatur-Call (optional). Fehlt er, wird bei
+ * strukturell ungültiger Ausgabe direkt ein Fehler geworfen — die Struktur-
+ * prüfung greift trotzdem, es wird nur nicht repariert.
  *
  * Wirft bei Total-Fehlschlag einen Error mit Modell-Hinweis.
  */
 export async function resolveOutlineJson<T>(
   fetchRaw: (attempt: number, temperature: number | undefined) => Promise<string>,
   baseTemperature?: number,
+  repairRaw?: (repairPrompt: string) => Promise<string>,
 ): Promise<{ value: T; attempts: number }> {
   let lastRaw = "";
+  let lastFailure = "";
   for (let attempt = 1; attempt <= OUTLINE_MAX_ATTEMPTS; attempt++) {
     const temperature = attempt === 1 ? baseTemperature : OUTLINE_RETRY_TEMPERATURE;
     lastRaw = await fetchRaw(attempt, temperature);
-    const parsed = parseJson<T>(lastRaw);
-    if (parsed !== null && parsed !== undefined) return { value: parsed, attempts: attempt };
+
+    // Erst die Struktur prüfen (Array mit Titeln), dann reparieren lassen.
+    const outcome = await parseStructuredJson<unknown[]>(
+      lastRaw,
+      outlineArraySchema,
+      repairRaw,
+      "outline",
+    );
+
+    if (outcome.ok) {
+      return { value: outcome.value as T, attempts: attempt };
+    }
+    lastFailure = outcome.failure.messages.slice(0, 3).join("; ");
   }
+
   const anfang = lastRaw.slice(0, 120);
   throw new Error(
     `Gliederung konnte nicht als JSON gelesen werden. Anfang: ${anfang}… ` +
+      (lastFailure ? `Strukturfehler: ${lastFailure}. ` : "") +
       `Modell liefert kein valides JSON. Bitte in den Einstellungen ein ` +
       `kleineres/anderes Modell wählen (z. B. llama3.2).`,
   );
@@ -501,6 +464,15 @@ async function generateGliederung(
         signal,
       ),
     settings.temperature,
+    // Reparatur-Call: gleiche harte JSON-Schranke, deterministische Temperatur,
+    // ohne System-Prompt-Wiederholung (der Repair-Prompt trägt den Kontext).
+    (repairPrompt) =>
+      completeOnce(
+        { ...settings, temperature: OUTLINE_RETRY_TEMPERATURE },
+        `${repairPrompt}\n\n${appendJsonOnlyInstruction("", briefing.chapterCount)}`,
+        [{ role: "system", content: system }],
+        signal,
+      ),
   );
 
   const outline: BookOutline = {

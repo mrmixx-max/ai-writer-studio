@@ -1,5 +1,6 @@
-// Editor-Komponente: TipTap 2 Rich-Text mit Markdown-Shortcuts, Toolbar, Wortzähler.
-// Erweitert um: CharacterTag, SceneMarker und ChapterOutline.
+// Editor-Komponente: TipTap 3 Rich-Text mit Markdown-Shortcuts, Toolbar, Wortzähler.
+// Erweitert um: CharacterTag, SceneMarker, ChapterOutline und TrackChanges
+// (Track Changes: Mark-basiert, siehe @/components/Collaboration).
 import { useEditor, EditorContent, type Editor as TipTapEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";

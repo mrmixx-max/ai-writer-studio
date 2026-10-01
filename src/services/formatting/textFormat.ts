@@ -1,7 +1,7 @@
 // Textformatierungs-Engine (Sprint 14, Agent 1) — reine Funktionen, keine Seiteneffekte.
 //
 // Editor-Speichermodell (recherche, read-only):
-// - src/components/Editor/Editor.tsx: TipTap 2 (`@tiptap/react`, StarterKit, Heading Level 1-3).
+// - src/components/Editor/Editor.tsx: TipTap 3 (`@tiptap/react`, StarterKit, Heading Level 1-3).
 // - Inhalt = TipTap-JSON-Dokument (`editor.getJSON()`), persistiert als JSON-String
 //   via `onChange(JSON.stringify(editor.getJSON()))`, geladen via `setContent(parsed)`.
 // - Text-Hilfen: `src/services/editor/count.ts` (tiptapToText, countWords Unicode-aware),

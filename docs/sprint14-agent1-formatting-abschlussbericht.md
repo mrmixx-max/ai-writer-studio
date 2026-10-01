@@ -5,7 +5,7 @@
 
 ## 1. Editor-Recherche (read-only)
 
-- `src/components/Editor/Editor.tsx`: TipTap 2 (`@tiptap/react`, StarterKit, Heading Level 1–3).
+- `src/components/Editor/Editor.tsx`: TipTap 3 (`@tiptap/react`, StarterKit, Heading Level 1–3).
 - Speichermodell: TipTap-JSON-Dokument — `onChange(JSON.stringify(editor.getJSON()))`,
   Laden via `setContent(parsed)` (JSON-String eines Kapitels).
 - Verwandte Helfer: `src/services/editor/count.ts` (Unicode-Wortzählung),

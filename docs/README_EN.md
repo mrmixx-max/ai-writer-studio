@@ -58,7 +58,7 @@ npm run dev:vite
 
 ### Writing
 
-- **Rich-text editor** on TipTap 2 with headings, lists, blockquotes
+- **Rich-text editor** on TipTap 3 with headings, lists, blockquotes
 - **Focus mode** (F11) hides everything except the text
 - **Automatic saving** without user action
 - **Word counter** with character and save status

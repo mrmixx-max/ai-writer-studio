@@ -7,7 +7,7 @@ sind als Platzhalter für die angedachte Bildposition notiert (`[Screenshot: …
 
 ## Schreiben & Editor
 
-- **Rich-Text-Editor** auf TipTap 2: Überschriften (H1–H3, wirken nur auf die
+- **Rich-Text-Editor** auf TipTap 3: Überschriften (H1–H3, wirken nur auf die
   aktuelle Zeile/Selection), Listen, Zitate, horizontale Linie, Undo/Redo,
   Platzhalter
 - **Markdown-Unterstützung**: Markdown→HTML-Konvertierung, Absatz-erhaltende

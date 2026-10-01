@@ -6,6 +6,10 @@ und [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased] — Änderungen seit [1.0.0]
 
+### Changed — Editor & Sicherheit
+- TipTap 2.27.3 → 3.31.3 (`@tiptap/core` u. a.): behebt GHSA-cp6p-959q-f8rh
+  (XSS über `mergeAttributes`). Betrifft alle 19 `@tiptap/*`-Pakete.
+
 ### Added — Dashboard & Analytics (Sprint 7, Agent 4)
 - Zeitstrail-Analytics: Kosten pro Tag (14 Tage), Buecher pro Woche (8 Wochen, ISO-KW), Lokal-vs-Cloud-Vergleich — neu in `src/services/cli/statsAnalytics.ts`, in `renderStats` integriert.
 - Dashboard-Charts: Unicode-Sparklines (`▁▂▃▄▅▆▇█`) im CLI via `sparkline()`.

@@ -58,7 +58,7 @@ npm run dev:vite
 
 ### Schreiben
 
-- **Rich-Text-Editor** auf TipTap 2 mit Überschriften, Listen, Zitaten
+- **Rich-Text-Editor** auf TipTap 3 mit Überschriften, Listen, Zitaten
 - **Fokusmodus** (F11) blendet alles außer dem Text aus
 - **Automatisches Speichern** ohne Zutun
 - **Wortzähler** mit Zeichen- und Speicherstatus
