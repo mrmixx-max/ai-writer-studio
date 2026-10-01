@@ -117,6 +117,14 @@ vi.mock("@/components/Editor/extensions", () => ({
   ChapterOutlineExtension: {},
   ChapterOutlinePanel: () => null,
   CharacterTooltip: () => null,
+  // Ghost-Text (WP2.2): configure() muss eine Extension-Form zurückgeben.
+  GhostTextExtension: { configure: () => ({}) },
+}));
+vi.mock("@/components/Editor/QuickActionsMenu", () => ({
+  QuickActionsMenu: () => null,
+}));
+vi.mock("@/services/editor/ghostText", () => ({
+  suggestContinuation: vi.fn(async () => null),
 }));
 vi.mock("@/components/Collaboration", () => ({
   CommentMark: {},

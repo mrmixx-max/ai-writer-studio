@@ -217,3 +217,55 @@
 /* Modell-Badge rechts in der Editor-Kopfzeile */
 .editor-toolbar { gap: 6px; }
 .editor-toolbar-spacer { flex: 1 1 auto; }
+
+/* --- Ghost-Text (WP2.2) ---------------------------------------------------
+   Die Vorschau ist eine Dekoration, kein Dokumentinhalt: Sie erscheint
+   ausgegraut und kursiv, damit sofort erkennbar ist, dass sie noch nicht
+   Teil des Manuskripts ist. */
+.ghost-text {
+  color: var(--fg-muted, #6b7280);
+  opacity: 0.55;
+  font-style: italic;
+  pointer-events: none;
+  user-select: none;
+  white-space: pre-wrap;
+}
+
+/* --- Schnellaktionen-Bubble (WP2.2) ------------------------------------- */
+.quick-actions-menu {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--border, #374151);
+  border-radius: 8px;
+  background: var(--card, #1f2937);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+
+.quick-action-btn {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--fg, #e5e7eb);
+  font-size: 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.quick-action-btn:hover:not(:disabled) {
+  background: var(--accent, #2563eb);
+  color: #fff;
+}
+
+.quick-action-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.quick-action-error {
+  padding: 0 8px;
+  color: #f87171;
+  font-size: 0.75rem;
+}

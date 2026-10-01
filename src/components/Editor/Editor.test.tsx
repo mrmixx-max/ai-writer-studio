@@ -97,6 +97,17 @@ vi.mock("@/components/Editor/extensions", () => ({
   ChapterOutlineExtension: {},
   ChapterOutlinePanel: () => null,
   CharacterTooltip: () => null,
+  // Ghost-Text (WP2.2): configure() muss eine Extension-Form zurückgeben.
+  GhostTextExtension: { configure: () => ({}) },
+}));
+// Das Bubble-Menü rendert nur bei Auswahl und braucht ProseMirror-Kontext —
+// für die Editor-Tests genügt ein leerer Platzhalter.
+vi.mock("@/components/Editor/QuickActionsMenu", () => ({
+  QuickActionsMenu: () => null,
+}));
+// Ghost-Text-Service: kein LLM-Aufruf in Tests.
+vi.mock("@/services/editor/ghostText", () => ({
+  suggestContinuation: vi.fn(async () => null),
 }));
 vi.mock("@/components/Collaboration", () => ({
   CommentMark: {},

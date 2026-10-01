@@ -21,12 +21,16 @@ import {
   ChapterOutlineExtension,
   ChapterOutlinePanel,
   CharacterTooltip,
+  GhostTextExtension,
   type CharacterInfo,
 } from "./extensions";
 import "./editor.css";
 import { GitPanel } from "./GitPanel";
 import { ModelPicker } from "@/components/KIPanel/ModelPicker";
 import { useActiveModel } from "@/components/KIPanel/useActiveModel";
+import { completeOnce } from "@/services/llm";
+import { suggestContinuation } from "@/services/editor/ghostText";
+import { QuickActionsMenu } from "./QuickActionsMenu";
 
 interface EditorProps {
   /** Wird bei jeder Änderung (debounced via Autosave) aufgerufen. */
@@ -60,6 +64,11 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
   // dasselbe ModelPicker-Popover wie im KI-Panel (keine Duplikation der Auswahl).
   const { settings, selectModel } = useActiveModel();
 
+  // Die Extension wird EINMAL bei useEditor erzeugt. Ohne Ref würde ihr
+  // Callback für immer die Settings vom Mount-Zeitpunkt sehen — ein
+  // Modellwechsel im Panel hätte keine Wirkung auf den Ghost-Text.
+  const settingsRef = useRef(settings);
+  useEffect(() => { settingsRef.current = settings; }, [settings]);
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -79,6 +88,20 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
       TcInsertMark,
       TcDeleteMark,
       TrackChangesExtension,
+      // Ghost-Text (WP2.2): Tab schlägt eine Fortsetzung vor. Der Vorschlag
+      // ist eine Dekoration — erst Tab übernimmt ihn ins Dokument.
+      GhostTextExtension.configure({
+        suggest: async (context: string) => {
+          const s = suggestContinuation(context, (prompt) => completeOnce(settingsRef.current, prompt));
+          try {
+            const r = await s;
+            return r?.text ?? null;
+          } catch {
+            // Ein fehlgeschlagener Vorschlag darf das Schreiben nicht stören.
+            return null;
+          }
+        },
+      }),
     ],
     content: initialContent ? safeParse(initialContent) : "",
     onUpdate: ({ editor }) => {
@@ -375,6 +398,7 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
       </div>
       <div className="editor-body">
         <EditorContent editor={editor} className="editor-content" />
+        <QuickActionsMenu editor={editorInstance} />
         {showOutline && (
           <aside className="editor-outline-sidebar">
             <ChapterOutlinePanel editor={editorInstance} />

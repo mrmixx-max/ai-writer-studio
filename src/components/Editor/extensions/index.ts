@@ -11,3 +11,6 @@ export type { OutlineItem, ChapterOutlineOptions } from "./ChapterOutlineExtensi
 
 export { ChapterOutlinePanel } from "./ChapterOutlinePanel";
 export { CharacterTooltip } from "./CharacterTooltip";
+
+export { GhostTextExtension, ghostTextPluginKey } from "./GhostTextExtension";
+export type { GhostTextState } from "./GhostTextExtension";
