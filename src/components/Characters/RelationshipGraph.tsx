@@ -1,7 +1,8 @@
-// Charakter-Beziehungsgraph als SVG: Kreislayout, Kanten mit Typ, Klick/Hover, Isolation.
+// Charakter-Beziehungsgraph als SVG: Force-Directed-Layout, Kanten mit Typ, Klick/Hover.
 import { memo, useMemo, useState } from "react";
 import type { Character } from "@/services/characters/characters";
 import type { CharacterRelationship } from "@/services/characters/relationships";
+import { buildGraph, applyForceLayout, type CharacterNode, type RelationshipEdge } from "@/services/graph/relationshipGraph";
 
 interface Props {
   characters: Character[];
@@ -19,13 +20,36 @@ export const RelationshipGraph = memo(function RelationshipGraph({ characters, r
   const width = 560;
 
   const positions = useMemo(() => {
-    const n = characters.length;
+    // CharacterNode[] aus Character[] bauen
+    const nodes: CharacterNode[] = characters.map((c) => ({
+      id: c.id,
+      name: c.name,
+      type: "character" as const,
+    }));
+
+    // RelationshipEdge[] aus CharacterRelationship[] bauen
+    const edges: RelationshipEdge[] = relationships.map((r) => ({
+      id: r.id,
+      from: r.fromCharId,
+      to: r.toCharId,
+      type: (r.relType as "friendship" | "rivalry" | "family" | "secret") ?? "friendship",
+      startChapter: 1,
+    }));
+
+    // Graph bauen und Force-Layout anwenden
+    const graph = buildGraph(nodes, edges);
+    const layouted = applyForceLayout(graph, 50);
+
+    // Positionen zurück in das Format der UI bringen
     const cx = width / 2;
     const cy = height / 2;
-    const radius = Math.min(width, height) / 2 - NODE_R - 30;
+    const scale = Math.min(width, height) / 400;
+
     return characters.map((c, i) => {
-      const angle = (i / Math.max(n, 1)) * 2 * Math.PI - Math.PI / 2;
-      return { char: c, x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle), color: COLORS[i % COLORS.length] };
+      const node = layouted.nodes.find((n) => n.id === c.id);
+      const x = node?.x ?? cx;
+      const y = node?.y ?? cy;
+      return { char: c, x: cx + (x - 200) * scale, y: cy + (y - 200) * scale, color: COLORS[i % COLORS.length] };
     });
   }, [characters, height]);
 
@@ -45,13 +69,17 @@ export const RelationshipGraph = memo(function RelationshipGraph({ characters, r
           if (!a || !b) return null;
           const active = hoverId === rel.fromCharId || hoverId === rel.toCharId ||
             selectedId === rel.fromCharId || selectedId === rel.toCharId;
+          const edgeColor = rel.relType === "family" ? "#3b82f6" :
+            rel.relType === "rivalry" ? "#ef4444" :
+            rel.relType === "secret" ? "#f59e0b" : "#22c55e";
+          const dashArray = rel.relType === "secret" ? "5 5" : undefined;
           return (
             <g key={rel.id} opacity={active ? 1 : 0.55}>
-              <line x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="#8b5cf6" strokeWidth={active ? 2.5 : 1.5} />
+              <line x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke={edgeColor} strokeWidth={active ? 2.5 : 1.5} strokeDasharray={dashArray} />
               {rel.relType && (
                 <text
                   x={(a.x + b.x) / 2} y={(a.y + b.y) / 2 - 4}
-                  textAnchor="middle" fontSize={10} fill="#8b5cf6" fontWeight={active ? "bold" : "normal"}
+                  textAnchor="middle" fontSize={10} fill={edgeColor} fontWeight={active ? "bold" : "normal"}
                 >
                   {rel.relType}
                 </text>

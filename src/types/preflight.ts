@@ -19,7 +19,8 @@ export type PreflightCategory =
   | "frontmatter"
   | "backmatter"
   | "format"
-  | "characters";
+  | "characters"
+  | "typography";
 
 export const CATEGORY_LABELS: Record<PreflightCategory, string> = {
   structure: "Struktur",
@@ -27,6 +28,7 @@ export const CATEGORY_LABELS: Record<PreflightCategory, string> = {
   backmatter: "Backmatter",
   format: "Formate",
   characters: "Warnungen",
+  typography: "Typografie",
 };
 
 /**
