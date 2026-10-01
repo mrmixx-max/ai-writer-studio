@@ -158,33 +158,4 @@ export async function preloadCritical<T>(modules: Array<LazyModule<T>>): Promise
   return (settled as PromiseFulfilledResult<T>[]).map((s) => s.value);
 }
 
-export interface DeferOptions {
-  /** ms to wait before running fn. Default 0 (next macrotask). */
-  delayMs?: number;
-  /** Use requestIdleCallback when available. Default true. */
-  useIdle?: boolean;
-}
 
-declare const requestIdleCallback: ((cb: () => void) => number) | undefined;
-
-/**
- * Defer heavy non-critical work until the browser is idle (or after delayMs).
- * No-op safe on node (falls back to setTimeout).
- */
-export function deferHeavy(fn: () => void, opts: DeferOptions = {}): void {
-  const { delayMs = 0, useIdle = true } = opts;
-  const run = (): void => {
-    if (delayMs > 0) {
-      setTimeout(fn, delayMs);
-    } else {
-      fn();
-    }
-  };
-  if (useIdle && typeof requestIdleCallback === "function") {
-    requestIdleCallback(run);
-  } else if (useIdle && delayMs === 0 && typeof setTimeout === "function") {
-    setTimeout(run, 0);
-  } else {
-    run();
-  }
-}

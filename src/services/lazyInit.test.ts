@@ -3,7 +3,6 @@ import {
   lazyModule,
   resetLazyModules,
   preloadCritical,
-  deferHeavy,
   HEAVY_MODULES,
 } from "@/services/lazyInit";
 
@@ -107,15 +106,5 @@ describe("helpers", () => {
     const a = lazyModule(async () => "a");
     const b = lazyModule(async () => "b");
     await expect(preloadCritical([a, b])).resolves.toEqual(["a", "b"]);
-  });
-
-  it("deferHeavy runs fn asynchronously", async () => {
-    let ran = false;
-    deferHeavy(() => {
-      ran = true;
-    });
-    expect(ran).toBe(false);
-    await new Promise((r) => setTimeout(r, 10));
-    expect(ran).toBe(true);
   });
 });
