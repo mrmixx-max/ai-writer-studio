@@ -20,7 +20,11 @@ const LENGTHS: TargetLength[] = ["Kurzgeschichte", "Kapitel", "Roman-Idee", "10-
 export function PromptGenerator() {
   const { t } = useI18n();
   const s = usePromptStore();
-  const editor = useEditorStore();
+  // Nur die benötigten Felder abonnieren. Ein selektorloser Aufruf ließ dieses
+  // Panel bei jedem Wortzähler-Tick des Editors neu rendern — samt
+  // Ergebnisliste —, obwohl der Inhalt hier nur beim Einfügen gebraucht wird.
+  const editorContent = useEditorStore((st) => st.content);
+  const setEditorContent = useEditorStore((st) => st.setContent);
   const [templateId, setTemplateId] = useState("");
 
   /** Wendet eine Prompt-Vorlage auf die Filter an und generiert sofort. */
@@ -61,11 +65,11 @@ export function PromptGenerator() {
 
   function insertIntoEditor(p: GeneratedPrompt) {
     // Fügt Prompt-Text am Cursor ein (bzw. ans Ende des aktuellen Inhalts)
-    const cur = JSON.parse(editor.content || "{}");
+    const cur = JSON.parse(editorContent || "{}");
     const para = { type: "paragraph", content: [{ type: "text", text: p.text }] };
     if (cur.content && Array.isArray(cur.content)) cur.content.push(para);
     else cur.content = [para];
-    editor.setContent(JSON.stringify(cur));
+    setEditorContent(JSON.stringify(cur));
   }
 
   function newChapterFromPrompt(p: GeneratedPrompt) {

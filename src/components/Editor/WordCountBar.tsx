@@ -2,7 +2,12 @@
 import { useEditorStore } from "@/store/editorStore";
 
 export function WordCountBar() {
-  const { wordCount, charCount, dirty } = useEditorStore();
+  // Einzelne Selektoren statt `useEditorStore()` ohne Selektor: In Zustand v5
+  // rendert ein selektorloser Aufruf bei JEDER Store-Änderung neu — auch beim
+  // content-Update des Autosaves, das diese Leiste gar nicht betrifft.
+  const wordCount = useEditorStore((s) => s.wordCount);
+  const charCount = useEditorStore((s) => s.charCount);
+  const dirty = useEditorStore((s) => s.dirty);
   return (
     <div className="wordcount-bar">
       <span>{wordCount} Wörter</span>
