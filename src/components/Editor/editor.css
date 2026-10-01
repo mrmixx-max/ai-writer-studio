@@ -329,3 +329,19 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* --- Lektorat-Track-Changes --------------------------------------------
+   Lektorat-Patches werden als tcDelete/tcInsert-Marks dargestellt.
+   Der Autor sieht die Änderungen im Text und kann sie akzeptieren oder
+   ablehnen (TrackChangesExtension). */
+.tc-delete {
+  text-decoration: line-through;
+  color: #ef4444;
+  background-color: rgba(239, 68, 68, 0.1);
+}
+
+.tc-insert {
+  text-decoration: underline;
+  color: #22c55e;
+  background-color: rgba(34, 197, 94, 0.1);
+}

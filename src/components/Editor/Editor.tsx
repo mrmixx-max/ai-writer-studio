@@ -30,6 +30,8 @@ import { ModelPicker } from "@/components/KIPanel/ModelPicker";
 import { useActiveModel } from "@/components/KIPanel/useActiveModel";
 import { completeOnce } from "@/services/llm";
 import { suggestContinuation } from "@/services/editor/ghostText";
+import { runEditorialReview } from "@/services/llm/editorialLoop";
+import { applyPatchesAsTrackChanges } from "@/services/editor/editorialTrackChanges";
 import { QuickActionsMenu } from "./QuickActionsMenu";
 import { LiveConsistencyPanel } from "./LiveConsistencyPanel";
 
@@ -200,6 +202,35 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
     if (el) el.classList.toggle("focus-mode", !!focusMode);
   }, [focusMode]);
 
+  const [editorialLoading, setEditorialLoading] = useState(false);
+
+  const handleEditorialReview = useCallback(async () => {
+    if (!editor || editorialLoading) return;
+    setEditorialLoading(true);
+    try {
+      const text = tiptapToText(editor.getJSON());
+      const title = chapterId ?? "Kapitel";
+      const result = await runEditorialReview(
+        title,
+        text,
+        (prompt) => completeOnce(settingsRef.current, prompt),
+      );
+      if (result.patches.length === 0) {
+        // Keine Patches — nichts zu tun
+        return;
+      }
+      const applied = applyPatchesAsTrackChanges(editor.state, result.patches);
+      if (applied) {
+        editor.view.dispatch(applied.state.tr);
+        onChange?.(JSON.stringify(editor.getJSON()));
+      }
+    } catch {
+      // Ein fehlgeschlagenes Lektorat darf das Schreiben nicht stören.
+    } finally {
+      setEditorialLoading(false);
+    }
+  }, [editor, editorialLoading, chapterId, onChange]);
+
   const stopAutosave = useCallback(() => {
     if (timerRef.current) {
       window.clearTimeout(timerRef.current);
@@ -350,6 +381,13 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
           title="Charakter-Tags erkennen (@Name)"
         >
           @Tag
+        </button>
+        <button
+          onClick={handleEditorialReview}
+          disabled={editorialLoading}
+          title="Lektorat: KI liest das Kapitel und schlägt Korrekturen als Track-Changes vor"
+        >
+          {editorialLoading ? "Lektorat…" : "Lektorat"}
         </button>
         <button
           onClick={() => setSelectionMode(!selectionMode)}
