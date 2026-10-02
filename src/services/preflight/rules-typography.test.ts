@@ -50,7 +50,7 @@ describe("ruleQuotationMarks", () => {
       {
         id: "ch1",
         title: "Kapitel 1",
-        text: 'Er sagte „Hallo" und sie antwortete „Wie geht es?"',
+        text: 'Er sagte „Hallo“ und sie antwortete „Wie geht es?“',
       },
     ]);
     const findings = ruleQuotationMarks(input);

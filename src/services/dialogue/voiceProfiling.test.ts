@@ -15,7 +15,7 @@ import {
 
 describe("extractQuotedSpeech", () => {
   it("extrahiert deutsche Anführungszeichen", () => {
-    const text = '„Hallo", sagte er. „Wie geht es?", fragte sie.';
+    const text = '„Hallo“, sagte er. „Wie geht es?“, fragte sie.';
     const speeches = extractQuotedSpeech(text);
     expect(speeches).toContain("Hallo");
     expect(speeches).toContain("Wie geht es?");
@@ -42,7 +42,7 @@ describe("extractQuotedSpeech", () => {
 
 describe("assignDialogueToCharacters", () => {
   it("ordnet Dialoge Figuren zu", () => {
-    const text = '„Hallo", sagte Anna. „Wie geht es?", fragte Bert.';
+    const text = '„Hallo“, sagte Anna. „Wie geht es?“, fragte Bert.';
     const result = assignDialogueToCharacters(text);
     expect(result.has("Anna")).toBe(true);
     expect(result.has("Bert")).toBe(true);
@@ -51,7 +51,7 @@ describe("assignDialogueToCharacters", () => {
   });
 
   it("erkennt Name: Dialog-Muster", () => {
-    const text = 'Anna: „Hallo". Bert: „Hi".';
+    const text = 'Anna: „Hallo“. Bert: „Hi“.';
     const result = assignDialogueToCharacters(text);
     expect(result.has("Anna")).toBe(true);
     expect(result.has("Bert")).toBe(true);
@@ -62,6 +62,19 @@ describe("assignDialogueToCharacters", () => {
     const result = assignDialogueToCharacters(text);
     expect(result.has("Anna")).toBe(true);
     expect(result.has("Bert")).toBe(true);
+  });
+
+  it("ordnet mehrere Dialoge pro Zeile zu", () => {
+    const text = '„Hallo“, sagte Anna. „Hi“, sagte Bert. „Wie geht es?“, fragte Anna.';
+    const result = assignDialogueToCharacters(text);
+    expect(result.get("Anna")).toHaveLength(2);
+    expect(result.get("Bert")).toHaveLength(1);
+  });
+
+  it("nutzt Unbekannt als Fallback", () => {
+    const text = '„Hallo Welt“.';
+    const result = assignDialogueToCharacters(text);
+    expect(result.has("Unbekannt")).toBe(true);
   });
 });
 

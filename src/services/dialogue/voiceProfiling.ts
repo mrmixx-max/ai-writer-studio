@@ -113,52 +113,52 @@ export function extractQuotedSpeech(text: string): string[] {
 
 /**
  * Ordnet Dialogzeilen einer Figur zu.
- * Erkennt Muster: „...", sagte Er. / Er: „..." / —..., sagte Er.
+ * Unterstützt:
+ * - „...", sagte Name / „...", fragte Name
+ * - Name: „..."
+ * - —..., sagte Name
+ * - Fallback auf "Unbekannt"
  */
 export function assignDialogueToCharacters(text: string): Map<string, string[]> {
   const characterSpeech = new Map<string, string[]>();
-  const lines = text.split("\n");
 
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (!trimmed) continue;
+  const addSpeech = (character: string, speech: string) => {
+    const clean = speech.trim();
+    if (!clean) return; // Erlaubt auch 2-Buchstaben-Wörter wie "Hi", "Ja", "Ok"
+    const existing = characterSpeech.get(character) ?? [];
+    existing.push(clean);
+    characterSpeech.set(character, existing);
+  };
 
-    // Muster: „...", sagte Name. / "...", sagte Name.
-    const dialogueMatch = trimmed.match(/[„"»]([^“"«]+)[“"«]\s*,?\s*(?:sagte|fragte|antwortete|rief|murmelte|flüsterte|schrie|meinte|erwiderte)\s+(\w+)/i);
-    if (dialogueMatch) {
-      const speech = dialogueMatch[1]?.trim() ?? "";
-      const character = dialogueMatch[2]?.trim() ?? "Unbekannt";
-      if (speech.length > 2) {
-        const existing = characterSpeech.get(character) ?? [];
-        existing.push(speech);
-        characterSpeech.set(character, existing);
-      }
-      continue;
-    }
+  const VERBS = "sagte|fragte|antwortete|rief|murmelte|flüsterte|schrie|meinte|erwiderte";
+  const NAME = "[A-ZÄÖÜ][a-zäöüß]+";
+  // Alle gängigen öffnenden und schließenden Anführungszeichen (inkl. U+201D ”)
+  const Q_OPEN = "[„\"»«“]";
+  const Q_CLOSE = "[“”\"«»]";
 
-    // Muster: Name: „..." / Name: "..."
-    const nameMatch = trimmed.match(/^([A-ZÄÖÜ][a-zäöüß]+)\s*:\s*[„"»]([^“"«]+)[“"«]/);
-    if (nameMatch) {
-      const character = nameMatch[1]?.trim() ?? "Unbekannt";
-      const speech = nameMatch[2]?.trim() ?? "";
-      if (speech.length > 2) {
-        const existing = characterSpeech.get(character) ?? [];
-        existing.push(speech);
-        characterSpeech.set(character, existing);
-      }
-      continue;
-    }
+  // 1. Muster: —..., sagte Name
+  const dashRegex = new RegExp(`—\\s*([^—\\n\\.\\?!]+[\\.\\?!]?)\\s*,?\\s*(?:${VERBS})\\s+(${NAME})`, "gi");
+  for (const m of text.matchAll(dashRegex)) {
+    addSpeech(m[2], m[1]);
+  }
 
-    // Muster: —..., sagte Er.
-    const dashMatch = trimmed.match(/^—\s*([^—\n]+?)\s*,?\s*(?:sagte|fragte|antwortete|rief|murmelte|flüsterte|schrie|meinte|erwiderte)\s+(\w+)/i);
-    if (dashMatch) {
-      const speech = dashMatch[1]?.trim() ?? "";
-      const character = dashMatch[2]?.trim() ?? "Unbekannt";
-      if (speech.length > 2) {
-        const existing = characterSpeech.get(character) ?? [];
-        existing.push(speech);
-        characterSpeech.set(character, existing);
-      }
+  // 2. Muster: Name: „..."
+  const prefixRegex = new RegExp(`(${NAME})\\s*:\\s*${Q_OPEN}(.*?)${Q_CLOSE}`, "gis");
+  for (const m of text.matchAll(prefixRegex)) {
+    addSpeech(m[1], m[2]);
+  }
+
+  // 3. Muster: „...", sagte Name
+  const inquitRegex = new RegExp(`${Q_OPEN}(.*?)${Q_CLOSE}\\s*,?\\s*(?:${VERBS})\\s+(${NAME})`, "gis");
+  for (const m of text.matchAll(inquitRegex)) {
+    addSpeech(m[2], m[1]);
+  }
+
+  // 4. Fallback: Zitate ohne Inquit-Formel oder Sprecherangabe ("Unbekannt")
+  if (characterSpeech.size === 0) {
+    const fallbackRegex = new RegExp(`${Q_OPEN}(.*?)${Q_CLOSE}`, "gis");
+    for (const m of text.matchAll(fallbackRegex)) {
+      addSpeech("Unbekannt", m[1]);
     }
   }
 

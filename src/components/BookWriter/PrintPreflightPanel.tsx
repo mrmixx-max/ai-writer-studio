@@ -9,7 +9,7 @@
 // Dark Theme: bg #0a0e14, panel #11161f, border #232b3a,
 // amber #ffb000, cyan #00e5ff, text #d5dbe5, dim #8a93a6.
 
-import { useState } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import {
   checkTypography,
   checkWidowsAndOrphans,
