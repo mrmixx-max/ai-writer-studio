@@ -96,15 +96,29 @@ export const DEFAULT_STOP_TIMEOUT_MS = 1500;
 /**
  * Gesprochene Satzzeichen, die in Glyphen umgewandelt werden.
  *
- * Reihenfolge ist unkritisch (die Muster überschneiden sich nicht). Bewusst
- * nur die geforderten fünf Einträge — erweiterbar über diese Liste.
+ * Reihenfolge ist wichtig: Mehrwort-Befehle („neuer absatz“, „neue zeile“,
+ * „anführungszeichen …“) stehen vor kürzeren, damit sie zuerst greifen.
+ * Erweiterbar über diese Liste.
  */
-export const SPOKEN_PUNCTUATION_MAP: ReadonlyArray<{ spoken: string; glyph: string }> = [
+export const SPOKEN_PUNCTUATION_MAP: ReadonlyArray<{
+  spoken: string;
+  glyph: string;
+  /**
+   * Beim Ersetzen auch den folgenden Whitespace verschlingen. Nötig für
+   * Befehle, deren Glyph direkt am Folgewort kleben soll (öffnendes
+   * Anführungszeichen, Absatz-/Zeilenumbruch).
+   */
+  consumeTrailingSpace?: boolean;
+}> = [
+  { spoken: "neue zeile", glyph: "\n", consumeTrailingSpace: true },
+  { spoken: "neuer absatz", glyph: "\n\n", consumeTrailingSpace: true },
+  { spoken: "anführungszeichen unten", glyph: "„", consumeTrailingSpace: true },
+  { spoken: "anführungszeichen oben", glyph: "“" },
+  { spoken: "gedankenstrich", glyph: "—" },
   { spoken: "punkt", glyph: "." },
   { spoken: "komma", glyph: "," },
   { spoken: "fragezeichen", glyph: "?" },
   { spoken: "ausrufezeichen", glyph: "!" },
-  { spoken: "neue zeile", glyph: "\n" },
 ];
 
 function escapeRegExp(value: string): string {
@@ -116,21 +130,29 @@ function escapeRegExp(value: string): string {
  *
  * - Führender Whitespace wird mitkonsumiert (→ "Satz Punkt" wird "Satz.").
  * - Satzzeichen dürfen ihr Glyph bereits angehängt haben ("Punkt." → ".").
- * - "neue Zeile" erlaubt Mehrfach-Leerzeichen und schluckt umgebenden Space.
+ * - `consumeTrailingSpace` schluckt auch den Whitespace NACH dem Befehl
+ *   (öffnendes Anführungszeichen, Absatz-/Zeilenumbruch).
  * - `\b` verhindert Treffer in Wortinneren ("Punkte" bleibt unangetastet).
  */
-function buildSpokenPattern(spoken: string, glyph: string): RegExp {
+function buildSpokenPattern(
+  spoken: string,
+  glyph: string,
+  consumeTrailingSpace = false,
+): RegExp {
   const words = spoken
     .trim()
     .split(/\s+/)
     .map(escapeRegExp)
     .join("\\s+");
-  const trailing = glyph === "\n" ? "\\s*" : `${escapeRegExp(glyph)}?`;
+  const trailing = consumeTrailingSpace ? "\\s*" : `${escapeRegExp(glyph)}?`;
   return new RegExp(`\\s*${words}\\b${trailing}`, "giu");
 }
 
 const SPOKEN_PATTERNS: ReadonlyArray<{ pattern: RegExp; glyph: string }> = SPOKEN_PUNCTUATION_MAP.map(
-  ({ spoken, glyph }) => ({ pattern: buildSpokenPattern(spoken, glyph), glyph }),
+  ({ spoken, glyph, consumeTrailingSpace }) => ({
+    pattern: buildSpokenPattern(spoken, glyph, consumeTrailingSpace),
+    glyph,
+  }),
 );
 
 /**
@@ -209,6 +231,26 @@ export function joinTranscript(existing: string, addition: string): string {
   if (!addition) return existing;
   if (/^[.,!?;:)\]…]/.test(addition)) return existing + addition;
   return `${existing} ${addition}`;
+}
+
+/**
+ * Prüft, ob ein MediaRecorder-Datenstück tatsächlich Audio enthält.
+ *
+ * Leere/silente Puffer (`null`, `undefined`, 0 Bytes, leere Blobs) liefern
+ * `false` und werden vom Recorder lautlos verworfen — sie landen nicht im
+ * Audiopuffer der Sitzung. Reine, deterministische Funktion ohne Seiteneffekte.
+ */
+export function isMeaningfulAudioChunk(data: unknown): boolean {
+  if (data == null) return false;
+  if (typeof data === "string") return data.length > 0;
+  if (typeof (data as { size?: unknown }).size === "number") {
+    return (data as { size: number }).size > 0;
+  }
+  if (typeof (data as { byteLength?: unknown }).byteLength === "number") {
+    return (data as { byteLength: number }).byteLength > 0;
+  }
+  // Unbekannte, aber vorhandene Datenobjekte gelten als verwertbar.
+  return true;
 }
 
 function extractResults(event: SpeechResultEventLike | null | undefined): {
@@ -343,7 +385,8 @@ async function startRecorder(s: DictationSession, options: DictationOptions): Pr
     if (!recorder) return;
 
     recorder.ondataavailable = (ev) => {
-      if (ev && ev.data) s.audioChunks.push(ev.data);
+      // Leere/silente Puffer lautlos verwerfen — sie gehören nicht ins Diktat.
+      if (ev && isMeaningfulAudioChunk(ev.data)) s.audioChunks.push(ev.data);
     };
     recorder.onerror = (ev) => {
       reportError(options, ev instanceof Error ? ev : new Error("MediaRecorder Fehler"));

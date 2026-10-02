@@ -42,6 +42,15 @@ export interface MicroDiff {
 
 const STORAGE_KEY = "ai-writer-studio.timemachine.v1";
 
+/**
+ * Maximale Anzahl Micro-Snapshots pro Kapitel (FIFO).
+ *
+ * Ohne Grenze wächst die Historie unbegrenzt im localStorage. 50 Stände
+ * reichen für ein Kapitel aus; ältere werden verworfen, weil die neuesten
+ * die wertvollen sind.
+ */
+export const MAX_MICRO_SNAPSHOTS = 50;
+
 /** Liest alle Micro-Snapshots aus dem localStorage. */
 function readAll(): MicroSnapshot[] {
   try {
@@ -147,7 +156,27 @@ export function createMicroSnapshot(
 
   const all = readAll();
   all.push(snapshot);
-  writeAll(all);
+
+  // FIFO-Bereinigung pro Kapitel: Nur die neuesten MAX_MICRO_SNAPSHOTS
+  // behalten. Sekundär nach Einfüge-Index sortiert, damit Stände mit
+  // identischem Millisekunden-Zeitstempel deterministisch behandelt werden.
+  const sameChapter = all
+    .map((s, index) => ({ s, index }))
+    .filter(
+      ({ s }) =>
+        s.projectId === safeProjectId && s.chapterId === safeChapterId,
+    )
+    .sort((a, b) => b.s.timestamp - a.s.timestamp || b.index - a.index);
+  const keepIds = new Set(
+    sameChapter.slice(0, MAX_MICRO_SNAPSHOTS).map(({ s }) => s.id),
+  );
+  const pruned = all.filter(
+    (s) =>
+      s.projectId !== safeProjectId ||
+      s.chapterId !== safeChapterId ||
+      keepIds.has(s.id),
+  );
+  writeAll(pruned);
 
   return snapshot;
 }

@@ -26,7 +26,6 @@ import type { PDFFont, PDFPage } from "pdf-lib";
 import { toBlocks, type Block } from "@/services/export/blocks";
 import {
   PAGE_SIZES,
-  estimatePageCount,
   mmToPt,
   type PageSizeId,
 } from "@/services/printlayout";
@@ -100,6 +99,16 @@ export function stableUuid(seed: string): string {
 // 1. EPUB3
 // ---------------------------------------------------------------------------
 
+/** Optionales Cover-Bild für den EPUB-Export (JPEG/PNG). */
+export interface Epub3Cover {
+  /** Bilddaten (bereits dekodierte Bytes). */
+  data: Uint8Array;
+  /** MIME-Typ; Default aus Dateiendung bzw. "image/jpeg". */
+  mediaType?: string;
+  /** Dateiname im OEBPS-Ordner (Default "cover.jpg" / "cover.png"). */
+  fileName?: string;
+}
+
 export interface Epub3Options {
   title: string;
   author: string;
@@ -107,6 +116,8 @@ export interface Epub3Options {
   language?: string;
   /** Optionales eigenes Stylesheet; sonst das eingebaute Print-CSS. */
   css?: string;
+  /** Optionales Cover; ohne Cover wird kein cover-image deklariert. */
+  cover?: Epub3Cover;
   /** Fixierter Zeitstempel (ms) für reproduzierbare Exporte (Default: Date.now()). */
   now?: number;
 }
@@ -145,7 +156,11 @@ interface EpubMeta {
   uuid: string;
 }
 
-function buildEpubOpf(meta: EpubMeta, chapters: BookChapterInput[]): string {
+function buildEpubOpf(
+  meta: EpubMeta,
+  chapters: BookChapterInput[],
+  cover?: { id: string; href: string; mediaType: string } | null,
+): string {
   const manifest: string[] = [
     `<item id="toc" href="toc.xhtml" media-type="application/xhtml+xml" properties="nav"/>`,
     `<item id="css" href="styles.css" media-type="text/css"/>`,
@@ -155,6 +170,15 @@ function buildEpubOpf(meta: EpubMeta, chapters: BookChapterInput[]): string {
     `<itemref idref="toc" linear="no"/>`,
     `<itemref idref="titlepage"/>`,
   ];
+
+  // Cover ist optional; ohne Cover bleibt das Manifest unverändert (valide).
+  if (cover) {
+    manifest.push(
+      `<item id="cover" href="cover.xhtml" media-type="application/xhtml+xml"/>`,
+      `<item id="cover-image" href="${cover.href}" media-type="${cover.mediaType}" properties="cover-image"/>`,
+    );
+    spine.push(`<itemref idref="cover" linear="no"/>`);
+  }
 
   chapters.forEach((c, i) => {
     const num = c.number ?? i + 1;
@@ -212,6 +236,25 @@ ${lis.join("\n")}
 </html>`;
 }
 
+function buildEpubCoverXhtml(title: string, coverHref: string): string {
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="de" lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>${xmlEscape(title)}</title>
+  <link rel="stylesheet" type="text/css" href="styles.css" />
+</head>
+<body>
+<section epub:type="cover">
+  <div class="center">
+    <img src="${coverHref}" alt="${xmlEscape(title)}" />
+  </div>
+</section>
+</body>
+</html>`;
+}
+
 /**
  * Erzeugt ein valides EPUB3-Archiv als Blob.
  *
@@ -238,6 +281,19 @@ export async function buildEpub3(
   const meta: EpubMeta = { title, author, language, css, now, uuid };
   const zipDate = new Date(now);
 
+  // Cover optional vorbereiten (MIME aus Dateiendung, Default JPEG).
+  let coverInfo: { id: string; href: string; mediaType: string } | null = null;
+  let coverData: Uint8Array | null = null;
+  if (options?.cover && options.cover.data && options.cover.data.length > 0) {
+    const fn = safe(options.cover.fileName);
+    const mediaType =
+      safe(options.cover.mediaType) ||
+      (fn.toLowerCase().endsWith(".png") ? "image/png" : "image/jpeg");
+    const href = fn || (mediaType === "image/png" ? "cover.png" : "cover.jpg");
+    coverInfo = { id: "cover-image", href, mediaType };
+    coverData = options.cover.data;
+  }
+
   const zip = new JSZip();
   // mimetype MUSS erster Eintrag und unkomprimiert sein (EPUB-Spec/Calibre).
   zip.file("mimetype", "application/epub+zip", { compression: "STORE", date: zipDate });
@@ -246,6 +302,11 @@ export async function buildEpub3(
   zip.file("OEBPS/titlepage.xhtml", buildEpubTitleXhtml(title, author, new Date(now).getFullYear()), {
     date: zipDate,
   });
+
+  if (coverInfo && coverData) {
+    zip.file(`OEBPS/${coverInfo.href}`, coverData, { date: zipDate });
+    zip.file("OEBPS/cover.xhtml", buildEpubCoverXhtml(title, coverInfo.href), { date: zipDate });
+  }
 
   list.forEach((c, i) => {
     const num = c.number ?? i + 1;
@@ -258,7 +319,7 @@ export async function buildEpub3(
   });
 
   zip.file("OEBPS/toc.xhtml", buildEpubTocXhtml(meta, list), { date: zipDate });
-  zip.file("OEBPS/content.opf", buildEpubOpf(meta, list), { date: zipDate });
+  zip.file("OEBPS/content.opf", buildEpubOpf(meta, list, coverInfo), { date: zipDate });
   zip.file("OEBPS/styles.css", css, { date: zipDate });
 
   const buf = await zip.generateAsync({
@@ -305,6 +366,111 @@ export function calculateGutter(pageCount: number, paperType: string): number {
   const pt = safe(paperType).toLowerCase();
   const colorBonus = pt === "color" || pt === "premium-color" || pt === "farbig" ? 1.5 : 0;
   return Math.round((band.gutterMm + colorBonus) * 10) / 10;
+}
+
+// ---------------------------------------------------------------------------
+// 2b. Fußnoten, Vakatseiten & Trim-Bundsteg (Satz-Helfer)
+// ---------------------------------------------------------------------------
+
+/** Ein Fußnoten-Eintrag (Nummer + Text) für die EPUB-Verlinkung. */
+export interface FootnoteInput {
+  number: number;
+  text: string;
+}
+
+export interface FootnoteXhtmlOptions {
+  /** Präfix für die Anker-Ids (Default "fn"). */
+  idPrefix?: string;
+}
+
+/** Erzeugt den Inline-Verweis (`epub:type="noteref"`) auf eine Fußnote. */
+export function buildFootnoteRef(num: number, options: FootnoteXhtmlOptions = {}): string {
+  const idPrefix = safe(options.idPrefix) || "fn";
+  const n = Number.isFinite(num) ? Math.max(1, Math.floor(num)) : 1;
+  return `<a href="#${idPrefix}-${n}" id="${idPrefix}-ref-${n}" epub:type="noteref" class="noteref"><sup>[${n}]</sup></a>`;
+}
+
+/**
+ * Erzeugt den Fußnotenblock (`<aside epub:type="footnote">`) inkl. Rückverweis.
+ * Der Text wird XML-escaped; ungültige Einträge werden defensiv verworfen.
+ */
+export function buildFootnoteBlock(
+  footnotes: FootnoteInput[],
+  options: FootnoteXhtmlOptions = {},
+): string {
+  const idPrefix = safe(options.idPrefix) || "fn";
+  const items = (Array.isArray(footnotes) ? footnotes : [])
+    .filter((f) => f && Number.isFinite(f.number))
+    .map((f) => {
+      const n = Math.floor(f.number);
+      const text = safe(f.text);
+      const preview = text.slice(0, 80);
+      const previewAttr = preview ? ` title="${xmlEscape(preview)}"` : "";
+      return (
+        `    <aside id="${idPrefix}-${n}" epub:type="footnote"${previewAttr}>` +
+        `<p><sup>[${n}]</sup> ${xmlEscape(text)} ` +
+        `<a href="#${idPrefix}-ref-${n}" epub:type="backlink" class="backlink">\u21A9</a></p></aside>`
+      );
+    })
+    .join("\n");
+  return `<section epub:type="footnotes" class="footnotes">\n${items}\n</section>`;
+}
+
+/**
+ * Vakatseiten-Korrektur: Anzahl einzufügender Leerseiten, damit ein Kapitel
+ * auf einer ungeraden (recto) Seite beginnt. Bereits ungerade → 0.
+ */
+export function blankPagesBefore(startPage: number): number {
+  const page = Number.isFinite(startPage) ? Math.max(1, Math.floor(startPage)) : 1;
+  return page % 2 === 0 ? 1 : 0;
+}
+
+/** true, wenn die Seite eine recto (rechte/ungerade) Seite ist. */
+export function isRecto(pageNumber: number): boolean {
+  const p = Number.isFinite(pageNumber) ? Math.max(1, Math.floor(pageNumber)) : 1;
+  return p % 2 === 1;
+}
+
+/**
+ * Bundsteg für ein Trim-Format: schätzt aus der Wortzahl die Seitenzahl und
+ * liefert den KDP-Bundsteg (mm). Akzeptiert eine KDP-Seiten-Id (z. B. "6x9")
+ * oder explizite Maße in mm (z. B. Taschenbuch 12×19 cm). Für explizite Maße
+ * wird die Wörter-pro-Seite-Rate flächenproportional zu Trade 6×9″ (280) skaliert.
+ */
+export function gutterForTrim(
+  trim: PageSizeId | { widthMm: number; heightMm: number },
+  wordCount: number,
+  paperType = "white",
+): number {
+  const words = Number.isFinite(wordCount) ? Math.max(1, Math.floor(wordCount)) : 1;
+  let wordsPerPage: number;
+  if (typeof trim === "string" && Object.prototype.hasOwnProperty.call(PAGE_SIZES, trim)) {
+    wordsPerPage = trim === "6x9" || trim === "5.25x8" ? 280 : 400;
+  } else if (
+    trim &&
+    typeof trim === "object" &&
+    Number.isFinite(trim.widthMm) &&
+    Number.isFinite(trim.heightMm) &&
+    trim.widthMm > 0 &&
+    trim.heightMm > 0
+  ) {
+    const ref = PAGE_SIZES["6x9"].widthMm * PAGE_SIZES["6x9"].heightMm;
+    wordsPerPage = Math.max(80, Math.round((280 * (trim.widthMm * trim.heightMm)) / ref));
+  } else {
+    wordsPerPage = 280;
+  }
+  const pages = Math.max(1, Math.ceil(words / wordsPerPage));
+  return calculateGutter(pages, paperType);
+}
+
+/**
+ * Bundsteg aus einer bereits bekannten Seitenzahl. Anders als `calculateGutter`
+ * (das auf ≥1 Seite klemmt) liefert diese Funktion für ein leeres Buch (0 oder
+ * negative Seiten) exakt 0 — ein Buch ohne Seiten hat keinen Innensteg.
+ */
+export function gutterForPageCount(pageCount: number, paperType = "white"): number {
+  if (typeof pageCount !== "number" || !Number.isFinite(pageCount) || pageCount <= 0) return 0;
+  return calculateGutter(Math.floor(pageCount), paperType);
 }
 
 // ---------------------------------------------------------------------------
@@ -460,11 +626,10 @@ export async function buildPrintPdf(
     Object.prototype.hasOwnProperty.call(PAGE_SIZES, options.pageSize)
       ? (options.pageSize as PageSizeId)
       : "6x9";
-  const estPages = estimatePageCount(wordTotal > 0 ? wordTotal : 1, trimId);
   const gutterMm =
     typeof options?.gutterMm === "number" && Number.isFinite(options.gutterMm) && options.gutterMm >= 0
       ? options.gutterMm
-      : calculateGutter(estPages, options?.paperType ?? "white");
+      : gutterForTrim(trimId, wordTotal > 0 ? wordTotal : 1, options?.paperType ?? "white");
   const gutterPt = mmToPt(gutterMm);
 
   const pdf = await PDFDocument.create();
