@@ -6,6 +6,7 @@ import { describe, it, expect } from 'vitest';
 import {
   runEditorialCouncil,
   getCouncilConsensus,
+  type CouncilReport,
 } from './editorialCouncil';
 
 describe('runEditorialCouncil', () => {
@@ -72,7 +73,7 @@ describe('getCouncilConsensus', () => {
   });
 
   it('zählt Befunde', () => {
-    const report = {
+    const report: CouncilReport = {
       plotChirurg: [{ type: 'pacing', severity: 'warning', message: 'Test' }],
       figurenPsychologe: [],
       kontinuitaetsPedant: [],
@@ -83,7 +84,7 @@ describe('getCouncilConsensus', () => {
   });
 
   it('zählt Fehler', () => {
-    const report = {
+    const report: CouncilReport = {
       plotChirurg: [{ type: 'error', severity: 'error', message: 'Fehler' }],
       figurenPsychologe: [],
       kontinuitaetsPedant: [],
@@ -94,7 +95,7 @@ describe('getCouncilConsensus', () => {
   });
 
   it('zählt Warnungen', () => {
-    const report = {
+    const report: CouncilReport = {
       plotChirurg: [{ type: 'warning', severity: 'warning', message: 'Warnung' }],
       figurenPsychologe: [],
       kontinuitaetsPedant: [],
@@ -105,7 +106,7 @@ describe('getCouncilConsensus', () => {
   });
 
   it('zählt Infos', () => {
-    const report = {
+    const report: CouncilReport = {
       plotChirurg: [{ type: 'info', severity: 'info', message: 'Info' }],
       figurenPsychologe: [],
       kontinuitaetsPedant: [],
@@ -116,7 +117,7 @@ describe('getCouncilConsensus', () => {
   });
 
   it('topIssues werden gefüllt', () => {
-    const report = {
+    const report: CouncilReport = {
       plotChirurg: [{ type: 'error', severity: 'error', message: 'Top-Fehler' }],
       figurenPsychologe: [],
       kontinuitaetsPedant: [],
