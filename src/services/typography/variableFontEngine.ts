@@ -47,7 +47,8 @@ export function generateDropCap(text: string, style: DropCapStyle): DropCapResul
     return { letter: '', lines: 0, runaroundMargin: 0, style: style || 'modern' };
   }
 
-  const safeStyle: DropCapStyle = style || 'modern';
+  const validStyles: DropCapStyle[] = ['gothic', 'renaissance', 'jugendstil', 'modern'];
+  const safeStyle: DropCapStyle = validStyles.includes(style) ? style : 'modern';
   const letter = text.charAt(0).toUpperCase();
   const lines = safeStyle === 'gothic' ? 4 : safeStyle === 'renaissance' ? 3 : safeStyle === 'jugendstil' ? 3 : 2;
   const runaroundMargin = lines * 1.5;

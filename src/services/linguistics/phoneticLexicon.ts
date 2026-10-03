@@ -59,9 +59,14 @@ export function generateIPA(word: string): IpaResult {
 
   for (let i = 0; i < clean.length; i++) {
     const char = clean[i];
+    const threeChar = clean.slice(i, i + 3);
     const twoChar = clean.slice(i, i + 2);
 
-    if (IPA_MAP[twoChar]) {
+    if (IPA_MAP[threeChar]) {
+      ipa += IPA_MAP[threeChar];
+      simplified += SIMPLIFIED_MAP[threeChar] || threeChar.toUpperCase();
+      i += 2;
+    } else if (IPA_MAP[twoChar]) {
       ipa += IPA_MAP[twoChar];
       simplified += SIMPLIFIED_MAP[twoChar] || twoChar.toUpperCase();
       i++;
