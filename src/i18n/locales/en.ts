@@ -272,6 +272,10 @@ export const en: TranslationDict = {
   "sidebar.mode.series-universe": "Series Universe",
   "sidebar.mode.table-read": "Table Read",
   "sidebar.mode.print-simulator": "Print Simulator",
+  "sidebar.mode.crowdfunding": "Crowdfunding",
+  "sidebar.mode.gamebook-playtest": "Gamebook Test",
+  "sidebar.mode.reader-sentiment": "Reader Empathy",
+  "sidebar.mode.fan-merch": "Fan Merch",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -493,6 +497,10 @@ export const en: TranslationDict = {
   "sidebar.modeDesc.series-universe": "Status audit across books",
   "sidebar.modeDesc.table-read": "Director teleprompter for screenplays",
   "sidebar.modeDesc.print-simulator": "Spine width & 3D cover",
+  "sidebar.modeDesc.crowdfunding": "Kickstarter campaigns & stretch goals",
+  "sidebar.modeDesc.gamebook-playtest": "Monte-Carlo simulation for gamebooks",
+  "sidebar.modeDesc.reader-sentiment": "Sympathy curve & betrayal shock",
+  "sidebar.modeDesc.fan-merch": "Bookmarks, wallpaper & bundle",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",

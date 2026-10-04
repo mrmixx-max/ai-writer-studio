@@ -90,4 +90,8 @@ export type EditorMode =
   | "book-trailer"
   | "series-universe"
   | "table-read"
-  | "print-simulator";
+  | "print-simulator"
+  | "crowdfunding"
+  | "gamebook-playtest"
+  | "reader-sentiment"
+  | "fan-merch";

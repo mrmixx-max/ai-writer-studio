@@ -291,6 +291,19 @@ const TableReadDirector = lazy(() =>
 const PrintSimulatorModal = lazy(() =>
   import("@/components/Publishing/PrintSimulatorModal").then((m) => ({ default: m.PrintSimulatorModal }))
 );
+// Meilenstein 21: Crowdfunding, Gamebook, Empathie, Merch.
+const CrowdfundingStudio = lazy(() =>
+  import("@/components/marketing/CrowdfundingStudio").then((m) => ({ default: m.CrowdfundingStudio }))
+);
+const ReaderChoicePlaytester = lazy(() =>
+  import("@/components/interactive/ReaderChoicePlaytester").then((m) => ({ default: m.ReaderChoicePlaytester }))
+);
+const ReaderSentimentGraph = lazy(() =>
+  import("@/components/Analytics/ReaderSentimentGraph").then((m) => ({ default: m.ReaderSentimentGraph }))
+);
+const DigitalMerchPackager = lazy(() =>
+  import("@/components/Publishing/DigitalMerchPackager").then((m) => ({ default: m.DigitalMerchPackager }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -381,6 +394,10 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
   { id: "series-universe", key: "sidebar.mode.series-universe", icon: "🌌", descKey: "sidebar.modeDesc.series-universe" },
   { id: "table-read", key: "sidebar.mode.table-read", icon: "🎭", descKey: "sidebar.modeDesc.table-read" },
   { id: "print-simulator", key: "sidebar.mode.print-simulator", icon: "📐", descKey: "sidebar.modeDesc.print-simulator" },
+  { id: "crowdfunding", key: "sidebar.mode.crowdfunding", icon: "💰", descKey: "sidebar.modeDesc.crowdfunding" },
+  { id: "gamebook-playtest", key: "sidebar.mode.gamebook-playtest", icon: "🎮", descKey: "sidebar.modeDesc.gamebook-playtest" },
+  { id: "reader-sentiment", key: "sidebar.mode.reader-sentiment", icon: "❤️", descKey: "sidebar.modeDesc.reader-sentiment" },
+  { id: "fan-merch", key: "sidebar.mode.fan-merch", icon: "🎁", descKey: "sidebar.modeDesc.fan-merch" },
 ];
 
 export function Sidebar() {
@@ -757,6 +774,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "series-universe") return <SeriesUniverseMatrix books={[]} />;
     if (mode === "table-read") return <TableReadDirector doc={{ title: "Ohne Titel", scenes: [] }} />;
     if (mode === "print-simulator") return <PrintSimulatorModal open onClose={() => {}} />;
+    // Meilenstein 21: Standalone-Panels.
+    if (mode === "crowdfunding") return <CrowdfundingStudio />;
+    if (mode === "gamebook-playtest") return <ReaderChoicePlaytester book={{ id: "default", title: "Spielbuch", nodes: [] }} />;
+    if (mode === "reader-sentiment") return <ReaderSentimentGraph protagonistData={[]} antagonistData={[]} />;
+    if (mode === "fan-merch") return <DigitalMerchPackager />;
     if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }

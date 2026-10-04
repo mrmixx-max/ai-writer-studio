@@ -206,6 +206,10 @@ export const de = {
   "sidebar.mode.series-universe": "Serien-Universum",
   "sidebar.mode.table-read": "Table-Read",
   "sidebar.mode.print-simulator": "Druck-Simulator",
+  "sidebar.mode.crowdfunding": "Crowdfunding",
+  "sidebar.mode.gamebook-playtest": "Gamebook-Test",
+  "sidebar.mode.reader-sentiment": "Leser-Empathie",
+  "sidebar.mode.fan-merch": "Fan-Merch",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -432,6 +436,10 @@ export const de = {
   "sidebar.modeDesc.series-universe": "Status-Audit über Buchgrenzen",
   "sidebar.modeDesc.table-read": "Regie-Teleprompter für Drehbücher",
   "sidebar.modeDesc.print-simulator": "Rückenbreite & 3D-Umschlag",
+  "sidebar.modeDesc.crowdfunding": "Kickstarter-Kampagnen & Stretch-Goals",
+  "sidebar.modeDesc.gamebook-playtest": "Monte-Carlo-Simulation für Spielbücher",
+  "sidebar.modeDesc.reader-sentiment": "Sympathiekurve & Verräter-Schock",
+  "sidebar.modeDesc.fan-merch": "Lesezeichen, Wallpaper & Bundle",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Kommentare + Reviews",
   "sidebar.modeDesc.condense": "Textverkürzung",
