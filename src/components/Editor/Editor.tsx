@@ -39,6 +39,7 @@ import {
   countOpenTrackChanges,
 } from "@/services/editor/editorialTrackChanges";
 import { QuickActionsMenu } from "./QuickActionsMenu";
+import { EditorQuickActions } from "./EditorQuickActions";
 import { LiveConsistencyPanel } from "./LiveConsistencyPanel";
 
 interface EditorProps {
@@ -484,6 +485,8 @@ export function Editor({ onChange, initialContent, focusMode, getCharacterInfo, 
       <div className="editor-body">
         <EditorContent editor={editor} className="editor-content" />
         <QuickActionsMenu editor={editorInstance} />
+        {/* Meilenstein 18 (WP 40.1): Kontextuelle Schwebe-Leiste ab > 3 Wörtern. */}
+        <EditorQuickActions editor={editorInstance} />
         {/* Live-Konsistenzwaechter (WP3.1): Hinweise am Rand, keine Blockade. */}
         <LiveConsistencyPanel text={liveCheckText} enabled={!focusMode} />
         {showOutline && (

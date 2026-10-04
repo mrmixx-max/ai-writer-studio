@@ -105,6 +105,11 @@ vi.mock("@/components/Editor/extensions", () => ({
 vi.mock("@/components/Editor/QuickActionsMenu", () => ({
   QuickActionsMenu: () => null,
 }));
+// Meilenstein 18 (WP 40.1): BubbleMenu braucht einen echten TipTap-Editor —
+// im Test genauso stubben wie QuickActionsMenu.
+vi.mock("@/components/Editor/EditorQuickActions", () => ({
+  EditorQuickActions: () => null,
+}));
 // Ghost-Text-Service: kein LLM-Aufruf in Tests.
 vi.mock("@/services/editor/ghostText", () => ({
   suggestContinuation: vi.fn(async () => null),

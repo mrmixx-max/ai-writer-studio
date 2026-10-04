@@ -123,6 +123,10 @@ vi.mock("@/components/Editor/extensions", () => ({
 vi.mock("@/components/Editor/QuickActionsMenu", () => ({
   QuickActionsMenu: () => null,
 }));
+// Meilenstein 18 (WP 40.1): BubbleMenu braucht echten TipTap-Editor.
+vi.mock("@/components/Editor/EditorQuickActions", () => ({
+  EditorQuickActions: () => null,
+}));
 vi.mock("@/services/editor/ghostText", () => ({
   suggestContinuation: vi.fn(async () => null),
 }));

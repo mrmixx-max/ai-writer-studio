@@ -8,10 +8,14 @@
 // Das Tauri-Fenster startet mit "visible": false und wird erst eingeblendet,
 // wenn dieser Ablauf steht — so gibt es kein weisses Aufblitzen.
 
-import { useState, useEffect, useMemo, lazy, Suspense } from "react";
+import { useState, useEffect, useMemo, lazy, Suspense, useCallback } from "react";
 import { Sidebar } from "@/components/Sidebar/Sidebar";
 import { Editor } from "@/components/Editor/Editor";
 import { WordCountBar } from "@/components/Editor/WordCountBar";
+// Meilenstein 18: Befehlspalette (Strg+K) — lazy, da sie alle Werkzeuge zieht.
+const CommandPalette = lazy(() =>
+  import("@/components/navigation/CommandPalette").then((m) => ({ default: m.CommandPalette }))
+);
 // Sprint 11 (Agent 4): KIPanel + ExportBar nur bei Bedarf laden — beide ziehen
 // schwere Service-Graphen (LLM/KI-Stack bzw. Export-/Preflight-Libs) in das
 // Main-Bundle und sind für die erste Darstellung nicht kritisch (Seitenpanel /
@@ -135,7 +139,24 @@ function AppInner() {
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showPrintLayout, setShowPrintLayout] = useState(false);
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
+  const [showCommandPalette, setShowCommandPalette] = useState(false);
+  const [commandResult, setCommandResult] = useState<string>("");
   const [dbError, setDbError] = useState<string | null>(null);
+
+  // Meilenstein 18 (WP 40.2): Strg+K / Cmd+K öffnet die Befehlspalette.
+  // Escape schließt sie und gibt den Fokus sofort zurück.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setShowCommandPalette((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
+  const handleCommandText = useCallback(() => activeContent ?? "", [activeContent]);
 
   // --- Startablauf ---------------------------------------------------------
   useEffect(() => {
@@ -343,6 +364,68 @@ function AppInner() {
             </Suspense>
           </PanelErrorBoundary>
         </main>
+
+        {/* Meilenstein 18 (WP 40.2): Befehlspalette mit Strg+K. */}
+        <Suspense fallback={null}>
+          <CommandPalette
+            open={showCommandPalette}
+            onClose={() => setShowCommandPalette(false)}
+            getText={handleCommandText}
+            onResult={(_tool, result) => setCommandResult(result)}
+          />
+        </Suspense>
+
+        {/* Ergebnis der letzten Befehlspaletten-Ausführung. */}
+        {commandResult && (
+          <div
+            data-testid="command-result-overlay"
+            className="modal-backdrop"
+            onClick={() => setCommandResult("")}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                background: "var(--bg)",
+                border: "1px solid var(--border)",
+                borderRadius: 6,
+                padding: 16,
+                maxWidth: 720,
+                maxHeight: "70vh",
+                overflow: "auto",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                <strong style={{ color: "var(--accent)", fontSize: 13 }}>Werkzeug-Ergebnis</strong>
+                <button
+                  onClick={() => setCommandResult("")}
+                  style={{
+                    background: "transparent",
+                    border: "1px solid var(--border)",
+                    borderRadius: 4,
+                    color: "var(--muted)",
+                    padding: "2px 8px",
+                    cursor: "pointer",
+                    fontSize: 11,
+                  }}
+                >
+                  Schließen
+                </button>
+              </div>
+              <pre
+                data-testid="command-result-text"
+                style={{
+                  color: "var(--success)",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: 12,
+                  whiteSpace: "pre-wrap",
+                  margin: 0,
+                }}
+              >
+                {commandResult}
+              </pre>
+            </div>
+          </div>
+        )}
 
         {showSettings && (
           <div className="modal-backdrop" onClick={() => setShowSettings(false)}>
