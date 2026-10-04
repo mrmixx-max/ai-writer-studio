@@ -464,6 +464,7 @@ export const es: TranslationDict = {
   "sidebar.mode.plugin-manager": "Plugins",
   "sidebar.mode.book-idea": "Ideas de libro",
   "sidebar.mode.chat": "Chat",
+  "sidebar.mode.werkzeuge": "Herramientas",
 
   "sidebar.editorTextFallback": "(elegir texto del editor)",
   "sidebar.contentFallback": "(contenido)",
@@ -478,6 +479,7 @@ export const es: TranslationDict = {
   "sidebar.modeDesc.character-network": "Red de relaciones",
   "sidebar.modeDesc.characters": "Gestionar personajes",
   "sidebar.modeDesc.chat": "Chatear libremente",
+  "sidebar.modeDesc.werkzeuge": "52 herramientas de análisis y composición (Hitos 5–17)",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comentarios + revisiones",
   "sidebar.modeDesc.condense": "Abreviar texto",

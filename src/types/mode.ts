@@ -81,4 +81,5 @@ export type EditorMode =
   | "book-idea"
   | "chat"
   | "redenschreiber"
-  | "teleprompter";
+  | "teleprompter"
+  | "werkzeuge";

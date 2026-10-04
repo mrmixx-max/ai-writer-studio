@@ -197,6 +197,7 @@ export const de = {
   "sidebar.mode.plugin-manager": "Plugins",
   "sidebar.mode.book-idea": "Buchideen",
   "sidebar.mode.chat": "Chat",
+  "sidebar.mode.werkzeuge": "Werkzeuge",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -414,6 +415,7 @@ export const de = {
   "sidebar.modeDesc.character-network": "Beziehungsnetzwerk",
   "sidebar.modeDesc.characters": "Figuren verwalten",
   "sidebar.modeDesc.chat": "Frei chatten",
+  "sidebar.modeDesc.werkzeuge": "52 Analyse- & Satzwerkzeuge (Meilenstein 5–17)",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Kommentare + Reviews",
   "sidebar.modeDesc.condense": "Textverkürzung",

@@ -261,6 +261,10 @@ const SummarizerPanel = lazy(() =>
 const PlotAnalyzerPanel = lazy(() =>
   import("@/components/PlotAnalyzer/PlotAnalyzerPanel").then((m) => ({ default: m.PlotAnalyzerPanel }))
 );
+// Meilenstein 18: Werkzeuge-Panel bündelt alle Services aus M5–17.
+const WerkzeugePanel = lazy(() =>
+  import("@/components/Werkzeuge/WerkzeugePanel").then((m) => ({ default: m.WerkzeugePanel }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -342,6 +346,7 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
   { id: "plugin-manager", key: "sidebar.mode.plugin-manager", icon: "🧩", descKey: "sidebar.modeDesc.plugin-manager" },
   { id: "book-idea", key: "sidebar.mode.book-idea", icon: "💡", descKey: "sidebar.modeDesc.book-idea" },
   { id: "chat", key: "sidebar.mode.chat", icon: "💬", descKey: "sidebar.modeDesc.chat" },
+  { id: "werkzeuge", key: "sidebar.mode.werkzeuge", icon: "🧰", descKey: "sidebar.modeDesc.werkzeuge" },
 ];
 
 export function Sidebar() {
@@ -706,6 +711,8 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     // Sprint 32: Redenschreiber + Teleprompter (Voice-Features, standalone)
     if (mode === "redenschreiber") return <RedenschreiberPanel />;
     if (mode === "teleprompter") return <TeleprompterPanel />;
+    // Meilenstein 18: Werkzeuge — alle Services aus M5–17, standalone.
+    if (mode === "werkzeuge") return <WerkzeugePanel />;
     if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }
