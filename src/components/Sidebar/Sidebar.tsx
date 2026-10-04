@@ -304,6 +304,19 @@ const ReaderSentimentGraph = lazy(() =>
 const DigitalMerchPackager = lazy(() =>
   import("@/components/Publishing/DigitalMerchPackager").then((m) => ({ default: m.DigitalMerchPackager }))
 );
+// Meilenstein 22: Live-Bühne, Soundtrack, Authentizität, Meisterwerk-Siegel.
+const LiveAudienceTelemetry = lazy(() =>
+  import("@/components/stage/LiveAudienceTelemetry").then((m) => ({ default: m.LiveAudienceTelemetry }))
+);
+const MusicalScoreComposer = lazy(() =>
+  import("@/components/audio/MusicalScoreComposer").then((m) => ({ default: m.MusicalScoreComposer }))
+);
+const CulturalAuthenticityAudit = lazy(() =>
+  import("@/components/Analytics/CulturalAuthenticityAudit").then((m) => ({ default: m.CulturalAuthenticityAudit }))
+);
+const MasterpieceSealModal = lazy(() =>
+  import("@/components/core/MasterpieceSealModal").then((m) => ({ default: m.MasterpieceSealModal }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -398,6 +411,10 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
   { id: "gamebook-playtest", key: "sidebar.mode.gamebook-playtest", icon: "🎮", descKey: "sidebar.modeDesc.gamebook-playtest" },
   { id: "reader-sentiment", key: "sidebar.mode.reader-sentiment", icon: "❤️", descKey: "sidebar.modeDesc.reader-sentiment" },
   { id: "fan-merch", key: "sidebar.mode.fan-merch", icon: "🎁", descKey: "sidebar.modeDesc.fan-merch" },
+  { id: "live-stage", key: "sidebar.mode.live-stage", icon: "🎤", descKey: "sidebar.modeDesc.live-stage" },
+  { id: "soundtrack", key: "sidebar.mode.soundtrack", icon: "🎵", descKey: "sidebar.modeDesc.soundtrack" },
+  { id: "authenticity-audit", key: "sidebar.mode.authenticity-audit", icon: "🔍", descKey: "sidebar.modeDesc.authenticity-audit" },
+  { id: "masterpiece-seal", key: "sidebar.mode.masterpiece-seal", icon: "🏆", descKey: "sidebar.modeDesc.masterpiece-seal" },
 ];
 
 export function Sidebar() {
@@ -779,6 +796,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "gamebook-playtest") return <ReaderChoicePlaytester book={{ id: "default", title: "Spielbuch", nodes: [] }} />;
     if (mode === "reader-sentiment") return <ReaderSentimentGraph protagonistData={[]} antagonistData={[]} />;
     if (mode === "fan-merch") return <DigitalMerchPackager />;
+    // Meilenstein 22: Standalone-Panels.
+    if (mode === "live-stage") return <LiveAudienceTelemetry />;
+    if (mode === "soundtrack") return <MusicalScoreComposer />;
+    if (mode === "authenticity-audit") return <CulturalAuthenticityAudit />;
+    if (mode === "masterpiece-seal") return <MasterpieceSealModal open onClose={() => {}} testCount={5927} version="3.3.0" />;
     if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }

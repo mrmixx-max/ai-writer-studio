@@ -276,6 +276,10 @@ export const en: TranslationDict = {
   "sidebar.mode.gamebook-playtest": "Gamebook Test",
   "sidebar.mode.reader-sentiment": "Reader Empathy",
   "sidebar.mode.fan-merch": "Fan Merch",
+  "sidebar.mode.live-stage": "Live Stage",
+  "sidebar.mode.soundtrack": "Soundtrack",
+  "sidebar.mode.authenticity-audit": "Authenticity Audit",
+  "sidebar.mode.masterpiece-seal": "Masterpiece Seal",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -501,6 +505,10 @@ export const en: TranslationDict = {
   "sidebar.modeDesc.gamebook-playtest": "Monte-Carlo simulation for gamebooks",
   "sidebar.modeDesc.reader-sentiment": "Sympathy curve & betrayal shock",
   "sidebar.modeDesc.fan-merch": "Bookmarks, wallpaper & bundle",
+  "sidebar.modeDesc.live-stage": "Acoustics, director cues & audience Q&A",
+  "sidebar.modeDesc.soundtrack": "Emotion-to-harmony & MIDI composer",
+  "sidebar.modeDesc.authenticity-audit": "Trope radar & linguistic sensitivity",
+  "sidebar.modeDesc.masterpiece-seal": "Ecosystem scan & anniversary certificate",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",

@@ -94,4 +94,8 @@ export type EditorMode =
   | "crowdfunding"
   | "gamebook-playtest"
   | "reader-sentiment"
-  | "fan-merch";
+  | "fan-merch"
+  | "live-stage"
+  | "soundtrack"
+  | "authenticity-audit"
+  | "masterpiece-seal";

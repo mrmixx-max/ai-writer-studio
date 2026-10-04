@@ -210,6 +210,10 @@ export const de = {
   "sidebar.mode.gamebook-playtest": "Gamebook-Test",
   "sidebar.mode.reader-sentiment": "Leser-Empathie",
   "sidebar.mode.fan-merch": "Fan-Merch",
+  "sidebar.mode.live-stage": "Live-Bühne",
+  "sidebar.mode.soundtrack": "Soundtrack",
+  "sidebar.mode.authenticity-audit": "Authentizitäts-Audit",
+  "sidebar.mode.masterpiece-seal": "Meisterwerk-Siegel",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -440,6 +444,10 @@ export const de = {
   "sidebar.modeDesc.gamebook-playtest": "Monte-Carlo-Simulation für Spielbücher",
   "sidebar.modeDesc.reader-sentiment": "Sympathiekurve & Verräter-Schock",
   "sidebar.modeDesc.fan-merch": "Lesezeichen, Wallpaper & Bundle",
+  "sidebar.modeDesc.live-stage": "Akustik, Regie-Impulse & Publikums-Q&A",
+  "sidebar.modeDesc.soundtrack": "Emotion-zu-Harmonie & MIDI-Composer",
+  "sidebar.modeDesc.authenticity-audit": "Tropen-Radar & sprachliche Sensibilität",
+  "sidebar.modeDesc.masterpiece-seal": "Ecosystem-Scan & Jubiläums-Zertifikat",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Kommentare + Reviews",
   "sidebar.modeDesc.condense": "Textverkürzung",
