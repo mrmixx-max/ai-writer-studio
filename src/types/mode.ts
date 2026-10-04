@@ -86,4 +86,8 @@ export type EditorMode =
   | "storyboard"
   | "guest-review"
   | "voice-memo"
-  | "release-cockpit";
+  | "release-cockpit"
+  | "book-trailer"
+  | "series-universe"
+  | "table-read"
+  | "print-simulator";

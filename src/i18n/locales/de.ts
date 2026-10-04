@@ -202,6 +202,10 @@ export const de = {
   "sidebar.mode.guest-review": "Lektoren-Portal",
   "sidebar.mode.voice-memo": "Sprachmemo",
   "sidebar.mode.release-cockpit": "Release-Cockpit",
+  "sidebar.mode.book-trailer": "Buchtrailer",
+  "sidebar.mode.series-universe": "Serien-Universum",
+  "sidebar.mode.table-read": "Table-Read",
+  "sidebar.mode.print-simulator": "Druck-Simulator",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -424,6 +428,10 @@ export const de = {
   "sidebar.modeDesc.guest-review": "Freigabe-Link + QR-Code",
   "sidebar.modeDesc.voice-memo": "Diktat mit Smart-Tagger",
   "sidebar.modeDesc.release-cockpit": "1-Klick-Veröffentlichung",
+  "sidebar.modeDesc.book-trailer": "Teaser für TikTok/Reels/YouTube",
+  "sidebar.modeDesc.series-universe": "Status-Audit über Buchgrenzen",
+  "sidebar.modeDesc.table-read": "Regie-Teleprompter für Drehbücher",
+  "sidebar.modeDesc.print-simulator": "Rückenbreite & 3D-Umschlag",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Kommentare + Reviews",
   "sidebar.modeDesc.condense": "Textverkürzung",

@@ -268,6 +268,10 @@ export const en: TranslationDict = {
   "sidebar.mode.guest-review": "Review Portal",
   "sidebar.mode.voice-memo": "Voice Memo",
   "sidebar.mode.release-cockpit": "Release Cockpit",
+  "sidebar.mode.book-trailer": "Book Trailer",
+  "sidebar.mode.series-universe": "Series Universe",
+  "sidebar.mode.table-read": "Table Read",
+  "sidebar.mode.print-simulator": "Print Simulator",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -485,6 +489,10 @@ export const en: TranslationDict = {
   "sidebar.modeDesc.guest-review": "Share link + QR code",
   "sidebar.modeDesc.voice-memo": "Dictation with smart tagger",
   "sidebar.modeDesc.release-cockpit": "One-click publishing",
+  "sidebar.modeDesc.book-trailer": "Teaser for TikTok/Reels/YouTube",
+  "sidebar.modeDesc.series-universe": "Status audit across books",
+  "sidebar.modeDesc.table-read": "Director teleprompter for screenplays",
+  "sidebar.modeDesc.print-simulator": "Spine width & 3D cover",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",

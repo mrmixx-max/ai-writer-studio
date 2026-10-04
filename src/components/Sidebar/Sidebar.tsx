@@ -278,6 +278,19 @@ const VoiceMemoModal = lazy(() =>
 const MasterPublishingCockpit = lazy(() =>
   import("@/components/Publishing/MasterPublishingCockpit").then((m) => ({ default: m.MasterPublishingCockpit }))
 );
+// Meilenstein 20: Trailer, Serien-Universum, Table-Read, Druck-Simulator.
+const BookTrailerStudio = lazy(() =>
+  import("@/components/marketing/BookTrailerStudio").then((m) => ({ default: m.BookTrailerStudio }))
+);
+const SeriesUniverseMatrix = lazy(() =>
+  import("@/components/Worldbuilding/SeriesUniverseMatrix").then((m) => ({ default: m.SeriesUniverseMatrix }))
+);
+const TableReadDirector = lazy(() =>
+  import("@/components/screenplay/TableReadDirector").then((m) => ({ default: m.TableReadDirector }))
+);
+const PrintSimulatorModal = lazy(() =>
+  import("@/components/Publishing/PrintSimulatorModal").then((m) => ({ default: m.PrintSimulatorModal }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -364,6 +377,10 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
   { id: "guest-review", key: "sidebar.mode.guest-review", icon: "👥", descKey: "sidebar.modeDesc.guest-review" },
   { id: "voice-memo", key: "sidebar.mode.voice-memo", icon: "🎙️", descKey: "sidebar.modeDesc.voice-memo" },
   { id: "release-cockpit", key: "sidebar.mode.release-cockpit", icon: "🚀", descKey: "sidebar.modeDesc.release-cockpit" },
+  { id: "book-trailer", key: "sidebar.mode.book-trailer", icon: "🎬", descKey: "sidebar.modeDesc.book-trailer" },
+  { id: "series-universe", key: "sidebar.mode.series-universe", icon: "🌌", descKey: "sidebar.modeDesc.series-universe" },
+  { id: "table-read", key: "sidebar.mode.table-read", icon: "🎭", descKey: "sidebar.modeDesc.table-read" },
+  { id: "print-simulator", key: "sidebar.mode.print-simulator", icon: "📐", descKey: "sidebar.modeDesc.print-simulator" },
 ];
 
 export function Sidebar() {
@@ -735,6 +752,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "guest-review") return <GuestReviewModal open chapters={[]} onClose={() => {}} />;
     if (mode === "voice-memo") return <VoiceMemoModal open context={{ chapters: [], characters: [], codexTopics: [] }} onClose={() => {}} />;
     if (mode === "release-cockpit") return <MasterPublishingCockpit project={{ title: "Unbenannt", author: "", chapters: [] }} />;
+    // Meilenstein 20: Standalone-Panels.
+    if (mode === "book-trailer") return <BookTrailerStudio />;
+    if (mode === "series-universe") return <SeriesUniverseMatrix books={[]} />;
+    if (mode === "table-read") return <TableReadDirector doc={{ title: "Ohne Titel", scenes: [] }} />;
+    if (mode === "print-simulator") return <PrintSimulatorModal open onClose={() => {}} />;
     if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }
