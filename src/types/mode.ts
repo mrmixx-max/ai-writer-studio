@@ -82,4 +82,8 @@ export type EditorMode =
   | "chat"
   | "redenschreiber"
   | "teleprompter"
-  | "werkzeuge";
+  | "werkzeuge"
+  | "storyboard"
+  | "guest-review"
+  | "voice-memo"
+  | "release-cockpit";

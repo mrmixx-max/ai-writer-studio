@@ -265,6 +265,19 @@ const PlotAnalyzerPanel = lazy(() =>
 const WerkzeugePanel = lazy(() =>
   import("@/components/Werkzeuge/WerkzeugePanel").then((m) => ({ default: m.WerkzeugePanel }))
 );
+// Meilenstein 19: Storyboard, Lektoren-Portal, Sprachmemo, Release-Cockpit.
+const ManuscriptStoryboard = lazy(() =>
+  import("@/components/storyboard/ManuscriptStoryboard").then((m) => ({ default: m.ManuscriptStoryboard }))
+);
+const GuestReviewModal = lazy(() =>
+  import("@/components/modals/GuestReviewModal").then((m) => ({ default: m.GuestReviewModal }))
+);
+const VoiceMemoModal = lazy(() =>
+  import("@/components/audio/VoiceMemoModal").then((m) => ({ default: m.VoiceMemoModal }))
+);
+const MasterPublishingCockpit = lazy(() =>
+  import("@/components/Publishing/MasterPublishingCockpit").then((m) => ({ default: m.MasterPublishingCockpit }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -347,6 +360,10 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
   { id: "book-idea", key: "sidebar.mode.book-idea", icon: "💡", descKey: "sidebar.modeDesc.book-idea" },
   { id: "chat", key: "sidebar.mode.chat", icon: "💬", descKey: "sidebar.modeDesc.chat" },
   { id: "werkzeuge", key: "sidebar.mode.werkzeuge", icon: "🧰", descKey: "sidebar.modeDesc.werkzeuge" },
+  { id: "storyboard", key: "sidebar.mode.storyboard", icon: "🗂️", descKey: "sidebar.modeDesc.storyboard" },
+  { id: "guest-review", key: "sidebar.mode.guest-review", icon: "👥", descKey: "sidebar.modeDesc.guest-review" },
+  { id: "voice-memo", key: "sidebar.mode.voice-memo", icon: "🎙️", descKey: "sidebar.modeDesc.voice-memo" },
+  { id: "release-cockpit", key: "sidebar.mode.release-cockpit", icon: "🚀", descKey: "sidebar.modeDesc.release-cockpit" },
 ];
 
 export function Sidebar() {
@@ -713,6 +730,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "teleprompter") return <TeleprompterPanel />;
     // Meilenstein 18: Werkzeuge — alle Services aus M5–17, standalone.
     if (mode === "werkzeuge") return <WerkzeugePanel />;
+    // Meilenstein 19: Standalone-Panels (eigener Zustand, kein Kapitel-Guard).
+    if (mode === "storyboard") return <ManuscriptStoryboard chapters={[]} />;
+    if (mode === "guest-review") return <GuestReviewModal open chapters={[]} onClose={() => {}} />;
+    if (mode === "voice-memo") return <VoiceMemoModal open context={{ chapters: [], characters: [], codexTopics: [] }} onClose={() => {}} />;
+    if (mode === "release-cockpit") return <MasterPublishingCockpit project={{ title: "Unbenannt", author: "", chapters: [] }} />;
     if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }

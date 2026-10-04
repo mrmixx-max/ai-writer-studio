@@ -198,6 +198,10 @@ export const de = {
   "sidebar.mode.book-idea": "Buchideen",
   "sidebar.mode.chat": "Chat",
   "sidebar.mode.werkzeuge": "Werkzeuge",
+  "sidebar.mode.storyboard": "Korkwand",
+  "sidebar.mode.guest-review": "Lektoren-Portal",
+  "sidebar.mode.voice-memo": "Sprachmemo",
+  "sidebar.mode.release-cockpit": "Release-Cockpit",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -416,6 +420,10 @@ export const de = {
   "sidebar.modeDesc.characters": "Figuren verwalten",
   "sidebar.modeDesc.chat": "Frei chatten",
   "sidebar.modeDesc.werkzeuge": "52 Analyse- & Satzwerkzeuge (Meilenstein 5–17)",
+  "sidebar.modeDesc.storyboard": "Kapitel als Karten umsortieren",
+  "sidebar.modeDesc.guest-review": "Freigabe-Link + QR-Code",
+  "sidebar.modeDesc.voice-memo": "Diktat mit Smart-Tagger",
+  "sidebar.modeDesc.release-cockpit": "1-Klick-Veröffentlichung",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Kommentare + Reviews",
   "sidebar.modeDesc.condense": "Textverkürzung",

@@ -264,6 +264,10 @@ export const en: TranslationDict = {
   "sidebar.mode.book-idea": "Book Ideas",
   "sidebar.mode.chat": "Chat",
   "sidebar.mode.werkzeuge": "Tools",
+  "sidebar.mode.storyboard": "Storyboard",
+  "sidebar.mode.guest-review": "Review Portal",
+  "sidebar.mode.voice-memo": "Voice Memo",
+  "sidebar.mode.release-cockpit": "Release Cockpit",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -477,6 +481,10 @@ export const en: TranslationDict = {
   "sidebar.modeDesc.characters": "Manage characters",
   "sidebar.modeDesc.chat": "Chat freely",
   "sidebar.modeDesc.werkzeuge": "52 analysis & typesetting tools (Milestones 5–17)",
+  "sidebar.modeDesc.storyboard": "Reorder chapters as cards",
+  "sidebar.modeDesc.guest-review": "Share link + QR code",
+  "sidebar.modeDesc.voice-memo": "Dictation with smart tagger",
+  "sidebar.modeDesc.release-cockpit": "One-click publishing",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",
