@@ -242,6 +242,10 @@ export const de = {
   "sidebar.mode.what-if": "Was-wäre-wenn",
   "sidebar.mode.cadence": "Kadenz-Orchestrator",
   "sidebar.mode.omniverse": "Omniverse-Release",
+  "sidebar.mode.double-entendre": "Doppelbödigkeit",
+  "sidebar.mode.voice-evolution": "Stimmen-Evolution",
+  "sidebar.mode.microclimate": "Mikroklima",
+  "sidebar.mode.grand-century": "Grand-Century",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -504,6 +508,10 @@ export const de = {
   "sidebar.modeDesc.what-if": "Kaskaden alternativer Entscheidungen",
   "sidebar.modeDesc.cadence": "Satzrhythmus-Wellenform und Politur",
   "sidebar.modeDesc.omniverse": "Preflight, Archiv und Normseite",
+  "sidebar.modeDesc.double-entendre": "Interaktive Dechiffrier-Ansicht",
+  "sidebar.modeDesc.voice-evolution": "Vorher/Nachher-Gegenüberstellung",
+  "sidebar.modeDesc.microclimate": "Multisensorische Wetter-Prosa",
+  "sidebar.modeDesc.grand-century": "Ökosystem-Audit und Zertifikat",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Kommentare + Reviews",
   "sidebar.modeDesc.condense": "Textverkürzung",

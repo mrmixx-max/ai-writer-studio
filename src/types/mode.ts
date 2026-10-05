@@ -126,4 +126,8 @@ export type EditorMode =
   | "writers-room"
   | "what-if"
   | "cadence"
-  | "omniverse";
+  | "omniverse"
+  | "double-entendre"
+  | "voice-evolution"
+  | "microclimate"
+  | "grand-century";

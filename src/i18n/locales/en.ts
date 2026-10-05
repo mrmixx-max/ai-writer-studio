@@ -308,6 +308,10 @@ export const en: TranslationDict = {
   "sidebar.mode.what-if": "What-If Planner",
   "sidebar.mode.cadence": "Cadence Orchestrator",
   "sidebar.mode.omniverse": "Omniverse Release",
+  "sidebar.mode.double-entendre": "Double Entendre",
+  "sidebar.mode.voice-evolution": "Voice Evolution",
+  "sidebar.mode.microclimate": "Microclimate",
+  "sidebar.mode.grand-century": "Grand Century",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -565,6 +569,10 @@ export const en: TranslationDict = {
   "sidebar.modeDesc.what-if": "Cascades of alternative decisions",
   "sidebar.modeDesc.cadence": "Sentence rhythm waveform and polish",
   "sidebar.modeDesc.omniverse": "Preflight, archive and norm page",
+  "sidebar.modeDesc.double-entendre": "Interactive deciphering view",
+  "sidebar.modeDesc.voice-evolution": "Before/after comparison",
+  "sidebar.modeDesc.microclimate": "Multisensory weather prose",
+  "sidebar.modeDesc.grand-century": "Ecosystem audit and certificate",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",

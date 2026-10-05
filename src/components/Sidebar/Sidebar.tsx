@@ -408,6 +408,19 @@ const SentenceCadenceOrchestratorModal = lazy(() =>
 const OmniverseReleaseModal = lazy(() =>
   import("@/components/Publishing/OmniverseReleaseModal").then((m) => ({ default: m.OmniverseReleaseModal }))
 );
+// Meilenstein 30 (v4.1.0): Doppelbödigkeit, Stimmen-Evolution, Mikroklima, Grand-Century.
+const DoubleEntendreSynthesizerModal = lazy(() =>
+  import("@/components/ai/DoubleEntendreSynthesizerModal").then((m) => ({ default: m.DoubleEntendreSynthesizerModal }))
+);
+const CharacterVoiceEvolutionModal = lazy(() =>
+  import("@/components/ai/CharacterVoiceEvolutionModal").then((m) => ({ default: m.CharacterVoiceEvolutionModal }))
+);
+const MicroclimateWeatherSynthesizerModal = lazy(() =>
+  import("@/components/ai/MicroclimateWeatherSynthesizerModal").then((m) => ({ default: m.MicroclimateWeatherSynthesizerModal }))
+);
+const GrandCenturySentinelModal = lazy(() =>
+  import("@/components/core/GrandCenturySentinelModal").then((m) => ({ default: m.GrandCenturySentinelModal }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -534,6 +547,10 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
   { id: "what-if", key: "sidebar.mode.what-if", icon: "🔀", descKey: "sidebar.modeDesc.what-if" },
   { id: "cadence", key: "sidebar.mode.cadence", icon: "🎼", descKey: "sidebar.modeDesc.cadence" },
   { id: "omniverse", key: "sidebar.mode.omniverse", icon: "🌌", descKey: "sidebar.modeDesc.omniverse" },
+  { id: "double-entendre", key: "sidebar.mode.double-entendre", icon: "🎭", descKey: "sidebar.modeDesc.double-entendre" },
+  { id: "voice-evolution", key: "sidebar.mode.voice-evolution", icon: "🎙️", descKey: "sidebar.modeDesc.voice-evolution" },
+  { id: "microclimate", key: "sidebar.mode.microclimate", icon: "🌡️", descKey: "sidebar.modeDesc.microclimate" },
+  { id: "grand-century", key: "sidebar.mode.grand-century", icon: "🏅", descKey: "sidebar.modeDesc.grand-century" },
 ];
 
 export function Sidebar() {
@@ -955,6 +972,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "what-if") return <WhatIfScenarioPlannerModal />;
     if (mode === "cadence") return <SentenceCadenceOrchestratorModal />;
     if (mode === "omniverse") return <OmniverseReleaseModal />;
+    // Meilenstein 30 (v4.1.0): Standalone-Panels.
+    if (mode === "double-entendre") return <DoubleEntendreSynthesizerModal />;
+    if (mode === "voice-evolution") return <CharacterVoiceEvolutionModal />;
+    if (mode === "microclimate") return <MicroclimateWeatherSynthesizerModal />;
+    if (mode === "grand-century") return <GrandCenturySentinelModal />;
     if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }
