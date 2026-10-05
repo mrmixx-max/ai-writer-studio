@@ -299,7 +299,7 @@ const ReaderChoicePlaytester = lazy(() =>
   import("@/components/interactive/ReaderChoicePlaytester").then((m) => ({ default: m.ReaderChoicePlaytester }))
 );
 const ReaderSentimentGraph = lazy(() =>
-  import("@/components/Analytics/ReaderSentimentGraph").then((m) => ({ default: m.ReaderSentimentGraph }))
+  import("@/components/analytics/ReaderSentimentGraph").then((m) => ({ default: m.ReaderSentimentGraph }))
 );
 const DigitalMerchPackager = lazy(() =>
   import("@/components/Publishing/DigitalMerchPackager").then((m) => ({ default: m.DigitalMerchPackager }))
@@ -312,7 +312,7 @@ const MusicalScoreComposer = lazy(() =>
   import("@/components/audio/MusicalScoreComposer").then((m) => ({ default: m.MusicalScoreComposer }))
 );
 const CulturalAuthenticityAudit = lazy(() =>
-  import("@/components/Analytics/CulturalAuthenticityAudit").then((m) => ({ default: m.CulturalAuthenticityAudit }))
+  import("@/components/analytics/CulturalAuthenticityAudit").then((m) => ({ default: m.CulturalAuthenticityAudit }))
 );
 const MasterpieceSealModal = lazy(() =>
   import("@/components/core/MasterpieceSealModal").then((m) => ({ default: m.MasterpieceSealModal }))
@@ -329,6 +329,19 @@ const ParallelTimelineEngine = lazy(() =>
 );
 const LiteraryGrantPackager = lazy(() =>
   import("@/components/Publishing/LiteraryGrantPackager").then((m) => ({ default: m.LiteraryGrantPackager }))
+);
+// Meilenstein 24: Beziehungs-Chemie, Epigraph, Barcode, Genre-Kompass.
+const RelationshipChemistry = lazy(() =>
+  import("@/components/dramaturgy/RelationshipChemistry").then((m) => ({ default: m.RelationshipChemistry }))
+);
+const EpigraphAnthology = lazy(() =>
+  import("@/components/typesetting/EpigraphAnthology").then((m) => ({ default: m.EpigraphAnthology }))
+);
+const BarcodeGeneratorModal = lazy(() =>
+  import("@/components/Publishing/BarcodeGeneratorModal").then((m) => ({ default: m.BarcodeGeneratorModal }))
+);
+const GenreArchetypeCompass = lazy(() =>
+  import("@/components/analytics/GenreArchetypeCompass").then((m) => ({ default: m.GenreArchetypeCompass }))
 );
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
@@ -432,6 +445,10 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
   { id: "suspense-ecg", key: "sidebar.mode.suspense-ecg", icon: "📈", descKey: "sidebar.modeDesc.suspense-ecg" },
   { id: "parallel-timeline", key: "sidebar.mode.parallel-timeline", icon: "⏳", descKey: "sidebar.modeDesc.parallel-timeline" },
   { id: "grant-dossier", key: "sidebar.mode.grant-dossier", icon: "📚", descKey: "sidebar.modeDesc.grant-dossier" },
+  { id: "relationship-chemistry", key: "sidebar.mode.relationship-chemistry", icon: "💞", descKey: "sidebar.modeDesc.relationship-chemistry" },
+  { id: "epigraph", key: "sidebar.mode.epigraph", icon: "📜", descKey: "sidebar.modeDesc.epigraph" },
+  { id: "barcode", key: "sidebar.mode.barcode", icon: "📊", descKey: "sidebar.modeDesc.barcode" },
+  { id: "genre-compass", key: "sidebar.mode.genre-compass", icon: "🧭", descKey: "sidebar.modeDesc.genre-compass" },
 ];
 
 export function Sidebar() {
@@ -823,6 +840,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "suspense-ecg") return <SuspenseEcgGraph />;
     if (mode === "parallel-timeline") return <ParallelTimelineEngine />;
     if (mode === "grant-dossier") return <LiteraryGrantPackager />;
+    // Meilenstein 24: Standalone-Panels.
+    if (mode === "relationship-chemistry") return <RelationshipChemistry />;
+    if (mode === "epigraph") return <EpigraphAnthology />;
+    if (mode === "barcode") return <BarcodeGeneratorModal open onClose={() => {}} />;
+    if (mode === "genre-compass") return <GenreArchetypeCompass />;
     if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }

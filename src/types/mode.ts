@@ -102,4 +102,8 @@ export type EditorMode =
   | "mind-map"
   | "suspense-ecg"
   | "parallel-timeline"
-  | "grant-dossier";
+  | "grant-dossier"
+  | "relationship-chemistry"
+  | "epigraph"
+  | "barcode"
+  | "genre-compass";

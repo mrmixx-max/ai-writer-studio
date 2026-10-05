@@ -45,10 +45,10 @@ const EmptyEditor = lazy(() =>
   import("@/components/Empty/EmptyEditor").then((m) => ({ default: m.EmptyEditor }))
 );
 const AnalyticsPanel = lazy(() =>
-  import("@/components/Analytics/AnalyticsPanel").then((m) => ({ default: m.AnalyticsPanel }))
+  import("@/components/analytics/AnalyticsPanel").then((m) => ({ default: m.AnalyticsPanel }))
 );
 const AnalyticsTracker = lazy(() =>
-  import("@/components/Analytics/AnalyticsTracker").then((m) => ({ default: m.AnalyticsTracker }))
+  import("@/components/analytics/AnalyticsTracker").then((m) => ({ default: m.AnalyticsTracker }))
 );
 // Sprint 6 (Agent 5): Job-Recovery-Dialog — erscheint beim App-Start, wenn
 // abgebrochene Buchgenerierungsläufe in der DB liegen (bookwriter_jobs).
@@ -87,7 +87,7 @@ import "@/components/Settings/settings.css";
 import "@/components/Fragment/fragment.css";
 import "@/components/VoiceLab/voice.css";
 import "@/components/Avantgarde/avantgarde.css";
-import "@/components/Analytics/analytics.css";
+import "@/components/analytics/analytics.css";
 import "@/components/Empty/empty.css";
 import "./app.css";
 import "@/styles/theme.css";

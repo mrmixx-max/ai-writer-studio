@@ -218,6 +218,10 @@ export const de = {
   "sidebar.mode.suspense-ecg": "Spannungs-EKG",
   "sidebar.mode.parallel-timeline": "Kausalitätswächter",
   "sidebar.mode.grant-dossier": "Stipendien-Dossier",
+  "sidebar.mode.relationship-chemistry": "Beziehungs-Chemie",
+  "sidebar.mode.epigraph": "Epigraph",
+  "sidebar.mode.barcode": "Barcode",
+  "sidebar.mode.genre-compass": "Genre-Kompass",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -456,6 +460,10 @@ export const de = {
   "sidebar.modeDesc.suspense-ecg": "Satz-für-Satz Puls & Cliffhanger-Index",
   "sidebar.modeDesc.parallel-timeline": "Multiversum-Paradoxa & Gantt",
   "sidebar.modeDesc.grant-dossier": "Jury-Leseprobe & Bewerbungsmappen",
+  "sidebar.modeDesc.relationship-chemistry": "Banter-Index & Phasen-Tracker",
+  "sidebar.modeDesc.epigraph": "Kapitel-Zitate & Public-Domain-Wächter",
+  "sidebar.modeDesc.barcode": "EAN-13 & QR-Code Vektor-Generator",
+  "sidebar.modeDesc.genre-compass": "Tropen-Checkliste & Subversion-Score",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Kommentare + Reviews",
   "sidebar.modeDesc.condense": "Textverkürzung",

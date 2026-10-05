@@ -284,6 +284,10 @@ export const en: TranslationDict = {
   "sidebar.mode.suspense-ecg": "Suspense ECG",
   "sidebar.mode.parallel-timeline": "Causality Guard",
   "sidebar.mode.grant-dossier": "Grant Dossier",
+  "sidebar.mode.relationship-chemistry": "Relationship Chemistry",
+  "sidebar.mode.epigraph": "Epigraph",
+  "sidebar.mode.barcode": "Barcode",
+  "sidebar.mode.genre-compass": "Genre Compass",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -517,6 +521,10 @@ export const en: TranslationDict = {
   "sidebar.modeDesc.suspense-ecg": "Sentence-by-sentence pulse & cliffhanger index",
   "sidebar.modeDesc.parallel-timeline": "Multiverse paradoxes & Gantt",
   "sidebar.modeDesc.grant-dossier": "Reading sample & application folder",
+  "sidebar.modeDesc.relationship-chemistry": "Banter index & phase tracker",
+  "sidebar.modeDesc.epigraph": "Chapter quotes & public domain guard",
+  "sidebar.modeDesc.barcode": "EAN-13 & QR code vector generator",
+  "sidebar.modeDesc.genre-compass": "Trope checklist & subversion score",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",
