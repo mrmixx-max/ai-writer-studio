@@ -369,6 +369,19 @@ const InternalMonologueGenerator = lazy(() =>
 const LoreMythGenerator = lazy(() =>
   import("@/components/ai/LoreMythGenerator").then((m) => ({ default: m.LoreMythGenerator }))
 );
+// Meilenstein 27: Plot-Twist, Flashback, Conlang, Klimax/Katharsis.
+const PlotTwistSynthesizerModal = lazy(() =>
+  import("@/components/ai/PlotTwistSynthesizerModal").then((m) => ({ default: m.PlotTwistSynthesizerModal }))
+);
+const FlashbackMemoryWeaverModal = lazy(() =>
+  import("@/components/ai/FlashbackMemoryWeaverModal").then((m) => ({ default: m.FlashbackMemoryWeaverModal }))
+);
+const ConlangDialogGeneratorModal = lazy(() =>
+  import("@/components/ai/ConlangDialogGeneratorModal").then((m) => ({ default: m.ConlangDialogGeneratorModal }))
+);
+const ClimaxCatharsisSynthesizerModal = lazy(() =>
+  import("@/components/ai/ClimaxCatharsisSynthesizerModal").then((m) => ({ default: m.ClimaxCatharsisSynthesizerModal }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -483,6 +496,10 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
   { id: "combat-choreo", key: "sidebar.mode.combat-choreo", icon: "⚔️", descKey: "sidebar.modeDesc.combat-choreo" },
   { id: "deep-pov", key: "sidebar.mode.deep-pov", icon: "🧠", descKey: "sidebar.modeDesc.deep-pov" },
   { id: "lore-myth", key: "sidebar.mode.lore-myth", icon: "📜", descKey: "sidebar.modeDesc.lore-myth" },
+  { id: "plot-twist", key: "sidebar.mode.plot-twist", icon: "💥", descKey: "sidebar.modeDesc.plot-twist" },
+  { id: "flashback", key: "sidebar.mode.flashback", icon: "⏳", descKey: "sidebar.modeDesc.flashback" },
+  { id: "conlang", key: "sidebar.mode.conlang", icon: "🗣️", descKey: "sidebar.modeDesc.conlang" },
+  { id: "climax-catharsis", key: "sidebar.mode.climax-catharsis", icon: "🔥", descKey: "sidebar.modeDesc.climax-catharsis" },
 ];
 
 export function Sidebar() {
@@ -889,6 +906,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "combat-choreo") return <CombatChoreographyGenerator />;
     if (mode === "deep-pov") return <InternalMonologueGenerator />;
     if (mode === "lore-myth") return <LoreMythGenerator />;
+    // Meilenstein 27: Standalone-Panels (Plot-Wende & Finale).
+    if (mode === "plot-twist") return <PlotTwistSynthesizerModal />;
+    if (mode === "flashback") return <FlashbackMemoryWeaverModal />;
+    if (mode === "conlang") return <ConlangDialogGeneratorModal />;
+    if (mode === "climax-catharsis") return <ClimaxCatharsisSynthesizerModal />;
     if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }

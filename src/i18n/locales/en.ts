@@ -296,6 +296,10 @@ export const en: TranslationDict = {
   "sidebar.mode.combat-choreo": "Combat Choreographer",
   "sidebar.mode.deep-pov": "Deep POV",
   "sidebar.mode.lore-myth": "Lore Generator",
+  "sidebar.mode.plot-twist": "Plot Twist Synthesizer",
+  "sidebar.mode.flashback": "Flashback Weaver",
+  "sidebar.mode.conlang": "Conlang Generator",
+  "sidebar.mode.climax-catharsis": "Climax & Catharsis",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -541,6 +545,10 @@ export const en: TranslationDict = {
   "sidebar.modeDesc.combat-choreo": "Combat with anatomy guard",
   "sidebar.modeDesc.deep-pov": "Free indirect discourse & inner monologue",
   "sidebar.modeDesc.lore-myth": "Oracles, ballads & myths",
+  "sidebar.modeDesc.plot-twist": "Four twist archetypes with confrontation",
+  "sidebar.modeDesc.flashback": "Three-phase transition via sensory trigger",
+  "sidebar.modeDesc.conlang": "Constructed languages with lexicon memory",
+  "sidebar.modeDesc.climax-catharsis": "Decision moment and aftermath",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",

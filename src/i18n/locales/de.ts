@@ -230,6 +230,10 @@ export const de = {
   "sidebar.mode.combat-choreo": "Kampf-Choreograf",
   "sidebar.mode.deep-pov": "Deep POV",
   "sidebar.mode.lore-myth": "Mythen-Generator",
+  "sidebar.mode.plot-twist": "Plot-Twist-Synthesizer",
+  "sidebar.mode.flashback": "Flashback-Weaver",
+  "sidebar.mode.conlang": "Conlang-Generator",
+  "sidebar.mode.climax-catharsis": "Klimax & Katharsis",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -480,6 +484,10 @@ export const de = {
   "sidebar.modeDesc.combat-choreo": "Kampf mit Anatomie-Waechter",
   "sidebar.modeDesc.deep-pov": "Erlebte Rede & innerer Monolog",
   "sidebar.modeDesc.lore-myth": "Orakel, Balladen & Mythen",
+  "sidebar.modeDesc.plot-twist": "Vier Twist-Archetypen mit Konfrontation",
+  "sidebar.modeDesc.flashback": "Drei-Phasen-Uebergang ueber Sinnesreiz",
+  "sidebar.modeDesc.conlang": "Kunstsprachen mit Lexikon-Gedaechtnis",
+  "sidebar.modeDesc.climax-catharsis": "Entscheidungsmoment und Ausklang",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Kommentare + Reviews",
   "sidebar.modeDesc.condense": "Textverkürzung",

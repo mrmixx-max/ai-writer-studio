@@ -114,4 +114,8 @@ export type EditorMode =
   | "foreshadowing"
   | "combat-choreo"
   | "deep-pov"
-  | "lore-myth";
+  | "lore-myth"
+  | "plot-twist"
+  | "flashback"
+  | "conlang"
+  | "climax-catharsis";
