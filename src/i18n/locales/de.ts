@@ -226,6 +226,10 @@ export const de = {
   "sidebar.mode.polyphonic-dialogue": "Dialog-Generator",
   "sidebar.mode.atmosphere-prose": "Sensorik-Generator",
   "sidebar.mode.tone-shifter": "Stil-Transmuter",
+  "sidebar.mode.foreshadowing": "Foreshadowing-Weaver",
+  "sidebar.mode.combat-choreo": "Kampf-Choreograf",
+  "sidebar.mode.deep-pov": "Deep POV",
+  "sidebar.mode.lore-myth": "Mythen-Generator",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -472,6 +476,10 @@ export const de = {
   "sidebar.modeDesc.polyphonic-dialogue": "Schlagabtausch mit Subtext",
   "sidebar.modeDesc.atmosphere-prose": "World Painting mit vier Sinnen",
   "sidebar.modeDesc.tone-shifter": "Noir, Gothic, Fantasy, Hemingway",
+  "sidebar.modeDesc.foreshadowing": "Tschechows Gewehr in drei Stufen",
+  "sidebar.modeDesc.combat-choreo": "Kampf mit Anatomie-Waechter",
+  "sidebar.modeDesc.deep-pov": "Erlebte Rede & innerer Monolog",
+  "sidebar.modeDesc.lore-myth": "Orakel, Balladen & Mythen",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Kommentare + Reviews",
   "sidebar.modeDesc.condense": "Textverkürzung",

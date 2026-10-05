@@ -292,6 +292,10 @@ export const en: TranslationDict = {
   "sidebar.mode.polyphonic-dialogue": "Dialogue Generator",
   "sidebar.mode.atmosphere-prose": "Sensory Generator",
   "sidebar.mode.tone-shifter": "Tone Shifter",
+  "sidebar.mode.foreshadowing": "Foreshadowing Weaver",
+  "sidebar.mode.combat-choreo": "Combat Choreographer",
+  "sidebar.mode.deep-pov": "Deep POV",
+  "sidebar.mode.lore-myth": "Lore Generator",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -533,6 +537,10 @@ export const en: TranslationDict = {
   "sidebar.modeDesc.polyphonic-dialogue": "Banter with subtext",
   "sidebar.modeDesc.atmosphere-prose": "World painting with four senses",
   "sidebar.modeDesc.tone-shifter": "Noir, gothic, fantasy, Hemingway",
+  "sidebar.modeDesc.foreshadowing": "Chekhov's gun in three levels",
+  "sidebar.modeDesc.combat-choreo": "Combat with anatomy guard",
+  "sidebar.modeDesc.deep-pov": "Free indirect discourse & inner monologue",
+  "sidebar.modeDesc.lore-myth": "Oracles, ballads & myths",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",

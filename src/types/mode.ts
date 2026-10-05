@@ -110,4 +110,8 @@ export type EditorMode =
   | "prose-expander"
   | "polyphonic-dialogue"
   | "atmosphere-prose"
-  | "tone-shifter";
+  | "tone-shifter"
+  | "foreshadowing"
+  | "combat-choreo"
+  | "deep-pov"
+  | "lore-myth";

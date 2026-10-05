@@ -356,6 +356,19 @@ const AtmosphereProseGenerator = lazy(() =>
 const LiteraryToneShifter = lazy(() =>
   import("@/components/ai/LiteraryToneShifter").then((m) => ({ default: m.LiteraryToneShifter }))
 );
+// Meilenstein 26: Foreshadowing, Kampf-Choreografie, Deep POV, Folklore.
+const ForeshadowingWeaverModal = lazy(() =>
+  import("@/components/ai/ForeshadowingWeaverModal").then((m) => ({ default: m.ForeshadowingWeaverModal }))
+);
+const CombatChoreographyGenerator = lazy(() =>
+  import("@/components/ai/CombatChoreographyGenerator").then((m) => ({ default: m.CombatChoreographyGenerator }))
+);
+const InternalMonologueGenerator = lazy(() =>
+  import("@/components/ai/InternalMonologueGenerator").then((m) => ({ default: m.InternalMonologueGenerator }))
+);
+const LoreMythGenerator = lazy(() =>
+  import("@/components/ai/LoreMythGenerator").then((m) => ({ default: m.LoreMythGenerator }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -466,6 +479,10 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
   { id: "polyphonic-dialogue", key: "sidebar.mode.polyphonic-dialogue", icon: "💬", descKey: "sidebar.modeDesc.polyphonic-dialogue" },
   { id: "atmosphere-prose", key: "sidebar.mode.atmosphere-prose", icon: "🌫️", descKey: "sidebar.modeDesc.atmosphere-prose" },
   { id: "tone-shifter", key: "sidebar.mode.tone-shifter", icon: "🎭", descKey: "sidebar.modeDesc.tone-shifter" },
+  { id: "foreshadowing", key: "sidebar.mode.foreshadowing", icon: "🎯", descKey: "sidebar.modeDesc.foreshadowing" },
+  { id: "combat-choreo", key: "sidebar.mode.combat-choreo", icon: "⚔️", descKey: "sidebar.modeDesc.combat-choreo" },
+  { id: "deep-pov", key: "sidebar.mode.deep-pov", icon: "🧠", descKey: "sidebar.modeDesc.deep-pov" },
+  { id: "lore-myth", key: "sidebar.mode.lore-myth", icon: "📜", descKey: "sidebar.modeDesc.lore-myth" },
 ];
 
 export function Sidebar() {
@@ -867,6 +884,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "polyphonic-dialogue") return <PolyphonicDialogueGenerator />;
     if (mode === "atmosphere-prose") return <AtmosphereProseGenerator />;
     if (mode === "tone-shifter") return <LiteraryToneShifter />;
+    // Meilenstein 26: Standalone-Panels (Plot-Architekt & Deep POV).
+    if (mode === "foreshadowing") return <ForeshadowingWeaverModal />;
+    if (mode === "combat-choreo") return <CombatChoreographyGenerator />;
+    if (mode === "deep-pov") return <InternalMonologueGenerator />;
+    if (mode === "lore-myth") return <LoreMythGenerator />;
     if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }
