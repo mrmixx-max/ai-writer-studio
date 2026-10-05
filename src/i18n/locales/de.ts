@@ -222,6 +222,10 @@ export const de = {
   "sidebar.mode.epigraph": "Epigraph",
   "sidebar.mode.barcode": "Barcode",
   "sidebar.mode.genre-compass": "Genre-Kompass",
+  "sidebar.mode.prose-expander": "Prosa-Expander",
+  "sidebar.mode.polyphonic-dialogue": "Dialog-Generator",
+  "sidebar.mode.atmosphere-prose": "Sensorik-Generator",
+  "sidebar.mode.tone-shifter": "Stil-Transmuter",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -464,6 +468,10 @@ export const de = {
   "sidebar.modeDesc.epigraph": "Kapitel-Zitate & Public-Domain-Wächter",
   "sidebar.modeDesc.barcode": "EAN-13 & QR-Code Vektor-Generator",
   "sidebar.modeDesc.genre-compass": "Tropen-Checkliste & Subversion-Score",
+  "sidebar.modeDesc.prose-expander": "Beats zu Prosa & Show-Don't-Tell",
+  "sidebar.modeDesc.polyphonic-dialogue": "Schlagabtausch mit Subtext",
+  "sidebar.modeDesc.atmosphere-prose": "World Painting mit vier Sinnen",
+  "sidebar.modeDesc.tone-shifter": "Noir, Gothic, Fantasy, Hemingway",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Kommentare + Reviews",
   "sidebar.modeDesc.condense": "Textverkürzung",

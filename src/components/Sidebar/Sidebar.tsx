@@ -343,6 +343,19 @@ const BarcodeGeneratorModal = lazy(() =>
 const GenreArchetypeCompass = lazy(() =>
   import("@/components/analytics/GenreArchetypeCompass").then((m) => ({ default: m.GenreArchetypeCompass }))
 );
+// Meilenstein 25: Prosa-Expander, Dialog-Generator, Atmosphäre, Stil-Transmuter.
+const ProseExpanderModal = lazy(() =>
+  import("@/components/ai/ProseExpanderModal").then((m) => ({ default: m.ProseExpanderModal }))
+);
+const PolyphonicDialogueGenerator = lazy(() =>
+  import("@/components/ai/PolyphonicDialogueGenerator").then((m) => ({ default: m.PolyphonicDialogueGenerator }))
+);
+const AtmosphereProseGenerator = lazy(() =>
+  import("@/components/ai/AtmosphereProseGenerator").then((m) => ({ default: m.AtmosphereProseGenerator }))
+);
+const LiteraryToneShifter = lazy(() =>
+  import("@/components/ai/LiteraryToneShifter").then((m) => ({ default: m.LiteraryToneShifter }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -449,6 +462,10 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
   { id: "epigraph", key: "sidebar.mode.epigraph", icon: "📜", descKey: "sidebar.modeDesc.epigraph" },
   { id: "barcode", key: "sidebar.mode.barcode", icon: "📊", descKey: "sidebar.modeDesc.barcode" },
   { id: "genre-compass", key: "sidebar.mode.genre-compass", icon: "🧭", descKey: "sidebar.modeDesc.genre-compass" },
+  { id: "prose-expander", key: "sidebar.mode.prose-expander", icon: "✍️", descKey: "sidebar.modeDesc.prose-expander" },
+  { id: "polyphonic-dialogue", key: "sidebar.mode.polyphonic-dialogue", icon: "💬", descKey: "sidebar.modeDesc.polyphonic-dialogue" },
+  { id: "atmosphere-prose", key: "sidebar.mode.atmosphere-prose", icon: "🌫️", descKey: "sidebar.modeDesc.atmosphere-prose" },
+  { id: "tone-shifter", key: "sidebar.mode.tone-shifter", icon: "🎭", descKey: "sidebar.modeDesc.tone-shifter" },
 ];
 
 export function Sidebar() {
@@ -845,6 +862,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "epigraph") return <EpigraphAnthology />;
     if (mode === "barcode") return <BarcodeGeneratorModal open onClose={() => {}} />;
     if (mode === "genre-compass") return <GenreArchetypeCompass />;
+    // Meilenstein 25: Standalone-Panels (KI-Prosa-Werkstatt).
+    if (mode === "prose-expander") return <ProseExpanderModal />;
+    if (mode === "polyphonic-dialogue") return <PolyphonicDialogueGenerator />;
+    if (mode === "atmosphere-prose") return <AtmosphereProseGenerator />;
+    if (mode === "tone-shifter") return <LiteraryToneShifter />;
     if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }

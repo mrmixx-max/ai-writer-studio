@@ -288,6 +288,10 @@ export const en: TranslationDict = {
   "sidebar.mode.epigraph": "Epigraph",
   "sidebar.mode.barcode": "Barcode",
   "sidebar.mode.genre-compass": "Genre Compass",
+  "sidebar.mode.prose-expander": "Prose Expander",
+  "sidebar.mode.polyphonic-dialogue": "Dialogue Generator",
+  "sidebar.mode.atmosphere-prose": "Sensory Generator",
+  "sidebar.mode.tone-shifter": "Tone Shifter",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -525,6 +529,10 @@ export const en: TranslationDict = {
   "sidebar.modeDesc.epigraph": "Chapter quotes & public domain guard",
   "sidebar.modeDesc.barcode": "EAN-13 & QR code vector generator",
   "sidebar.modeDesc.genre-compass": "Trope checklist & subversion score",
+  "sidebar.modeDesc.prose-expander": "Beats to prose & show-don't-tell",
+  "sidebar.modeDesc.polyphonic-dialogue": "Banter with subtext",
+  "sidebar.modeDesc.atmosphere-prose": "World painting with four senses",
+  "sidebar.modeDesc.tone-shifter": "Noir, gothic, fantasy, Hemingway",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",

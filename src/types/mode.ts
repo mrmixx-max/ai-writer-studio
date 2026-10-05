@@ -106,4 +106,8 @@ export type EditorMode =
   | "relationship-chemistry"
   | "epigraph"
   | "barcode"
-  | "genre-compass";
+  | "genre-compass"
+  | "prose-expander"
+  | "polyphonic-dialogue"
+  | "atmosphere-prose"
+  | "tone-shifter";
