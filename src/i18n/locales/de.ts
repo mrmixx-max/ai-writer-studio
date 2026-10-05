@@ -246,6 +246,10 @@ export const de = {
   "sidebar.mode.voice-evolution": "Stimmen-Evolution",
   "sidebar.mode.microclimate": "Mikroklima",
   "sidebar.mode.grand-century": "Grand-Century",
+  "sidebar.mode.ai-cinema": "KI-Kino",
+  "sidebar.mode.keyframe": "Keyframes",
+  "sidebar.mode.ai-audio": "KI-Audio",
+  "sidebar.mode.ai-timeline": "Regie-Timeline",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -512,6 +516,10 @@ export const de = {
   "sidebar.modeDesc.voice-evolution": "Vorher/Nachher-Gegenüberstellung",
   "sidebar.modeDesc.microclimate": "Multisensorische Wetter-Prosa",
   "sidebar.modeDesc.grand-century": "Ökosystem-Audit und Zertifikat",
+  "sidebar.modeDesc.ai-cinema": "Shot-by-Shot Video-Prompts",
+  "sidebar.modeDesc.keyframe": "Start- & Endframe-Paare",
+  "sidebar.modeDesc.ai-audio": "3-Spur Audio-Prompts",
+  "sidebar.modeDesc.ai-timeline": "Regie-Timeline & Dossier",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Kommentare + Reviews",
   "sidebar.modeDesc.condense": "Textverkürzung",

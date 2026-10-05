@@ -130,4 +130,8 @@ export type EditorMode =
   | "double-entendre"
   | "voice-evolution"
   | "microclimate"
-  | "grand-century";
+  | "grand-century"
+  | "ai-cinema"
+  | "keyframe"
+  | "ai-audio"
+  | "ai-timeline";

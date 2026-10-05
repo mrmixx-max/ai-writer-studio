@@ -312,6 +312,10 @@ export const en: TranslationDict = {
   "sidebar.mode.voice-evolution": "Voice Evolution",
   "sidebar.mode.microclimate": "Microclimate",
   "sidebar.mode.grand-century": "Grand Century",
+  "sidebar.mode.ai-cinema": "AI Cinema",
+  "sidebar.mode.keyframe": "Keyframes",
+  "sidebar.mode.ai-audio": "AI Audio",
+  "sidebar.mode.ai-timeline": "Director Timeline",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -573,6 +577,10 @@ export const en: TranslationDict = {
   "sidebar.modeDesc.voice-evolution": "Before/after comparison",
   "sidebar.modeDesc.microclimate": "Multisensory weather prose",
   "sidebar.modeDesc.grand-century": "Ecosystem audit and certificate",
+  "sidebar.modeDesc.ai-cinema": "Shot-by-shot video prompts",
+  "sidebar.modeDesc.keyframe": "Start & end frame pairs",
+  "sidebar.modeDesc.ai-audio": "3-track audio prompts",
+  "sidebar.modeDesc.ai-timeline": "Director timeline & dossier",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",

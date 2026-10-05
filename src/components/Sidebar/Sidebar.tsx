@@ -421,6 +421,19 @@ const MicroclimateWeatherSynthesizerModal = lazy(() =>
 const GrandCenturySentinelModal = lazy(() =>
   import("@/components/core/GrandCenturySentinelModal").then((m) => ({ default: m.GrandCenturySentinelModal }))
 );
+// Meilenstein 31 (v4.2.0): KI-Kinematografie.
+const AiCinemaPromptGeneratorModal = lazy(() =>
+  import("@/components/ai/AiCinemaPromptGeneratorModal").then((m) => ({ default: m.AiCinemaPromptGeneratorModal }))
+);
+const KeyframePromptGeneratorModal = lazy(() =>
+  import("@/components/ai/KeyframePromptGeneratorModal").then((m) => ({ default: m.KeyframePromptGeneratorModal }))
+);
+const AiFilmAudioPromptGeneratorModal = lazy(() =>
+  import("@/components/ai/AiFilmAudioPromptGeneratorModal").then((m) => ({ default: m.AiFilmAudioPromptGeneratorModal }))
+);
+const AiFilmDirectorTimelineModal = lazy(() =>
+  import("@/components/screenplay/AiFilmDirectorTimelineModal").then((m) => ({ default: m.AiFilmDirectorTimelineModal }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -551,6 +564,10 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
   { id: "voice-evolution", key: "sidebar.mode.voice-evolution", icon: "🎙️", descKey: "sidebar.modeDesc.voice-evolution" },
   { id: "microclimate", key: "sidebar.mode.microclimate", icon: "🌡️", descKey: "sidebar.modeDesc.microclimate" },
   { id: "grand-century", key: "sidebar.mode.grand-century", icon: "🏅", descKey: "sidebar.modeDesc.grand-century" },
+  { id: "ai-cinema", key: "sidebar.mode.ai-cinema", icon: "🎬", descKey: "sidebar.modeDesc.ai-cinema" },
+  { id: "keyframe", key: "sidebar.mode.keyframe", icon: "🖼️", descKey: "sidebar.modeDesc.keyframe" },
+  { id: "ai-audio", key: "sidebar.mode.ai-audio", icon: "🎵", descKey: "sidebar.modeDesc.ai-audio" },
+  { id: "ai-timeline", key: "sidebar.mode.ai-timeline", icon: "🎬", descKey: "sidebar.modeDesc.ai-timeline" },
 ];
 
 export function Sidebar() {
@@ -977,6 +994,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "voice-evolution") return <CharacterVoiceEvolutionModal />;
     if (mode === "microclimate") return <MicroclimateWeatherSynthesizerModal />;
     if (mode === "grand-century") return <GrandCenturySentinelModal />;
+    // Meilenstein 31 (v4.2.0): KI-Kinematografie.
+    if (mode === "ai-cinema") return <AiCinemaPromptGeneratorModal />;
+    if (mode === "keyframe") return <KeyframePromptGeneratorModal />;
+    if (mode === "ai-audio") return <AiFilmAudioPromptGeneratorModal />;
+    if (mode === "ai-timeline") return <AiFilmDirectorTimelineModal />;
     if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }
