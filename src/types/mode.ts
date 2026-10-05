@@ -122,4 +122,8 @@ export type EditorMode =
   | "chapter-synth"
   | "subtext"
   | "pov-reteller"
-  | "jubilee-seal";
+  | "jubilee-seal"
+  | "writers-room"
+  | "what-if"
+  | "cadence"
+  | "omniverse";

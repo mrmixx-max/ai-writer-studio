@@ -238,6 +238,10 @@ export const de = {
   "sidebar.mode.subtext": "Subtext-Injektor",
   "sidebar.mode.pov-reteller": "POV-Wechsler",
   "sidebar.mode.jubilee-seal": "7.000er-Siegel",
+  "sidebar.mode.writers-room": "Writer's Room",
+  "sidebar.mode.what-if": "Was-wäre-wenn",
+  "sidebar.mode.cadence": "Kadenz-Orchestrator",
+  "sidebar.mode.omniverse": "Omniverse-Release",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -496,6 +500,10 @@ export const de = {
   "sidebar.modeDesc.subtext": "Verdeckte Agenda und Mikro-Reaktionen",
   "sidebar.modeDesc.pov-reteller": "Wahrnehmungsfilter und Fehldeutung",
   "sidebar.modeDesc.jubilee-seal": "Vollstaendigkeits-Scan und Zertifikat",
+  "sidebar.modeDesc.writers-room": "Vier Agenten debattieren ein Szenenproblem",
+  "sidebar.modeDesc.what-if": "Kaskaden alternativer Entscheidungen",
+  "sidebar.modeDesc.cadence": "Satzrhythmus-Wellenform und Politur",
+  "sidebar.modeDesc.omniverse": "Preflight, Archiv und Normseite",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Kommentare + Reviews",
   "sidebar.modeDesc.condense": "Textverkürzung",

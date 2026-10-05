@@ -395,6 +395,19 @@ const PovRetellerModal = lazy(() =>
 const GrandJubileeArchiveModal = lazy(() =>
   import("@/components/core/GrandJubileeArchiveModal").then((m) => ({ default: m.GrandJubileeArchiveModal }))
 );
+// Meilenstein 29 (v4.0.0): Writer's Room, Szenarien, Kadenz, Omniverse-Release.
+const MultiAgentWritersRoomModal = lazy(() =>
+  import("@/components/ai/MultiAgentWritersRoomModal").then((m) => ({ default: m.MultiAgentWritersRoomModal }))
+);
+const WhatIfScenarioPlannerModal = lazy(() =>
+  import("@/components/ai/WhatIfScenarioPlannerModal").then((m) => ({ default: m.WhatIfScenarioPlannerModal }))
+);
+const SentenceCadenceOrchestratorModal = lazy(() =>
+  import("@/components/ai/SentenceCadenceOrchestratorModal").then((m) => ({ default: m.SentenceCadenceOrchestratorModal }))
+);
+const OmniverseReleaseModal = lazy(() =>
+  import("@/components/Publishing/OmniverseReleaseModal").then((m) => ({ default: m.OmniverseReleaseModal }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -517,6 +530,10 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
   { id: "subtext", key: "sidebar.mode.subtext", icon: "🎭", descKey: "sidebar.modeDesc.subtext" },
   { id: "pov-reteller", key: "sidebar.mode.pov-reteller", icon: "👁️", descKey: "sidebar.modeDesc.pov-reteller" },
   { id: "jubilee-seal", key: "sidebar.mode.jubilee-seal", icon: "🏆", descKey: "sidebar.modeDesc.jubilee-seal" },
+  { id: "writers-room", key: "sidebar.mode.writers-room", icon: "🎬", descKey: "sidebar.modeDesc.writers-room" },
+  { id: "what-if", key: "sidebar.mode.what-if", icon: "🔀", descKey: "sidebar.modeDesc.what-if" },
+  { id: "cadence", key: "sidebar.mode.cadence", icon: "🎼", descKey: "sidebar.modeDesc.cadence" },
+  { id: "omniverse", key: "sidebar.mode.omniverse", icon: "🌌", descKey: "sidebar.modeDesc.omniverse" },
 ];
 
 export function Sidebar() {
@@ -933,6 +950,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "subtext") return <SubtextConflictInjectorModal />;
     if (mode === "pov-reteller") return <PovRetellerModal />;
     if (mode === "jubilee-seal") return <GrandJubileeArchiveModal />;
+    // Meilenstein 29 (v4.0.0): Standalone-Panels.
+    if (mode === "writers-room") return <MultiAgentWritersRoomModal />;
+    if (mode === "what-if") return <WhatIfScenarioPlannerModal />;
+    if (mode === "cadence") return <SentenceCadenceOrchestratorModal />;
+    if (mode === "omniverse") return <OmniverseReleaseModal />;
     if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }

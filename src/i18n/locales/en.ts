@@ -304,6 +304,10 @@ export const en: TranslationDict = {
   "sidebar.mode.subtext": "Subtext Injector",
   "sidebar.mode.pov-reteller": "POV Reteller",
   "sidebar.mode.jubilee-seal": "7.000 Seal",
+  "sidebar.mode.writers-room": "Writer's Room",
+  "sidebar.mode.what-if": "What-If Planner",
+  "sidebar.mode.cadence": "Cadence Orchestrator",
+  "sidebar.mode.omniverse": "Omniverse Release",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -557,6 +561,10 @@ export const en: TranslationDict = {
   "sidebar.modeDesc.subtext": "Hidden agenda and micro-reactions",
   "sidebar.modeDesc.pov-reteller": "Perception filter and misreading",
   "sidebar.modeDesc.jubilee-seal": "Completeness scan and certificate",
+  "sidebar.modeDesc.writers-room": "Four agents debate a scene problem",
+  "sidebar.modeDesc.what-if": "Cascades of alternative decisions",
+  "sidebar.modeDesc.cadence": "Sentence rhythm waveform and polish",
+  "sidebar.modeDesc.omniverse": "Preflight, archive and norm page",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",
