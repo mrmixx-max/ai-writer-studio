@@ -134,4 +134,8 @@ export type EditorMode =
   | "ai-cinema"
   | "keyframe"
   | "ai-audio"
-  | "ai-timeline";
+  | "ai-timeline"
+  | "visual-novel"
+  | "state-machine"
+  | "npc-sim"
+  | "gamebook";

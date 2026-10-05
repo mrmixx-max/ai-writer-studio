@@ -316,6 +316,10 @@ export const en: TranslationDict = {
   "sidebar.mode.keyframe": "Keyframes",
   "sidebar.mode.ai-audio": "AI Audio",
   "sidebar.mode.ai-timeline": "Director Timeline",
+  "sidebar.mode.visual-novel": "Visual Novel",
+  "sidebar.mode.state-machine": "State Machine",
+  "sidebar.mode.npc-sim": "NPC Interrogation",
+  "sidebar.mode.gamebook": "Gamebook",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -581,6 +585,10 @@ export const en: TranslationDict = {
   "sidebar.modeDesc.keyframe": "Start & end frame pairs",
   "sidebar.modeDesc.ai-audio": "3-track audio prompts",
   "sidebar.modeDesc.ai-timeline": "Director timeline & dossier",
+  "sidebar.modeDesc.visual-novel": "Prose to Ren'Py & Twine",
+  "sidebar.modeDesc.state-machine": "Flags, dead ends and endings",
+  "sidebar.modeDesc.npc-sim": "Interrogate characters live",
+  "sidebar.modeDesc.gamebook": "Gamebook, PDF and webgame",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",

@@ -250,6 +250,10 @@ export const de = {
   "sidebar.mode.keyframe": "Keyframes",
   "sidebar.mode.ai-audio": "KI-Audio",
   "sidebar.mode.ai-timeline": "Regie-Timeline",
+  "sidebar.mode.visual-novel": "Visual Novel",
+  "sidebar.mode.state-machine": "Zustandsautomat",
+  "sidebar.mode.npc-sim": "NPC-Verhör",
+  "sidebar.mode.gamebook": "Spielbuch",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -520,6 +524,10 @@ export const de = {
   "sidebar.modeDesc.keyframe": "Start- & Endframe-Paare",
   "sidebar.modeDesc.ai-audio": "3-Spur Audio-Prompts",
   "sidebar.modeDesc.ai-timeline": "Regie-Timeline & Dossier",
+  "sidebar.modeDesc.visual-novel": "Prosa zu Ren'Py & Twine",
+  "sidebar.modeDesc.state-machine": "Flags, Sackgassen und Enden",
+  "sidebar.modeDesc.npc-sim": "Figuren live verhören",
+  "sidebar.modeDesc.gamebook": "Spielbuch, PDF und Webgame",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Kommentare + Reviews",
   "sidebar.modeDesc.condense": "Textverkürzung",

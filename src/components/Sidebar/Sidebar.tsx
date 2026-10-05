@@ -434,6 +434,19 @@ const AiFilmAudioPromptGeneratorModal = lazy(() =>
 const AiFilmDirectorTimelineModal = lazy(() =>
   import("@/components/screenplay/AiFilmDirectorTimelineModal").then((m) => ({ default: m.AiFilmDirectorTimelineModal }))
 );
+// Meilenstein 32 (v4.4.0): Interaktive Spiel-Narratologie.
+const VisualNovelTransmuterModal = lazy(() =>
+  import("@/components/interactive/VisualNovelTransmuterModal").then((m) => ({ default: m.VisualNovelTransmuterModal }))
+);
+const NarrativeStateMachineModal = lazy(() =>
+  import("@/components/interactive/NarrativeStateMachineModal").then((m) => ({ default: m.NarrativeStateMachineModal }))
+);
+const NpcPersonaSimulatorModal = lazy(() =>
+  import("@/components/ai/NpcPersonaSimulatorModal").then((m) => ({ default: m.NpcPersonaSimulatorModal }))
+);
+const InteractiveGamePackagerModal = lazy(() =>
+  import("@/components/Publishing/InteractiveGamePackagerModal").then((m) => ({ default: m.InteractiveGamePackagerModal }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -568,6 +581,10 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
   { id: "keyframe", key: "sidebar.mode.keyframe", icon: "🖼️", descKey: "sidebar.modeDesc.keyframe" },
   { id: "ai-audio", key: "sidebar.mode.ai-audio", icon: "🎵", descKey: "sidebar.modeDesc.ai-audio" },
   { id: "ai-timeline", key: "sidebar.mode.ai-timeline", icon: "🎬", descKey: "sidebar.modeDesc.ai-timeline" },
+  { id: "visual-novel", key: "sidebar.mode.visual-novel", icon: "🎮", descKey: "sidebar.modeDesc.visual-novel" },
+  { id: "state-machine", key: "sidebar.mode.state-machine", icon: "🕸️", descKey: "sidebar.modeDesc.state-machine" },
+  { id: "npc-sim", key: "sidebar.mode.npc-sim", icon: "🗣️", descKey: "sidebar.modeDesc.npc-sim" },
+  { id: "gamebook", key: "sidebar.mode.gamebook", icon: "📖", descKey: "sidebar.modeDesc.gamebook" },
 ];
 
 export function Sidebar() {
@@ -999,6 +1016,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "keyframe") return <KeyframePromptGeneratorModal />;
     if (mode === "ai-audio") return <AiFilmAudioPromptGeneratorModal />;
     if (mode === "ai-timeline") return <AiFilmDirectorTimelineModal />;
+    // Meilenstein 32 (v4.4.0): Interaktive Spiel-Narratologie.
+    if (mode === "visual-novel") return <VisualNovelTransmuterModal />;
+    if (mode === "state-machine") return <NarrativeStateMachineModal />;
+    if (mode === "npc-sim") return <NpcPersonaSimulatorModal />;
+    if (mode === "gamebook") return <InteractiveGamePackagerModal />;
     if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }
