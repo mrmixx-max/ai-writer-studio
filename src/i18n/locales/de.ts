@@ -214,6 +214,10 @@ export const de = {
   "sidebar.mode.soundtrack": "Soundtrack",
   "sidebar.mode.authenticity-audit": "Authentizitäts-Audit",
   "sidebar.mode.masterpiece-seal": "Meisterwerk-Siegel",
+  "sidebar.mode.mind-map": "Mind-Map",
+  "sidebar.mode.suspense-ecg": "Spannungs-EKG",
+  "sidebar.mode.parallel-timeline": "Kausalitätswächter",
+  "sidebar.mode.grant-dossier": "Stipendien-Dossier",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -448,6 +452,10 @@ export const de = {
   "sidebar.modeDesc.soundtrack": "Emotion-zu-Harmonie & MIDI-Composer",
   "sidebar.modeDesc.authenticity-audit": "Tropen-Radar & sprachliche Sensibilität",
   "sidebar.modeDesc.masterpiece-seal": "Ecosystem-Scan & Jubiläums-Zertifikat",
+  "sidebar.modeDesc.mind-map": "Vektor-Ideen-Canvas mit Auto-Layout",
+  "sidebar.modeDesc.suspense-ecg": "Satz-für-Satz Puls & Cliffhanger-Index",
+  "sidebar.modeDesc.parallel-timeline": "Multiversum-Paradoxa & Gantt",
+  "sidebar.modeDesc.grant-dossier": "Jury-Leseprobe & Bewerbungsmappen",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Kommentare + Reviews",
   "sidebar.modeDesc.condense": "Textverkürzung",

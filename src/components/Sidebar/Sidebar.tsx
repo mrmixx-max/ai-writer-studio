@@ -317,6 +317,19 @@ const CulturalAuthenticityAudit = lazy(() =>
 const MasterpieceSealModal = lazy(() =>
   import("@/components/core/MasterpieceSealModal").then((m) => ({ default: m.MasterpieceSealModal }))
 );
+// Meilenstein 23: Mind-Map, Spannungs-EKG, Kausalität, Stipendien.
+const ConceptMindMap = lazy(() =>
+  import("@/components/visual/ConceptMindMap").then((m) => ({ default: m.ConceptMindMap }))
+);
+const SuspenseEcgGraph = lazy(() =>
+  import("@/components/dramaturgy/SuspenseEcgGraph").then((m) => ({ default: m.SuspenseEcgGraph }))
+);
+const ParallelTimelineEngine = lazy(() =>
+  import("@/components/Worldbuilding/ParallelTimelineEngine").then((m) => ({ default: m.ParallelTimelineEngine }))
+);
+const LiteraryGrantPackager = lazy(() =>
+  import("@/components/Publishing/LiteraryGrantPackager").then((m) => ({ default: m.LiteraryGrantPackager }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -415,6 +428,10 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
   { id: "soundtrack", key: "sidebar.mode.soundtrack", icon: "🎵", descKey: "sidebar.modeDesc.soundtrack" },
   { id: "authenticity-audit", key: "sidebar.mode.authenticity-audit", icon: "🔍", descKey: "sidebar.modeDesc.authenticity-audit" },
   { id: "masterpiece-seal", key: "sidebar.mode.masterpiece-seal", icon: "🏆", descKey: "sidebar.modeDesc.masterpiece-seal" },
+  { id: "mind-map", key: "sidebar.mode.mind-map", icon: "🧠", descKey: "sidebar.modeDesc.mind-map" },
+  { id: "suspense-ecg", key: "sidebar.mode.suspense-ecg", icon: "📈", descKey: "sidebar.modeDesc.suspense-ecg" },
+  { id: "parallel-timeline", key: "sidebar.mode.parallel-timeline", icon: "⏳", descKey: "sidebar.modeDesc.parallel-timeline" },
+  { id: "grant-dossier", key: "sidebar.mode.grant-dossier", icon: "📚", descKey: "sidebar.modeDesc.grant-dossier" },
 ];
 
 export function Sidebar() {
@@ -801,6 +818,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "soundtrack") return <MusicalScoreComposer />;
     if (mode === "authenticity-audit") return <CulturalAuthenticityAudit />;
     if (mode === "masterpiece-seal") return <MasterpieceSealModal open onClose={() => {}} testCount={5927} version="3.3.0" />;
+    // Meilenstein 23: Standalone-Panels.
+    if (mode === "mind-map") return <ConceptMindMap />;
+    if (mode === "suspense-ecg") return <SuspenseEcgGraph />;
+    if (mode === "parallel-timeline") return <ParallelTimelineEngine />;
+    if (mode === "grant-dossier") return <LiteraryGrantPackager />;
     if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }

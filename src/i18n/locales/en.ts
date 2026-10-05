@@ -280,6 +280,10 @@ export const en: TranslationDict = {
   "sidebar.mode.soundtrack": "Soundtrack",
   "sidebar.mode.authenticity-audit": "Authenticity Audit",
   "sidebar.mode.masterpiece-seal": "Masterpiece Seal",
+  "sidebar.mode.mind-map": "Mind Map",
+  "sidebar.mode.suspense-ecg": "Suspense ECG",
+  "sidebar.mode.parallel-timeline": "Causality Guard",
+  "sidebar.mode.grant-dossier": "Grant Dossier",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -509,6 +513,10 @@ export const en: TranslationDict = {
   "sidebar.modeDesc.soundtrack": "Emotion-to-harmony & MIDI composer",
   "sidebar.modeDesc.authenticity-audit": "Trope radar & linguistic sensitivity",
   "sidebar.modeDesc.masterpiece-seal": "Ecosystem scan & anniversary certificate",
+  "sidebar.modeDesc.mind-map": "Vector idea canvas with auto-layout",
+  "sidebar.modeDesc.suspense-ecg": "Sentence-by-sentence pulse & cliffhanger index",
+  "sidebar.modeDesc.parallel-timeline": "Multiverse paradoxes & Gantt",
+  "sidebar.modeDesc.grant-dossier": "Reading sample & application folder",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",

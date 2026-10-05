@@ -98,4 +98,8 @@ export type EditorMode =
   | "live-stage"
   | "soundtrack"
   | "authenticity-audit"
-  | "masterpiece-seal";
+  | "masterpiece-seal"
+  | "mind-map"
+  | "suspense-ecg"
+  | "parallel-timeline"
+  | "grant-dossier";
