@@ -300,6 +300,10 @@ export const en: TranslationDict = {
   "sidebar.mode.flashback": "Flashback Weaver",
   "sidebar.mode.conlang": "Conlang Generator",
   "sidebar.mode.climax-catharsis": "Climax & Catharsis",
+  "sidebar.mode.chapter-synth": "Chapter Synthesizer",
+  "sidebar.mode.subtext": "Subtext Injector",
+  "sidebar.mode.pov-reteller": "POV Reteller",
+  "sidebar.mode.jubilee-seal": "7.000 Seal",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -549,6 +553,10 @@ export const en: TranslationDict = {
   "sidebar.modeDesc.flashback": "Three-phase transition via sensory trigger",
   "sidebar.modeDesc.conlang": "Constructed languages with lexicon memory",
   "sidebar.modeDesc.climax-catharsis": "Decision moment and aftermath",
+  "sidebar.modeDesc.chapter-synth": "Four scene roles with cadence rule",
+  "sidebar.modeDesc.subtext": "Hidden agenda and micro-reactions",
+  "sidebar.modeDesc.pov-reteller": "Perception filter and misreading",
+  "sidebar.modeDesc.jubilee-seal": "Completeness scan and certificate",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",

@@ -118,4 +118,8 @@ export type EditorMode =
   | "plot-twist"
   | "flashback"
   | "conlang"
-  | "climax-catharsis";
+  | "climax-catharsis"
+  | "chapter-synth"
+  | "subtext"
+  | "pov-reteller"
+  | "jubilee-seal";

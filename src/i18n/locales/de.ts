@@ -234,6 +234,10 @@ export const de = {
   "sidebar.mode.flashback": "Flashback-Weaver",
   "sidebar.mode.conlang": "Conlang-Generator",
   "sidebar.mode.climax-catharsis": "Klimax & Katharsis",
+  "sidebar.mode.chapter-synth": "Kapitel-Synthesizer",
+  "sidebar.mode.subtext": "Subtext-Injektor",
+  "sidebar.mode.pov-reteller": "POV-Wechsler",
+  "sidebar.mode.jubilee-seal": "7.000er-Siegel",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -488,6 +492,10 @@ export const de = {
   "sidebar.modeDesc.flashback": "Drei-Phasen-Uebergang ueber Sinnesreiz",
   "sidebar.modeDesc.conlang": "Kunstsprachen mit Lexikon-Gedaechtnis",
   "sidebar.modeDesc.climax-catharsis": "Entscheidungsmoment und Ausklang",
+  "sidebar.modeDesc.chapter-synth": "Vier Szenen-Rollen mit Kadenz-Regel",
+  "sidebar.modeDesc.subtext": "Verdeckte Agenda und Mikro-Reaktionen",
+  "sidebar.modeDesc.pov-reteller": "Wahrnehmungsfilter und Fehldeutung",
+  "sidebar.modeDesc.jubilee-seal": "Vollstaendigkeits-Scan und Zertifikat",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Kommentare + Reviews",
   "sidebar.modeDesc.condense": "Textverkürzung",

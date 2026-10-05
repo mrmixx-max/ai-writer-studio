@@ -43,6 +43,10 @@ describe("Sidebar — standalone modes ohne Kapitel", () => {
   it("plugin-manager rendert ohne Projekt", () => {
     render(<Sidebar />);
     fireEvent.click(screen.getByRole("button", { name: /plugin/i }));
-    expect(screen.queryByText(/kapitel/i)).not.toBeInTheDocument();
+    // Der Kapitel-Guard darf NICHT erscheinen — geprüft wird der Guard-Text
+    // selbst, nicht das Wort "Kapitel" (das in Modus-Namen vorkommen darf).
+    expect(
+      screen.queryByText(/Wähle links ein Projekt und Kapitel/i),
+    ).not.toBeInTheDocument();
   });
 });

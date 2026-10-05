@@ -382,6 +382,19 @@ const ConlangDialogGeneratorModal = lazy(() =>
 const ClimaxCatharsisSynthesizerModal = lazy(() =>
   import("@/components/ai/ClimaxCatharsisSynthesizerModal").then((m) => ({ default: m.ClimaxCatharsisSynthesizerModal }))
 );
+// Meilenstein 28: Kapitel-Synthesizer, Subtext, POV-Wechsler, 7.000er-Jubiläum.
+const ChapterSceneSynthesizerModal = lazy(() =>
+  import("@/components/ai/ChapterSceneSynthesizerModal").then((m) => ({ default: m.ChapterSceneSynthesizerModal }))
+);
+const SubtextConflictInjectorModal = lazy(() =>
+  import("@/components/ai/SubtextConflictInjectorModal").then((m) => ({ default: m.SubtextConflictInjectorModal }))
+);
+const PovRetellerModal = lazy(() =>
+  import("@/components/ai/PovRetellerModal").then((m) => ({ default: m.PovRetellerModal }))
+);
+const GrandJubileeArchiveModal = lazy(() =>
+  import("@/components/core/GrandJubileeArchiveModal").then((m) => ({ default: m.GrandJubileeArchiveModal }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -500,6 +513,10 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
   { id: "flashback", key: "sidebar.mode.flashback", icon: "⏳", descKey: "sidebar.modeDesc.flashback" },
   { id: "conlang", key: "sidebar.mode.conlang", icon: "🗣️", descKey: "sidebar.modeDesc.conlang" },
   { id: "climax-catharsis", key: "sidebar.mode.climax-catharsis", icon: "🔥", descKey: "sidebar.modeDesc.climax-catharsis" },
+  { id: "chapter-synth", key: "sidebar.mode.chapter-synth", icon: "📖", descKey: "sidebar.modeDesc.chapter-synth" },
+  { id: "subtext", key: "sidebar.mode.subtext", icon: "🎭", descKey: "sidebar.modeDesc.subtext" },
+  { id: "pov-reteller", key: "sidebar.mode.pov-reteller", icon: "👁️", descKey: "sidebar.modeDesc.pov-reteller" },
+  { id: "jubilee-seal", key: "sidebar.mode.jubilee-seal", icon: "🏆", descKey: "sidebar.modeDesc.jubilee-seal" },
 ];
 
 export function Sidebar() {
@@ -911,6 +928,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "flashback") return <FlashbackMemoryWeaverModal />;
     if (mode === "conlang") return <ConlangDialogGeneratorModal />;
     if (mode === "climax-catharsis") return <ClimaxCatharsisSynthesizerModal />;
+    // Meilenstein 28: Standalone-Panels (Kapitel & Jubiläum).
+    if (mode === "chapter-synth") return <ChapterSceneSynthesizerModal />;
+    if (mode === "subtext") return <SubtextConflictInjectorModal />;
+    if (mode === "pov-reteller") return <PovRetellerModal />;
+    if (mode === "jubilee-seal") return <GrandJubileeArchiveModal />;
     if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }
