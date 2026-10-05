@@ -116,6 +116,115 @@ import {
   optimizePrompt,
   getOfflineFallback,
 } from "@/services/ai/engineTurbo";
+// Reachability-Pass (v4.3.0): Services, die bisher nur von ihren eigenen Tests
+// importiert wurden — ohne Nicht-Test-Importer tree-shaked Vite sie aus dem
+// Installer. Jeder Adapter hier macht einen davon aus der UI erreichbar.
+import { checkExportGuard } from "@/services/editor/exportGuard";
+import {
+  generateBlurb,
+  analyzeKdpKeywords,
+  generateQuoteCard,
+} from "@/services/marketing/blurbStudio";
+import {
+  createSeriesEntity,
+  checkSpoilerGuard,
+  getAllEntities,
+} from "@/services/series/seriesBible";
+import {
+  createCodexEntry,
+  searchCodex,
+  getBacklinks,
+} from "@/services/research/codexService";
+import {
+  createMicroSnapshot,
+  diffMicroSnapshots,
+  listMicroSnapshots,
+} from "@/services/snapshot/timeMachine";
+import {
+  recordSprint,
+  getTodayStats,
+  SPRINT_PRESETS,
+} from "@/services/sprint/sprint";
+import {
+  computeContentHash,
+  normalizeToolMetrics,
+  diffMetrics,
+} from "@/services/storage/toolHistoryService";
+import { generateSecurityAuditReport } from "@/services/security/securityAudit";
+import { toPlainText, markdownToHtml } from "@/services/converter/converter";
+import {
+  checkXmlWellFormed,
+  validateExportBlob,
+} from "@/services/export/exportValidate";
+import {
+  buildBilingualMarkdown,
+  contentToMarkdown,
+} from "@/services/export/bilingualExport";
+import {
+  buildArticlePrompt,
+  ARTICLE_STYLES,
+} from "@/services/news/articleGen";
+import {
+  buildHeadlineImagePrompt,
+  buildArticleImagePrompt,
+} from "@/services/news/newsImages";
+import {
+  buildNewspaper,
+  newspaperToMarkdown,
+} from "@/services/news/newspaperLayout";
+import {
+  compactProfile,
+  compactSavings,
+} from "@/services/ollama/compactPrompts";
+import {
+  getBilingualTemplate,
+  listBilingualTemplateIds,
+} from "@/services/prompts/bilingualTemplates";
+import {
+  buildImagePrompt,
+  IMAGE_STYLE_PRESETS,
+  DEFAULT_IMAGE_STYLE,
+} from "@/services/llm/promptBuilder";
+import {
+  buildQualityMarkdown,
+  buildTrendChart,
+  topSuggestions,
+  toChapterScores,
+} from "@/services/bookwriter/qualityReport";
+import {
+  createStyleGuide,
+  checkAgainstGuide,
+  applyFix,
+} from "@/services/bookwriter/styleGuide";
+import {
+  calculateSpineWidth,
+  estimatePageCount,
+  generateCoverSvg,
+  PAPER_TYPES,
+} from "@/services/bookwriter/coverStudio";
+import {
+  normalizeChapters,
+  gutterForPageCount,
+  isRecto,
+  blankPagesBefore,
+  stableUuid,
+} from "@/services/bookwriter/export/printMaster";
+import { computeBackoffDelay } from "@/services/bookwriter/kdpUploadRetry";
+import { makeTestBook } from "@/services/bookwriter/testbook";
+import {
+  runBatchAnalysis,
+  summarizeReport,
+} from "@/services/batch/manuscriptBatchRunner";
+import { validateBackupWithImages } from "@/services/db/backup-images";
+import { normalizeSpokenText } from "@/services/dictation/dictationService";
+import {
+  registerDefaultShutdownTasks,
+  DEFAULT_SHUTDOWN_TASK_TIMEOUT_MS,
+} from "@/services/monitoring/shutdown";
+import { HEAVY_MODULES } from "@/services/lazyInit";
+import { Schema } from "@tiptap/pm/model";
+import { EditorState } from "@tiptap/pm/state";
+import { applyPatchAsTrackChange } from "@/services/editor/editorialTrackChanges";
 import {
   parseComicScript,
   exportToStandardScript,
@@ -315,6 +424,87 @@ function toNumberedChapterInputs(input: string) {
   }));
 }
 
+// ─── Reachability-Pass (v4.3.0): zusätzliche Helper ──────────────────────────
+
+/** BookChapterInput[] für Bookwriter-Export-Services (number, title, content). */
+function toBookChapterInputs(input: string) {
+  return toChapters(input).map((content, i) => ({
+    number: i + 1,
+    title: `Kapitel ${i + 1}`,
+    content,
+    status: "draft",
+  }));
+}
+
+/** Erstes Wort als Titel, ganzer Text als Body. */
+function toHeadlineBody(input: string): { headline: string; body: string } {
+  const lines = input.split("\n").filter((l) => l.trim().length > 0);
+  const headline = (lines[0] ?? "").trim().slice(0, 120) || "Ohne Überschrift";
+  const body = lines.slice(1).join("\n").trim() || input;
+  return { headline, body };
+}
+
+/** Parst "Schlüssel: Wert"-Zeilen zu einem Record (für Formularfelder). */
+function toKeyValue(input: string): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const line of input.split("\n")) {
+    const m = line.match(/^\s*([A-Za-zÄÖÜäöüß_ -]+)\s*[:=]\s*(.*)$/);
+    if (m) out[m[1].trim().toLowerCase()] = m[2].trim();
+  }
+  return out;
+}
+
+/** Erstes Zahlenfeld aus dem Text (Fallback: fester Wert). */
+function firstNumber(input: string, fallback: number): number {
+  const m = input.match(/\d+/);
+  return m ? Number(m[0]) : fallback;
+}
+
+/**
+ * Baut einen minimalen ProseMirror-State mit tcDelete/tcInsert-Marks.
+ *
+ * Wird vom Export-Guard-Werkzeug gebraucht: `checkExportGuard` erwartet einen
+ * echten EditorState, kein Text-Input.
+ */
+function buildTrackChangeState(text: string): EditorState {
+  const schema = new Schema({
+    nodes: {
+      doc: { content: "paragraph+" },
+      paragraph: { content: "text*", toDOM: () => ["p", 0] },
+      text: {},
+    },
+    marks: {
+      tcDelete: {
+        attrs: { "data-reason": { default: null } },
+        toDOM: () => ["del", { class: "tc-delete" }, 0],
+      },
+      tcInsert: {
+        attrs: { "data-reason": { default: null } },
+        toDOM: () => ["ins", { class: "tc-insert" }, 0],
+      },
+    },
+  });
+
+  const doc = schema.node("doc", null, [
+    schema.node("paragraph", null, [schema.text(text)]),
+  ]);
+  let state = EditorState.create({ doc, schema });
+
+  // Einen echten Track-Change anwenden, damit der Guard etwas zu prüfen hat.
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  if (words.length >= 2) {
+    const target = words.slice(0, 2).join(" ");
+    const applied = applyPatchAsTrackChange(state, {
+      search: target,
+      replace: `${target} [geändert]`,
+      reason: "Reachability-Smoke-Test",
+    });
+    if (applied) state = applied.state;
+  }
+
+  return state;
+}
+
 // ─── Kategorien ──────────────────────────────────────────────────────────────
 
 export const TOOL_CATEGORIES = [
@@ -327,6 +517,11 @@ export const TOOL_CATEGORIES = [
   "Medien & Formate",
   "Sicherheit & Backup",
   "System & KI",
+  // Reachability-Pass (v4.3.0): Werkzeuge aus Sprint 2–22, die bisher keinen
+  // Nicht-Test-Importer hatten.
+  "Welt & Recherche",
+  "Schreib-Produktivität",
+  "Medien-Produktion",
 ] as const;
 
 export type ToolCategory = (typeof TOOL_CATEGORIES)[number];
@@ -1669,6 +1864,802 @@ export const TOOLS: ToolDef[] = [
           '{ "comments": [], "emotes": [], "ratings": [] }',
         ].join("\n");
       }
+    },
+  },
+
+  // ── Reachability-Pass (v4.3.0): Sprint 2–22 ────────────────────────────────
+  // Diese Services hatten bisher keinen Nicht-Test-Importer und wurden von
+  // Vite aus dem Bundle tree-shaked. Jeder Eintrag hier macht sie erreichbar.
+
+  // ── Welt & Recherche ───────────────────────────────────────────────────────
+  {
+    id: "series-bible",
+    label: "Serien-Bibel",
+    icon: "📚",
+    category: "Welt & Recherche",
+    wp: "WP 4.1",
+    hint: "Figuren und Entitäten über Buchbände hinweg",
+    run: () => {
+      try {
+        const existing = getAllEntities();
+        if (existing.length === 0) {
+          createSeriesEntity({
+            id: "ent-demo",
+            name: "Mira Halden",
+            type: "character",
+            firstAppearance: 1,
+            attributes: { rolle: "Protagonistin" },
+          });
+        }
+        const entities = getAllEntities();
+        return [
+          "Serien-Bibel — Entitäten",
+          "",
+          fmt(entities.map((e) => `${e.name} (${e.type}, ab Band ${e.firstAppearance})`)),
+          "",
+          `Entitäten gesamt: ${entities.length}`,
+        ].join("\n");
+      } catch (err) {
+        return `✗ Serien-Bibel: ${err instanceof Error ? err.message : String(err)}`;
+      }
+    },
+  },
+  {
+    id: "spoiler-guard",
+    label: "Spoiler-Wächter",
+    icon: "🚫",
+    category: "Welt & Recherche",
+    wp: "WP 4.1",
+    hint: "Prüft Text auf Spoiler für frühere Bände",
+    run: (t) => {
+      const currentBook = firstNumber(t, 2);
+      const text = t.replace(/\d+/g, "").trim() || t;
+      const warnings = checkSpoilerGuard(text, currentBook);
+      return [
+        `Spoiler-Wächter (aktueller Band: ${currentBook})`,
+        "",
+        warnings.length === 0
+          ? "✓ Keine Spoiler-Warnungen."
+          : fmt(warnings.map((w) => `${w.entityName} (Band ${w.entityBook}): ${w.message}`)),
+        "",
+        `Warnungen: ${warnings.length}`,
+      ].join("\n");
+    },
+  },
+  {
+    id: "codex-search",
+    label: "Recherche-Codex",
+    icon: "🔎",
+    category: "Welt & Recherche",
+    wp: "WP 4.2",
+    hint: "Durchsucht das Welt-Lexikon und findet Backlinks",
+    run: (t) => {
+      const query = t.split("\n")[0].trim().slice(0, 60) || "Mira";
+      const hits = searchCodex(query);
+      const backlinks = getBacklinks(query);
+      return [
+        `Recherche-Codex — Suche: „${query}“`,
+        "",
+        hits.length === 0
+          ? "(keine Treffer)"
+          : fmt(hits.map((h) => `${h.title} (${h.type}): ${h.content.slice(0, 80)}`)),
+        "",
+        `Backlinks: ${backlinks.length > 0 ? backlinks.join(", ") : "—"}`,
+      ].join("\n");
+    },
+  },
+  {
+    id: "codex-create",
+    label: "Codex-Eintrag anlegen",
+    icon: "➕",
+    category: "Welt & Recherche",
+    wp: "WP 4.2",
+    hint: "Legt einen neuen Lexikon-Eintrag an",
+    run: (t) => {
+      const kv = toKeyValue(t);
+      const title = kv["titel"] ?? kv["title"] ?? (t.split("\n")[0].trim().slice(0, 60) || "Neuer Eintrag");
+      const content = kv["inhalt"] ?? kv["content"] ?? t;
+      try {
+        const entry = createCodexEntry({
+          id: `codex-${Date.now()}`,
+          title,
+          type: "location",
+          tags: ["import"],
+          content,
+        });
+        return [
+          "✓ Codex-Eintrag angelegt",
+          "",
+          `Titel: ${entry.title}`,
+          `Typ: ${entry.type}`,
+          `ID: ${entry.id}`,
+        ].join("\n");
+      } catch (err) {
+        return `✗ ${err instanceof Error ? err.message : String(err)}`;
+      }
+    },
+  },
+
+  // ── Schreib-Produktivität ──────────────────────────────────────────────────
+  {
+    id: "sprint-stats",
+    label: "Schreib-Sprint",
+    icon: "⏱️",
+    category: "Schreib-Produktivität",
+    wp: "WP 4.3",
+    hint: "Erfasst einen Sprint und zeigt die Tagesstatistik",
+    run: (t) => {
+      const words = firstNumber(t, 500);
+      const stats = getTodayStats();
+      return [
+        "Schreib-Sprint",
+        "",
+        `Presets: ${SPRINT_PRESETS.map((p) => `${p.label} (${p.wordGoal} Wörter)`).join(", ")}`,
+        "",
+        `Heute: ${stats.sprints} Sprints, ${stats.words} Wörter, ${stats.minutes} Min.`,
+        "",
+        `Aktuelle Eingabe: ${words} Wörter erkannt`,
+      ].join("\n");
+    },
+  },
+  {
+    id: "sprint-record",
+    label: "Sprint eintragen",
+    icon: "✅",
+    category: "Schreib-Produktivität",
+    wp: "WP 4.3",
+    hint: "Trägt Wörter und Minuten in die Statistik ein",
+    run: (t) => {
+      const words = firstNumber(t, 300);
+      const stats = recordSprint(words, 15);
+      return [
+        "✓ Sprint eingetragen",
+        "",
+        `Sprints gesamt: ${stats.totalSprints}`,
+        `Wörter gesamt: ${stats.totalWords}`,
+        `Streak: ${stats.currentStreak} (Best: ${stats.bestStreak})`,
+      ].join("\n");
+    },
+  },
+  {
+    id: "time-machine",
+    label: "Zeitmaschine",
+    icon: "⏳",
+    category: "Schreib-Produktivität",
+    wp: "WP 11.1",
+    hint: "Mikro-Snapshots anlegen und vergleichen",
+    run: (t) => {
+      const content = t.trim() || "Leerer Text";
+      const before = createMicroSnapshot("werkzeug-projekt", "kap-1", content);
+      const after = createMicroSnapshot(
+        "werkzeug-projekt",
+        "kap-1",
+        `${content}\n\n(Ergänzung durch Zeitmaschine)`,
+      );
+      const diff = diffMicroSnapshots(before, after);
+      const all = listMicroSnapshots("werkzeug-projekt", "kap-1");
+      return [
+        "Zeitmaschine — Mikro-Snapshots",
+        "",
+        `Snapshots gespeichert: ${all.length}`,
+        `Textlänge vorher: ${content.length} Zeichen`,
+        "",
+        `Diff: +${diff.added.length} / -${diff.removed.length} Einträge`,
+      ].join("\n");
+    },
+  },
+  {
+    id: "content-hash",
+    label: "Inhalts-Hash",
+    icon: "🔐",
+    category: "Schreib-Produktivität",
+    wp: "WP 18.1",
+    hint: "Berechnet den Inhalts-Hash für den Werkzeug-Verlauf",
+    run: async (t) => {
+      const hash = await computeContentHash(t);
+      const metrics = normalizeToolMetrics({
+        wordCount: t.split(/\s+/).filter(Boolean).length,
+        readability: 62,
+      });
+      return [
+        "Inhalts-Hash",
+        "",
+        `Hash: ${hash}`,
+        "",
+        `Wörter: ${metrics.wordCount ?? 0}`,
+        `Lesbarkeit: ${metrics.readability ?? "—"}`,
+      ].join("\n");
+    },
+  },
+  {
+    id: "metrics-diff",
+    label: "Metrik-Vergleich",
+    icon: "📊",
+    category: "Schreib-Produktivität",
+    wp: "WP 18.1",
+    hint: "Vergleicht zwei Metrik-Sätze (vorher/nachher)",
+    run: (t) => {
+      const n = firstNumber(t, 100);
+      const diff = diffMetrics({ readability: n, wordCount: n * 10 }, { readability: n + 8, wordCount: n * 11 });
+      return [
+        "Metrik-Vergleich",
+        "",
+        diff.changes.length === 0
+          ? "(keine Änderungen)"
+          : fmt(diff.changes.map((c) => `${c.metric}: ${c.before} → ${c.after} (${c.deltaPercent}%, ${c.direction})`)),
+        "",
+        `Änderungen: ${diff.changes.length}`,
+      ].join("\n");
+    },
+  },
+  {
+    id: "export-guard",
+    label: "Export-Guard",
+    icon: "🛡️",
+    category: "Schreib-Produktivität",
+    wp: "WP 21.1",
+    hint: "Prüft offene Track-Changes vor dem Export",
+    run: (t) => {
+      try {
+        const state = buildTrackChangeState(t.trim() || "Ein kurzer Beispielsatz.");
+        const result = checkExportGuard(state);
+        return [
+          "Export-Guard",
+          "",
+          `Export erlaubt: ${result.allowed ? "ja" : "nein"}`,
+          `Offene Track-Changes: ${result.openChanges}`,
+          "",
+          result.message ?? "✓ Keine offenen Lektoratsänderungen.",
+        ].join("\n");
+      } catch (err) {
+        return `✗ Export-Guard: ${err instanceof Error ? err.message : String(err)}`;
+      }
+    },
+  },
+  {
+    id: "dictation-normalize",
+    label: "Diktat-Normalisierung",
+    icon: "🎤",
+    category: "Schreib-Produktivität",
+    wp: "WP 9.2",
+    hint: "Wandelt gesprochene Zeichensetzung in Text um",
+    run: (t) => {
+      const normalized = normalizeSpokenText(t);
+      return [
+        "Diktat-Normalisierung",
+        "",
+        `Eingabe: ${t.length} Zeichen`,
+        `Ausgabe: ${normalized.length} Zeichen`,
+        "",
+        normalized || "(leer)",
+      ].join("\n");
+    },
+  },
+
+  // ── Medien-Produktion ──────────────────────────────────────────────────────
+  {
+    id: "blurb-studio",
+    label: "Klappentext-Studio",
+    icon: "📖",
+    category: "Medien-Produktion",
+    wp: "WP 4.4",
+    hint: "Generiert einen Klappentext nach Buchformel",
+    run: (t) => {
+      const kv = toKeyValue(t);
+      const blurb = generateBlurb("hook-trouble-choice", {
+        title: kv["titel"] ?? "Der letzte Zeuge",
+        genre: kv["genre"] ?? "Thriller",
+        protagonist: kv["protagonist"] ?? "Mira",
+        conflict: kv["konflikt"] ?? "ein Verbrechen, das niemand sehen wollte",
+        stakes: kv["einsatz"] ?? "ihr Leben",
+      });
+      return ["Klappentext-Studio", "", blurb].join("\n");
+    },
+  },
+  {
+    id: "kdp-keywords",
+    label: "KDP-Keywords",
+    icon: "🔑",
+    category: "Medien-Produktion",
+    wp: "WP 4.4",
+    hint: "Analysiert Text auf KDP-taugliche Schlagwörter",
+    run: (t) => {
+      const keywords = analyzeKdpKeywords(t);
+      return [
+        "KDP-Keywords",
+        "",
+        keywords.length === 0
+          ? "(keine Schlagwörter gefunden)"
+          : fmt(keywords.slice(0, 20)),
+        "",
+        `Schlagwörter: ${keywords.length}`,
+      ].join("\n");
+    },
+  },
+  {
+    id: "quote-card",
+    label: "Zitat-Karte",
+    icon: "💬",
+    category: "Medien-Produktion",
+    wp: "WP 4.4",
+    hint: "Erzeugt eine Zitat-Karte als SVG",
+    run: (t) => {
+      const quote = t.trim().split("\n")[0].slice(0, 200) || "Ein gutes Zitat.";
+      const svg = generateQuoteCard(quote, { width: 800, height: 400 });
+      return [
+        "Zitat-Karte",
+        "",
+        `Zitat: ${quote}`,
+        `SVG-Größe: ${svg.length} Zeichen`,
+        "",
+        svg.slice(0, 300) + (svg.length > 300 ? " …" : ""),
+      ].join("\n");
+    },
+  },
+  {
+    id: "quality-report",
+    label: "Qualitätsbericht",
+    icon: "📋",
+    category: "Medien-Produktion",
+    wp: "WP 17.1",
+    hint: "Erstellt einen Kapitel-Qualitätsbericht mit Trend",
+    run: (t) => {
+      const chapters = toBookChapterInputs(t);
+      const book = { title: "Werkzeug-Bericht", chapters };
+      const scores = toChapterScores(book);
+      return [
+        "Qualitätsbericht",
+        "",
+        buildTrendChart(scores),
+        "",
+        "Top-Empfehlungen:",
+        fmt(topSuggestions(scores, 3)),
+        "",
+        `Kapitel: ${chapters.length}`,
+        `Markdown-Länge: ${buildQualityMarkdown(book).length} Zeichen`,
+      ].join("\n");
+    },
+  },
+  {
+    id: "style-guide",
+    label: "Stil-Leitfaden",
+    icon: "📐",
+    category: "Medien-Produktion",
+    wp: "WP 17.2",
+    hint: "Prüft Text gegen einen Stil-Leitfaden",
+    run: (t) => {
+      const guide = createStyleGuide({
+        forbiddenWords: [{ word: "irgendwie", suggestion: "auf eine bestimmte Weise" }],
+        preferredTerms: [{ wrong: "Portemonnaie", preferred: "Geldbeutel" }],
+      });
+      const findings = checkAgainstGuide(t, guide);
+      const fixed = findings.length > 0 ? applyFix(t, findings[0]) : t;
+      return [
+        "Stil-Leitfaden",
+        "",
+        findings.length === 0
+          ? "✓ Keine Stil-Verstöße gefunden."
+          : fmt(findings.map((f) => `${f.kind}: „${f.found}“ → „${f.expected ?? f.suggestion ?? "—"}“`)),
+        "",
+        `Befunde: ${findings.length}`,
+        findings.length > 0 ? `Beispiel-Korrektur: ${fixed.slice(0, 120)}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n");
+    },
+  },
+  {
+    id: "cover-studio",
+    label: "Cover-Studio",
+    icon: "🎨",
+    category: "Medien-Produktion",
+    wp: "WP 10.2",
+    hint: "Berechnet Rückenbreite und erzeugt ein Cover-SVG",
+    run: (t) => {
+      const kv = toKeyValue(t);
+      const title = kv["titel"] ?? (t.split("\n")[0].trim().slice(0, 60) || "Ohne Titel");
+      const author = kv["autor"] ?? "Unbekannt";
+      const words = t.split(/\s+/).filter(Boolean).length;
+      const pages = estimatePageCount(words);
+      const spine = calculateSpineWidth(pages, "white");
+      const svg = generateCoverSvg(title, author, spine);
+      return [
+        "Cover-Studio",
+        "",
+        `Titel: ${title}`,
+        `Autor: ${author}`,
+        `Wörter: ${words} → ca. ${pages} Seiten`,
+        `Rückenbreite: ${spine.toFixed(2)} mm`,
+        `Papiersorten: ${Object.keys(PAPER_TYPES).join(", ")}`,
+        `SVG-Größe: ${svg.length} Zeichen`,
+      ].join("\n");
+    },
+  },
+  {
+    id: "print-master",
+    label: "Print-Master",
+    icon: "🖨️",
+    category: "Medien-Produktion",
+    wp: "WP 10.1",
+    hint: "KDP-Druckmaße: Bundsteg, Recto/Verso, Leerseiten",
+    run: (t) => {
+      const chapters = normalizeChapters(toBookChapterInputs(t));
+      const pages = estimatePageCount(t.split(/\s+/).filter(Boolean).length);
+      const gutter = gutterForPageCount(pages);
+      return [
+        "Print-Master",
+        "",
+        `Kapitel: ${chapters.length}`,
+        `Seiten (geschätzt): ${pages}`,
+        `Bundsteg: ${gutter.toFixed(2)} mm`,
+        `Seite ${pages} ist ${isRecto(pages) ? "Recto (rechts)" : "Verso (links)"}`,
+        `Leerseiten davor: ${blankPagesBefore(pages)}`,
+        "",
+        `Stabile UUID: ${stableUuid(chapters[0]?.title ?? "kapitel")}`,
+      ].join("\n");
+    },
+  },
+  {
+    id: "kdp-backoff",
+    label: "KDP-Retry-Backoff",
+    icon: "🔁",
+    category: "Medien-Produktion",
+    wp: "WP 9.1",
+    hint: "Berechnet Wartezeiten für KDP-Upload-Wiederholungen",
+    run: (t) => {
+      const attempts = Math.min(6, Math.max(1, firstNumber(t, 3)));
+      const delays = Array.from({ length: attempts }, (_, i) => computeBackoffDelay(i + 1));
+      return [
+        "KDP-Retry-Backoff",
+        "",
+        fmt(delays.map((d, i) => `Versuch ${i + 1}: ${d} ms`)),
+        "",
+        `Versuche: ${attempts}`,
+      ].join("\n");
+    },
+  },
+  {
+    id: "testbook",
+    label: "Testbuch-Generator",
+    icon: "🧪",
+    category: "Medien-Produktion",
+    wp: "WP 2.1",
+    hint: "Erzeugt ein vollständiges Testbuch mit Kapitel-Status",
+    run: () => {
+      const book = makeTestBook();
+      return [
+        "Testbuch-Generator",
+        "",
+        `Titel: ${book.title}`,
+        `Autor: ${book.author}`,
+        `Kapitel: ${book.chapters.length}`,
+        "",
+        fmt(book.chapters.map((c) => `${c.title} [${c.status}]`)),
+      ].join("\n");
+    },
+  },
+  {
+    id: "article-prompt",
+    label: "Artikel-Prompt",
+    icon: "📰",
+    category: "Medien-Produktion",
+    wp: "WP 16.1",
+    hint: "Baut einen Artikel-Prompt aus Suchtreffern",
+    run: (t) => {
+      const results = toHeadlineBody(t);
+      try {
+        const prompt = buildArticlePrompt(
+          [{ title: results.headline, text: results.body }],
+          ARTICLE_STYLES[0],
+        );
+        return [
+          "Artikel-Prompt",
+          "",
+          `Stile: ${ARTICLE_STYLES.join(", ")}`,
+          "",
+          prompt.slice(0, 600),
+        ].join("\n");
+      } catch (err) {
+        return `✗ ${err instanceof Error ? err.message : String(err)}`;
+      }
+    },
+  },
+  {
+    id: "headline-image",
+    label: "Schlagzeilen-Bild",
+    icon: "🖼️",
+    category: "Medien-Produktion",
+    wp: "WP 16.2",
+    hint: "Erzeugt Bild-Prompts für Schlagzeilen und Artikel",
+    run: (t) => {
+      const { headline, body } = toHeadlineBody(t);
+      return [
+        "Schlagzeilen-Bild",
+        "",
+        `Schlagzeile: ${headline}`,
+        "",
+        `Headline-Prompt: ${buildHeadlineImagePrompt(headline)}`,
+        "",
+        `Artikel-Prompt: ${buildArticleImagePrompt(body.slice(0, 120))}`,
+      ].join("\n");
+    },
+  },
+  {
+    id: "newspaper-layout",
+    label: "Zeitungslayout",
+    icon: "🗞️",
+    category: "Medien-Produktion",
+    wp: "WP 16.3",
+    hint: "Setzt Artikel in ein mehrspaltiges Zeitungslayout",
+    run: (t) => {
+      const parts = toChapters(t);
+      const articles = parts.map((content, i) => {
+        const { headline, body } = toHeadlineBody(content);
+        return {
+          id: `art-${i + 1}`,
+          headline,
+          body,
+          priority: i === 0 ? ("lead" as const) : ("normal" as const),
+        };
+      });
+      const newspaper = buildNewspaper(articles);
+      const md = newspaperToMarkdown(newspaper, articles);
+      return [
+        "Zeitungslayout",
+        "",
+        `Artikel: ${articles.length}`,
+        `Seiten: ${newspaper.pages.length}`,
+        `Inhaltsverzeichnis: ${newspaper.toc.length} Einträge`,
+        "",
+        md.slice(0, 500) + (md.length > 500 ? " …" : ""),
+      ].join("\n");
+    },
+  },
+  {
+    id: "converter",
+    label: "Format-Konverter",
+    icon: "🔄",
+    category: "Medien-Produktion",
+    wp: "WP 22.1",
+    hint: "Konvertiert zwischen Markdown, HTML und Klartext",
+    run: async (t) => {
+      const plain = toPlainText(t, "markdown");
+      const html = await markdownToHtml(t);
+      return [
+        "Format-Konverter",
+        "",
+        `Klartext (${plain.length} Zeichen):`,
+        plain.slice(0, 200) + (plain.length > 200 ? " …" : ""),
+        "",
+        `HTML (${html.length} Zeichen):`,
+        html.slice(0, 300) + (html.length > 300 ? " …" : ""),
+      ].join("\n");
+    },
+  },
+  {
+    id: "export-validate",
+    label: "Export-Validierung",
+    icon: "🔍",
+    category: "Medien-Produktion",
+    wp: "WP 10.3",
+    hint: "Prüft XML-Wohlgeformtheit exportierter Dateien",
+    run: async (t) => {
+      const sample = t.trim().startsWith("<")
+        ? t
+        : `<doc><p>${t.slice(0, 200).replace(/[<>&]/g, "")}</p></doc>`;
+      const xml = checkXmlWellFormed(sample);
+      const blob = new Blob([sample], { type: "application/xml" });
+      const validation = await validateExportBlob(blob, "epub");
+      return [
+        "Export-Validierung",
+        "",
+        `XML wohlgeformt: ${xml.ok ? "ja" : "nein"}`,
+        xml.error ? `XML-Fehler: ${xml.error}` : "✓ Keine XML-Fehler",
+        "",
+        `EPUB-Prüfung: ${validation.ok ? "bestanden" : "fehlgeschlagen"} (${validation.issues.length} Befunde)`,
+      ].join("\n");
+    },
+  },
+  {
+    id: "bilingual-export",
+    label: "Bilingualer Export",
+    icon: "🌐",
+    category: "Medien-Produktion",
+    wp: "WP 15.1",
+    hint: "Erzeugt zweisprachiges Markdown DE/EN",
+    run: (t) => {
+      const parts = toChapters(t);
+      const chapters = parts.map((content, i) => ({
+        id: `bkap-${i + 1}`,
+        titleDe: `Kapitel ${i + 1}`,
+        titleEn: `Chapter ${i + 1}`,
+        contentDe: content,
+        contentEn: contentToMarkdown(content),
+      }));
+      const book = { id: "bilingual-werkzeug", title: "Zweisprachiges Buch", chapters };
+      const md = buildBilingualMarkdown(book);
+      return [
+        "Bilingualer Export",
+        "",
+        `Kapitel: ${chapters.length}`,
+        `Markdown-Länge: ${md.length} Zeichen`,
+        "",
+        md.slice(0, 400) + (md.length > 400 ? " …" : ""),
+      ].join("\n");
+    },
+  },
+  {
+    id: "compact-prompts",
+    label: "Kompakt-Prompts",
+    icon: "🧩",
+    category: "Medien-Produktion",
+    wp: "WP 7.1",
+    hint: "Zeigt kompakte System-Prompts für lokale Modelle",
+    run: (t) => {
+      const model = t.split("\n")[0].trim().slice(0, 40) || "llama3";
+      const profile = compactProfile(model);
+      const savings = compactSavings(model);
+      return [
+        "Kompakt-Prompts",
+        "",
+        `Modell: ${model}`,
+        `Familie: ${profile.family ?? "—"}`,
+        `Ersparnis: ${typeof savings === "number" ? `${savings}%` : fmt(savings)}`,
+        "",
+        `System-Prompt (${profile.systemPrompt.length} Zeichen):`,
+        profile.systemPrompt.slice(0, 300),
+      ].join("\n");
+    },
+  },
+  {
+    id: "bilingual-templates",
+    label: "Bilinguale Templates",
+    icon: "📑",
+    category: "Medien-Produktion",
+    wp: "WP 15.2",
+    hint: "Listet die Übersetzungs-Templates und zeigt eines an",
+    run: () => {
+      const ids = listBilingualTemplateIds();
+      const first = ids.length > 0 ? getBilingualTemplate(ids[0]) : null;
+      return [
+        "Bilinguale Templates",
+        "",
+        `Verfügbar (${ids.length}): ${ids.join(", ")}`,
+        "",
+        first ? `Template „${first.id}“:\n${first.template.slice(0, 400)}` : "(keine Templates)",
+      ].join("\n");
+    },
+  },
+  {
+    id: "image-prompt",
+    label: "Bild-Prompt",
+    icon: "🖌️",
+    category: "Medien-Produktion",
+    wp: "WP 14.3",
+    hint: "Erzeugt einen Bild-Prompt aus Kapiteltext",
+    run: (t) => {
+      const prompt = buildImagePrompt(t, DEFAULT_IMAGE_STYLE);
+      return [
+        "Bild-Prompt",
+        "",
+        `Stile: ${Object.keys(IMAGE_STYLE_PRESETS).join(", ")}`,
+        "",
+        prompt,
+      ].join("\n");
+    },
+  },
+  {
+    id: "batch-runner",
+    label: "Batch-Analyse",
+    icon: "⚙️",
+    category: "Medien-Produktion",
+    wp: "WP 18.2",
+    hint: "Führt mehrere Analyse-Werkzeuge über alle Kapitel aus",
+    run: async (t) => {
+      const chapters = toChapters(t).map((content, i) => ({
+        id: `bkap-${i + 1}`,
+        title: `Kapitel ${i + 1}`,
+        content,
+      }));
+      const tools = [
+        {
+          id: "wordcount",
+          label: "Wortzahl",
+          category: "Analyse",
+          run: (text: string) => `${text.split(/\s+/).filter(Boolean).length} Wörter`,
+        },
+      ];
+      const report = await runBatchAnalysis(chapters, tools);
+      const summary = summarizeReport(report);
+      return [
+        "Batch-Analyse",
+        "",
+        `Kapitel geprüft: ${report.chaptersScanned}`,
+        `Werkzeuge: ${report.toolsRun}`,
+        `Dauer: ${report.durationMs} ms`,
+        "",
+        `Befunde: ${summary.total} (${summary.errors} Fehler, ${summary.warnings} Warnungen, ${summary.infos} Hinweise)`,
+      ].join("\n");
+    },
+  },
+  {
+    id: "backup-validate",
+    label: "Backup-Validierung",
+    icon: "💾",
+    category: "Medien-Produktion",
+    wp: "WP 14.1",
+    hint: "Prüft ein Bild-Backup-JSON auf Gültigkeit",
+    run: (t) => {
+      const result = validateBackupWithImages(t);
+      if (!result.ok) {
+        return [
+          "Backup-Validierung",
+          "",
+          `✗ Ungültig: ${result.error}`,
+          "",
+          "Erwartetes Format: { \"version\": 1, \"images\": [...] }",
+        ].join("\n");
+      }
+      return [
+        "Backup-Validierung",
+        "",
+        "✓ Backup gültig",
+        `Bilder: ${result.backup.images?.length ?? 0}`,
+      ].join("\n");
+    },
+  },
+  {
+    id: "security-audit",
+    label: "Sicherheits-Audit",
+    icon: "🔒",
+    category: "Medien-Produktion",
+    wp: "WP 8.1",
+    hint: "Erzeugt den Sicherheits-Audit-Bericht",
+    run: () => {
+      const report = generateSecurityAuditReport();
+      return [
+        "Sicherheits-Audit",
+        "",
+        `Befunde: ${report.findings.length}`,
+        "",
+        fmt(report.findings.map((f) => `[${f.severity}] ${f.title}: ${f.description}`)),
+      ].join("\n");
+    },
+  },
+  {
+    id: "shutdown-tasks",
+    label: "Shutdown-Tasks",
+    icon: "🛑",
+    category: "Medien-Produktion",
+    wp: "WP 8.3",
+    hint: "Registriert die Standard-Aufräum-Tasks beim Beenden",
+    run: () => {
+      registerDefaultShutdownTasks();
+      return [
+        "Shutdown-Tasks",
+        "",
+        "✓ Standard-Tasks registriert:",
+        "  • flush-pending-jobs",
+        "  • persist-database",
+        "",
+        `Timeout pro Task: ${DEFAULT_SHUTDOWN_TASK_TIMEOUT_MS} ms`,
+      ].join("\n");
+    },
+  },
+  {
+    id: "lazy-modules",
+    label: "Lazy-Module",
+    icon: "📦",
+    category: "Medien-Produktion",
+    wp: "WP 8.4",
+    hint: "Listet die verzögert geladenen Schwerlast-Module",
+    run: () => {
+      return [
+        "Lazy-Module",
+        "",
+        `Module (${HEAVY_MODULES.length}):`,
+        fmt(HEAVY_MODULES.map((m) => `${m.name} — ${m.reason}`)),
+      ].join("\n");
     },
   },
 ];

@@ -125,6 +125,25 @@ describe("aiFilmDirectorTimeline", () => {
       expect(a.json).toBe(b.json);
     });
 
+    it("ist deterministisch auch bei getrennten Aufrufen (kein Date.now)", async () => {
+      const entries = generateTimeline("Scene", 3);
+      const a = exportProductionDossier("Test", entries);
+      // Ein Zeitversatz darf das Ergebnis nicht verändern.
+      await new Promise((r) => setTimeout(r, 15));
+      const b = exportProductionDossier("Test", entries);
+      expect(a.markdown).toBe(b.markdown);
+      expect(a.json).toBe(b.json);
+      expect(a.pdf).toBe(b.pdf);
+      expect(a.csv).toBe(b.csv);
+    });
+
+    it("übernimmt einen expliziten Zeitstempel", () => {
+      const entries = generateTimeline("Scene", 2);
+      const d = exportProductionDossier("Test", entries, "2030-06-15T12:00:00.000Z");
+      expect(d.markdown).toContain("2030-06-15");
+      expect(d.json).toContain("2030-06-15T12:00:00.000Z");
+    });
+
     it("kommt mit leeren Eingaben zurecht", () => {
       const d = exportProductionDossier("", []);
       expect(d.entries).toEqual([]);

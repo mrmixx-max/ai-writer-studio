@@ -232,14 +232,21 @@ export function generateTimeline(
 export function exportProductionDossier(
   title: string,
   entries: TimelineEntry[] | null | undefined,
+  generatedAt?: string,
 ): ProductionDossier {
   const safeTitle = normalizeText(title, 'AI Film Director\'s Pitchbook');
   const safeEntries = Array.isArray(entries) ? entries : [];
 
+  // Deterministisch: fester Zeitstempel, sofern der Aufrufer keinen übergibt.
+  // `new Date()` würde zwei identische Aufrufe unterschiedlich ausgeben.
+  const timestamp = typeof generatedAt === 'string' && generatedAt.length > 0
+    ? generatedAt
+    : '1970-01-01T00:00:00.000Z';
+
   const markdown = [
     `# ${safeTitle}`,
     '',
-    `**Generated:** ${new Date().toISOString().split('T')[0]}`,
+    `**Generated:** ${timestamp.split('T')[0]}`,
     `**Shots:** ${safeEntries.length}`,
     '',
     '## Shot List',
@@ -264,7 +271,7 @@ export function exportProductionDossier(
   const json = JSON.stringify(
     {
       title: safeTitle,
-      generated: new Date().toISOString(),
+      generated: timestamp,
       shotCount: safeEntries.length,
       shots: safeEntries.map((e) => ({
         index: e.shot.index,

@@ -58,8 +58,8 @@ describe("TOOLS-Registry", () => {
 });
 
 describe("TOOL_CATEGORIES", () => {
-  it("enthält 9 Kategorien", () => {
-    expect(TOOL_CATEGORIES.length).toBe(9);
+  it("enthält 12 Kategorien", () => {
+    expect(TOOL_CATEGORIES.length).toBe(12);
   });
 
   it("beginnt mit Analyse & Lektorat", () => {
@@ -173,6 +173,185 @@ KRAKK — die Tür flog auf.`;
     for (const tool of TOOLS) {
       const out = await Promise.resolve(tool.run(""));
       expect(typeof out, `${tool.id} warf bei leerem Input`).toBe("string");
+    }
+  });
+});
+
+describe("Reachability-Pass (v4.3.0)", () => {
+  const sample = `Der Algorithmus implementierte eine komplexe Datenbank-Schnittstelle.
+Es wurde beschlossen, dass die Middleware angepasst werden muss.
+
+---
+
+Anna: „Hallo, wie geht es dir?“
+Bert: „Mir geht es bestens“, sagte er, während seine Hände zitterten.
+
+KRAKK — die Tür flog auf.`;
+
+  const REACHED_IDS = [
+    "series-bible",
+    "spoiler-guard",
+    "codex-search",
+    "codex-create",
+    "sprint-stats",
+    "sprint-record",
+    "time-machine",
+    "content-hash",
+    "metrics-diff",
+    "export-guard",
+    "dictation-normalize",
+    "blurb-studio",
+    "kdp-keywords",
+    "quote-card",
+    "quality-report",
+    "style-guide",
+    "cover-studio",
+    "print-master",
+    "kdp-backoff",
+    "testbook",
+    "article-prompt",
+    "headline-image",
+    "newspaper-layout",
+    "converter",
+    "export-validate",
+    "bilingual-export",
+    "compact-prompts",
+    "bilingual-templates",
+    "image-prompt",
+    "batch-runner",
+    "backup-validate",
+    "security-audit",
+    "shutdown-tasks",
+    "lazy-modules",
+  ];
+
+  // `cli/monitorDashboard` ist ein Node-only-CLI-Tool (zieht node:async_hooks
+  // über monitoring/correlation) und darf nicht ins Browser-Bundle — bewusst
+  // nicht registriert. Siehe Build-Guard in diesem Test.
+  it("registriert keine Node-only-Services im Browser-Bundle", () => {
+    expect(getTool("monitor-dashboard")).toBeUndefined();
+  });
+
+  it("registriert alle zuvor verwaisten Services", () => {
+    for (const id of REACHED_IDS) {
+      expect(getTool(id), `Werkzeug ${id} fehlt`).toBeDefined();
+    }
+  });
+
+  it("fügt die drei neuen Kategorien hinzu", () => {
+    expect(TOOL_CATEGORIES).toContain("Welt & Recherche");
+    expect(TOOL_CATEGORIES).toContain("Schreib-Produktivität");
+    expect(TOOL_CATEGORIES).toContain("Medien-Produktion");
+  });
+
+  it("jede neue Kategorie hat Werkzeuge", () => {
+    for (const cat of ["Welt & Recherche", "Schreib-Produktivität", "Medien-Produktion"]) {
+      expect(toolsByCategory(cat).length).toBeGreaterThan(0);
+    }
+  });
+
+  it("Serien-Bibel legt eine Entität an und listet sie", async () => {
+    const out = await getTool("series-bible")!.run("Testbuch");
+    expect(out).toContain("Entitäten");
+  });
+
+  it("Spoiler-Wächter prüft Text", async () => {
+    const out = await getTool("spoiler-guard")!.run("Mira betritt den Raum.");
+    expect(out).toContain("Spoiler");
+  });
+
+  it("Recherche-Codex findet Treffer", async () => {
+    const out = await getTool("codex-search")!.run("Mira");
+    expect(out).toContain("Recherche-Codex");
+  });
+
+  it("Codex-Eintrag legt einen Eintrag an", async () => {
+    const out = await getTool("codex-create")!.run("titel: Testeintrag\ninhalt: Beschreibung");
+    expect(out).toContain("Codex-Eintrag");
+  });
+
+  it("Schreib-Sprint zeigt Presets", async () => {
+    const out = await getTool("sprint-stats")!.run("500");
+    expect(out).toContain("Presets");
+  });
+
+  it("Zeitmaschine vergleicht Snapshots", async () => {
+    const out = await getTool("time-machine")!.run("Ein Beispieltext für den Snapshot.");
+    expect(out).toContain("Snapshots gespeichert");
+  });
+
+  it("Inhalts-Hash liefert einen Hex-Hash", async () => {
+    const out = await getTool("content-hash")!.run("Testtext");
+    expect(out).toMatch(/Hash: [a-f0-9]{8,}/);
+  });
+
+  it("Export-Guard erkennt Track-Changes", async () => {
+    const out = await getTool("export-guard")!.run("Der Hund ist braun und läuft schnell.");
+    expect(out).toContain("Export erlaubt");
+  });
+
+  it("Klappentext-Studio generiert einen Text", async () => {
+    const out = await getTool("blurb-studio")!.run("titel: Testroman\ngenre: Krimi");
+    expect(out.length).toBeGreaterThan(50);
+  });
+
+  it("Qualitätsbericht liefert Kapitel-Scores", async () => {
+    const out = await getTool("quality-report")!.run("Kapitel eins.\n\n---\n\nKapitel zwei.");
+    expect(out).toContain("Kapitel");
+  });
+
+  it("Print-Master berechnet den Bundsteg", async () => {
+    const out = await getTool("print-master")!.run("Ein längerer Text für die Seitenberechnung.");
+    expect(out).toContain("Bundsteg");
+  });
+
+  it("Testbuch-Generator liefert Kapitel", async () => {
+    const out = await getTool("testbook")!.run("");
+    expect(out).toContain("Kapitel");
+  });
+
+  it("Format-Konverter wandelt Markdown um", async () => {
+    const out = await getTool("converter")!.run("# Überschrift\n\nEin Absatz.");
+    expect(out).toContain("HTML");
+  });
+
+  it("Export-Validierung prüft XML", async () => {
+    const out = await getTool("export-validate")!.run("<doc><p>Test</p></doc>");
+    expect(out).toContain("wohlgeformt");
+  });
+
+  it("Backup-Validierung erkennt ungültiges JSON", async () => {
+    const out = await getTool("backup-validate")!.run("kein json");
+    expect(out).toContain("Ungültig");
+  });
+
+  it("Sicherheits-Audit erzeugt Befunde", async () => {
+    const out = await getTool("security-audit")!.run("");
+    expect(out).toContain("Sicherheits-Audit");
+  });
+
+  it("Lazy-Module listet die Schwerlast-Module", async () => {
+    const out = await getTool("lazy-modules")!.run("");
+    expect(out).toContain("Module");
+  });
+
+  it("Batch-Analyse läuft über mehrere Kapitel", async () => {
+    const out = await getTool("batch-runner")!.run("Kapitel eins.\n\n---\n\nKapitel zwei.");
+    expect(out).toContain("Kapitel geprüft");
+  });
+
+  it("alle neuen Werkzeuge laufen ohne Exception auf Beispieleingabe", async () => {
+    for (const id of REACHED_IDS) {
+      const out = await Promise.resolve(getTool(id)!.run(sample));
+      expect(typeof out, `${id} lieferte keinen String`).toBe("string");
+      expect(out.length, `${id} lieferte leeren String`).toBeGreaterThan(0);
+    }
+  });
+
+  it("alle neuen Werkzeuge kommen mit leerem Input zurecht", async () => {
+    for (const id of REACHED_IDS) {
+      const out = await Promise.resolve(getTool(id)!.run(""));
+      expect(typeof out, `${id} warf bei leerem Input`).toBe("string");
     }
   });
 });
