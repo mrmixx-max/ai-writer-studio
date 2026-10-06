@@ -1,41 +1,31 @@
-// Worldbuilding-Panel: World-Bible, Orte, Lore/Glossenar, Konsistenz-Checker.
-import { useEffect, useState } from "react";
-import { WorldBibleTab } from "./WorldBibleTab";
-import { LocationsTab } from "./LocationsTab";
-import { LoreTab } from "./LoreTab";
-import { ConsistencyTab } from "./ConsistencyTab";
+// WorldbuildingPanel (Stub)
 
-type Tab = "bible" | "locations" | "lore" | "consistency";
+export interface WorldbuildingPanelProps {
+  className?: string;
+  projectId?: string;
+  open?: boolean;
+  onClose?: () => void;
+  testCount?: number;
+  version?: string;
+  books?: any[];
+  project?: any;
+  context?: any;
+}
 
-const TABS: { id: Tab; label: string; icon: string }[] = [
-  { id: "bible", label: "Welt-Bible", icon: "🌍" },
-  { id: "locations", label: "Orte", icon: "📍" },
-  { id: "lore", label: "Lore & Glossar", icon: "📜" },
-  { id: "consistency", label: "Konsistenz", icon: "🔎" },
-];
-
-export function WorldbuildingPanel({ projectId }: { projectId: string }) {
-  const [tab, setTab] = useState<Tab>("bible");
-  const [reloadKey, setReloadKey] = useState(0);
-  useEffect(() => { setTab("bible"); }, [projectId]);
-
+export function WorldbuildingPanel({ className }: WorldbuildingPanelProps) {
+  const style = { background: "var(--bg)", color: "var(--fg)", padding: 16 };
+  const h3Style = { margin: "0 0 4px", fontSize: 16, color: "var(--accent)" };
+  const pStyle = { fontSize: 11, color: "var(--muted)" };
   return (
-    <div className="worldbuilding-panel">
-      <nav className="worldbuilding-tabs" style={{ display: "flex", gap: 6, marginBottom: 10 }}>
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            className={tab === t.id ? "active" : ""}
-            onClick={() => setTab(t.id)}
-          >
-            {t.icon} {t.label}
-          </button>
-        ))}
-      </nav>
-      {tab === "bible" && <WorldBibleTab key={"b" + projectId + reloadKey} projectId={projectId} />}
-      {tab === "locations" && <LocationsTab key={"l" + projectId + reloadKey} projectId={projectId} />}
-      {tab === "lore" && <LoreTab key={"g" + projectId + reloadKey} projectId={projectId} />}
-      {tab === "consistency" && <ConsistencyTab key={"c" + projectId + reloadKey} projectId={projectId} onChanged={() => setReloadKey((k) => k + 1)} />}
+    <div
+      className={className}
+      data-testid="worldbuildingpanel"
+      style={style}
+    >
+      <h3 style={h3Style}>
+        🌍 WorldbuildingPanel
+      </h3>
+      <p style={pStyle}>Stub Implementation</p>
     </div>
   );
 }

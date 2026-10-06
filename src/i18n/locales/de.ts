@@ -282,6 +282,10 @@ export const de = {
   "sidebar.mode.climate": "Planeten-Klima",
   "sidebar.mode.margin": "Randausgleich",
   "sidebar.mode.royalty": "Tantiemen",
+  "sidebar.mode.cartographer": "Vektor-Kartograf",
+  "sidebar.mode.polyglot": "Parallel-Buch",
+  "sidebar.mode.soundscape": "Klanglandschaft",
+  "sidebar.mode.jubilee40": "40. Jubiläum",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -584,6 +588,10 @@ export const de = {
   "sidebar.modeDesc.climate": "Klimazonen und Jahreszeiten",
   "sidebar.modeDesc.margin": "Hängende Interpunktion",
   "sidebar.modeDesc.royalty": "Plattform-Tantiemen und Währung",
+  "sidebar.modeDesc.cartographer": "SVG-Karten und Reisezeit-Pfadfinder",
+  "sidebar.modeDesc.polyglot": "Absatz-Synchronisation und Facing-Page",
+  "sidebar.modeDesc.soundscape": "Binaurale Beats und Naturgeräusche",
+  "sidebar.modeDesc.jubilee40": "Platin-Audit und Sovereign-Vault",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Kommentare + Reviews",
   "sidebar.modeDesc.condense": "Textverkürzung",

@@ -43,7 +43,7 @@ const KdpChecklistPanel = lazy(() =>
   import("@/components/KDP/KdpChecklistPanel").then((m) => ({ default: m.KdpChecklistPanel }))
 );
 const PublishingAssistantPanel = lazy(() =>
-  import("@/components/Publishing/PublishingAssistantPanel").then((m) => ({ default: m.PublishingAssistantPanel }))
+  import("@/components/publishing/PublishingAssistantPanel").then((m) => ({ default: m.PublishingAssistantPanel }))
 );
 const FragmentPanel = lazy(() =>
   import("@/components/Fragment/FragmentPanel").then((m) => ({ default: m.FragmentPanel }))
@@ -87,7 +87,7 @@ const TimelinePanel = lazy(() =>
   import("@/components/Timeline/TimelinePanel").then((m) => ({ default: m.TimelinePanel }))
 );
 const WorldbuildingPanel = lazy(() =>
-  import("@/components/Worldbuilding/WorldbuildingPanel").then((m) => ({ default: m.WorldbuildingPanel }))
+  import("@/components/worldbuilding/WorldbuildingPanel").then((m) => ({ default: m.WorldbuildingPanel }))
 );
 const InvestigatePanel = lazy(() =>
   import("@/components/Writing/InvestigatePanel").then((m) => ({ default: m.InvestigatePanel }))
@@ -276,20 +276,20 @@ const VoiceMemoModal = lazy(() =>
   import("@/components/audio/VoiceMemoModal").then((m) => ({ default: m.VoiceMemoModal }))
 );
 const MasterPublishingCockpit = lazy(() =>
-  import("@/components/Publishing/MasterPublishingCockpit").then((m) => ({ default: m.MasterPublishingCockpit }))
+  import("@/components/publishing/MasterPublishingCockpit").then((m) => ({ default: m.MasterPublishingCockpit }))
 );
 // Meilenstein 20: Trailer, Serien-Universum, Table-Read, Druck-Simulator.
 const BookTrailerStudio = lazy(() =>
   import("@/components/marketing/BookTrailerStudio").then((m) => ({ default: m.BookTrailerStudio }))
 );
 const SeriesUniverseMatrix = lazy(() =>
-  import("@/components/Worldbuilding/SeriesUniverseMatrix").then((m) => ({ default: m.SeriesUniverseMatrix }))
+  import("@/components/worldbuilding/SeriesUniverseMatrix").then((m) => ({ default: m.SeriesUniverseMatrix }))
 );
 const TableReadDirector = lazy(() =>
   import("@/components/screenplay/TableReadDirector").then((m) => ({ default: m.TableReadDirector }))
 );
 const PrintSimulatorModal = lazy(() =>
-  import("@/components/Publishing/PrintSimulatorModal").then((m) => ({ default: m.PrintSimulatorModal }))
+  import("@/components/publishing/PrintSimulatorModal").then((m) => ({ default: m.PrintSimulatorModal }))
 );
 // Meilenstein 21: Crowdfunding, Gamebook, Empathie, Merch.
 const CrowdfundingStudio = lazy(() =>
@@ -302,7 +302,7 @@ const ReaderSentimentGraph = lazy(() =>
   import("@/components/analytics/ReaderSentimentGraph").then((m) => ({ default: m.ReaderSentimentGraph }))
 );
 const DigitalMerchPackager = lazy(() =>
-  import("@/components/Publishing/DigitalMerchPackager").then((m) => ({ default: m.DigitalMerchPackager }))
+  import("@/components/publishing/DigitalMerchPackager").then((m) => ({ default: m.DigitalMerchPackager }))
 );
 // Meilenstein 22: Live-Bühne, Soundtrack, Authentizität, Meisterwerk-Siegel.
 const LiveAudienceTelemetry = lazy(() =>
@@ -319,16 +319,16 @@ const MasterpieceSealModal = lazy(() =>
 );
 // Meilenstein 23: Mind-Map, Spannungs-EKG, Kausalität, Stipendien.
 const ConceptMindMap = lazy(() =>
-  import("@/components/Visual/ConceptMindMap").then((m) => ({ default: m.ConceptMindMap }))
+  import("@/components/visual/ConceptMindMap").then((m) => ({ default: m.ConceptMindMap }))
 );
 const SuspenseEcgGraph = lazy(() =>
   import("@/components/dramaturgy/SuspenseEcgGraph").then((m) => ({ default: m.SuspenseEcgGraph }))
 );
 const ParallelTimelineEngine = lazy(() =>
-  import("@/components/Worldbuilding/ParallelTimelineEngine").then((m) => ({ default: m.ParallelTimelineEngine }))
+  import("@/components/worldbuilding/ParallelTimelineEngine").then((m) => ({ default: m.ParallelTimelineEngine }))
 );
 const LiteraryGrantPackager = lazy(() =>
-  import("@/components/Publishing/LiteraryGrantPackager").then((m) => ({ default: m.LiteraryGrantPackager }))
+  import("@/components/publishing/LiteraryGrantPackager").then((m) => ({ default: m.LiteraryGrantPackager }))
 );
 // Meilenstein 24: Beziehungs-Chemie, Epigraph, Barcode, Genre-Kompass.
 const RelationshipChemistry = lazy(() =>
@@ -338,7 +338,7 @@ const EpigraphAnthology = lazy(() =>
   import("@/components/typesetting/EpigraphAnthology").then((m) => ({ default: m.EpigraphAnthology }))
 );
 const BarcodeGeneratorModal = lazy(() =>
-  import("@/components/Publishing/BarcodeGeneratorModal").then((m) => ({ default: m.BarcodeGeneratorModal }))
+  import("@/components/publishing/BarcodeGeneratorModal").then((m) => ({ default: m.BarcodeGeneratorModal }))
 );
 const GenreArchetypeCompass = lazy(() =>
   import("@/components/analytics/GenreArchetypeCompass").then((m) => ({ default: m.GenreArchetypeCompass }))
@@ -406,7 +406,7 @@ const SentenceCadenceOrchestratorModal = lazy(() =>
   import("@/components/ai/SentenceCadenceOrchestratorModal").then((m) => ({ default: m.SentenceCadenceOrchestratorModal }))
 );
 const OmniverseReleaseModal = lazy(() =>
-  import("@/components/Publishing/OmniverseReleaseModal").then((m) => ({ default: m.OmniverseReleaseModal }))
+  import("@/components/publishing/OmniverseReleaseModal").then((m) => ({ default: m.OmniverseReleaseModal }))
 );
 // Meilenstein 30 (v4.1.0): Doppelbödigkeit, Stimmen-Evolution, Mikroklima, Grand-Century.
 const DoubleEntendreSynthesizerModal = lazy(() =>
@@ -445,14 +445,14 @@ const NpcPersonaSimulatorModal = lazy(() =>
   import("@/components/ai/NpcPersonaSimulatorModal").then((m) => ({ default: m.NpcPersonaSimulatorModal }))
 );
 const InteractiveGamePackagerModal = lazy(() =>
-  import("@/components/Publishing/InteractiveGamePackagerModal").then((m) => ({ default: m.InteractiveGamePackagerModal }))
+  import("@/components/publishing/InteractiveGamePackagerModal").then((m) => ({ default: m.InteractiveGamePackagerModal }))
 );
 // Meilenstein 33 (v4.5.0): Stimmfarben, 3D-Blocking, Empathie-Heatmap, Diamant-Siegel.
 const ProceduralVoiceTimbreModal = lazy(() =>
   import("@/components/audio/ProceduralVoiceTimbreModal").then((m) => ({ default: m.ProceduralVoiceTimbreModal }))
 );
 const SceneCameraBlockingModal = lazy(() =>
-  import("@/components/Visual/SceneCameraBlockingModal").then((m) => ({ default: m.SceneCameraBlockingModal }))
+  import("@/components/visual/SceneCameraBlockingModal").then((m) => ({ default: m.SceneCameraBlockingModal }))
 );
 const ReaderEmpathyHeatmapModal = lazy(() =>
   import("@/components/analytics/ReaderEmpathyHeatmapModal").then((m) => ({ default: m.ReaderEmpathyHeatmapModal }))
@@ -465,26 +465,26 @@ const DopaminePacingSynthesizerModal = lazy(() =>
   import("@/components/dramaturgy/DopaminePacingSynthesizerModal").then((m) => ({ default: m.DopaminePacingSynthesizerModal }))
 );
 const DualTimelineMysteryLedgerModal = lazy(() =>
-  import("@/components/Worldbuilding/DualTimelineMysteryLedgerModal").then((m) => ({ default: m.DualTimelineMysteryLedgerModal }))
+  import("@/components/worldbuilding/DualTimelineMysteryLedgerModal").then((m) => ({ default: m.DualTimelineMysteryLedgerModal }))
 );
 const EldritchSensoryWeaverModal = lazy(() =>
   import("@/components/ai/EldritchSensoryWeaverModal").then((m) => ({ default: m.EldritchSensoryWeaverModal }))
 );
 const AudiobookProductionSheetModal = lazy(() =>
-  import("@/components/Publishing/AudiobookProductionSheetModal").then((m) => ({ default: m.AudiobookProductionSheetModal }))
+  import("@/components/publishing/AudiobookProductionSheetModal").then((m) => ({ default: m.AudiobookProductionSheetModal }))
 );
 // Meilenstein 35 (v4.7.0): Philosophie, Transmedia, Stunts, Direktvertrieb.
 const PhilosophicalDebateEngineModal = lazy(() =>
   import("@/components/ai/PhilosophicalDebateEngineModal").then((m) => ({ default: m.PhilosophicalDebateEngineModal }))
 );
 const TransmediaWorldBibleModal = lazy(() =>
-  import("@/components/Worldbuilding/TransmediaWorldBibleModal").then((m) => ({ default: m.TransmediaWorldBibleModal }))
+  import("@/components/worldbuilding/TransmediaWorldBibleModal").then((m) => ({ default: m.TransmediaWorldBibleModal }))
 );
 const KineticStuntChoreographerModal = lazy(() =>
   import("@/components/ai/KineticStuntChoreographerModal").then((m) => ({ default: m.KineticStuntChoreographerModal }))
 );
 const DirectSalesVaultModal = lazy(() =>
-  import("@/components/Publishing/DirectSalesVaultModal").then((m) => ({ default: m.DirectSalesVaultModal }))
+  import("@/components/publishing/DirectSalesVaultModal").then((m) => ({ default: m.DirectSalesVaultModal }))
 );
 // Meilenstein 36 (v4.8.0): Metrik, Etymologie, Comic, Presse.
 const MetricProsodySynthesizerModal = lazy(() =>
@@ -497,11 +497,11 @@ const ComicPanelOrchestratorModal = lazy(() =>
   import("@/components/screenplay/ComicPanelOrchestratorModal").then((m) => ({ default: m.ComicPanelOrchestratorModal }))
 );
 const AuthorMediaKitPackagerModal = lazy(() =>
-  import("@/components/Publishing/AuthorMediaKitPackagerModal").then((m) => ({ default: m.AuthorMediaKitPackagerModal }))
+  import("@/components/publishing/AuthorMediaKitPackagerModal").then((m) => ({ default: m.AuthorMediaKitPackagerModal }))
 );
 // Meilenstein 37 (v4.9.0): Gastronomie, Haptik, Akustik, Konkordanz.
 const CulinaryFeastSynthesizerModal = lazy(() =>
-  import("@/components/Worldbuilding/CulinaryFeastSynthesizerModal").then((m) => ({ default: m.CulinaryFeastSynthesizerModal }))
+  import("@/components/worldbuilding/CulinaryFeastSynthesizerModal").then((m) => ({ default: m.CulinaryFeastSynthesizerModal }))
 );
 const TactileHapticsExpanderModal = lazy(() =>
   import("@/components/linguistics/TactileHapticsExpanderModal").then((m) => ({ default: m.TactileHapticsExpanderModal }))
@@ -510,7 +510,7 @@ const ArchitecturalAcousticSynthesizerModal = lazy(() =>
   import("@/components/ai/ArchitecturalAcousticSynthesizerModal").then((m) => ({ default: m.ArchitecturalAcousticSynthesizerModal }))
 );
 const ConcordanceIndexMatrixModal = lazy(() =>
-  import("@/components/Publishing/ConcordanceIndexMatrixModal").then((m) => ({ default: m.ConcordanceIndexMatrixModal }))
+  import("@/components/publishing/ConcordanceIndexMatrixModal").then((m) => ({ default: m.ConcordanceIndexMatrixModal }))
 );
 // Meilenstein 38 (v5.0.0): Story-Doctor, Transmuter, Voiceprint, Flaggschiff-Cockpit.
 const StoryDoctorConsultantModal = lazy(() =>
@@ -523,20 +523,20 @@ const NarrativeVoiceprintClonerModal = lazy(() =>
   import("@/components/ai/NarrativeVoiceprintClonerModal").then((m) => ({ default: m.NarrativeVoiceprintClonerModal }))
 );
 const Flagship50JubileeCockpitModal = lazy(() =>
-  import("@/components/Publishing/Flagship50JubileeCockpitModal").then((m) => ({ default: m.Flagship50JubileeCockpitModal }))
+  import("@/components/publishing/Flagship50JubileeCockpitModal").then((m) => ({ default: m.Flagship50JubileeCockpitModal }))
 );
 // Meilenstein 39 (v5.1.0): Mind-Palace, Planeten-Klima, Randausgleich, Tantiemen.
 const SpatialMemoryPalaceModal = lazy(() =>
-  import("@/components/Visual/SpatialMemoryPalaceModal").then((m) => ({ default: m.SpatialMemoryPalaceModal }))
+  import("@/components/visual/SpatialMemoryPalaceModal").then((m) => ({ default: m.SpatialMemoryPalaceModal }))
 );
 const PlanetaryClimateEngineModal = lazy(() =>
-  import("@/components/Worldbuilding/PlanetaryClimateEngineModal").then((m) => ({ default: m.PlanetaryClimateEngineModal }))
+  import("@/components/worldbuilding/PlanetaryClimateEngineModal").then((m) => ({ default: m.PlanetaryClimateEngineModal }))
 );
 const OpticalMarginAlignmentModal = lazy(() =>
   import("@/components/typography/OpticalMarginAlignmentModal").then((m) => ({ default: m.OpticalMarginAlignmentModal }))
 );
 const GlobalRoyaltyAggregatorModal = lazy(() =>
-  import("@/components/Publishing/GlobalRoyaltyAggregatorModal").then((m) => ({ default: m.GlobalRoyaltyAggregatorModal }))
+  import("@/components/publishing/GlobalRoyaltyAggregatorModal").then((m) => ({ default: m.GlobalRoyaltyAggregatorModal }))
 );
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
@@ -704,6 +704,10 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
   { id: "climate", key: "sidebar.mode.climate", icon: "🪐", descKey: "sidebar.modeDesc.climate" },
   { id: "margin", key: "sidebar.mode.margin", icon: "📐", descKey: "sidebar.modeDesc.margin" },
   { id: "royalty", key: "sidebar.mode.royalty", icon: "💰", descKey: "sidebar.modeDesc.royalty" },
+  { id: "cartographer", key: "sidebar.mode.cartographer", icon: "🗺️", descKey: "sidebar.modeDesc.cartographer" },
+  { id: "polyglot", key: "sidebar.mode.polyglot", icon: "🌐", descKey: "sidebar.modeDesc.polyglot" },
+  { id: "soundscape", key: "sidebar.mode.soundscape", icon: "🎧", descKey: "sidebar.modeDesc.soundscape" },
+  { id: "jubilee40", key: "sidebar.mode.jubilee40", icon: "🏰", descKey: "sidebar.modeDesc.jubilee40" },
 ];
 
 export function Sidebar() {
@@ -1013,7 +1017,7 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "preflight") return <PreflightPanel projectId={projectId} chapterId={chapterId} />;
     if (mode === "snapshots") return <SnapshotPanel projectId={projectId} />;
     if (mode === "kdp") return <KdpChecklistPanel projectId={projectId} />;
-    if (mode === "publishing") return <PublishingAssistantPanel projectId={projectId} />;
+    if (mode === "publishing") return <PublishingAssistantPanel projectId={projectId ?? undefined} />;
     // Sprint 6 (Agent 5): BookWriter-Dashboard braucht kein offenes Kapitel —
     // es arbeitet projektübergreifend auf dem Job-Store.
     if (mode === "bookwriter") return <BookWriterDashboardPanel />;
@@ -1073,13 +1077,13 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     // Meilenstein 19: Standalone-Panels (eigener Zustand, kein Kapitel-Guard).
     if (mode === "storyboard") return <ManuscriptStoryboard chapters={[]} />;
     if (mode === "guest-review") return <GuestReviewModal open chapters={[]} onClose={() => {}} />;
-    if (mode === "voice-memo") return <VoiceMemoModal open context={{ chapters: [], characters: [], codexTopics: [] }} onClose={() => {}} />;
-    if (mode === "release-cockpit") return <MasterPublishingCockpit project={{ title: "Unbenannt", author: "", chapters: [] }} />;
+    if (mode === "voice-memo") return <VoiceMemoModal />;
+    if (mode === "release-cockpit") return <MasterPublishingCockpit />;
     // Meilenstein 20: Standalone-Panels.
     if (mode === "book-trailer") return <BookTrailerStudio />;
-    if (mode === "series-universe") return <SeriesUniverseMatrix books={[]} />;
+    if (mode === "series-universe") return <SeriesUniverseMatrix />;
     if (mode === "table-read") return <TableReadDirector doc={{ title: "Ohne Titel", scenes: [] }} />;
-    if (mode === "print-simulator") return <PrintSimulatorModal open onClose={() => {}} />;
+    if (mode === "print-simulator") return <PrintSimulatorModal />;
     // Meilenstein 21: Standalone-Panels.
     if (mode === "crowdfunding") return <CrowdfundingStudio />;
     if (mode === "gamebook-playtest") return <ReaderChoicePlaytester book={{ id: "default", title: "Spielbuch", nodes: [] }} />;
@@ -1089,7 +1093,7 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "live-stage") return <LiveAudienceTelemetry />;
     if (mode === "soundtrack") return <MusicalScoreComposer />;
     if (mode === "authenticity-audit") return <CulturalAuthenticityAudit />;
-    if (mode === "masterpiece-seal") return <MasterpieceSealModal open onClose={() => {}} testCount={5927} version="3.3.0" />;
+    if (mode === "masterpiece-seal") return <MasterpieceSealModal />;
     // Meilenstein 23: Standalone-Panels.
     if (mode === "mind-map") return <ConceptMindMap />;
     if (mode === "suspense-ecg") return <SuspenseEcgGraph />;
@@ -1098,7 +1102,7 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     // Meilenstein 24: Standalone-Panels.
     if (mode === "relationship-chemistry") return <RelationshipChemistry />;
     if (mode === "epigraph") return <EpigraphAnthology />;
-    if (mode === "barcode") return <BarcodeGeneratorModal open onClose={() => {}} />;
+    if (mode === "barcode") return <BarcodeGeneratorModal />;
     if (mode === "genre-compass") return <GenreArchetypeCompass />;
     // Meilenstein 25: Standalone-Panels (KI-Prosa-Werkstatt).
     if (mode === "prose-expander") return <ProseExpanderModal />;

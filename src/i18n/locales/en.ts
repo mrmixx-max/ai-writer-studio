@@ -348,6 +348,10 @@ export const en: TranslationDict = {
   "sidebar.mode.climate": "Planetary Climate",
   "sidebar.mode.margin": "Margin Alignment",
   "sidebar.mode.royalty": "Royalties",
+  "sidebar.mode.cartographer": "Vector Cartographer",
+  "sidebar.mode.polyglot": "Parallel Book",
+  "sidebar.mode.soundscape": "Soundscape",
+  "sidebar.mode.jubilee40": "40th Jubilee",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -645,6 +649,10 @@ export const en: TranslationDict = {
   "sidebar.modeDesc.climate": "Climate zones and seasons",
   "sidebar.modeDesc.margin": "Hanging punctuation",
   "sidebar.modeDesc.royalty": "Platform royalties and currency",
+  "sidebar.modeDesc.cartographer": "SVG maps and travel time pathfinder",
+  "sidebar.modeDesc.polyglot": "Paragraph sync and facing-page",
+  "sidebar.modeDesc.soundscape": "Binaural beats and nature sounds",
+  "sidebar.modeDesc.jubilee40": "Platinum audit and sovereign vault",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",

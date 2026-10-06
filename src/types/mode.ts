@@ -166,4 +166,8 @@ export type EditorMode =
   | "mind-palace"
   | "climate"
   | "margin"
-  | "royalty";
+  | "royalty"
+  | "cartographer"
+  | "polyglot"
+  | "soundscape"
+  | "jubilee40";
