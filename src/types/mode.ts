@@ -138,4 +138,8 @@ export type EditorMode =
   | "visual-novel"
   | "state-machine"
   | "npc-sim"
-  | "gamebook";
+  | "gamebook"
+  | "voice-timbre"
+  | "camera-blocking"
+  | "empathy"
+  | "diamond";

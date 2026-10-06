@@ -254,6 +254,10 @@ export const de = {
   "sidebar.mode.state-machine": "Zustandsautomat",
   "sidebar.mode.npc-sim": "NPC-Verhör",
   "sidebar.mode.gamebook": "Spielbuch",
+  "sidebar.mode.voice-timbre": "Stimmfarben",
+  "sidebar.mode.camera-blocking": "Kamera-Blocking",
+  "sidebar.mode.empathy": "Empathie-Heatmap",
+  "sidebar.mode.diamond": "Diamant-Siegel",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -528,6 +532,10 @@ export const de = {
   "sidebar.modeDesc.state-machine": "Flags, Sackgassen und Enden",
   "sidebar.modeDesc.npc-sim": "Figuren live verhören",
   "sidebar.modeDesc.gamebook": "Spielbuch, PDF und Webgame",
+  "sidebar.modeDesc.voice-timbre": "Formanten, Akzente und Vorschau",
+  "sidebar.modeDesc.camera-blocking": "180-Grad-Regel und Blickfeld",
+  "sidebar.modeDesc.empathy": "Wo der Leser weint und staunt",
+  "sidebar.modeDesc.diamond": "8.000er-Audit und Zertifikat",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Kommentare + Reviews",
   "sidebar.modeDesc.condense": "Textverkürzung",

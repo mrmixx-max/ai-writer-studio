@@ -447,6 +447,19 @@ const NpcPersonaSimulatorModal = lazy(() =>
 const InteractiveGamePackagerModal = lazy(() =>
   import("@/components/Publishing/InteractiveGamePackagerModal").then((m) => ({ default: m.InteractiveGamePackagerModal }))
 );
+// Meilenstein 33 (v4.5.0): Stimmfarben, 3D-Blocking, Empathie-Heatmap, Diamant-Siegel.
+const ProceduralVoiceTimbreModal = lazy(() =>
+  import("@/components/audio/ProceduralVoiceTimbreModal").then((m) => ({ default: m.ProceduralVoiceTimbreModal }))
+);
+const SceneCameraBlockingModal = lazy(() =>
+  import("@/components/visual/SceneCameraBlockingModal").then((m) => ({ default: m.SceneCameraBlockingModal }))
+);
+const ReaderEmpathyHeatmapModal = lazy(() =>
+  import("@/components/analytics/ReaderEmpathyHeatmapModal").then((m) => ({ default: m.ReaderEmpathyHeatmapModal }))
+);
+const Grand8000JubileeSentinelModal = lazy(() =>
+  import("@/components/core/Grand8000JubileeSentinelModal").then((m) => ({ default: m.Grand8000JubileeSentinelModal }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -585,6 +598,10 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
   { id: "state-machine", key: "sidebar.mode.state-machine", icon: "🕸️", descKey: "sidebar.modeDesc.state-machine" },
   { id: "npc-sim", key: "sidebar.mode.npc-sim", icon: "🗣️", descKey: "sidebar.modeDesc.npc-sim" },
   { id: "gamebook", key: "sidebar.mode.gamebook", icon: "📖", descKey: "sidebar.modeDesc.gamebook" },
+  { id: "voice-timbre", key: "sidebar.mode.voice-timbre", icon: "🎙️", descKey: "sidebar.modeDesc.voice-timbre" },
+  { id: "camera-blocking", key: "sidebar.mode.camera-blocking", icon: "🎬", descKey: "sidebar.modeDesc.camera-blocking" },
+  { id: "empathy", key: "sidebar.mode.empathy", icon: "💓", descKey: "sidebar.modeDesc.empathy" },
+  { id: "diamond", key: "sidebar.mode.diamond", icon: "💎", descKey: "sidebar.modeDesc.diamond" },
 ];
 
 export function Sidebar() {
@@ -1021,6 +1038,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "state-machine") return <NarrativeStateMachineModal />;
     if (mode === "npc-sim") return <NpcPersonaSimulatorModal />;
     if (mode === "gamebook") return <InteractiveGamePackagerModal />;
+    // Meilenstein 33 (v4.5.0): Stimmfarben, 3D-Blocking, Empathie, Diamant.
+    if (mode === "voice-timbre") return <ProceduralVoiceTimbreModal />;
+    if (mode === "camera-blocking") return <SceneCameraBlockingModal />;
+    if (mode === "empathy") return <ReaderEmpathyHeatmapModal />;
+    if (mode === "diamond") return <Grand8000JubileeSentinelModal />;
     if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }

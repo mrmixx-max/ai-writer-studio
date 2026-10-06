@@ -320,6 +320,10 @@ export const en: TranslationDict = {
   "sidebar.mode.state-machine": "State Machine",
   "sidebar.mode.npc-sim": "NPC Interrogation",
   "sidebar.mode.gamebook": "Gamebook",
+  "sidebar.mode.voice-timbre": "Voice Timbre",
+  "sidebar.mode.camera-blocking": "Camera Blocking",
+  "sidebar.mode.empathy": "Empathy Heatmap",
+  "sidebar.mode.diamond": "Diamond Seal",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -589,6 +593,10 @@ export const en: TranslationDict = {
   "sidebar.modeDesc.state-machine": "Flags, dead ends and endings",
   "sidebar.modeDesc.npc-sim": "Interrogate characters live",
   "sidebar.modeDesc.gamebook": "Gamebook, PDF and webgame",
+  "sidebar.modeDesc.voice-timbre": "Formants, accents and preview",
+  "sidebar.modeDesc.camera-blocking": "180-degree rule and frustum",
+  "sidebar.modeDesc.empathy": "Where the reader cries and marvels",
+  "sidebar.modeDesc.diamond": "8.000 audit and certificate",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",
