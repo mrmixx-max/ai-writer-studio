@@ -499,6 +499,19 @@ const ComicPanelOrchestratorModal = lazy(() =>
 const AuthorMediaKitPackagerModal = lazy(() =>
   import("@/components/Publishing/AuthorMediaKitPackagerModal").then((m) => ({ default: m.AuthorMediaKitPackagerModal }))
 );
+// Meilenstein 37 (v4.9.0): Gastronomie, Haptik, Akustik, Konkordanz.
+const CulinaryFeastSynthesizerModal = lazy(() =>
+  import("@/components/Worldbuilding/CulinaryFeastSynthesizerModal").then((m) => ({ default: m.CulinaryFeastSynthesizerModal }))
+);
+const TactileHapticsExpanderModal = lazy(() =>
+  import("@/components/linguistics/TactileHapticsExpanderModal").then((m) => ({ default: m.TactileHapticsExpanderModal }))
+);
+const ArchitecturalAcousticSynthesizerModal = lazy(() =>
+  import("@/components/ai/ArchitecturalAcousticSynthesizerModal").then((m) => ({ default: m.ArchitecturalAcousticSynthesizerModal }))
+);
+const ConcordanceIndexMatrixModal = lazy(() =>
+  import("@/components/Publishing/ConcordanceIndexMatrixModal").then((m) => ({ default: m.ConcordanceIndexMatrixModal }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -653,6 +666,10 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
   { id: "etymology", key: "sidebar.mode.etymology", icon: "📚", descKey: "sidebar.modeDesc.etymology" },
   { id: "comic", key: "sidebar.mode.comic", icon: "🎨", descKey: "sidebar.modeDesc.comic" },
   { id: "media-kit", key: "sidebar.mode.media-kit", icon: "📰", descKey: "sidebar.modeDesc.media-kit" },
+  { id: "feast", key: "sidebar.mode.feast", icon: "🍽️", descKey: "sidebar.modeDesc.feast" },
+  { id: "haptics", key: "sidebar.mode.haptics", icon: "🖐️", descKey: "sidebar.modeDesc.haptics" },
+  { id: "acoustics", key: "sidebar.mode.acoustics", icon: "🏛️", descKey: "sidebar.modeDesc.acoustics" },
+  { id: "concordance", key: "sidebar.mode.concordance", icon: "📖", descKey: "sidebar.modeDesc.concordance" },
 ];
 
 export function Sidebar() {
@@ -1109,6 +1126,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "etymology") return <EtymologyTimelineGuardModal />;
     if (mode === "comic") return <ComicPanelOrchestratorModal />;
     if (mode === "media-kit") return <AuthorMediaKitPackagerModal />;
+    // Meilenstein 37 (v4.9.0): Gastronomie, Haptik, Akustik, Konkordanz.
+    if (mode === "feast") return <CulinaryFeastSynthesizerModal />;
+    if (mode === "haptics") return <TactileHapticsExpanderModal />;
+    if (mode === "acoustics") return <ArchitecturalAcousticSynthesizerModal />;
+    if (mode === "concordance") return <ConcordanceIndexMatrixModal />;
     if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }

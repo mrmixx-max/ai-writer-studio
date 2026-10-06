@@ -336,6 +336,10 @@ export const en: TranslationDict = {
   "sidebar.mode.etymology": "Etymology",
   "sidebar.mode.comic": "Comic Studio",
   "sidebar.mode.media-kit": "Press Kit",
+  "sidebar.mode.feast": "Gastronomy",
+  "sidebar.mode.haptics": "Haptics",
+  "sidebar.mode.acoustics": "Room Acoustics",
+  "sidebar.mode.concordance": "Concordance",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -621,6 +625,10 @@ export const en: TranslationDict = {
   "sidebar.modeDesc.etymology": "Anachronisms and synonyms",
   "sidebar.modeDesc.comic": "Prose to panels and balloons",
   "sidebar.modeDesc.media-kit": "One-sheet, bio and interview",
+  "sidebar.modeDesc.feast": "Biome ingredients and class contrasts",
+  "sidebar.modeDesc.haptics": "5 texture dimensions",
+  "sidebar.modeDesc.acoustics": "Reverb and speech clarity",
+  "sidebar.modeDesc.concordance": "Subject and name index",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",

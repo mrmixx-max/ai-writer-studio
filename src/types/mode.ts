@@ -154,4 +154,8 @@ export type EditorMode =
   | "prosody"
   | "etymology"
   | "comic"
-  | "media-kit";
+  | "media-kit"
+  | "feast"
+  | "haptics"
+  | "acoustics"
+  | "concordance";

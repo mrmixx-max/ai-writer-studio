@@ -270,6 +270,10 @@ export const de = {
   "sidebar.mode.etymology": "Etymologie",
   "sidebar.mode.comic": "Comic-Studio",
   "sidebar.mode.media-kit": "Pressemappe",
+  "sidebar.mode.feast": "Gastronomie",
+  "sidebar.mode.haptics": "Haptik",
+  "sidebar.mode.acoustics": "Raum-Akustik",
+  "sidebar.mode.concordance": "Konkordanz",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -560,6 +564,10 @@ export const de = {
   "sidebar.modeDesc.etymology": "Anachronismen und Synonyme",
   "sidebar.modeDesc.comic": "Prosa zu Panels und Sprechblasen",
   "sidebar.modeDesc.media-kit": "One-Sheet, Bio und Interview",
+  "sidebar.modeDesc.feast": "Biom-Zutaten und Standes-Kontraste",
+  "sidebar.modeDesc.haptics": "5 Textur-Dimensionen",
+  "sidebar.modeDesc.acoustics": "Nachhall und Sprachverständlichkeit",
+  "sidebar.modeDesc.concordance": "Sach- und Personenregister",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Kommentare + Reviews",
   "sidebar.modeDesc.condense": "Textverkürzung",
