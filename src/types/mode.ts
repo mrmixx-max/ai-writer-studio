@@ -162,4 +162,8 @@ export type EditorMode =
   | "story-doctor"
   | "transmuter"
   | "voiceprint"
-  | "flagship";
+  | "flagship"
+  | "mind-palace"
+  | "climate"
+  | "margin"
+  | "royalty";

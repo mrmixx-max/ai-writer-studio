@@ -278,6 +278,10 @@ export const de = {
   "sidebar.mode.transmuter": "Format-Transmuter",
   "sidebar.mode.voiceprint": "Stimmabdruck",
   "sidebar.mode.flagship": "5.0-Cockpit",
+  "sidebar.mode.mind-palace": "Gedächtnispalast",
+  "sidebar.mode.climate": "Planeten-Klima",
+  "sidebar.mode.margin": "Randausgleich",
+  "sidebar.mode.royalty": "Tantiemen",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -576,6 +580,10 @@ export const de = {
   "sidebar.modeDesc.transmuter": "5 Formate omnidirektional",
   "sidebar.modeDesc.voiceprint": "Stilometrische DNA-Extraktion",
   "sidebar.modeDesc.flagship": "Platin-Audit und Magnum-Opus",
+  "sidebar.modeDesc.mind-palace": "Loci-Methode und Artefakt-Sockel",
+  "sidebar.modeDesc.climate": "Klimazonen und Jahreszeiten",
+  "sidebar.modeDesc.margin": "Hängende Interpunktion",
+  "sidebar.modeDesc.royalty": "Plattform-Tantiemen und Währung",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Kommentare + Reviews",
   "sidebar.modeDesc.condense": "Textverkürzung",

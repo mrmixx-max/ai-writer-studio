@@ -319,7 +319,7 @@ const MasterpieceSealModal = lazy(() =>
 );
 // Meilenstein 23: Mind-Map, Spannungs-EKG, Kausalität, Stipendien.
 const ConceptMindMap = lazy(() =>
-  import("@/components/visual/ConceptMindMap").then((m) => ({ default: m.ConceptMindMap }))
+  import("@/components/Visual/ConceptMindMap").then((m) => ({ default: m.ConceptMindMap }))
 );
 const SuspenseEcgGraph = lazy(() =>
   import("@/components/dramaturgy/SuspenseEcgGraph").then((m) => ({ default: m.SuspenseEcgGraph }))
@@ -452,7 +452,7 @@ const ProceduralVoiceTimbreModal = lazy(() =>
   import("@/components/audio/ProceduralVoiceTimbreModal").then((m) => ({ default: m.ProceduralVoiceTimbreModal }))
 );
 const SceneCameraBlockingModal = lazy(() =>
-  import("@/components/visual/SceneCameraBlockingModal").then((m) => ({ default: m.SceneCameraBlockingModal }))
+  import("@/components/Visual/SceneCameraBlockingModal").then((m) => ({ default: m.SceneCameraBlockingModal }))
 );
 const ReaderEmpathyHeatmapModal = lazy(() =>
   import("@/components/analytics/ReaderEmpathyHeatmapModal").then((m) => ({ default: m.ReaderEmpathyHeatmapModal }))
@@ -524,6 +524,19 @@ const NarrativeVoiceprintClonerModal = lazy(() =>
 );
 const Flagship50JubileeCockpitModal = lazy(() =>
   import("@/components/Publishing/Flagship50JubileeCockpitModal").then((m) => ({ default: m.Flagship50JubileeCockpitModal }))
+);
+// Meilenstein 39 (v5.1.0): Mind-Palace, Planeten-Klima, Randausgleich, Tantiemen.
+const SpatialMemoryPalaceModal = lazy(() =>
+  import("@/components/Visual/SpatialMemoryPalaceModal").then((m) => ({ default: m.SpatialMemoryPalaceModal }))
+);
+const PlanetaryClimateEngineModal = lazy(() =>
+  import("@/components/Worldbuilding/PlanetaryClimateEngineModal").then((m) => ({ default: m.PlanetaryClimateEngineModal }))
+);
+const OpticalMarginAlignmentModal = lazy(() =>
+  import("@/components/typography/OpticalMarginAlignmentModal").then((m) => ({ default: m.OpticalMarginAlignmentModal }))
+);
+const GlobalRoyaltyAggregatorModal = lazy(() =>
+  import("@/components/Publishing/GlobalRoyaltyAggregatorModal").then((m) => ({ default: m.GlobalRoyaltyAggregatorModal }))
 );
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
@@ -687,6 +700,10 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
   { id: "transmuter", key: "sidebar.mode.transmuter", icon: "🔄", descKey: "sidebar.modeDesc.transmuter" },
   { id: "voiceprint", key: "sidebar.mode.voiceprint", icon: "🎭", descKey: "sidebar.modeDesc.voiceprint" },
   { id: "flagship", key: "sidebar.mode.flagship", icon: "🏆", descKey: "sidebar.modeDesc.flagship" },
+  { id: "mind-palace", key: "sidebar.mode.mind-palace", icon: "🏛️", descKey: "sidebar.modeDesc.mind-palace" },
+  { id: "climate", key: "sidebar.mode.climate", icon: "🪐", descKey: "sidebar.modeDesc.climate" },
+  { id: "margin", key: "sidebar.mode.margin", icon: "📐", descKey: "sidebar.modeDesc.margin" },
+  { id: "royalty", key: "sidebar.mode.royalty", icon: "💰", descKey: "sidebar.modeDesc.royalty" },
 ];
 
 export function Sidebar() {
@@ -1153,6 +1170,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "transmuter") return <UniversalFormatTransmuterModal />;
     if (mode === "voiceprint") return <NarrativeVoiceprintClonerModal />;
     if (mode === "flagship") return <Flagship50JubileeCockpitModal />;
+    // Meilenstein 39 (v5.1.0): Mind-Palace, Planeten-Klima, Randausgleich, Tantiemen.
+    if (mode === "mind-palace") return <SpatialMemoryPalaceModal />;
+    if (mode === "climate") return <PlanetaryClimateEngineModal />;
+    if (mode === "margin") return <OpticalMarginAlignmentModal />;
+    if (mode === "royalty") return <GlobalRoyaltyAggregatorModal />;
     if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }

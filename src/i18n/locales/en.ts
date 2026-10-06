@@ -344,6 +344,10 @@ export const en: TranslationDict = {
   "sidebar.mode.transmuter": "Format Transmuter",
   "sidebar.mode.voiceprint": "Voiceprint",
   "sidebar.mode.flagship": "5.0 Cockpit",
+  "sidebar.mode.mind-palace": "Memory Palace",
+  "sidebar.mode.climate": "Planetary Climate",
+  "sidebar.mode.margin": "Margin Alignment",
+  "sidebar.mode.royalty": "Royalties",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -637,6 +641,10 @@ export const en: TranslationDict = {
   "sidebar.modeDesc.transmuter": "5 formats omnidirectional",
   "sidebar.modeDesc.voiceprint": "Stylometric DNA extraction",
   "sidebar.modeDesc.flagship": "Platinum audit and Magnum Opus",
+  "sidebar.modeDesc.mind-palace": "Loci method and artifact pedestals",
+  "sidebar.modeDesc.climate": "Climate zones and seasons",
+  "sidebar.modeDesc.margin": "Hanging punctuation",
+  "sidebar.modeDesc.royalty": "Platform royalties and currency",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",
