@@ -473,6 +473,19 @@ const EldritchSensoryWeaverModal = lazy(() =>
 const AudiobookProductionSheetModal = lazy(() =>
   import("@/components/Publishing/AudiobookProductionSheetModal").then((m) => ({ default: m.AudiobookProductionSheetModal }))
 );
+// Meilenstein 35 (v4.7.0): Philosophie, Transmedia, Stunts, Direktvertrieb.
+const PhilosophicalDebateEngineModal = lazy(() =>
+  import("@/components/ai/PhilosophicalDebateEngineModal").then((m) => ({ default: m.PhilosophicalDebateEngineModal }))
+);
+const TransmediaWorldBibleModal = lazy(() =>
+  import("@/components/Worldbuilding/TransmediaWorldBibleModal").then((m) => ({ default: m.TransmediaWorldBibleModal }))
+);
+const KineticStuntChoreographerModal = lazy(() =>
+  import("@/components/ai/KineticStuntChoreographerModal").then((m) => ({ default: m.KineticStuntChoreographerModal }))
+);
+const DirectSalesVaultModal = lazy(() =>
+  import("@/components/Publishing/DirectSalesVaultModal").then((m) => ({ default: m.DirectSalesVaultModal }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -619,6 +632,10 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
   { id: "mystery-ledger", key: "sidebar.mode.mystery-ledger", icon: "🔍", descKey: "sidebar.modeDesc.mystery-ledger" },
   { id: "eldritch-sensory", key: "sidebar.mode.eldritch-sensory", icon: "🐙", descKey: "sidebar.modeDesc.eldritch-sensory" },
   { id: "audiobook-production", key: "sidebar.mode.audiobook-production", icon: "🎧", descKey: "sidebar.modeDesc.audiobook-production" },
+  { id: "philosophy", key: "sidebar.mode.philosophy", icon: "⚖️", descKey: "sidebar.modeDesc.philosophy" },
+  { id: "world-bible", key: "sidebar.mode.world-bible", icon: "🌍", descKey: "sidebar.modeDesc.world-bible" },
+  { id: "stunt", key: "sidebar.mode.stunt", icon: "💥", descKey: "sidebar.modeDesc.stunt" },
+  { id: "direct-sales", key: "sidebar.mode.direct-sales", icon: "🔐", descKey: "sidebar.modeDesc.direct-sales" },
 ];
 
 export function Sidebar() {
@@ -1065,6 +1082,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "mystery-ledger") return <DualTimelineMysteryLedgerModal />;
     if (mode === "eldritch-sensory") return <EldritchSensoryWeaverModal />;
     if (mode === "audiobook-production") return <AudiobookProductionSheetModal />;
+    // Meilenstein 35 (v4.7.0): Philosophie, Transmedia, Stunts, Direktvertrieb.
+    if (mode === "philosophy") return <PhilosophicalDebateEngineModal />;
+    if (mode === "world-bible") return <TransmediaWorldBibleModal />;
+    if (mode === "stunt") return <KineticStuntChoreographerModal />;
+    if (mode === "direct-sales") return <DirectSalesVaultModal />;
     if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }

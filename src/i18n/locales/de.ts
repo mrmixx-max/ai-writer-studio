@@ -262,6 +262,10 @@ export const de = {
   "sidebar.mode.mystery-ledger": "Indizien-Hauptbuch",
   "sidebar.mode.eldritch-sensory": "Eldritch-Sensorik",
   "sidebar.mode.audiobook-production": "Hörbuch-Regiebogen",
+  "sidebar.mode.philosophy": "Philosophie",
+  "sidebar.mode.world-bible": "Franchise-Bibel",
+  "sidebar.mode.stunt": "Stunt-Physik",
+  "sidebar.mode.direct-sales": "Direktvertrieb",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -544,6 +548,10 @@ export const de = {
   "sidebar.modeDesc.mystery-ledger": "Doppelte Zeitachse und Indizien",
   "sidebar.modeDesc.eldritch-sensory": "Multisensorische Horror-Prosa",
   "sidebar.modeDesc.audiobook-production": "ACX/Audible-Regiebogen",
+  "sidebar.modeDesc.philosophy": "Dialektik und moralische Dilemmata",
+  "sidebar.modeDesc.world-bible": "Kanon-Hierarchie und Kosmologie",
+  "sidebar.modeDesc.stunt": "Kinetische Parameter und Prosa",
+  "sidebar.modeDesc.direct-sales": "Ex-Libris und Lizenz-Zertifikate",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Kommentare + Reviews",
   "sidebar.modeDesc.condense": "Textverkürzung",

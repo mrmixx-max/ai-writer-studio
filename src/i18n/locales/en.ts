@@ -328,6 +328,10 @@ export const en: TranslationDict = {
   "sidebar.mode.mystery-ledger": "Evidence Ledger",
   "sidebar.mode.eldritch-sensory": "Eldritch Sensory",
   "sidebar.mode.audiobook-production": "Audiobook Production",
+  "sidebar.mode.philosophy": "Philosophy",
+  "sidebar.mode.world-bible": "Franchise Bible",
+  "sidebar.mode.stunt": "Stunt Physics",
+  "sidebar.mode.direct-sales": "Direct Sales",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -605,6 +609,10 @@ export const en: TranslationDict = {
   "sidebar.modeDesc.mystery-ledger": "Dual timeline and evidence",
   "sidebar.modeDesc.eldritch-sensory": "Multisensory horror prose",
   "sidebar.modeDesc.audiobook-production": "ACX/Audible production sheet",
+  "sidebar.modeDesc.philosophy": "Dialectic and moral dilemmas",
+  "sidebar.modeDesc.world-bible": "Canon hierarchy and cosmology",
+  "sidebar.modeDesc.stunt": "Kinetic parameters and prose",
+  "sidebar.modeDesc.direct-sales": "Ex-libris and license certificates",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",

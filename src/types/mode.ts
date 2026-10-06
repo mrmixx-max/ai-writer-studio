@@ -146,4 +146,8 @@ export type EditorMode =
   | "dopamine-pacing"
   | "mystery-ledger"
   | "eldritch-sensory"
-  | "audiobook-production";
+  | "audiobook-production"
+  | "philosophy"
+  | "world-bible"
+  | "stunt"
+  | "direct-sales";
