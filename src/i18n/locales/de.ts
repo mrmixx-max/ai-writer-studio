@@ -266,6 +266,10 @@ export const de = {
   "sidebar.mode.world-bible": "Franchise-Bibel",
   "sidebar.mode.stunt": "Stunt-Physik",
   "sidebar.mode.direct-sales": "Direktvertrieb",
+  "sidebar.mode.prosody": "Metrik & Verse",
+  "sidebar.mode.etymology": "Etymologie",
+  "sidebar.mode.comic": "Comic-Studio",
+  "sidebar.mode.media-kit": "Pressemappe",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -552,6 +556,10 @@ export const de = {
   "sidebar.modeDesc.world-bible": "Kanon-Hierarchie und Kosmologie",
   "sidebar.modeDesc.stunt": "Kinetische Parameter und Prosa",
   "sidebar.modeDesc.direct-sales": "Ex-Libris und Lizenz-Zertifikate",
+  "sidebar.modeDesc.prosody": "Jambus, Sonett und Ballade",
+  "sidebar.modeDesc.etymology": "Anachronismen und Synonyme",
+  "sidebar.modeDesc.comic": "Prosa zu Panels und Sprechblasen",
+  "sidebar.modeDesc.media-kit": "One-Sheet, Bio und Interview",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Kommentare + Reviews",
   "sidebar.modeDesc.condense": "Textverkürzung",

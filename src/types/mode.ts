@@ -150,4 +150,8 @@ export type EditorMode =
   | "philosophy"
   | "world-bible"
   | "stunt"
-  | "direct-sales";
+  | "direct-sales"
+  | "prosody"
+  | "etymology"
+  | "comic"
+  | "media-kit";

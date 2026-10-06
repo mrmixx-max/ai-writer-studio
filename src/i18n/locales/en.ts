@@ -332,6 +332,10 @@ export const en: TranslationDict = {
   "sidebar.mode.world-bible": "Franchise Bible",
   "sidebar.mode.stunt": "Stunt Physics",
   "sidebar.mode.direct-sales": "Direct Sales",
+  "sidebar.mode.prosody": "Meter & Verse",
+  "sidebar.mode.etymology": "Etymology",
+  "sidebar.mode.comic": "Comic Studio",
+  "sidebar.mode.media-kit": "Press Kit",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -613,6 +617,10 @@ export const en: TranslationDict = {
   "sidebar.modeDesc.world-bible": "Canon hierarchy and cosmology",
   "sidebar.modeDesc.stunt": "Kinetic parameters and prose",
   "sidebar.modeDesc.direct-sales": "Ex-libris and license certificates",
+  "sidebar.modeDesc.prosody": "Iambus, sonnet and ballad",
+  "sidebar.modeDesc.etymology": "Anachronisms and synonyms",
+  "sidebar.modeDesc.comic": "Prose to panels and balloons",
+  "sidebar.modeDesc.media-kit": "One-sheet, bio and interview",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",

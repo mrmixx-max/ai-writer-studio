@@ -486,6 +486,19 @@ const KineticStuntChoreographerModal = lazy(() =>
 const DirectSalesVaultModal = lazy(() =>
   import("@/components/Publishing/DirectSalesVaultModal").then((m) => ({ default: m.DirectSalesVaultModal }))
 );
+// Meilenstein 36 (v4.8.0): Metrik, Etymologie, Comic, Presse.
+const MetricProsodySynthesizerModal = lazy(() =>
+  import("@/components/ai/MetricProsodySynthesizerModal").then((m) => ({ default: m.MetricProsodySynthesizerModal }))
+);
+const EtymologyTimelineGuardModal = lazy(() =>
+  import("@/components/linguistics/EtymologyTimelineGuardModal").then((m) => ({ default: m.EtymologyTimelineGuardModal }))
+);
+const ComicPanelOrchestratorModal = lazy(() =>
+  import("@/components/screenplay/ComicPanelOrchestratorModal").then((m) => ({ default: m.ComicPanelOrchestratorModal }))
+);
+const AuthorMediaKitPackagerModal = lazy(() =>
+  import("@/components/Publishing/AuthorMediaKitPackagerModal").then((m) => ({ default: m.AuthorMediaKitPackagerModal }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -636,6 +649,10 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
   { id: "world-bible", key: "sidebar.mode.world-bible", icon: "🌍", descKey: "sidebar.modeDesc.world-bible" },
   { id: "stunt", key: "sidebar.mode.stunt", icon: "💥", descKey: "sidebar.modeDesc.stunt" },
   { id: "direct-sales", key: "sidebar.mode.direct-sales", icon: "🔐", descKey: "sidebar.modeDesc.direct-sales" },
+  { id: "prosody", key: "sidebar.mode.prosody", icon: "📜", descKey: "sidebar.modeDesc.prosody" },
+  { id: "etymology", key: "sidebar.mode.etymology", icon: "📚", descKey: "sidebar.modeDesc.etymology" },
+  { id: "comic", key: "sidebar.mode.comic", icon: "🎨", descKey: "sidebar.modeDesc.comic" },
+  { id: "media-kit", key: "sidebar.mode.media-kit", icon: "📰", descKey: "sidebar.modeDesc.media-kit" },
 ];
 
 export function Sidebar() {
@@ -1087,6 +1104,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "world-bible") return <TransmediaWorldBibleModal />;
     if (mode === "stunt") return <KineticStuntChoreographerModal />;
     if (mode === "direct-sales") return <DirectSalesVaultModal />;
+    // Meilenstein 36 (v4.8.0): Metrik, Etymologie, Comic, Presse.
+    if (mode === "prosody") return <MetricProsodySynthesizerModal />;
+    if (mode === "etymology") return <EtymologyTimelineGuardModal />;
+    if (mode === "comic") return <ComicPanelOrchestratorModal />;
+    if (mode === "media-kit") return <AuthorMediaKitPackagerModal />;
     if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }
