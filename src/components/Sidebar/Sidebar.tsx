@@ -460,6 +460,19 @@ const ReaderEmpathyHeatmapModal = lazy(() =>
 const Grand8000JubileeSentinelModal = lazy(() =>
   import("@/components/core/Grand8000JubileeSentinelModal").then((m) => ({ default: m.Grand8000JubileeSentinelModal }))
 );
+// Meilenstein 34 (v4.6.0): Dopamin-Pacing, Dual-Timeline, Eldritch-Sensorik, Hörbuch-Regiebogen.
+const DopaminePacingSynthesizerModal = lazy(() =>
+  import("@/components/dramaturgy/DopaminePacingSynthesizerModal").then((m) => ({ default: m.DopaminePacingSynthesizerModal }))
+);
+const DualTimelineMysteryLedgerModal = lazy(() =>
+  import("@/components/Worldbuilding/DualTimelineMysteryLedgerModal").then((m) => ({ default: m.DualTimelineMysteryLedgerModal }))
+);
+const EldritchSensoryWeaverModal = lazy(() =>
+  import("@/components/ai/EldritchSensoryWeaverModal").then((m) => ({ default: m.EldritchSensoryWeaverModal }))
+);
+const AudiobookProductionSheetModal = lazy(() =>
+  import("@/components/Publishing/AudiobookProductionSheetModal").then((m) => ({ default: m.AudiobookProductionSheetModal }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -602,6 +615,10 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
   { id: "camera-blocking", key: "sidebar.mode.camera-blocking", icon: "🎬", descKey: "sidebar.modeDesc.camera-blocking" },
   { id: "empathy", key: "sidebar.mode.empathy", icon: "💓", descKey: "sidebar.modeDesc.empathy" },
   { id: "diamond", key: "sidebar.mode.diamond", icon: "💎", descKey: "sidebar.modeDesc.diamond" },
+  { id: "dopamine-pacing", key: "sidebar.mode.dopamine-pacing", icon: "🧠", descKey: "sidebar.modeDesc.dopamine-pacing" },
+  { id: "mystery-ledger", key: "sidebar.mode.mystery-ledger", icon: "🔍", descKey: "sidebar.modeDesc.mystery-ledger" },
+  { id: "eldritch-sensory", key: "sidebar.mode.eldritch-sensory", icon: "🐙", descKey: "sidebar.modeDesc.eldritch-sensory" },
+  { id: "audiobook-production", key: "sidebar.mode.audiobook-production", icon: "🎧", descKey: "sidebar.modeDesc.audiobook-production" },
 ];
 
 export function Sidebar() {
@@ -1043,6 +1060,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "camera-blocking") return <SceneCameraBlockingModal />;
     if (mode === "empathy") return <ReaderEmpathyHeatmapModal />;
     if (mode === "diamond") return <Grand8000JubileeSentinelModal />;
+    // Meilenstein 34 (v4.6.0): Dopamin, Krimi, Eldritch, Hörbuch.
+    if (mode === "dopamine-pacing") return <DopaminePacingSynthesizerModal />;
+    if (mode === "mystery-ledger") return <DualTimelineMysteryLedgerModal />;
+    if (mode === "eldritch-sensory") return <EldritchSensoryWeaverModal />;
+    if (mode === "audiobook-production") return <AudiobookProductionSheetModal />;
     if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }

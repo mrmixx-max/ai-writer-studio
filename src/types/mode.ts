@@ -142,4 +142,8 @@ export type EditorMode =
   | "voice-timbre"
   | "camera-blocking"
   | "empathy"
-  | "diamond";
+  | "diamond"
+  | "dopamine-pacing"
+  | "mystery-ledger"
+  | "eldritch-sensory"
+  | "audiobook-production";

@@ -324,6 +324,10 @@ export const en: TranslationDict = {
   "sidebar.mode.camera-blocking": "Camera Blocking",
   "sidebar.mode.empathy": "Empathy Heatmap",
   "sidebar.mode.diamond": "Diamond Seal",
+  "sidebar.mode.dopamine-pacing": "Dopamine Pacing",
+  "sidebar.mode.mystery-ledger": "Evidence Ledger",
+  "sidebar.mode.eldritch-sensory": "Eldritch Sensory",
+  "sidebar.mode.audiobook-production": "Audiobook Production",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -597,6 +601,10 @@ export const en: TranslationDict = {
   "sidebar.modeDesc.camera-blocking": "180-degree rule and frustum",
   "sidebar.modeDesc.empathy": "Where the reader cries and marvels",
   "sidebar.modeDesc.diamond": "8.000 audit and certificate",
+  "sidebar.modeDesc.dopamine-pacing": "Tension curve and curiosity loops",
+  "sidebar.modeDesc.mystery-ledger": "Dual timeline and evidence",
+  "sidebar.modeDesc.eldritch-sensory": "Multisensory horror prose",
+  "sidebar.modeDesc.audiobook-production": "ACX/Audible production sheet",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",

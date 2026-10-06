@@ -258,6 +258,10 @@ export const de = {
   "sidebar.mode.camera-blocking": "Kamera-Blocking",
   "sidebar.mode.empathy": "Empathie-Heatmap",
   "sidebar.mode.diamond": "Diamant-Siegel",
+  "sidebar.mode.dopamine-pacing": "Dopamin-Pacing",
+  "sidebar.mode.mystery-ledger": "Indizien-Hauptbuch",
+  "sidebar.mode.eldritch-sensory": "Eldritch-Sensorik",
+  "sidebar.mode.audiobook-production": "Hörbuch-Regiebogen",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -536,6 +540,10 @@ export const de = {
   "sidebar.modeDesc.camera-blocking": "180-Grad-Regel und Blickfeld",
   "sidebar.modeDesc.empathy": "Wo der Leser weint und staunt",
   "sidebar.modeDesc.diamond": "8.000er-Audit und Zertifikat",
+  "sidebar.modeDesc.dopamine-pacing": "Spannungskurve und Curiosity-Loops",
+  "sidebar.modeDesc.mystery-ledger": "Doppelte Zeitachse und Indizien",
+  "sidebar.modeDesc.eldritch-sensory": "Multisensorische Horror-Prosa",
+  "sidebar.modeDesc.audiobook-production": "ACX/Audible-Regiebogen",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Kommentare + Reviews",
   "sidebar.modeDesc.condense": "Textverkürzung",
