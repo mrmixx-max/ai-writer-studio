@@ -340,6 +340,10 @@ export const en: TranslationDict = {
   "sidebar.mode.haptics": "Haptics",
   "sidebar.mode.acoustics": "Room Acoustics",
   "sidebar.mode.concordance": "Concordance",
+  "sidebar.mode.story-doctor": "Story Doctor",
+  "sidebar.mode.transmuter": "Format Transmuter",
+  "sidebar.mode.voiceprint": "Voiceprint",
+  "sidebar.mode.flagship": "5.0 Cockpit",
 
   // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -629,6 +633,10 @@ export const en: TranslationDict = {
   "sidebar.modeDesc.haptics": "5 texture dimensions",
   "sidebar.modeDesc.acoustics": "Reverb and speech clarity",
   "sidebar.modeDesc.concordance": "Subject and name index",
+  "sidebar.modeDesc.story-doctor": "Dramaturgical deep diagnosis",
+  "sidebar.modeDesc.transmuter": "5 formats omnidirectional",
+  "sidebar.modeDesc.voiceprint": "Stylometric DNA extraction",
+  "sidebar.modeDesc.flagship": "Platinum audit and Magnum Opus",
   "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",

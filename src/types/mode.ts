@@ -158,4 +158,8 @@ export type EditorMode =
   | "feast"
   | "haptics"
   | "acoustics"
-  | "concordance";
+  | "concordance"
+  | "story-doctor"
+  | "transmuter"
+  | "voiceprint"
+  | "flagship";

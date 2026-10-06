@@ -512,6 +512,19 @@ const ArchitecturalAcousticSynthesizerModal = lazy(() =>
 const ConcordanceIndexMatrixModal = lazy(() =>
   import("@/components/Publishing/ConcordanceIndexMatrixModal").then((m) => ({ default: m.ConcordanceIndexMatrixModal }))
 );
+// Meilenstein 38 (v5.0.0): Story-Doctor, Transmuter, Voiceprint, Flaggschiff-Cockpit.
+const StoryDoctorConsultantModal = lazy(() =>
+  import("@/components/ai/StoryDoctorConsultantModal").then((m) => ({ default: m.StoryDoctorConsultantModal }))
+);
+const UniversalFormatTransmuterModal = lazy(() =>
+  import("@/components/screenplay/UniversalFormatTransmuterModal").then((m) => ({ default: m.UniversalFormatTransmuterModal }))
+);
+const NarrativeVoiceprintClonerModal = lazy(() =>
+  import("@/components/ai/NarrativeVoiceprintClonerModal").then((m) => ({ default: m.NarrativeVoiceprintClonerModal }))
+);
+const Flagship50JubileeCockpitModal = lazy(() =>
+  import("@/components/Publishing/Flagship50JubileeCockpitModal").then((m) => ({ default: m.Flagship50JubileeCockpitModal }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -670,6 +683,10 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
   { id: "haptics", key: "sidebar.mode.haptics", icon: "🖐️", descKey: "sidebar.modeDesc.haptics" },
   { id: "acoustics", key: "sidebar.mode.acoustics", icon: "🏛️", descKey: "sidebar.modeDesc.acoustics" },
   { id: "concordance", key: "sidebar.mode.concordance", icon: "📖", descKey: "sidebar.modeDesc.concordance" },
+  { id: "story-doctor", key: "sidebar.mode.story-doctor", icon: "🩺", descKey: "sidebar.modeDesc.story-doctor" },
+  { id: "transmuter", key: "sidebar.mode.transmuter", icon: "🔄", descKey: "sidebar.modeDesc.transmuter" },
+  { id: "voiceprint", key: "sidebar.mode.voiceprint", icon: "🎭", descKey: "sidebar.modeDesc.voiceprint" },
+  { id: "flagship", key: "sidebar.mode.flagship", icon: "🏆", descKey: "sidebar.modeDesc.flagship" },
 ];
 
 export function Sidebar() {
@@ -1131,6 +1148,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "haptics") return <TactileHapticsExpanderModal />;
     if (mode === "acoustics") return <ArchitecturalAcousticSynthesizerModal />;
     if (mode === "concordance") return <ConcordanceIndexMatrixModal />;
+    // Meilenstein 38 (v5.0.0): Story-Doctor, Transmuter, Voiceprint, Flaggschiff.
+    if (mode === "story-doctor") return <StoryDoctorConsultantModal />;
+    if (mode === "transmuter") return <UniversalFormatTransmuterModal />;
+    if (mode === "voiceprint") return <NarrativeVoiceprintClonerModal />;
+    if (mode === "flagship") return <Flagship50JubileeCockpitModal />;
     if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }
