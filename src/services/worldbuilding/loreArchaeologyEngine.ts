@@ -99,7 +99,7 @@ function shuffleArray<T>(arr: T[], rng: () => number): T[] {
 export function generateEras(seed: number, customEras?: Era[]): Era[] {
   const rng = createSeededRandom(seed);
   const eras = customEras && customEras.length > 0 ? customEras : DEFAULT_ERAS;
-  return shuffleArray(eras, rng).map((e, i) => ({ ...e, startYear: e.startYear + Math.floor(rng() * 50) - 25 }));
+  return shuffleArray(eras, rng).map((e, _i) => ({ ...e, startYear: e.startYear + Math.floor(rng() * 50) - 25 }));
 }
 
 export function createStratigraphy(siteName: string, seed: number, eras: Era[] = DEFAULT_ERAS): StratigraphyLayer[] {

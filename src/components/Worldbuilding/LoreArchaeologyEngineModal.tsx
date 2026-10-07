@@ -7,7 +7,6 @@ import {
   createStratigraphy,
   generateEras,
   type Era,
-  type StratigraphyLayer,
 } from "@/services/worldbuilding/loreArchaeologyEngine";
 
 export interface LoreArchaeologyEngineModalProps {

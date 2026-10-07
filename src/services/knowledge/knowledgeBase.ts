@@ -80,7 +80,7 @@ export async function updateEntry(
   const existing = store.get(id);
   if (!existing) throw new Error(`KnowledgeEntry nicht gefunden: ${id}`);
   // id/createdAt sind unveränderlich.
-  const { id: _id, createdAt: _created, ...rest } = updates; // eslint-disable-line @typescript-eslint/no-unused-vars
+    const { id: _id, createdAt: _created, ...rest } = updates;
   const updated: KnowledgeEntry = {
     ...existing,
     ...rest,

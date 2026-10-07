@@ -13,10 +13,10 @@ import {
   createSampleProtocol,
   createSampleViolation,
   createSampleCharacter,
-  type CourtProtocol,
-  type ProtocolViolation,
-  type TitleRank,
-  type GreetingRule,
+  type CourtProtocol as _CourtProtocol,
+  type ProtocolViolation as _ProtocolViolation,
+  type TitleRank as _TitleRank,
+  type GreetingRule as _GreetingRule,
 } from "./socialEtiquetteProtocol";
 
 describe("hashString", () => {
@@ -124,7 +124,7 @@ describe("calculateScandalIndex", () => {
   });
 
   it("summiert Scores und berücksichtigt Gossip", () => {
-    const violations: ProtocolViolation[] = [
+      const violations: _ProtocolViolation[] = [
       { id: "1", violator: "A", violatorRank: "ritter", victim: "B", victimRank: "herzog", violationType: "anrede", description: "", context: "audienz", severity: "schwer", scandalScore: 20, gossipSpread: 30, reputationDamage: 15 },
       { id: "2", violator: "C", violatorRank: "graf", victim: "D", victimRank: "herzog", violationType: "geste", description: "", context: "tafel", severity: "mittel", scandalScore: 25, gossipSpread: 40, reputationDamage: 20 },
     ];

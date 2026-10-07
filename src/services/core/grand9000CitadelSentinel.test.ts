@@ -12,8 +12,8 @@ import {
   formatCitadelAudit,
   createSampleAudit,
   createSampleCertificate,
-  type CitadelAudit,
-  type CitadelCertificate,
+  type CitadelAudit as _CitadelAudit,
+  type CitadelCertificate as _CitadelCertificate,
 } from "./grand9000CitadelSentinel";
 
 describe("hashString", () => {

@@ -97,7 +97,7 @@ const PROSE_TEMPLATES = {
   },
 };
 
-function pickRandom<T>(arr: T[], rng: () => number): T {
+function _pickRandom<T>(arr: T[], rng: () => number): T {
   return arr[Math.floor(rng() * arr.length)];
 }
 
@@ -163,7 +163,7 @@ export function simulateAuditoryState(profile: ShockProfile, timeMs: number): Au
   };
 }
 
-export function generateShockProse(profile: ShockProfile, language: "de" | "en" | "es" | "fr" = "de"): ShockProse {
+export function generateShockProse(profile: ShockProfile, _language: "de" | "en" | "es" | "fr" = "de"): ShockProse {
   const intensity = profile.peakDb >= 175 ? "extrem" : profile.peakDb >= 160 ? "schwer" : profile.peakDb >= 150 ? "mittel" : "leicht";
   const template = PROSE_TEMPLATES[intensity];
   return {

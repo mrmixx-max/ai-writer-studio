@@ -13,11 +13,11 @@ import {
   createSampleSite,
   createSampleArtifact,
   createSampleDeciphering,
-  type Era,
-  type StratigraphyLayer,
-  type ArchaeologicalSite,
-  type Artifact,
-  type DecipheredText,
+  type Era as _Era,
+  type StratigraphyLayer as _StratigraphyLayer,
+  type ArchaeologicalSite as _ArchaeologicalSite,
+  type Artifact as _Artifact,
+  type DecipheredText as _DecipheredText,
 } from "./loreArchaeologyEngine";
 
 describe("hashString", () => {
@@ -77,11 +77,11 @@ describe("generateEras", () => {
   });
 
   it("akzeptiert benutzerdefinierte Epochen", () => {
-    const custom: Era[] = [{ name: "Test-Ära", startYear: 0, endYear: 100, culture: "Test", techLevel: "antik", signatureMaterials: ["Stein"], typicalStructures: ["Hütte"], scriptStyle: "Striche" }];
-    const eras = generateEras(789, custom);
-    expect(eras.length).toBe(1);
-    expect(eras[0].name).toBe("Test-Ära");
-  });
+      const custom: _Era[] = [{ name: "Test-Ära", startYear: 0, endYear: 100, culture: "Test", techLevel: "antik", signatureMaterials: ["Stein"], typicalStructures: ["Hütte"], scriptStyle: "Striche" }];
+      const eras = generateEras(789, custom);
+      expect(eras.length).toBe(1);
+      expect(eras[0].name).toBe("Test-Ära");
+    });
 });
 
 describe("createStratigraphy", () => {

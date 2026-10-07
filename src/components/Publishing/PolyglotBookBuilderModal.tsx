@@ -99,7 +99,7 @@ export function PolyglotBookBuilderModal({ className }: PolyglotBookBuilderModal
           Neuer Absatz (rechts):
           <textarea value={newRight} onChange={e => setNewRight(e.target.value)} style={{ width: "100%", marginTop: 4, padding: "4px 8px", fontSize: 11, fontFamily: "var(--font-mono)", minHeight: 40 }} />
         </label>
-        <button onClick={() => { if (newLeft.trim() || newRight.trim()) { setParagraphs([...paragraphs, { left: newLeft, right: newRight }]); setNewLeft(""); setNewRight(""); } }} style={{ marginTop: 8, padding: "6px 12px", fontSize: 11, background: "var(--accent)", color: "var(--bg)", border: "none", borderRadius: 4, cursor: "pointer" }}>
+        <button onClick={addParagraph} style={{ marginTop: 8, padding: "6px 12px", fontSize: 11, background: "var(--accent)", color: "var(--bg)", border: "none", borderRadius: 4, cursor: "pointer" }}>
           ➕ Absatz-Paar hinzufügen
         </button>
       </div>

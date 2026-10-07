@@ -11,9 +11,9 @@ import {
   createSampleProfile,
   createSampleProse,
   createSampleState,
-  type ShockProfile,
-  type AuditoryState,
-  type ShockProse,
+  type ShockProfile as _ShockProfile,
+  type AuditoryState as _AuditoryState,
+  type ShockProse as _ShockProse,
   type ShockSource,
 } from "./combatAuditoryTunnel";
 
