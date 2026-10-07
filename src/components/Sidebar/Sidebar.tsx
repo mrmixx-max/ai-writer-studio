@@ -577,6 +577,19 @@ const CrowdMurmurGeneratorModal = lazy(() =>
 const LigatureGlyphSentinelModal = lazy(() =>
   import("@/components/typography/LigatureGlyphSentinelModal").then((m) => ({ default: m.LigatureGlyphSentinelModal }))
 );
+// Meilenstein 43 (v5.5.0): Olfaktorik, Währungs-Hauptbuch, Onomatopoesie, P2P-Mesh.
+const OlfactoryAromaWeaverModal = lazy(() =>
+  import("@/components/linguistics/OlfactoryAromaWeaverModal").then((m) => ({ default: m.OlfactoryAromaWeaverModal }))
+);
+const InUniverseEconomyLedgerModal = lazy(() =>
+  import("@/components/worldbuilding/InUniverseEconomyLedgerModal").then((m) => ({ default: m.InUniverseEconomyLedgerModal }))
+);
+const OnomatopoeiaStylistModal = lazy(() =>
+  import("@/components/screenplay/OnomatopoeiaStylistModal").then((m) => ({ default: m.OnomatopoeiaStylistModal }))
+);
+const CloudlessP2pMeshModal = lazy(() =>
+  import("@/components/security/CloudlessP2pMeshModal").then((m) => ({ default: m.CloudlessP2pMeshModal }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -752,10 +765,14 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
       { id: "combat-auditory", key: "sidebar.mode.combat-auditory", icon: "💥", descKey: "sidebar.modeDesc.combat-auditory" },
       { id: "citadel9k", key: "sidebar.mode.citadel9k", icon: "🏰", descKey: "sidebar.modeDesc.citadel9k" },
       { id: "heraldry", key: "sidebar.mode.heraldry", icon: "🛡️", descKey: "sidebar.modeDesc.heraldry" },
-      { id: "stage-lighting", key: "sidebar.mode.stage-lighting", icon: "🎭", descKey: "sidebar.modeDesc.stage-lighting" },
-      { id: "crowd-murmur", key: "sidebar.mode.crowd-murmur", icon: "👥", descKey: "sidebar.modeDesc.crowd-murmur" },
-      { id: "ligature-sentinel", key: "sidebar.mode.ligature-sentinel", icon: "🔤", descKey: "sidebar.modeDesc.ligature-sentinel" },
-    ];
+            { id: "stage-lighting", key: "sidebar.mode.stage-lighting", icon: "🎭", descKey: "sidebar.modeDesc.stage-lighting" },
+            { id: "crowd-murmur", key: "sidebar.mode.crowd-murmur", icon: "👥", descKey: "sidebar.modeDesc.crowd-murmur" },
+            { id: "ligature-sentinel", key: "sidebar.mode.ligature-sentinel", icon: "🔤", descKey: "sidebar.modeDesc.ligature-sentinel" },
+            { id: "olfactory-aroma", key: "sidebar.mode.olfactory-aroma", icon: "👃", descKey: "sidebar.modeDesc.olfactory-aroma" },
+            { id: "economy-ledger", key: "sidebar.mode.economy-ledger", icon: "💰", descKey: "sidebar.modeDesc.economy-ledger" },
+            { id: "onomatopoeia", key: "sidebar.mode.onomatopoeia", icon: "🎭", descKey: "sidebar.modeDesc.onomatopoeia" },
+            { id: "p2p-mesh", key: "sidebar.mode.p2p-mesh", icon: "🔐", descKey: "sidebar.modeDesc.p2p-mesh" },
+          ];
 
 export function Sidebar() {
   const { t, lang } = useI18n();
@@ -1237,11 +1254,16 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
                 if (mode === "combat-auditory") return <CombatAuditoryTunnelModal />;
                 if (mode === "citadel9k") return <Grand9000CitadelSentinelModal />;
                 // Meilenstein 42 (v5.4.0): Heraldik, Bühnenlicht, Menschenmengen, Ligaturen.
-                if (mode === "heraldry") return <HeraldicBlazonStudioModal />;
-                if (mode === "stage-lighting") return <StageLightingDirectorModal />;
-                if (mode === "crowd-murmur") return <CrowdMurmurGeneratorModal />;
-                if (mode === "ligature-sentinel") return <LigatureGlyphSentinelModal />;
-                if (!projectId || !chapterId) {
+                                if (mode === "heraldry") return <HeraldicBlazonStudioModal />;
+                                if (mode === "stage-lighting") return <StageLightingDirectorModal />;
+                                if (mode === "crowd-murmur") return <CrowdMurmurGeneratorModal />;
+                                if (mode === "ligature-sentinel") return <LigatureGlyphSentinelModal />;
+                                // Meilenstein 43 (v5.5.0): Olfaktorik, Währungs-Hauptbuch, Onomatopoesie, P2P-Mesh.
+                                if (mode === "olfactory-aroma") return <OlfactoryAromaWeaverModal />;
+                                if (mode === "economy-ledger") return <InUniverseEconomyLedgerModal />;
+                                if (mode === "onomatopoeia") return <OnomatopoeiaStylistModal />;
+                                if (mode === "p2p-mesh") return <CloudlessP2pMeshModal />;
+                                if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }
     switch (mode) {

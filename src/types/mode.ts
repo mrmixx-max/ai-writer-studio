@@ -176,6 +176,10 @@ export type EditorMode =
       | "combat-auditory"
       | "citadel9k"
       | "heraldry"
-      | "stage-lighting"
-      | "crowd-murmur"
-      | "ligature-sentinel";
+        | "stage-lighting"
+        | "crowd-murmur"
+        | "ligature-sentinel"
+        | "olfactory-aroma"
+        | "economy-ledger"
+        | "onomatopoeia"
+        | "p2p-mesh";
