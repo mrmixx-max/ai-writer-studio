@@ -564,6 +564,19 @@ const CombatAuditoryTunnelModal = lazy(() =>
 const Grand9000CitadelSentinelModal = lazy(() =>
   import("@/components/core/Grand9000CitadelSentinelModal").then((m) => ({ default: m.Grand9000CitadelSentinelModal }))
 );
+// Meilenstein 42 (v5.4.0): Heraldik, Bühnenlicht, Menschenmengen, Ligaturen.
+const HeraldicBlazonStudioModal = lazy(() =>
+  import("@/components/worldbuilding/HeraldicBlazonStudioModal").then((m) => ({ default: m.HeraldicBlazonStudioModal }))
+);
+const StageLightingDirectorModal = lazy(() =>
+  import("@/components/screenplay/StageLightingDirectorModal").then((m) => ({ default: m.StageLightingDirectorModal }))
+);
+const CrowdMurmurGeneratorModal = lazy(() =>
+  import("@/components/ai/CrowdMurmurGeneratorModal").then((m) => ({ default: m.CrowdMurmurGeneratorModal }))
+);
+const LigatureGlyphSentinelModal = lazy(() =>
+  import("@/components/typography/LigatureGlyphSentinelModal").then((m) => ({ default: m.LigatureGlyphSentinelModal }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -735,10 +748,14 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
     { id: "soundscape", key: "sidebar.mode.soundscape", icon: "🎧", descKey: "sidebar.modeDesc.soundscape" },
     { id: "jubilee40", key: "sidebar.mode.jubilee40", icon: "🏰", descKey: "sidebar.modeDesc.jubilee40" },
     { id: "lore-archaeology", key: "sidebar.mode.lore-archaeology", icon: "🏛️", descKey: "sidebar.modeDesc.lore-archaeology" },
-    { id: "social-etiquette", key: "sidebar.mode.social-etiquette", icon: "👑", descKey: "sidebar.modeDesc.social-etiquette" },
-    { id: "combat-auditory", key: "sidebar.mode.combat-auditory", icon: "💥", descKey: "sidebar.modeDesc.combat-auditory" },
-    { id: "citadel9k", key: "sidebar.mode.citadel9k", icon: "🏰", descKey: "sidebar.modeDesc.citadel9k" },
-  ];
+      { id: "social-etiquette", key: "sidebar.mode.social-etiquette", icon: "👑", descKey: "sidebar.modeDesc.social-etiquette" },
+      { id: "combat-auditory", key: "sidebar.mode.combat-auditory", icon: "💥", descKey: "sidebar.modeDesc.combat-auditory" },
+      { id: "citadel9k", key: "sidebar.mode.citadel9k", icon: "🏰", descKey: "sidebar.modeDesc.citadel9k" },
+      { id: "heraldry", key: "sidebar.mode.heraldry", icon: "🛡️", descKey: "sidebar.modeDesc.heraldry" },
+      { id: "stage-lighting", key: "sidebar.mode.stage-lighting", icon: "🎭", descKey: "sidebar.modeDesc.stage-lighting" },
+      { id: "crowd-murmur", key: "sidebar.mode.crowd-murmur", icon: "👥", descKey: "sidebar.modeDesc.crowd-murmur" },
+      { id: "ligature-sentinel", key: "sidebar.mode.ligature-sentinel", icon: "🔤", descKey: "sidebar.modeDesc.ligature-sentinel" },
+    ];
 
 export function Sidebar() {
   const { t, lang } = useI18n();
@@ -1215,11 +1232,16 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
         if (mode === "soundscape") return <PsychoacousticSoundscapeModal />;
         if (mode === "jubilee40") return <Jubilee40SovereignVaultModal />;
         // Meilenstein 41 (v5.3.0): Lore-Archäologie, Hof-Etikette, Kampf-Audio, Citadel-Siegel.
-        if (mode === "lore-archaeology") return <LoreArchaeologyEngineModal />;
-        if (mode === "social-etiquette") return <SocialEtiquetteProtocolModal />;
-        if (mode === "combat-auditory") return <CombatAuditoryTunnelModal />;
-        if (mode === "citadel9k") return <Grand9000CitadelSentinelModal />;
-        if (!projectId || !chapterId) {
+                if (mode === "lore-archaeology") return <LoreArchaeologyEngineModal />;
+                if (mode === "social-etiquette") return <SocialEtiquetteProtocolModal />;
+                if (mode === "combat-auditory") return <CombatAuditoryTunnelModal />;
+                if (mode === "citadel9k") return <Grand9000CitadelSentinelModal />;
+                // Meilenstein 42 (v5.4.0): Heraldik, Bühnenlicht, Menschenmengen, Ligaturen.
+                if (mode === "heraldry") return <HeraldicBlazonStudioModal />;
+                if (mode === "stage-lighting") return <StageLightingDirectorModal />;
+                if (mode === "crowd-murmur") return <CrowdMurmurGeneratorModal />;
+                if (mode === "ligature-sentinel") return <LigatureGlyphSentinelModal />;
+                if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }
     switch (mode) {
