@@ -167,7 +167,11 @@ export type EditorMode =
   | "climate"
   | "margin"
   | "royalty"
-  | "cartographer"
-  | "polyglot"
-  | "soundscape"
-  | "jubilee40";
+    | "cartographer"
+    | "polyglot"
+    | "soundscape"
+    | "jubilee40"
+    | "lore-archaeology"
+    | "social-etiquette"
+    | "combat-auditory"
+    | "citadel9k";

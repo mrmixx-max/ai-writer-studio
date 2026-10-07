@@ -538,6 +538,32 @@ const OpticalMarginAlignmentModal = lazy(() =>
 const GlobalRoyaltyAggregatorModal = lazy(() =>
   import("@/components/publishing/GlobalRoyaltyAggregatorModal").then((m) => ({ default: m.GlobalRoyaltyAggregatorModal }))
 );
+// Meilenstein 40 (v5.2.0): Vector Cartographer, Polyglot Book, Psychoacoustics, Jubilee Vault.
+const VectorCartographerModal = lazy(() =>
+  import("@/components/worldbuilding/VectorCartographerModal").then((m) => ({ default: m.VectorCartographerModal }))
+);
+const PolyglotBookBuilderModal = lazy(() =>
+  import("@/components/publishing/PolyglotBookBuilderModal").then((m) => ({ default: m.PolyglotBookBuilderModal }))
+);
+const PsychoacousticSoundscapeModal = lazy(() =>
+  import("@/components/audio/PsychoacousticSoundscapeModal").then((m) => ({ default: m.PsychoacousticSoundscapeModal }))
+);
+const Jubilee40SovereignVaultModal = lazy(() =>
+  import("@/components/core/Jubilee40SovereignVaultModal").then((m) => ({ default: m.Jubilee40SovereignVaultModal }))
+);
+// Meilenstein 41 (v5.3.0): Lore-Archäologie, Hof-Etikette, Kampf-Audio, Citadel-Siegel.
+const LoreArchaeologyEngineModal = lazy(() =>
+  import("@/components/worldbuilding/LoreArchaeologyEngineModal").then((m) => ({ default: m.LoreArchaeologyEngineModal }))
+);
+const SocialEtiquetteProtocolModal = lazy(() =>
+  import("@/components/dramaturgy/SocialEtiquetteProtocolModal").then((m) => ({ default: m.SocialEtiquetteProtocolModal }))
+);
+const CombatAuditoryTunnelModal = lazy(() =>
+  import("@/components/audio/CombatAuditoryTunnelModal").then((m) => ({ default: m.CombatAuditoryTunnelModal }))
+);
+const Grand9000CitadelSentinelModal = lazy(() =>
+  import("@/components/core/Grand9000CitadelSentinelModal").then((m) => ({ default: m.Grand9000CitadelSentinelModal }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -704,11 +730,15 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
   { id: "climate", key: "sidebar.mode.climate", icon: "🪐", descKey: "sidebar.modeDesc.climate" },
   { id: "margin", key: "sidebar.mode.margin", icon: "📐", descKey: "sidebar.modeDesc.margin" },
   { id: "royalty", key: "sidebar.mode.royalty", icon: "💰", descKey: "sidebar.modeDesc.royalty" },
-  { id: "cartographer", key: "sidebar.mode.cartographer", icon: "🗺️", descKey: "sidebar.modeDesc.cartographer" },
-  { id: "polyglot", key: "sidebar.mode.polyglot", icon: "🌐", descKey: "sidebar.modeDesc.polyglot" },
-  { id: "soundscape", key: "sidebar.mode.soundscape", icon: "🎧", descKey: "sidebar.modeDesc.soundscape" },
-  { id: "jubilee40", key: "sidebar.mode.jubilee40", icon: "🏰", descKey: "sidebar.modeDesc.jubilee40" },
-];
+    { id: "cartographer", key: "sidebar.mode.cartographer", icon: "🗺️", descKey: "sidebar.modeDesc.cartographer" },
+    { id: "polyglot", key: "sidebar.mode.polyglot", icon: "🌐", descKey: "sidebar.modeDesc.polyglot" },
+    { id: "soundscape", key: "sidebar.mode.soundscape", icon: "🎧", descKey: "sidebar.modeDesc.soundscape" },
+    { id: "jubilee40", key: "sidebar.mode.jubilee40", icon: "🏰", descKey: "sidebar.modeDesc.jubilee40" },
+    { id: "lore-archaeology", key: "sidebar.mode.lore-archaeology", icon: "🏛️", descKey: "sidebar.modeDesc.lore-archaeology" },
+    { id: "social-etiquette", key: "sidebar.mode.social-etiquette", icon: "👑", descKey: "sidebar.modeDesc.social-etiquette" },
+    { id: "combat-auditory", key: "sidebar.mode.combat-auditory", icon: "💥", descKey: "sidebar.modeDesc.combat-auditory" },
+    { id: "citadel9k", key: "sidebar.mode.citadel9k", icon: "🏰", descKey: "sidebar.modeDesc.citadel9k" },
+  ];
 
 export function Sidebar() {
   const { t, lang } = useI18n();
@@ -1179,7 +1209,17 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
     if (mode === "climate") return <PlanetaryClimateEngineModal />;
     if (mode === "margin") return <OpticalMarginAlignmentModal />;
     if (mode === "royalty") return <GlobalRoyaltyAggregatorModal />;
-    if (!projectId || !chapterId) {
+        // Meilenstein 40 (v5.2.0): Vector Cartographer, Polyglot Book, Psychoacoustics, Jubilee Vault.
+        if (mode === "cartographer") return <VectorCartographerModal />;
+        if (mode === "polyglot") return <PolyglotBookBuilderModal />;
+        if (mode === "soundscape") return <PsychoacousticSoundscapeModal />;
+        if (mode === "jubilee40") return <Jubilee40SovereignVaultModal />;
+        // Meilenstein 41 (v5.3.0): Lore-Archäologie, Hof-Etikette, Kampf-Audio, Citadel-Siegel.
+        if (mode === "lore-archaeology") return <LoreArchaeologyEngineModal />;
+        if (mode === "social-etiquette") return <SocialEtiquetteProtocolModal />;
+        if (mode === "combat-auditory") return <CombatAuditoryTunnelModal />;
+        if (mode === "citadel9k") return <Grand9000CitadelSentinelModal />;
+        if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }
     switch (mode) {
