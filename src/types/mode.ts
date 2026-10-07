@@ -180,6 +180,10 @@ export type EditorMode =
         | "crowd-murmur"
         | "ligature-sentinel"
         | "olfactory-aroma"
-        | "economy-ledger"
-        | "onomatopoeia"
-        | "p2p-mesh";
+          | "economy-ledger"
+          | "onomatopoeia"
+          | "p2p-mesh"
+          | "somatic-biomechanics"
+          | "choral-hymn"
+          | "parallel-climax"
+          | "copyright-notary";

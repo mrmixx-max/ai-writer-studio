@@ -590,6 +590,19 @@ const OnomatopoeiaStylistModal = lazy(() =>
 const CloudlessP2pMeshModal = lazy(() =>
   import("@/components/security/CloudlessP2pMeshModal").then((m) => ({ default: m.CloudlessP2pMeshModal }))
 );
+// Meilenstein 44 (v5.6.0): Somatik, Choral-Hymnen, Parallel-Klimax, Urheberrechts-Notar.
+const SomaticBiomechanicsEngineModal = lazy(() =>
+  import("@/components/ai/SomaticBiomechanicsEngineModal").then((m) => ({ default: m.SomaticBiomechanicsEngineModal }))
+);
+const ChoralHymnSynthesizerModal = lazy(() =>
+  import("@/components/audio/ChoralHymnSynthesizerModal").then((m) => ({ default: m.ChoralHymnSynthesizerModal }))
+);
+const ParallelClimaxSynchronizerModal = lazy(() =>
+  import("@/components/dramaturgy/ParallelClimaxSynchronizerModal").then((m) => ({ default: m.ParallelClimaxSynchronizerModal }))
+);
+const CryptographicCopyrightNotaryModal = lazy(() =>
+  import("@/components/security/CryptographicCopyrightNotaryModal").then((m) => ({ default: m.CryptographicCopyrightNotaryModal }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -769,10 +782,14 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
             { id: "crowd-murmur", key: "sidebar.mode.crowd-murmur", icon: "👥", descKey: "sidebar.modeDesc.crowd-murmur" },
             { id: "ligature-sentinel", key: "sidebar.mode.ligature-sentinel", icon: "🔤", descKey: "sidebar.modeDesc.ligature-sentinel" },
             { id: "olfactory-aroma", key: "sidebar.mode.olfactory-aroma", icon: "👃", descKey: "sidebar.modeDesc.olfactory-aroma" },
-            { id: "economy-ledger", key: "sidebar.mode.economy-ledger", icon: "💰", descKey: "sidebar.modeDesc.economy-ledger" },
-            { id: "onomatopoeia", key: "sidebar.mode.onomatopoeia", icon: "🎭", descKey: "sidebar.modeDesc.onomatopoeia" },
-            { id: "p2p-mesh", key: "sidebar.mode.p2p-mesh", icon: "🔐", descKey: "sidebar.modeDesc.p2p-mesh" },
-          ];
+                        { id: "economy-ledger", key: "sidebar.mode.economy-ledger", icon: "💰", descKey: "sidebar.modeDesc.economy-ledger" },
+                        { id: "onomatopoeia", key: "sidebar.mode.onomatopoeia", icon: "🎭", descKey: "sidebar.modeDesc.onomatopoeia" },
+                        { id: "p2p-mesh", key: "sidebar.mode.p2p-mesh", icon: "🔐", descKey: "sidebar.modeDesc.p2p-mesh" },
+                        { id: "somatic-biomechanics", key: "sidebar.mode.somatic-biomechanics", icon: "🧬", descKey: "sidebar.modeDesc.somatic-biomechanics" },
+                        { id: "choral-hymn", key: "sidebar.mode.choral-hymn", icon: "🎵", descKey: "sidebar.modeDesc.choral-hymn" },
+                        { id: "parallel-climax", key: "sidebar.mode.parallel-climax", icon: "🎬", descKey: "sidebar.modeDesc.parallel-climax" },
+                        { id: "copyright-notary", key: "sidebar.mode.copyright-notary", icon: "📜", descKey: "sidebar.modeDesc.copyright-notary" },
+                      ];
 
 export function Sidebar() {
   const { t, lang } = useI18n();
@@ -1259,11 +1276,16 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
                                 if (mode === "crowd-murmur") return <CrowdMurmurGeneratorModal />;
                                 if (mode === "ligature-sentinel") return <LigatureGlyphSentinelModal />;
                                 // Meilenstein 43 (v5.5.0): Olfaktorik, Währungs-Hauptbuch, Onomatopoesie, P2P-Mesh.
-                                if (mode === "olfactory-aroma") return <OlfactoryAromaWeaverModal />;
-                                if (mode === "economy-ledger") return <InUniverseEconomyLedgerModal />;
-                                if (mode === "onomatopoeia") return <OnomatopoeiaStylistModal />;
-                                if (mode === "p2p-mesh") return <CloudlessP2pMeshModal />;
-                                if (!projectId || !chapterId) {
+                                                                if (mode === "olfactory-aroma") return <OlfactoryAromaWeaverModal />;
+                                                                if (mode === "economy-ledger") return <InUniverseEconomyLedgerModal />;
+                                                                if (mode === "onomatopoeia") return <OnomatopoeiaStylistModal />;
+                                                                if (mode === "p2p-mesh") return <CloudlessP2pMeshModal />;
+                                                                // Meilenstein 44 (v5.6.0): Somatik, Choral-Hymnen, Parallel-Klimax, Urheberrechts-Notar.
+                                                                if (mode === "somatic-biomechanics") return <SomaticBiomechanicsEngineModal />;
+                                                                if (mode === "choral-hymn") return <ChoralHymnSynthesizerModal />;
+                                                                if (mode === "parallel-climax") return <ParallelClimaxSynchronizerModal />;
+                                                                if (mode === "copyright-notary") return <CryptographicCopyrightNotaryModal />;
+                                                                if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }
     switch (mode) {
