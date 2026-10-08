@@ -186,4 +186,13 @@ export type EditorMode =
           | "somatic-biomechanics"
           | "choral-hymn"
           | "parallel-climax"
-          | "copyright-notary";
+          | "copyright-notary"
+  | "freudian-slip"
+    | "polyrhythmic"
+    | "metaphor-alchemy"
+    | "multi-page-scene"
+    // Meilenstein 46 (v5.8.0)
+    | "epistolary-unreliable"
+    | "sensory-epiphany"
+    | "alliterative-kenning"
+    | "dialectic-stream";

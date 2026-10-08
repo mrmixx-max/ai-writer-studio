@@ -603,6 +603,32 @@ const ParallelClimaxSynchronizerModal = lazy(() =>
 const CryptographicCopyrightNotaryModal = lazy(() =>
   import("@/components/security/CryptographicCopyrightNotaryModal").then((m) => ({ default: m.CryptographicCopyrightNotaryModal }))
 );
+// Meilenstein 45 (v5.7.0): Freudscher Dialog, Polyrhythmik, Metaphern-Alchemie, Mehrseiten-Szenen.
+const FreudianSlipDialogueSynthesizerModal = lazy(() =>
+  import("@/components/ai/FreudianSlipDialogueSynthesizerModal").then((m) => ({ default: m.FreudianSlipDialogueSynthesizerModal }))
+);
+const PolyrhythmicSentenceStreamModal = lazy(() =>
+  import("@/components/ai/PolyrhythmicSentenceStreamModal").then((m) => ({ default: m.PolyrhythmicSentenceStreamModal }))
+);
+const MetaphorAlchemySynthesizerModal = lazy(() =>
+  import("@/components/ai/MetaphorAlchemySynthesizerModal").then((m) => ({ default: m.MetaphorAlchemySynthesizerModal }))
+);
+const MultiPageSceneDraftSynthesizerModal = lazy(() =>
+  import("@/components/ai/MultiPageSceneDraftSynthesizerModal").then((m) => ({ default: m.MultiPageSceneDraftSynthesizerModal }))
+);
+// Meilenstein 46 (v5.8.0): Epistolarische Unzuverlässigkeit, Sensorische Epiphanie, Kenning-Weaver, Bewusstseinsstrom.
+const EpistolaryUnreliableSynthesizerModal = lazy(() =>
+  import("@/components/ai/EpistolaryUnreliableSynthesizerModal").then((m) => ({ default: m.EpistolaryUnreliableSynthesizerModal }))
+);
+const SensoryEpiphanySynthesizerModal = lazy(() =>
+  import("@/components/ai/SensoryEpiphanySynthesizerModal").then((m) => ({ default: m.SensoryEpiphanySynthesizerModal }))
+);
+const AlliterativeKenningWeaverModal = lazy(() =>
+  import("@/components/ai/AlliterativeKenningWeaverModal").then((m) => ({ default: m.AlliterativeKenningWeaverModal }))
+);
+const DialecticStreamOfConsciousnessModal = lazy(() =>
+  import("@/components/ai/DialecticStreamOfConsciousnessModal").then((m) => ({ default: m.DialecticStreamOfConsciousnessModal }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -789,7 +815,16 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
                         { id: "choral-hymn", key: "sidebar.mode.choral-hymn", icon: "🎵", descKey: "sidebar.modeDesc.choral-hymn" },
                         { id: "parallel-climax", key: "sidebar.mode.parallel-climax", icon: "🎬", descKey: "sidebar.modeDesc.parallel-climax" },
                         { id: "copyright-notary", key: "sidebar.mode.copyright-notary", icon: "📜", descKey: "sidebar.modeDesc.copyright-notary" },
-                      ];
+                                                { id: "freudian-slip", key: "sidebar.mode.freudian-slip", icon: "🧠", descKey: "sidebar.modeDesc.freudian-slip" },
+                                                                                                { id: "polyrhythmic", key: "sidebar.mode.polyrhythmic", icon: "🎵", descKey: "sidebar.modeDesc.polyrhythmic" },
+                                                                                                { id: "metaphor-alchemy", key: "sidebar.mode.metaphor-alchemy", icon: "⚗️", descKey: "sidebar.modeDesc.metaphor-alchemy" },
+                                                                                                { id: "multi-page-scene", key: "sidebar.mode.multi-page-scene", icon: "📄", descKey: "sidebar.modeDesc.multi-page-scene" },
+                                                                                                // Meilenstein 46 (v5.8.0): Epistolarik, Epiphanie, Kenning, Bewusstseinsstrom.
+                                                                                                { id: "epistolary-unreliable", key: "sidebar.mode.epistolary-unreliable", icon: "📖", descKey: "sidebar.modeDesc.epistolary-unreliable" },
+                                                                                                { id: "sensory-epiphany", key: "sidebar.mode.sensory-epiphany", icon: "✨", descKey: "sidebar.modeDesc.sensory-epiphany" },
+                                                                                                { id: "alliterative-kenning", key: "sidebar.mode.alliterative-kenning", icon: "📜", descKey: "sidebar.modeDesc.alliterative-kenning" },
+                                                                                                { id: "dialectic-stream", key: "sidebar.mode.dialectic-stream", icon: "🧠", descKey: "sidebar.modeDesc.dialectic-stream" },
+                                                                                              ];
 
 export function Sidebar() {
   const { t, lang } = useI18n();
@@ -1281,11 +1316,21 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
                                                                 if (mode === "onomatopoeia") return <OnomatopoeiaStylistModal />;
                                                                 if (mode === "p2p-mesh") return <CloudlessP2pMeshModal />;
                                                                 // Meilenstein 44 (v5.6.0): Somatik, Choral-Hymnen, Parallel-Klimax, Urheberrechts-Notar.
-                                                                if (mode === "somatic-biomechanics") return <SomaticBiomechanicsEngineModal />;
-                                                                if (mode === "choral-hymn") return <ChoralHymnSynthesizerModal />;
-                                                                if (mode === "parallel-climax") return <ParallelClimaxSynchronizerModal />;
-                                                                if (mode === "copyright-notary") return <CryptographicCopyrightNotaryModal />;
-                                                                if (!projectId || !chapterId) {
+                                                                                                                                if (mode === "somatic-biomechanics") return <SomaticBiomechanicsEngineModal />;
+                                                                                                                                if (mode === "choral-hymn") return <ChoralHymnSynthesizerModal />;
+                                                                                                                                if (mode === "parallel-climax") return <ParallelClimaxSynchronizerModal />;
+                                                                                                                                if (mode === "copyright-notary") return <CryptographicCopyrightNotaryModal />;
+                                                                                                                                // Meilenstein 45 (v5.7.0): Freudscher Dialog, Polyrhythmik, Metaphern-Alchemie, Mehrseiten-Szenen.
+                                                                                                                                                                                                                                                                if (mode === "freudian-slip") return <FreudianSlipDialogueSynthesizerModal />;
+                                                                                                                                                                                                                                                                if (mode === "polyrhythmic") return <PolyrhythmicSentenceStreamModal />;
+                                                                                                                                                                                                                                                                if (mode === "metaphor-alchemy") return <MetaphorAlchemySynthesizerModal />;
+                                                                                                                                                                                                                                                                if (mode === "multi-page-scene") return <MultiPageSceneDraftSynthesizerModal />;
+                                                                                                                                                                                                                                                                // Meilenstein 46 (v5.8.0): Epistolarik, Epiphanie, Kenning, Bewusstseinsstrom.
+                                                                                                                                                                                                                                                                if (mode === "epistolary-unreliable") return <EpistolaryUnreliableSynthesizerModal />;
+                                                                                                                                                                                                                                                                if (mode === "sensory-epiphany") return <SensoryEpiphanySynthesizerModal />;
+                                                                                                                                                                                                                                                                if (mode === "alliterative-kenning") return <AlliterativeKenningWeaverModal />;
+                                                                                                                                                                                                                                                                if (mode === "dialectic-stream") return <DialecticStreamOfConsciousnessModal />;
+                                                                                                                                if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }
     switch (mode) {

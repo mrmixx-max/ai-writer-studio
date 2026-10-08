@@ -368,8 +368,17 @@ export const en: TranslationDict = {
           "sidebar.mode.choral-hymn": "Choral Hymn Synthesizer",
           "sidebar.mode.parallel-climax": "Parallel Climax Synchronizer",
           "sidebar.mode.copyright-notary": "Copyright Notary",
+          "sidebar.mode.freudian-slip": "Freudian Dialogue Synthesizer",
+                    "sidebar.mode.polyrhythmic": "Polyrhythmic Sentence Synthesizer",
+                    "sidebar.mode.metaphor-alchemy": "Metaphor Alchemy",
+                    "sidebar.mode.multi-page-scene": "Multi-Page Scene Synthesizer",
+                    // Meilenstein 46 (v5.8.0)
+                    "sidebar.mode.epistolary-unreliable": "Unreliable Epistolary",
+                    "sidebar.mode.sensory-epiphany": "Sensory Epiphany",
+                    "sidebar.mode.alliterative-kenning": "Kenning Weaver",
+                    "sidebar.mode.dialectic-stream": "Stream of Consciousness",
 
-    // Backup (Sprint 24, Agent 6)
+              // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
   "backup.now": "⬇ Back up now",
   "backup.restore": "Restore",
@@ -685,7 +694,16 @@ export const en: TranslationDict = {
           "sidebar.modeDesc.choral-hymn": "6 hymn types, church modes, antiphonal call-response",
           "sidebar.modeDesc.parallel-climax": "2-4 strands, 6 beats, match-cuts, cinematic hooks",
           "sidebar.modeDesc.copyright-notary": "SHA-512 Merkle, ECDSA P-384, RFC 3161 TSA, zero-knowledge",
-    "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
+          "sidebar.modeDesc.freudian-slip": "Avoidance, slips, subconscious leakage",
+                    "sidebar.modeDesc.polyrhythmic": "4 archetypes: staccato, periodic, polysyndeton, asyndeton",
+                    "sidebar.modeDesc.metaphor-alchemy": "Cross-domain, cliche filter, image paragraphs",
+                    "sidebar.modeDesc.multi-page-scene": "6-page arc, deep POV, 1-click injection",
+                    // Meilenstein 46 (v5.8.0)
+                    "sidebar.modeDesc.epistolary-unreliable": "4 archetypes, epistemic irony, reader knowledge",
+                    "sidebar.modeDesc.sensory-epiphany": "3-phase arc: stillness → collapse → catharsis",
+                    "sidebar.modeDesc.alliterative-kenning": "Alliteration, 7 themes, speeches & oaths",
+                    "sidebar.modeDesc.dialectic-stream": "Dual-track: sensory + memory, interruption",
+              "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",
   "sidebar.modeDesc.conflict-map": "Conflicts",
