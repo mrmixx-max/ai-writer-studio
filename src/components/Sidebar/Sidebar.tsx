@@ -668,6 +668,19 @@ const AlienPhonologySynthesizerModal = lazy(() =>
 const LiteraryAgentPitchDeckModal = lazy(() =>
   import("@/components/publishing/LiteraryAgentPitchDeckModal").then((m) => ({ default: m.LiteraryAgentPitchDeckModal }))
 );
+// Meilenstein 50 (v6.2.0): Möbius-Topologie, Relief-Studio, Grafische Partitur, Goldenes Jubiläum.
+const MobiusPlotTopologyModal = lazy(() =>
+  import("@/components/dramaturgy/MobiusPlotTopologyModal").then((m) => ({ default: m.MobiusPlotTopologyModal }))
+);
+const TopographicalReliefStudioModal = lazy(() =>
+  import("@/components/worldbuilding/TopographicalReliefStudioModal").then((m) => ({ default: m.TopographicalReliefStudioModal }))
+);
+const GraphicScoreArrangerModal = lazy(() =>
+  import("@/components/audio/GraphicScoreArrangerModal").then((m) => ({ default: m.GraphicScoreArrangerModal }))
+);
+const GoldenJubilee50SentinelModal = lazy(() =>
+  import("@/components/core/GoldenJubilee50SentinelModal").then((m) => ({ default: m.GoldenJubilee50SentinelModal }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -878,6 +891,11 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
                                                                                                 { id: "mystery-web", key: "sidebar.mode.mystery-web", icon: "🔍", descKey: "sidebar.modeDesc.mystery-web" },
                                                                                                 { id: "alien-phonology", key: "sidebar.mode.alien-phonology", icon: "🛸", descKey: "sidebar.modeDesc.alien-phonology" },
                                                                                                 { id: "agent-pitch", key: "sidebar.mode.agent-pitch", icon: "📮", descKey: "sidebar.modeDesc.agent-pitch" },
+                                                                                                // Meilenstein 50 (v6.2.0): Möbius-Topologie, Relief-Studio, Grafische Partitur, Goldenes Jubiläum.
+                                                                                                { id: "mobius-topology", key: "sidebar.mode.mobius-topology", icon: "🌀", descKey: "sidebar.modeDesc.mobius-topology" },
+                                                                                                { id: "relief-studio", key: "sidebar.mode.relief-studio", icon: "⛰️", descKey: "sidebar.modeDesc.relief-studio" },
+                                                                                                { id: "graphic-score", key: "sidebar.mode.graphic-score", icon: "🎼", descKey: "sidebar.modeDesc.graphic-score" },
+                                                                                                { id: "golden-jubilee", key: "sidebar.mode.golden-jubilee", icon: "🥇", descKey: "sidebar.modeDesc.golden-jubilee" },
                                                                                               ];
 
 export function Sidebar() {
@@ -1399,6 +1417,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
                                                                                                                                                                                                                                                                 if (mode === "mystery-web") return <EpistemicMysteryWebModal />;
                                                                                                                                                                                                                                                                 if (mode === "alien-phonology") return <AlienPhonologySynthesizerModal />;
                                                                                                                                                                                                                                                                 if (mode === "agent-pitch") return <LiteraryAgentPitchDeckModal />;
+                                                                                                                                                                                                                                                                // Meilenstein 50 (v6.2.0): Möbius-Topologie, Relief-Studio, Grafische Partitur, Goldenes Jubiläum.
+                                                                                                                                                                                                                                                                if (mode === "mobius-topology") return <MobiusPlotTopologyModal />;
+                                                                                                                                                                                                                                                                if (mode === "relief-studio") return <TopographicalReliefStudioModal />;
+                                                                                                                                                                                                                                                                if (mode === "graphic-score") return <GraphicScoreArrangerModal />;
+                                                                                                                                                                                                                                                                if (mode === "golden-jubilee") return <GoldenJubilee50SentinelModal />;
                                                                                                                                 if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }

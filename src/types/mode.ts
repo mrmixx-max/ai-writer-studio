@@ -210,4 +210,9 @@ export type EditorMode =
     | "reader-twin"
     | "mystery-web"
     | "alien-phonology"
-    | "agent-pitch";
+    | "agent-pitch"
+    // Meilenstein 50 (v6.2.0)
+    | "mobius-topology"
+    | "relief-studio"
+    | "graphic-score"
+    | "golden-jubilee";

@@ -326,6 +326,11 @@ export const de = {
                 "sidebar.mode.mystery-web": "Krimi-Matrix",
                 "sidebar.mode.alien-phonology": "Alien-Phonologie",
                 "sidebar.mode.agent-pitch": "Agentur-Pitch",
+                // Meilenstein 50 (v6.2.0)
+                "sidebar.mode.mobius-topology": "Möbius-Topologie",
+                "sidebar.mode.relief-studio": "Relief-Studio",
+                "sidebar.mode.graphic-score": "Grafische Partitur",
+                "sidebar.mode.golden-jubilee": "Goldenes Jubiläum",
   "backup.title": "🔒 Backup",
   "backup.now": "⬇ Jetzt sichern",
   "backup.restore": "Wiederherstellen",
@@ -670,6 +675,11 @@ export const de = {
                     "sidebar.modeDesc.mystery-web": "4 Schichten, Knox'sche Gebote, Fair-Play-Nachweis",
                     "sidebar.modeDesc.alien-phonology": "3 Lautapparate, Conlang-Matrix, WebAudio-Parameter",
                     "sidebar.modeDesc.agent-pitch": "250-Wörter-Query, Comp-Titles, Einreichungs-Dossier",
+                    // Meilenstein 50 (v6.2.0)
+                    "sidebar.modeDesc.mobius-topology": "4 Modelle, Kausalitäts-Prüfer, Möbius-SVG",
+                    "sidebar.modeDesc.relief-studio": "Höhenstufen, Sichtachsen, Erschöpfungskalkulator",
+                    "sidebar.modeDesc.graphic-score": "Spannung-zu-Klang, WebAudio, Vektor-Partitur",
+                    "sidebar.modeDesc.golden-jubilee": "Voll-Audit, Gold-Siegel, M1–M50-Retrospektive",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Kommentare + Reviews",
   "sidebar.modeDesc.condense": "Textverkürzung",

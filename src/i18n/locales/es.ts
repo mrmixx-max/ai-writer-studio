@@ -593,6 +593,11 @@ export const es: TranslationDict = {
                     "sidebar.mode.mystery-web": "Matriz de misterio",
                     "sidebar.mode.alien-phonology": "Fonología alienígena",
                     "sidebar.mode.agent-pitch": "Presentación a agentes",
+                    // Meilenstein 50 (v6.2.0)
+                    "sidebar.mode.mobius-topology": "Topología de Möbius",
+                    "sidebar.mode.relief-studio": "Estudio de relieve",
+                    "sidebar.mode.graphic-score": "Partitura gráfica",
+                    "sidebar.mode.golden-jubilee": "Jubileo de oro",
 
               "sidebar.editorTextFallback": "(elegir texto del editor)",
   "sidebar.contentFallback": "(contenido)",
@@ -736,6 +741,11 @@ export const es: TranslationDict = {
                     "sidebar.modeDesc.mystery-web": "4 capas, decálogo de Knox, prueba de juego limpio",
                     "sidebar.modeDesc.alien-phonology": "3 aparatos vocales, matriz conlang, parámetros WebAudio",
                     "sidebar.modeDesc.agent-pitch": "Query de 250 palabras, títulos comparables, dossier de envío",
+                    // Meilenstein 50 (v6.2.0)
+                    "sidebar.modeDesc.mobius-topology": "4 modelos, verificador de causalidad, SVG de Möbius",
+                    "sidebar.modeDesc.relief-studio": "Franjas de altitud, líneas de visión, calculadora de fatiga",
+                    "sidebar.modeDesc.graphic-score": "Tensión a sonido, WebAudio, partitura vectorial",
+                    "sidebar.modeDesc.golden-jubilee": "Auditoría completa, sello de oro, retrospectiva M1–M50",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comentarios + revisiones",
   "sidebar.modeDesc.condense": "Abreviar texto",

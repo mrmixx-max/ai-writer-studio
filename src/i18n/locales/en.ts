@@ -392,6 +392,11 @@ export const en: TranslationDict = {
                     "sidebar.mode.mystery-web": "Mystery Matrix",
                     "sidebar.mode.alien-phonology": "Alien Phonology",
                     "sidebar.mode.agent-pitch": "Agent Pitch",
+                    // Meilenstein 50 (v6.2.0)
+                    "sidebar.mode.mobius-topology": "Möbius Topology",
+                    "sidebar.mode.relief-studio": "Relief Studio",
+                    "sidebar.mode.graphic-score": "Graphic Score",
+                    "sidebar.mode.golden-jubilee": "Golden Jubilee",
 
               // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -733,6 +738,11 @@ export const en: TranslationDict = {
                     "sidebar.modeDesc.mystery-web": "4 layers, Knox's Decalogue, fair-play proof",
                     "sidebar.modeDesc.alien-phonology": "3 vocal apparatuses, conlang matrix, WebAudio params",
                     "sidebar.modeDesc.agent-pitch": "250-word query, comp titles, submission dossier",
+                    // Meilenstein 50 (v6.2.0)
+                    "sidebar.modeDesc.mobius-topology": "4 models, causality checker, Möbius SVG",
+                    "sidebar.modeDesc.relief-studio": "Elevation bands, sight lines, fatigue calculator",
+                    "sidebar.modeDesc.graphic-score": "Tension-to-sound, WebAudio, vector score",
+                    "sidebar.modeDesc.golden-jubilee": "Full audit, gold seal, M1–M50 retrospective",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",
