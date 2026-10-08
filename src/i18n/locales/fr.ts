@@ -578,6 +578,11 @@ export const fr: TranslationDict = {
                     "sidebar.mode.sensory-epiphany": "Épiphanie sensorielle",
                     "sidebar.mode.alliterative-kenning": "Tisseur de kenningar",
                     "sidebar.mode.dialectic-stream": "Flux de conscience",
+                    // Meilenstein 47 (v5.9.0)
+                    "sidebar.mode.alchemical-grimoire": "Grimoire d'alchimie",
+                    "sidebar.mode.mythic-beast": "Bestiaire et anatomie",
+                    "sidebar.mode.surreal-dream": "Synthétiseur de logique onirique",
+                    "sidebar.mode.pantheon-myth": "Tisseur de théogonie",
 
               "sidebar.editorTextFallback": "(choisir le texte dans l'éditeur)",
   "sidebar.contentFallback": "(contenu)",
@@ -706,6 +711,11 @@ export const fr: TranslationDict = {
                     "sidebar.modeDesc.sensory-epiphany": "Arc 3 phases: immobilité → effondrement → catharsis",
                     "sidebar.modeDesc.alliterative-kenning": "Allitération, 7 thèmes, discours & serments",
                     "sidebar.modeDesc.dialectic-stream": "Dual-track: sensoriel + mémoire, interruption",
+                    // Meilenstein 47 (v5.9.0)
+                    "sidebar.modeDesc.alchemical-grimoire": "4 axiomes, grille de réactifs, incantations, cercle SVG",
+                    "sidebar.modeDesc.mythic-beast": "Anatomie, morale du bestiaire, journal du naturaliste",
+                    "sidebar.modeDesc.surreal-dream": "4 dimensions oniriques, symbolisme prophétique, prose",
+                    "sidebar.modeDesc.pantheon-myth": "4 cosmogonies, arbre généalogique divin, textes sacrés",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Commentaires + révisions",
   "sidebar.modeDesc.condense": "Abréger le texte",

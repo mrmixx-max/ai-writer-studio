@@ -629,6 +629,19 @@ const AlliterativeKenningWeaverModal = lazy(() =>
 const DialecticStreamOfConsciousnessModal = lazy(() =>
   import("@/components/ai/DialecticStreamOfConsciousnessModal").then((m) => ({ default: m.DialecticStreamOfConsciousnessModal }))
 );
+// Meilenstein 47 (v5.9.0): Alchemie-Grimoire, Bestiarium, Traumlogik, Theogonie.
+const AlchemicalGrimoireSynthesizerModal = lazy(() =>
+  import("@/components/worldbuilding/AlchemicalGrimoireSynthesizerModal").then((m) => ({ default: m.AlchemicalGrimoireSynthesizerModal }))
+);
+const MythicBeastAnatomyModal = lazy(() =>
+  import("@/components/worldbuilding/MythicBeastAnatomyModal").then((m) => ({ default: m.MythicBeastAnatomyModal }))
+);
+const SurrealDreamLogicSynthesizerModal = lazy(() =>
+  import("@/components/ai/SurrealDreamLogicSynthesizerModal").then((m) => ({ default: m.SurrealDreamLogicSynthesizerModal }))
+);
+const PantheonCreationMythModal = lazy(() =>
+  import("@/components/worldbuilding/PantheonCreationMythModal").then((m) => ({ default: m.PantheonCreationMythModal }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -824,6 +837,11 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
                                                                                                 { id: "sensory-epiphany", key: "sidebar.mode.sensory-epiphany", icon: "✨", descKey: "sidebar.modeDesc.sensory-epiphany" },
                                                                                                 { id: "alliterative-kenning", key: "sidebar.mode.alliterative-kenning", icon: "📜", descKey: "sidebar.modeDesc.alliterative-kenning" },
                                                                                                 { id: "dialectic-stream", key: "sidebar.mode.dialectic-stream", icon: "🧠", descKey: "sidebar.modeDesc.dialectic-stream" },
+                                                                                                // Meilenstein 47 (v5.9.0): Alchemie, Bestiarium, Traumlogik, Theogonie.
+                                                                                                { id: "alchemical-grimoire", key: "sidebar.mode.alchemical-grimoire", icon: "⚗️", descKey: "sidebar.modeDesc.alchemical-grimoire" },
+                                                                                                { id: "mythic-beast", key: "sidebar.mode.mythic-beast", icon: "🐉", descKey: "sidebar.modeDesc.mythic-beast" },
+                                                                                                { id: "surreal-dream", key: "sidebar.mode.surreal-dream", icon: "🌙", descKey: "sidebar.modeDesc.surreal-dream" },
+                                                                                                { id: "pantheon-myth", key: "sidebar.mode.pantheon-myth", icon: "🏛️", descKey: "sidebar.modeDesc.pantheon-myth" },
                                                                                               ];
 
 export function Sidebar() {
@@ -1330,6 +1348,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
                                                                                                                                                                                                                                                                 if (mode === "sensory-epiphany") return <SensoryEpiphanySynthesizerModal />;
                                                                                                                                                                                                                                                                 if (mode === "alliterative-kenning") return <AlliterativeKenningWeaverModal />;
                                                                                                                                                                                                                                                                 if (mode === "dialectic-stream") return <DialecticStreamOfConsciousnessModal />;
+                                                                                                                                                                                                                                                                // Meilenstein 47 (v5.9.0): Alchemie, Bestiarium, Traumlogik, Theogonie.
+                                                                                                                                                                                                                                                                if (mode === "alchemical-grimoire") return <AlchemicalGrimoireSynthesizerModal />;
+                                                                                                                                                                                                                                                                if (mode === "mythic-beast") return <MythicBeastAnatomyModal />;
+                                                                                                                                                                                                                                                                if (mode === "surreal-dream") return <SurrealDreamLogicSynthesizerModal />;
+                                                                                                                                                                                                                                                                if (mode === "pantheon-myth") return <PantheonCreationMythModal />;
                                                                                                                                 if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }

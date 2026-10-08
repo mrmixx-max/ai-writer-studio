@@ -195,4 +195,9 @@ export type EditorMode =
     | "epistolary-unreliable"
     | "sensory-epiphany"
     | "alliterative-kenning"
-    | "dialectic-stream";
+    | "dialectic-stream"
+    // Meilenstein 47 (v5.9.0)
+    | "alchemical-grimoire"
+    | "mythic-beast"
+    | "surreal-dream"
+    | "pantheon-myth";

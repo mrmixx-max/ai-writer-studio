@@ -311,6 +311,11 @@ export const de = {
                 "sidebar.mode.sensory-epiphany": "Sensorische Epiphanie",
                 "sidebar.mode.alliterative-kenning": "Kenning-Weaver",
                 "sidebar.mode.dialectic-stream": "Bewusstseinsstrom",
+                // Meilenstein 47 (v5.9.0)
+                "sidebar.mode.alchemical-grimoire": "Alchemie-Grimoire",
+                "sidebar.mode.mythic-beast": "Bestiarium & Anatomie",
+                "sidebar.mode.surreal-dream": "Traumlogik-Synthesizer",
+                "sidebar.mode.pantheon-myth": "Theogonie-Weaver",
   "backup.title": "🔒 Backup",
   "backup.now": "⬇ Jetzt sichern",
   "backup.restore": "Wiederherstellen",
@@ -640,6 +645,11 @@ export const de = {
                     "sidebar.modeDesc.sensory-epiphany": "3-Phasen-Bogen: Stillstand → Einsturz → Katharsis",
                     "sidebar.modeDesc.alliterative-kenning": "Stabreim, 7 Themen, Reden & Schwüre",
                     "sidebar.modeDesc.dialectic-stream": "Dual-Track: Sensorisch + Erinnerung, Interruption",
+                    // Meilenstein 47 (v5.9.0)
+                    "sidebar.modeDesc.alchemical-grimoire": "4 Axiome, Reagenzien-Gitter, Inkantationen, Zauberkreis-SVG",
+                    "sidebar.modeDesc.mythic-beast": "Anatomie, Bestiarien-Moral, Naturforscher-Tagebuch",
+                    "sidebar.modeDesc.surreal-dream": "4 Traum-Dimensionen, prophetische Symbolik, Prosa",
+                    "sidebar.modeDesc.pantheon-myth": "4 Kosmogonien, Götter-Stammbaum, Sakraltexte",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Kommentare + Reviews",
   "sidebar.modeDesc.condense": "Textverkürzung",

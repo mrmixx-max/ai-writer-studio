@@ -377,6 +377,11 @@ export const en: TranslationDict = {
                     "sidebar.mode.sensory-epiphany": "Sensory Epiphany",
                     "sidebar.mode.alliterative-kenning": "Kenning Weaver",
                     "sidebar.mode.dialectic-stream": "Stream of Consciousness",
+                    // Meilenstein 47 (v5.9.0)
+                    "sidebar.mode.alchemical-grimoire": "Alchemy Grimoire",
+                    "sidebar.mode.mythic-beast": "Bestiary & Anatomy",
+                    "sidebar.mode.surreal-dream": "Dream Logic Synthesizer",
+                    "sidebar.mode.pantheon-myth": "Theogony Weaver",
 
               // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -703,6 +708,11 @@ export const en: TranslationDict = {
                     "sidebar.modeDesc.sensory-epiphany": "3-phase arc: stillness → collapse → catharsis",
                     "sidebar.modeDesc.alliterative-kenning": "Alliteration, 7 themes, speeches & oaths",
                     "sidebar.modeDesc.dialectic-stream": "Dual-track: sensory + memory, interruption",
+                    // Meilenstein 47 (v5.9.0)
+                    "sidebar.modeDesc.alchemical-grimoire": "4 axioms, reagent grid, incantations, spell-circle SVG",
+                    "sidebar.modeDesc.mythic-beast": "Anatomy, bestiary lore, naturalist's journal",
+                    "sidebar.modeDesc.surreal-dream": "4 dream dimensions, prophetic symbolism, prose",
+                    "sidebar.modeDesc.pantheon-myth": "4 cosmogonies, deity family tree, sacred texts",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",
