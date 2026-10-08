@@ -397,6 +397,11 @@ export const en: TranslationDict = {
                     "sidebar.mode.relief-studio": "Relief Studio",
                     "sidebar.mode.graphic-score": "Graphic Score",
                     "sidebar.mode.golden-jubilee": "Golden Jubilee",
+                    // Meilenstein 51 (v6.3.0)
+                    "sidebar.mode.prophetic-oracle": "Oracle Studio",
+                    "sidebar.mode.speleology": "Speleology Simulator",
+                    "sidebar.mode.tonal-illusion": "Acoustic Illusions",
+                    "sidebar.mode.forensic-fingerprint": "Style Forensics",
 
               // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -743,6 +748,11 @@ export const en: TranslationDict = {
                     "sidebar.modeDesc.relief-studio": "Elevation bands, sight lines, fatigue calculator",
                     "sidebar.modeDesc.graphic-score": "Tension-to-sound, WebAudio, vector score",
                     "sidebar.modeDesc.golden-jubilee": "Full audit, gold seal, M1–M50 retrospective",
+                    // Meilenstein 51 (v6.3.0)
+                    "sidebar.modeDesc.prophetic-oracle": "4 archetypes, dual matrix, hexameter generator",
+                    "sidebar.modeDesc.speleology": "5 zones, firedamp checks, darkness prose",
+                    "sidebar.modeDesc.tonal-illusion": "Shepard tones, pareidolia, WebAudio params",
+                    "sidebar.modeDesc.forensic-fingerprint": "POS n-grams, style hash, forensic report",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",

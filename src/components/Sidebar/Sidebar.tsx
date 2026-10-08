@@ -681,6 +681,19 @@ const GraphicScoreArrangerModal = lazy(() =>
 const GoldenJubilee50SentinelModal = lazy(() =>
   import("@/components/core/GoldenJubilee50SentinelModal").then((m) => ({ default: m.GoldenJubilee50SentinelModal }))
 );
+// Meilenstein 51 (v6.3.0): Orakel, Speleologie, Shepard-Illusion, Forensik.
+const PropheticOracleSynthesizerModal = lazy(() =>
+  import("@/components/ai/PropheticOracleSynthesizerModal").then((m) => ({ default: m.PropheticOracleSynthesizerModal }))
+);
+const SubterraneanSpeleologyEngineModal = lazy(() =>
+  import("@/components/worldbuilding/SubterraneanSpeleologyEngineModal").then((m) => ({ default: m.SubterraneanSpeleologyEngineModal }))
+);
+const TonalIllusionSynthesizerModal = lazy(() =>
+  import("@/components/audio/TonalIllusionSynthesizerModal").then((m) => ({ default: m.TonalIllusionSynthesizerModal }))
+);
+const PlagiarismForensicFingerprintModal = lazy(() =>
+  import("@/components/security/PlagiarismForensicFingerprintModal").then((m) => ({ default: m.PlagiarismForensicFingerprintModal }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -896,6 +909,11 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
                                                                                                 { id: "relief-studio", key: "sidebar.mode.relief-studio", icon: "⛰️", descKey: "sidebar.modeDesc.relief-studio" },
                                                                                                 { id: "graphic-score", key: "sidebar.mode.graphic-score", icon: "🎼", descKey: "sidebar.modeDesc.graphic-score" },
                                                                                                 { id: "golden-jubilee", key: "sidebar.mode.golden-jubilee", icon: "🥇", descKey: "sidebar.modeDesc.golden-jubilee" },
+                                                                                                // Meilenstein 51 (v6.3.0): Orakel, Speleologie, Shepard-Illusion, Forensik.
+                                                                                                { id: "prophetic-oracle", key: "sidebar.mode.prophetic-oracle", icon: "🔮", descKey: "sidebar.modeDesc.prophetic-oracle" },
+                                                                                                { id: "speleology", key: "sidebar.mode.speleology", icon: "🕳️", descKey: "sidebar.modeDesc.speleology" },
+                                                                                                { id: "tonal-illusion", key: "sidebar.mode.tonal-illusion", icon: "🌀", descKey: "sidebar.modeDesc.tonal-illusion" },
+                                                                                                { id: "forensic-fingerprint", key: "sidebar.mode.forensic-fingerprint", icon: "🔎", descKey: "sidebar.modeDesc.forensic-fingerprint" },
                                                                                               ];
 
 export function Sidebar() {
@@ -1422,6 +1440,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
                                                                                                                                                                                                                                                                 if (mode === "relief-studio") return <TopographicalReliefStudioModal />;
                                                                                                                                                                                                                                                                 if (mode === "graphic-score") return <GraphicScoreArrangerModal />;
                                                                                                                                                                                                                                                                 if (mode === "golden-jubilee") return <GoldenJubilee50SentinelModal />;
+                                                                                                                                                                                                                                                                // Meilenstein 51 (v6.3.0): Orakel, Speleologie, Shepard-Illusion, Forensik.
+                                                                                                                                                                                                                                                                if (mode === "prophetic-oracle") return <PropheticOracleSynthesizerModal />;
+                                                                                                                                                                                                                                                                if (mode === "speleology") return <SubterraneanSpeleologyEngineModal />;
+                                                                                                                                                                                                                                                                if (mode === "tonal-illusion") return <TonalIllusionSynthesizerModal />;
+                                                                                                                                                                                                                                                                if (mode === "forensic-fingerprint") return <PlagiarismForensicFingerprintModal />;
                                                                                                                                 if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }

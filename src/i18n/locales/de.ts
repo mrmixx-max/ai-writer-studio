@@ -331,6 +331,11 @@ export const de = {
                 "sidebar.mode.relief-studio": "Relief-Studio",
                 "sidebar.mode.graphic-score": "Grafische Partitur",
                 "sidebar.mode.golden-jubilee": "Goldenes Jubiläum",
+                // Meilenstein 51 (v6.3.0)
+                "sidebar.mode.prophetic-oracle": "Orakel-Studio",
+                "sidebar.mode.speleology": "Speleologie-Simulator",
+                "sidebar.mode.tonal-illusion": "Akustik-Illusionen",
+                "sidebar.mode.forensic-fingerprint": "Stil-Forensik",
   "backup.title": "🔒 Backup",
   "backup.now": "⬇ Jetzt sichern",
   "backup.restore": "Wiederherstellen",
@@ -680,6 +685,11 @@ export const de = {
                     "sidebar.modeDesc.relief-studio": "Höhenstufen, Sichtachsen, Erschöpfungskalkulator",
                     "sidebar.modeDesc.graphic-score": "Spannung-zu-Klang, WebAudio, Vektor-Partitur",
                     "sidebar.modeDesc.golden-jubilee": "Voll-Audit, Gold-Siegel, M1–M50-Retrospektive",
+                    // Meilenstein 51 (v6.3.0)
+                    "sidebar.modeDesc.prophetic-oracle": "4 Archetypen, Doppel-Matrix, Hexameter-Generator",
+                    "sidebar.modeDesc.speleology": "5 Zonen, Grubengas-Prüfung, Finsternis-Prosa",
+                    "sidebar.modeDesc.tonal-illusion": "Shepard-Töne, Pareidolie, WebAudio-Parameter",
+                    "sidebar.modeDesc.forensic-fingerprint": "POS-N-Gramme, Stil-Hash, gerichtsfestes Gutachten",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Kommentare + Reviews",
   "sidebar.modeDesc.condense": "Textverkürzung",

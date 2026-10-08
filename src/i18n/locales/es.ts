@@ -598,6 +598,11 @@ export const es: TranslationDict = {
                     "sidebar.mode.relief-studio": "Estudio de relieve",
                     "sidebar.mode.graphic-score": "Partitura gráfica",
                     "sidebar.mode.golden-jubilee": "Jubileo de oro",
+                    // Meilenstein 51 (v6.3.0)
+                    "sidebar.mode.prophetic-oracle": "Estudio de oráculo",
+                    "sidebar.mode.speleology": "Simulador de espeleología",
+                    "sidebar.mode.tonal-illusion": "Ilusiones acústicas",
+                    "sidebar.mode.forensic-fingerprint": "Forense de estilo",
 
               "sidebar.editorTextFallback": "(elegir texto del editor)",
   "sidebar.contentFallback": "(contenido)",
@@ -746,6 +751,11 @@ export const es: TranslationDict = {
                     "sidebar.modeDesc.relief-studio": "Franjas de altitud, líneas de visión, calculadora de fatiga",
                     "sidebar.modeDesc.graphic-score": "Tensión a sonido, WebAudio, partitura vectorial",
                     "sidebar.modeDesc.golden-jubilee": "Auditoría completa, sello de oro, retrospectiva M1–M50",
+                    // Meilenstein 51 (v6.3.0)
+                    "sidebar.modeDesc.prophetic-oracle": "4 arquetipos, matriz dual, generador de hexámetros",
+                    "sidebar.modeDesc.speleology": "5 zonas, control de grisú, prosa de oscuridad",
+                    "sidebar.modeDesc.tonal-illusion": "Tonos Shepard, pareidolia, parámetros WebAudio",
+                    "sidebar.modeDesc.forensic-fingerprint": "N-gramas POS, hash de estilo, informe forense",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comentarios + revisiones",
   "sidebar.modeDesc.condense": "Abreviar texto",

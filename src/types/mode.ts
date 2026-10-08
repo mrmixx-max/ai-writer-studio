@@ -215,4 +215,9 @@ export type EditorMode =
     | "mobius-topology"
     | "relief-studio"
     | "graphic-score"
-    | "golden-jubilee";
+    | "golden-jubilee"
+    // Meilenstein 51 (v6.3.0)
+    | "prophetic-oracle"
+    | "speleology"
+    | "tonal-illusion"
+    | "forensic-fingerprint";
