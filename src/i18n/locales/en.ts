@@ -406,6 +406,10 @@ export const en: TranslationDict = {
                     "sidebar.mode.sea-shanty": "Sea Shanty Synthesizer",
                     "sidebar.mode.abyssal-ocean": "Abyssal Oceanography",
                     "sidebar.mode.portolan-chart": "Portolan Chart Studio",
+                    "sidebar.mode.social-media-post": "Social Media Posts",
+                    "sidebar.mode.quote-card": "Quote Card Studio",
+                    "sidebar.mode.editorial-calendar": "Editorial Calendar",
+                    "sidebar.mode.author-newsletter": "Newsletter Sequence",
 
               // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -761,6 +765,10 @@ export const en: TranslationDict = {
                     "sidebar.modeDesc.sea-shanty": "3 genres, refrains, WebAudio rhythm",
                     "sidebar.modeDesc.abyssal-ocean": "5 depth zones, bioluminescence, pressure prose",
                     "sidebar.modeDesc.portolan-chart": "Rhumb lines, compass roses, 300-DPI export",
+                    "sidebar.modeDesc.social-media-post": "4 platforms, hashtag curator, carousel",
+                    "sidebar.modeDesc.quote-card": "3 formats, 4 themes, SVG layout engine",
+                    "sidebar.modeDesc.editorial-calendar": "4 phases, 30 days, CSV/Markdown export",
+                    "sidebar.modeDesc.author-newsletter": "5 emails, subject line splitter, author sequence",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",

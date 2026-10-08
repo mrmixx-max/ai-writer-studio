@@ -295,6 +295,18 @@ const PrintSimulatorModal = lazy(() =>
 const CrowdfundingStudio = lazy(() =>
   import("@/components/marketing/CrowdfundingStudio").then((m) => ({ default: m.CrowdfundingStudio }))
 );
+const SocialMediaPostSynthesizerModal = lazy(() =>
+  import("@/components/marketing/SocialMediaPostSynthesizerModal").then((m) => ({ default: m.SocialMediaPostSynthesizerModal }))
+);
+const QuoteCardGraphicStudioModal = lazy(() =>
+  import("@/components/marketing/QuoteCardGraphicStudioModal").then((m) => ({ default: m.QuoteCardGraphicStudioModal }))
+);
+const EditorialContentCalendarModal = lazy(() =>
+  import("@/components/marketing/EditorialContentCalendarModal").then((m) => ({ default: m.EditorialContentCalendarModal }))
+);
+const AuthorNewsletterSequenceModal = lazy(() =>
+  import("@/components/marketing/AuthorNewsletterSequenceModal").then((m) => ({ default: m.AuthorNewsletterSequenceModal }))
+);
 const ReaderChoicePlaytester = lazy(() =>
   import("@/components/interactive/ReaderChoicePlaytester").then((m) => ({ default: m.ReaderChoicePlaytester }))
 );
@@ -931,6 +943,11 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
                                                                                                 { id: "sea-shanty", key: "sidebar.mode.sea-shanty", icon: "🎶", descKey: "sidebar.modeDesc.sea-shanty" },
                                                                                                 { id: "abyssal-ocean", key: "sidebar.mode.abyssal-ocean", icon: "🌊", descKey: "sidebar.modeDesc.abyssal-ocean" },
                                                                                                 { id: "portolan-chart", key: "sidebar.mode.portolan-chart", icon: "🧭", descKey: "sidebar.modeDesc.portolan-chart" },
+                                                                                                // Meilenstein 53 (v6.5.0): Social Media, Zitat-Karten, Redaktionskalender, Newsletter.
+                                                                                                { id: "social-media-post", key: "sidebar.mode.social-media-post", icon: "📱", descKey: "sidebar.modeDesc.social-media-post" },
+                                                                                                { id: "quote-card", key: "sidebar.mode.quote-card", icon: "🎨", descKey: "sidebar.modeDesc.quote-card" },
+                                                                                                { id: "editorial-calendar", key: "sidebar.mode.editorial-calendar", icon: "📅", descKey: "sidebar.modeDesc.editorial-calendar" },
+                                                                                                { id: "author-newsletter", key: "sidebar.mode.author-newsletter", icon: "✉️", descKey: "sidebar.modeDesc.author-newsletter" },
                                                                                               ];
 
 export function Sidebar() {
@@ -1467,6 +1484,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
                                                                                                                                 if (mode === "sea-shanty") return <SeaShantySynthesizerModal />;
                                                                                                                                 if (mode === "abyssal-ocean") return <AbyssalOceanographyEngineModal />;
                                                                                                                                 if (mode === "portolan-chart") return <PortolanNauticalChartModal />;
+                                                                                                                                // Meilenstein 53 (v6.5.0): Social Media, Zitat-Karten, Redaktionskalender, Newsletter.
+                                                                                                                                if (mode === "social-media-post") return <SocialMediaPostSynthesizerModal />;
+                                                                                                                                if (mode === "quote-card") return <QuoteCardGraphicStudioModal />;
+                                                                                                                                if (mode === "editorial-calendar") return <EditorialContentCalendarModal />;
+                                                                                                                                if (mode === "author-newsletter") return <AuthorNewsletterSequenceModal />;
                                                                                                                                 if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }

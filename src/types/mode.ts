@@ -225,4 +225,9 @@ export type EditorMode =
     | "nautical-naval"
     | "sea-shanty"
     | "abyssal-ocean"
-    | "portolan-chart";
+    | "portolan-chart"
+    // Meilenstein 53 (v6.5.0)
+    | "social-media-post"
+    | "quote-card"
+    | "editorial-calendar"
+    | "author-newsletter";
