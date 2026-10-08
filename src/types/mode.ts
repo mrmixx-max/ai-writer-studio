@@ -250,4 +250,9 @@ export type EditorMode =
     | "espionage-tradecraft"
     | "cipher-steganography"
     | "numbers-station"
-    | "redacted-dossier";
+    | "redacted-dossier"
+    // Meilenstein 58 (v7.0.0 FLAGSHIP)
+    | "quantum-narrative"
+    | "franchise-encyclopedia"
+    | "cinematic-foley"
+    | "flagship70-cockpit";

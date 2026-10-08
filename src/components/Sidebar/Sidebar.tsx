@@ -355,6 +355,18 @@ const NumbersStationRadioSynthesizerModal = lazy(() =>
 const RedactedDossierStudioModal = lazy(() =>
   import("@/components/publishing/RedactedDossierStudioModal").then((m) => ({ default: m.RedactedDossierStudioModal }))
 );
+const QuantumNarrativeConvergenceModal = lazy(() =>
+  import("@/components/ai/QuantumNarrativeConvergenceModal").then((m) => ({ default: m.QuantumNarrativeConvergenceModal }))
+);
+const UniversalFranchiseEncyclopediaModal = lazy(() =>
+  import("@/components/worldbuilding/UniversalFranchiseEncyclopediaModal").then((m) => ({ default: m.UniversalFranchiseEncyclopediaModal }))
+);
+const CinematicFoleyAtmosComposerModal = lazy(() =>
+  import("@/components/audio/CinematicFoleyAtmosComposerModal").then((m) => ({ default: m.CinematicFoleyAtmosComposerModal }))
+);
+const Flagship70SovereignCockpitModal = lazy(() =>
+  import("@/components/publishing/Flagship70SovereignCockpitModal").then((m) => ({ default: m.Flagship70SovereignCockpitModal }))
+);
 const ReaderChoicePlaytester = lazy(() =>
   import("@/components/interactive/ReaderChoicePlaytester").then((m) => ({ default: m.ReaderChoicePlaytester }))
 );
@@ -1016,6 +1028,11 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
                                                                                                 { id: "cipher-steganography", key: "sidebar.mode.cipher-steganography", icon: "🔐", descKey: "sidebar.modeDesc.cipher-steganography" },
                                                                                                 { id: "numbers-station", key: "sidebar.mode.numbers-station", icon: "📻", descKey: "sidebar.modeDesc.numbers-station" },
                                                                                                 { id: "redacted-dossier", key: "sidebar.mode.redacted-dossier", icon: "🔒", descKey: "sidebar.modeDesc.redacted-dossier" },
+                                                                                                // Meilenstein 58 (v7.0.0 FLAGSHIP): Multi-POV, Franchise-Enzyklopädie, Foley-Atmos, 7.0 Cockpit.
+                                                                                                { id: "quantum-narrative", key: "sidebar.mode.quantum-narrative", icon: "🌀", descKey: "sidebar.modeDesc.quantum-narrative" },
+                                                                                                { id: "franchise-encyclopedia", key: "sidebar.mode.franchise-encyclopedia", icon: "📖", descKey: "sidebar.modeDesc.franchise-encyclopedia" },
+                                                                                                { id: "cinematic-foley", key: "sidebar.mode.cinematic-foley", icon: "🎬", descKey: "sidebar.modeDesc.cinematic-foley" },
+                                                                                                { id: "flagship70-cockpit", key: "sidebar.mode.flagship70-cockpit", icon: "🏆", descKey: "sidebar.modeDesc.flagship70-cockpit" },
                                                                                               ];
 
 export function Sidebar() {
@@ -1577,6 +1594,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
                                                                                                                                 if (mode === "cipher-steganography") return <ClassicalCipherSteganographyLabModal />;
                                                                                                                                 if (mode === "numbers-station") return <NumbersStationRadioSynthesizerModal />;
                                                                                                                                 if (mode === "redacted-dossier") return <RedactedDossierStudioModal />;
+                                                                                                                                // Meilenstein 58 (v7.0.0 FLAGSHIP): Multi-POV, Franchise-Enzyklopädie, Foley-Atmos, 7.0 Cockpit.
+                                                                                                                                if (mode === "quantum-narrative") return <QuantumNarrativeConvergenceModal />;
+                                                                                                                                if (mode === "franchise-encyclopedia") return <UniversalFranchiseEncyclopediaModal />;
+                                                                                                                                if (mode === "cinematic-foley") return <CinematicFoleyAtmosComposerModal />;
+                                                                                                                                if (mode === "flagship70-cockpit") return <Flagship70SovereignCockpitModal />;
                                                                                                                                 if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }

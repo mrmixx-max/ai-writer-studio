@@ -426,6 +426,10 @@ export const en: TranslationDict = {
                     "sidebar.mode.cipher-steganography": "Cipher & Steganography",
                     "sidebar.mode.numbers-station": "Numbers Station",
                     "sidebar.mode.redacted-dossier": "Redaction Studio",
+                    "sidebar.mode.quantum-narrative": "Multi-POV Convergence",
+                    "sidebar.mode.franchise-encyclopedia": "Franchise Encyclopedia",
+                    "sidebar.mode.cinematic-foley": "Foley Atmos Engine",
+                    "sidebar.mode.flagship70-cockpit": "7.0 Cockpit",
 
               // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -801,6 +805,10 @@ export const en: TranslationDict = {
                     "sidebar.modeDesc.cipher-steganography": "OTP, book cipher, steganography",
                     "sidebar.modeDesc.numbers-station": "Shortwave atmosphere, numbers voice, radio player",
                     "sidebar.modeDesc.redacted-dossier": "Redaction pen, official stamps, dossier export",
+                    "sidebar.modeDesc.quantum-narrative": "8-strand grid, handoff weaving, causality cascade",
+                    "sidebar.modeDesc.franchise-encyclopedia": "Wiki linker, taxonomy, companion book export",
+                    "sidebar.modeDesc.cinematic-foley": "6 foley layers, scene sync, WebAudio mixer",
+                    "sidebar.modeDesc.flagship70-cockpit": "7.0 audit, Obsidian seal, Grand Obsidian Archive",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",
