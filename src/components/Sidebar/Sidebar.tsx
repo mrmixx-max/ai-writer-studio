@@ -694,6 +694,18 @@ const TonalIllusionSynthesizerModal = lazy(() =>
 const PlagiarismForensicFingerprintModal = lazy(() =>
   import("@/components/security/PlagiarismForensicFingerprintModal").then((m) => ({ default: m.PlagiarismForensicFingerprintModal }))
 );
+const NauticalNavalSimulatorModal = lazy(() =>
+  import("@/components/worldbuilding/NauticalNavalSimulatorModal").then((m) => ({ default: m.NauticalNavalSimulatorModal }))
+);
+const SeaShantySynthesizerModal = lazy(() =>
+  import("@/components/audio/SeaShantySynthesizerModal").then((m) => ({ default: m.SeaShantySynthesizerModal }))
+);
+const AbyssalOceanographyEngineModal = lazy(() =>
+  import("@/components/worldbuilding/AbyssalOceanographyEngineModal").then((m) => ({ default: m.AbyssalOceanographyEngineModal }))
+);
+const PortolanNauticalChartModal = lazy(() =>
+  import("@/components/publishing/PortolanNauticalChartModal").then((m) => ({ default: m.PortolanNauticalChartModal }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -914,6 +926,11 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
                                                                                                 { id: "speleology", key: "sidebar.mode.speleology", icon: "🕳️", descKey: "sidebar.modeDesc.speleology" },
                                                                                                 { id: "tonal-illusion", key: "sidebar.mode.tonal-illusion", icon: "🌀", descKey: "sidebar.modeDesc.tonal-illusion" },
                                                                                                 { id: "forensic-fingerprint", key: "sidebar.mode.forensic-fingerprint", icon: "🔎", descKey: "sidebar.modeDesc.forensic-fingerprint" },
+                                                                                                // Meilenstein 52 (v6.4.0): Seeschlacht, Shanty, Tiefsee, Portolan.
+                                                                                                { id: "nautical-naval", key: "sidebar.mode.nautical-naval", icon: "⚓", descKey: "sidebar.modeDesc.nautical-naval" },
+                                                                                                { id: "sea-shanty", key: "sidebar.mode.sea-shanty", icon: "🎶", descKey: "sidebar.modeDesc.sea-shanty" },
+                                                                                                { id: "abyssal-ocean", key: "sidebar.mode.abyssal-ocean", icon: "🌊", descKey: "sidebar.modeDesc.abyssal-ocean" },
+                                                                                                { id: "portolan-chart", key: "sidebar.mode.portolan-chart", icon: "🧭", descKey: "sidebar.modeDesc.portolan-chart" },
                                                                                               ];
 
 export function Sidebar() {
@@ -1445,6 +1462,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
                                                                                                                                                                                                                                                                 if (mode === "speleology") return <SubterraneanSpeleologyEngineModal />;
                                                                                                                                                                                                                                                                 if (mode === "tonal-illusion") return <TonalIllusionSynthesizerModal />;
                                                                                                                                                                                                                                                                 if (mode === "forensic-fingerprint") return <PlagiarismForensicFingerprintModal />;
+                                                                                                                                // Meilenstein 52 (v6.4.0): Seeschlacht, Shanty, Tiefsee, Portolan.
+                                                                                                                                if (mode === "nautical-naval") return <NauticalNavalSimulatorModal />;
+                                                                                                                                if (mode === "sea-shanty") return <SeaShantySynthesizerModal />;
+                                                                                                                                if (mode === "abyssal-ocean") return <AbyssalOceanographyEngineModal />;
+                                                                                                                                if (mode === "portolan-chart") return <PortolanNauticalChartModal />;
                                                                                                                                 if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }

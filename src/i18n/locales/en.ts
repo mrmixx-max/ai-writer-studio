@@ -402,6 +402,10 @@ export const en: TranslationDict = {
                     "sidebar.mode.speleology": "Speleology Simulator",
                     "sidebar.mode.tonal-illusion": "Acoustic Illusions",
                     "sidebar.mode.forensic-fingerprint": "Style Forensics",
+                    "sidebar.mode.nautical-naval": "Naval Battle Simulator",
+                    "sidebar.mode.sea-shanty": "Sea Shanty Synthesizer",
+                    "sidebar.mode.abyssal-ocean": "Abyssal Oceanography",
+                    "sidebar.mode.portolan-chart": "Portolan Chart Studio",
 
               // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -753,6 +757,10 @@ export const en: TranslationDict = {
                     "sidebar.modeDesc.speleology": "5 zones, firedamp checks, darkness prose",
                     "sidebar.modeDesc.tonal-illusion": "Shepard tones, pareidolia, WebAudio params",
                     "sidebar.modeDesc.forensic-fingerprint": "POS n-grams, style hash, forensic report",
+                    "sidebar.modeDesc.nautical-naval": "Wind roses, broadside ballistics, battle prose",
+                    "sidebar.modeDesc.sea-shanty": "3 genres, refrains, WebAudio rhythm",
+                    "sidebar.modeDesc.abyssal-ocean": "5 depth zones, bioluminescence, pressure prose",
+                    "sidebar.modeDesc.portolan-chart": "Rhumb lines, compass roses, 300-DPI export",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",

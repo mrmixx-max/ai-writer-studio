@@ -220,4 +220,9 @@ export type EditorMode =
     | "prophetic-oracle"
     | "speleology"
     | "tonal-illusion"
-    | "forensic-fingerprint";
+    | "forensic-fingerprint"
+    // Meilenstein 52 (v6.4.0)
+    | "nautical-naval"
+    | "sea-shanty"
+    | "abyssal-ocean"
+    | "portolan-chart";
