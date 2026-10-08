@@ -418,6 +418,10 @@ export const en: TranslationDict = {
                     "sidebar.mode.ballistics-forensics": "Ballistics Forensics",
                     "sidebar.mode.interrogation-deception": "Interrogation Lab",
                     "sidebar.mode.courtroom-evidence": "Courtroom Evidence",
+                    "sidebar.mode.haunted-architecture": "Haunted Architecture",
+                    "sidebar.mode.victorian-seance": "Victorian Séance",
+                    "sidebar.mode.fear-frequency": "Infrasound & Fear",
+                    "sidebar.mode.antiquarian-bookbinding": "Marbled Paper & Binding",
 
               // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -785,6 +789,10 @@ export const en: TranslationDict = {
                     "sidebar.modeDesc.ballistics-forensics": "Impact angle, bloodstain patterns, gunshot distance, SVG canvas",
                     "sidebar.modeDesc.interrogation-deception": "4 strategies, deception indicators, interrogation dialog",
                     "sidebar.modeDesc.courtroom-evidence": "Evidence custody, admissibility, court dossier",
+                    "sidebar.modeDesc.haunted-architecture": "4 room zones, geometry anomalies, decay prose",
+                    "sidebar.modeDesc.victorian-seance": "4 apparatus, supernatural phenomena, spirit writing",
+                    "sidebar.modeDesc.fear-frequency": "18.9 Hz infrasound, EVP, dread player",
+                    "sidebar.modeDesc.antiquarian-bookbinding": "3 marble patterns, spine bands, 300 DPI export",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",

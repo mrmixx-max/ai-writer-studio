@@ -240,4 +240,9 @@ export type EditorMode =
     | "forensic-pathology"
     | "ballistics-forensics"
     | "interrogation-deception"
-    | "courtroom-evidence";
+    | "courtroom-evidence"
+    // Meilenstein 56 (v6.8.0)
+    | "haunted-architecture"
+    | "victorian-seance"
+    | "fear-frequency"
+    | "antiquarian-bookbinding";

@@ -331,6 +331,18 @@ const InterrogationDeceptionLabModal = lazy(() =>
 const CourtroomEvidenceDossierModal = lazy(() =>
   import("@/components/publishing/CourtroomEvidenceDossierModal").then((m) => ({ default: m.CourtroomEvidenceDossierModal }))
 );
+const HauntedArchitectureEngineModal = lazy(() =>
+  import("@/components/worldbuilding/HauntedArchitectureEngineModal").then((m) => ({ default: m.HauntedArchitectureEngineModal }))
+);
+const VictorianSeanceStudioModal = lazy(() =>
+  import("@/components/worldbuilding/VictorianSeanceStudioModal").then((m) => ({ default: m.VictorianSeanceStudioModal }))
+);
+const FearFrequencySynthesizerModal = lazy(() =>
+  import("@/components/audio/FearFrequencySynthesizerModal").then((m) => ({ default: m.FearFrequencySynthesizerModal }))
+);
+const AntiquarianBookbindingStudioModal = lazy(() =>
+  import("@/components/publishing/AntiquarianBookbindingStudioModal").then((m) => ({ default: m.AntiquarianBookbindingStudioModal }))
+);
 const ReaderChoicePlaytester = lazy(() =>
   import("@/components/interactive/ReaderChoicePlaytester").then((m) => ({ default: m.ReaderChoicePlaytester }))
 );
@@ -982,6 +994,11 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
                                                                                                 { id: "ballistics-forensics", key: "sidebar.mode.ballistics-forensics", icon: "🔬", descKey: "sidebar.modeDesc.ballistics-forensics" },
                                                                                                 { id: "interrogation-deception", key: "sidebar.mode.interrogation-deception", icon: "🔍", descKey: "sidebar.modeDesc.interrogation-deception" },
                                                                                                 { id: "courtroom-evidence", key: "sidebar.mode.courtroom-evidence", icon: "⚖️", descKey: "sidebar.modeDesc.courtroom-evidence" },
+                                                                                                // Meilenstein 56 (v6.8.0): Spukhaus, Séance, Infraschall, Marmorpapier.
+                                                                                                { id: "haunted-architecture", key: "sidebar.mode.haunted-architecture", icon: "🏚️", descKey: "sidebar.modeDesc.haunted-architecture" },
+                                                                                                { id: "victorian-seance", key: "sidebar.mode.victorian-seance", icon: "🔮", descKey: "sidebar.modeDesc.victorian-seance" },
+                                                                                                { id: "fear-frequency", key: "sidebar.mode.fear-frequency", icon: "🎵", descKey: "sidebar.modeDesc.fear-frequency" },
+                                                                                                { id: "antiquarian-bookbinding", key: "sidebar.mode.antiquarian-bookbinding", icon: "📚", descKey: "sidebar.modeDesc.antiquarian-bookbinding" },
                                                                                               ];
 
 export function Sidebar() {
@@ -1533,6 +1550,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
                                                                                                                                 if (mode === "ballistics-forensics") return <BallisticsForensicsStudioModal />;
                                                                                                                                 if (mode === "interrogation-deception") return <InterrogationDeceptionLabModal />;
                                                                                                                                 if (mode === "courtroom-evidence") return <CourtroomEvidenceDossierModal />;
+                                                                                                                                // Meilenstein 56 (v6.8.0): Spukhaus, Séance, Infraschall, Marmorpapier.
+                                                                                                                                if (mode === "haunted-architecture") return <HauntedArchitectureEngineModal />;
+                                                                                                                                if (mode === "victorian-seance") return <VictorianSeanceStudioModal />;
+                                                                                                                                if (mode === "fear-frequency") return <FearFrequencySynthesizerModal />;
+                                                                                                                                if (mode === "antiquarian-bookbinding") return <AntiquarianBookbindingStudioModal />;
                                                                                                                                 if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }
