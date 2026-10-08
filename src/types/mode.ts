@@ -245,4 +245,9 @@ export type EditorMode =
     | "haunted-architecture"
     | "victorian-seance"
     | "fear-frequency"
-    | "antiquarian-bookbinding";
+    | "antiquarian-bookbinding"
+    // Meilenstein 57 (v6.9.0)
+    | "espionage-tradecraft"
+    | "cipher-steganography"
+    | "numbers-station"
+    | "redacted-dossier";

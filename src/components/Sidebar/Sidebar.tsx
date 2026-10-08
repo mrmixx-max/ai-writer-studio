@@ -343,6 +343,18 @@ const FearFrequencySynthesizerModal = lazy(() =>
 const AntiquarianBookbindingStudioModal = lazy(() =>
   import("@/components/publishing/AntiquarianBookbindingStudioModal").then((m) => ({ default: m.AntiquarianBookbindingStudioModal }))
 );
+const EspionageTradecraftEngineModal = lazy(() =>
+  import("@/components/worldbuilding/EspionageTradecraftEngineModal").then((m) => ({ default: m.EspionageTradecraftEngineModal }))
+);
+const ClassicalCipherSteganographyLabModal = lazy(() =>
+  import("@/components/security/ClassicalCipherSteganographyLabModal").then((m) => ({ default: m.ClassicalCipherSteganographyLabModal }))
+);
+const NumbersStationRadioSynthesizerModal = lazy(() =>
+  import("@/components/audio/NumbersStationRadioSynthesizerModal").then((m) => ({ default: m.NumbersStationRadioSynthesizerModal }))
+);
+const RedactedDossierStudioModal = lazy(() =>
+  import("@/components/publishing/RedactedDossierStudioModal").then((m) => ({ default: m.RedactedDossierStudioModal }))
+);
 const ReaderChoicePlaytester = lazy(() =>
   import("@/components/interactive/ReaderChoicePlaytester").then((m) => ({ default: m.ReaderChoicePlaytester }))
 );
@@ -999,6 +1011,11 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
                                                                                                 { id: "victorian-seance", key: "sidebar.mode.victorian-seance", icon: "🔮", descKey: "sidebar.modeDesc.victorian-seance" },
                                                                                                 { id: "fear-frequency", key: "sidebar.mode.fear-frequency", icon: "🎵", descKey: "sidebar.modeDesc.fear-frequency" },
                                                                                                 { id: "antiquarian-bookbinding", key: "sidebar.mode.antiquarian-bookbinding", icon: "📚", descKey: "sidebar.modeDesc.antiquarian-bookbinding" },
+                                                                                                // Meilenstein 57 (v6.9.0): Spionage, Chiffrier, Zahlensender, Schwärzung.
+                                                                                                { id: "espionage-tradecraft", key: "sidebar.mode.espionage-tradecraft", icon: "🕵️", descKey: "sidebar.modeDesc.espionage-tradecraft" },
+                                                                                                { id: "cipher-steganography", key: "sidebar.mode.cipher-steganography", icon: "🔐", descKey: "sidebar.modeDesc.cipher-steganography" },
+                                                                                                { id: "numbers-station", key: "sidebar.mode.numbers-station", icon: "📻", descKey: "sidebar.modeDesc.numbers-station" },
+                                                                                                { id: "redacted-dossier", key: "sidebar.mode.redacted-dossier", icon: "🔒", descKey: "sidebar.modeDesc.redacted-dossier" },
                                                                                               ];
 
 export function Sidebar() {
@@ -1555,6 +1572,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
                                                                                                                                 if (mode === "victorian-seance") return <VictorianSeanceStudioModal />;
                                                                                                                                 if (mode === "fear-frequency") return <FearFrequencySynthesizerModal />;
                                                                                                                                 if (mode === "antiquarian-bookbinding") return <AntiquarianBookbindingStudioModal />;
+                                                                                                                                // Meilenstein 57 (v6.9.0): Spionage, Chiffrier, Zahlensender, Schwärzung.
+                                                                                                                                if (mode === "espionage-tradecraft") return <EspionageTradecraftEngineModal />;
+                                                                                                                                if (mode === "cipher-steganography") return <ClassicalCipherSteganographyLabModal />;
+                                                                                                                                if (mode === "numbers-station") return <NumbersStationRadioSynthesizerModal />;
+                                                                                                                                if (mode === "redacted-dossier") return <RedactedDossierStudioModal />;
                                                                                                                                 if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }

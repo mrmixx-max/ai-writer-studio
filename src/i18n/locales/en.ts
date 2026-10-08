@@ -422,6 +422,10 @@ export const en: TranslationDict = {
                     "sidebar.mode.victorian-seance": "Victorian Séance",
                     "sidebar.mode.fear-frequency": "Infrasound & Fear",
                     "sidebar.mode.antiquarian-bookbinding": "Marbled Paper & Binding",
+                    "sidebar.mode.espionage-tradecraft": "Espionage Tradecraft",
+                    "sidebar.mode.cipher-steganography": "Cipher & Steganography",
+                    "sidebar.mode.numbers-station": "Numbers Station",
+                    "sidebar.mode.redacted-dossier": "Redaction Studio",
 
               // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -793,6 +797,10 @@ export const en: TranslationDict = {
                     "sidebar.modeDesc.victorian-seance": "4 apparatus, supernatural phenomena, spirit writing",
                     "sidebar.modeDesc.fear-frequency": "18.9 Hz infrasound, EVP, dread player",
                     "sidebar.modeDesc.antiquarian-bookbinding": "3 marble patterns, spine bands, 300 DPI export",
+                    "sidebar.modeDesc.espionage-tradecraft": "4 operations, dead drop topography, spy prose",
+                    "sidebar.modeDesc.cipher-steganography": "OTP, book cipher, steganography",
+                    "sidebar.modeDesc.numbers-station": "Shortwave atmosphere, numbers voice, radio player",
+                    "sidebar.modeDesc.redacted-dossier": "Redaction pen, official stamps, dossier export",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",
