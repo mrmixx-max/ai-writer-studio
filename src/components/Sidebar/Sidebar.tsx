@@ -319,6 +319,18 @@ const GlitchCyberpunkSoundscapeModal = lazy(() =>
 const WebSerialPublisherModal = lazy(() =>
   import("@/components/publishing/WebSerialPublisherModal").then((m) => ({ default: m.WebSerialPublisherModal }))
 );
+const ForensicPathologyEngineModal = lazy(() =>
+  import("@/components/worldbuilding/ForensicPathologyEngineModal").then((m) => ({ default: m.ForensicPathologyEngineModal }))
+);
+const BallisticsForensicsStudioModal = lazy(() =>
+  import("@/components/worldbuilding/BallisticsForensicsStudioModal").then((m) => ({ default: m.BallisticsForensicsStudioModal }))
+);
+const InterrogationDeceptionLabModal = lazy(() =>
+  import("@/components/dramaturgy/InterrogationDeceptionLabModal").then((m) => ({ default: m.InterrogationDeceptionLabModal }))
+);
+const CourtroomEvidenceDossierModal = lazy(() =>
+  import("@/components/publishing/CourtroomEvidenceDossierModal").then((m) => ({ default: m.CourtroomEvidenceDossierModal }))
+);
 const ReaderChoicePlaytester = lazy(() =>
   import("@/components/interactive/ReaderChoicePlaytester").then((m) => ({ default: m.ReaderChoicePlaytester }))
 );
@@ -965,6 +977,11 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
                                                                                                 { id: "cybernetic-augmentation", key: "sidebar.mode.cybernetic-augmentation", icon: "🦾", descKey: "sidebar.modeDesc.cybernetic-augmentation" },
                                                                                                 { id: "glitch-cyberpunk", key: "sidebar.mode.glitch-cyberpunk", icon: "🎛️", descKey: "sidebar.modeDesc.glitch-cyberpunk" },
                                                                                                 { id: "web-serial", key: "sidebar.mode.web-serial", icon: "📖", descKey: "sidebar.modeDesc.web-serial" },
+                                                                                                // Meilenstein 55 (v6.7.0): Forensik, Ballistik, Verhör, Gerichtssaal.
+                                                                                                { id: "forensic-pathology", key: "sidebar.mode.forensic-pathology", icon: "⚕️", descKey: "sidebar.modeDesc.forensic-pathology" },
+                                                                                                { id: "ballistics-forensics", key: "sidebar.mode.ballistics-forensics", icon: "🔬", descKey: "sidebar.modeDesc.ballistics-forensics" },
+                                                                                                { id: "interrogation-deception", key: "sidebar.mode.interrogation-deception", icon: "🔍", descKey: "sidebar.modeDesc.interrogation-deception" },
+                                                                                                { id: "courtroom-evidence", key: "sidebar.mode.courtroom-evidence", icon: "⚖️", descKey: "sidebar.modeDesc.courtroom-evidence" },
                                                                                               ];
 
 export function Sidebar() {
@@ -1511,6 +1528,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
                                                                                                                                 if (mode === "cybernetic-augmentation") return <CyberneticAugmentationLedgerModal />;
                                                                                                                                 if (mode === "glitch-cyberpunk") return <GlitchCyberpunkSoundscapeModal />;
                                                                                                                                 if (mode === "web-serial") return <WebSerialPublisherModal />;
+                                                                                                                                // Meilenstein 55 (v6.7.0): Forensik, Ballistik, Verhör, Gerichtssaal.
+                                                                                                                                if (mode === "forensic-pathology") return <ForensicPathologyEngineModal />;
+                                                                                                                                if (mode === "ballistics-forensics") return <BallisticsForensicsStudioModal />;
+                                                                                                                                if (mode === "interrogation-deception") return <InterrogationDeceptionLabModal />;
+                                                                                                                                if (mode === "courtroom-evidence") return <CourtroomEvidenceDossierModal />;
                                                                                                                                 if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }

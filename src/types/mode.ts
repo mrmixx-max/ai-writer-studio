@@ -235,4 +235,9 @@ export type EditorMode =
     | "orbital-astrodynamics"
     | "cybernetic-augmentation"
     | "glitch-cyberpunk"
-    | "web-serial";
+    | "web-serial"
+    // Meilenstein 55 (v6.7.0)
+    | "forensic-pathology"
+    | "ballistics-forensics"
+    | "interrogation-deception"
+    | "courtroom-evidence";

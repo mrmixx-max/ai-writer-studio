@@ -414,6 +414,10 @@ export const en: TranslationDict = {
                     "sidebar.mode.cybernetic-augmentation": "Cyberware Ledger",
                     "sidebar.mode.glitch-cyberpunk": "Glitch Cyberpunk",
                     "sidebar.mode.web-serial": "Web Serial Studio",
+                    "sidebar.mode.forensic-pathology": "Forensic Pathology",
+                    "sidebar.mode.ballistics-forensics": "Ballistics Forensics",
+                    "sidebar.mode.interrogation-deception": "Interrogation Lab",
+                    "sidebar.mode.courtroom-evidence": "Courtroom Evidence",
 
               // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -777,6 +781,10 @@ export const en: TranslationDict = {
                     "sidebar.modeDesc.cybernetic-augmentation": "5 slots, humanity loss, dissociation index, glitch prose",
                     "sidebar.modeDesc.glitch-cyberpunk": "Multi-oscillator, netrunning effects, WebAudio soundscape",
                     "sidebar.modeDesc.web-serial": "LitRPG status, cliffhanger score, platform export",
+                    "sidebar.modeDesc.forensic-pathology": "Henssge formula, rigor mortis, livor mortis, autopsy report",
+                    "sidebar.modeDesc.ballistics-forensics": "Impact angle, bloodstain patterns, gunshot distance, SVG canvas",
+                    "sidebar.modeDesc.interrogation-deception": "4 strategies, deception indicators, interrogation dialog",
+                    "sidebar.modeDesc.courtroom-evidence": "Evidence custody, admissibility, court dossier",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",
