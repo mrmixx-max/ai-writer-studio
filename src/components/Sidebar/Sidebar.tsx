@@ -642,6 +642,19 @@ const SurrealDreamLogicSynthesizerModal = lazy(() =>
 const PantheonCreationMythModal = lazy(() =>
   import("@/components/worldbuilding/PantheonCreationMythModal").then((m) => ({ default: m.PantheonCreationMythModal }))
 );
+// Meilenstein 48 (v6.0.0): Omniverse-Architekt, Autoren-Gilde, Hörspiel-Regie, 6.0-Cockpit.
+const OmniverseNarrativeArchitectModal = lazy(() =>
+  import("@/components/ai/OmniverseNarrativeArchitectModal").then((m) => ({ default: m.OmniverseNarrativeArchitectModal }))
+);
+const WritersGuildHubModal = lazy(() =>
+  import("@/components/Collaboration/WritersGuildHubModal").then((m) => ({ default: m.WritersGuildHubModal }))
+);
+const AudioDramaMasterDirectorModal = lazy(() =>
+  import("@/components/audio/AudioDramaMasterDirectorModal").then((m) => ({ default: m.AudioDramaMasterDirectorModal }))
+);
+const Flagship60SingularityCockpitModal = lazy(() =>
+  import("@/components/publishing/Flagship60SingularityCockpitModal").then((m) => ({ default: m.Flagship60SingularityCockpitModal }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -842,6 +855,11 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
                                                                                                 { id: "mythic-beast", key: "sidebar.mode.mythic-beast", icon: "🐉", descKey: "sidebar.modeDesc.mythic-beast" },
                                                                                                 { id: "surreal-dream", key: "sidebar.mode.surreal-dream", icon: "🌙", descKey: "sidebar.modeDesc.surreal-dream" },
                                                                                                 { id: "pantheon-myth", key: "sidebar.mode.pantheon-myth", icon: "🏛️", descKey: "sidebar.modeDesc.pantheon-myth" },
+                                                                                                // Meilenstein 48 (v6.0.0): Omniverse, Autoren-Gilde, Hörspiel-Regie, 6.0-Cockpit.
+                                                                                                { id: "omniverse-architect", key: "sidebar.mode.omniverse-architect", icon: "🌌", descKey: "sidebar.modeDesc.omniverse-architect" },
+                                                                                                { id: "writers-guild", key: "sidebar.mode.writers-guild", icon: "👥", descKey: "sidebar.modeDesc.writers-guild" },
+                                                                                                { id: "audio-drama-director", key: "sidebar.mode.audio-drama-director", icon: "🎙️", descKey: "sidebar.modeDesc.audio-drama-director" },
+                                                                                                { id: "flagship60-cockpit", key: "sidebar.mode.flagship60-cockpit", icon: "🏆", descKey: "sidebar.modeDesc.flagship60-cockpit" },
                                                                                               ];
 
 export function Sidebar() {
@@ -1353,6 +1371,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
                                                                                                                                                                                                                                                                 if (mode === "mythic-beast") return <MythicBeastAnatomyModal />;
                                                                                                                                                                                                                                                                 if (mode === "surreal-dream") return <SurrealDreamLogicSynthesizerModal />;
                                                                                                                                                                                                                                                                 if (mode === "pantheon-myth") return <PantheonCreationMythModal />;
+                                                                                                                                                                                                                                                                // Meilenstein 48 (v6.0.0): Omniverse, Autoren-Gilde, Hörspiel-Regie, 6.0-Cockpit.
+                                                                                                                                                                                                                                                                if (mode === "omniverse-architect") return <OmniverseNarrativeArchitectModal />;
+                                                                                                                                                                                                                                                                if (mode === "writers-guild") return <WritersGuildHubModal />;
+                                                                                                                                                                                                                                                                if (mode === "audio-drama-director") return <AudioDramaMasterDirectorModal />;
+                                                                                                                                                                                                                                                                if (mode === "flagship60-cockpit") return <Flagship60SingularityCockpitModal />;
                                                                                                                                 if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }

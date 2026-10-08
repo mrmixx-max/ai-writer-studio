@@ -583,6 +583,11 @@ export const es: TranslationDict = {
                     "sidebar.mode.mythic-beast": "Bestiario y anatomía",
                     "sidebar.mode.surreal-dream": "Sintetizador de lógica onírica",
                     "sidebar.mode.pantheon-myth": "Tejedor de teogonía",
+                    // Meilenstein 48 (v6.0.0)
+                    "sidebar.mode.omniverse-architect": "Arquitecto del omniverso",
+                    "sidebar.mode.writers-guild": "Gremio de autores",
+                    "sidebar.mode.audio-drama-director": "Director de radioteatro",
+                    "sidebar.mode.flagship60-cockpit": "Cabina de singularidad 6.0",
 
               "sidebar.editorTextFallback": "(elegir texto del editor)",
   "sidebar.contentFallback": "(contenido)",
@@ -716,6 +721,11 @@ export const es: TranslationDict = {
                     "sidebar.modeDesc.mythic-beast": "Anatomía, moral del bestiario, diario del naturalista",
                     "sidebar.modeDesc.surreal-dream": "4 dimensiones oníricas, simbolismo profético, prosa",
                     "sidebar.modeDesc.pantheon-myth": "4 cosmogonías, árbol genealógico divino, textos sagrados",
+                    // Meilenstein 48 (v6.0.0)
+                    "sidebar.modeDesc.omniverse-architect": "Enlace de sistemas, alertas de incoherencia, sincronización 1 clic",
+                    "sidebar.modeDesc.writers-guild": "P2P local, 5 niveles de rol, deltas CRDT E2E",
+                    "sidebar.modeDesc.audio-drama-director": "Master de 4 pistas, preescucha WebAudio, exportación EDL/cuesheet",
+                    "sidebar.modeDesc.flagship60-cockpit": "Auditoría 10.000, sello de diamante, archivo .aiws60",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comentarios + revisiones",
   "sidebar.modeDesc.condense": "Abreviar texto",

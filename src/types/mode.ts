@@ -200,4 +200,9 @@ export type EditorMode =
     | "alchemical-grimoire"
     | "mythic-beast"
     | "surreal-dream"
-    | "pantheon-myth";
+    | "pantheon-myth"
+    // Meilenstein 48 (v6.0.0)
+    | "omniverse-architect"
+    | "writers-guild"
+    | "audio-drama-director"
+    | "flagship60-cockpit";

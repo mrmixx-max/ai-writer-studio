@@ -382,6 +382,11 @@ export const en: TranslationDict = {
                     "sidebar.mode.mythic-beast": "Bestiary & Anatomy",
                     "sidebar.mode.surreal-dream": "Dream Logic Synthesizer",
                     "sidebar.mode.pantheon-myth": "Theogony Weaver",
+                    // Meilenstein 48 (v6.0.0)
+                    "sidebar.mode.omniverse-architect": "Omniverse Architect",
+                    "sidebar.mode.writers-guild": "Writers' Guild",
+                    "sidebar.mode.audio-drama-director": "Audio Drama Director",
+                    "sidebar.mode.flagship60-cockpit": "6.0 Singularity Cockpit",
 
               // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -713,6 +718,11 @@ export const en: TranslationDict = {
                     "sidebar.modeDesc.mythic-beast": "Anatomy, bestiary lore, naturalist's journal",
                     "sidebar.modeDesc.surreal-dream": "4 dream dimensions, prophetic symbolism, prose",
                     "sidebar.modeDesc.pantheon-myth": "4 cosmogonies, deity family tree, sacred texts",
+                    // Meilenstein 48 (v6.0.0)
+                    "sidebar.modeDesc.omniverse-architect": "System linking, inconsistency alerts, 1-click sync",
+                    "sidebar.modeDesc.writers-guild": "Local P2P, 5 role tiers, E2E CRDT deltas",
+                    "sidebar.modeDesc.audio-drama-director": "4-track master, WebAudio preview, EDL/cuesheet export",
+                    "sidebar.modeDesc.flagship60-cockpit": "10,000 audit, diamond seal, .aiws60 archive",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",

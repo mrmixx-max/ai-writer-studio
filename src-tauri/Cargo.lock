@@ -19,7 +19,7 @@ dependencies = [
 
 [[package]]
 name = "ai-writer-studio"
-version = "5.8.0"
+version = "5.9.0"
 dependencies = [
  "base64 0.22.1",
  "chrono",

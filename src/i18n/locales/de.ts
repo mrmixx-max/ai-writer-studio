@@ -316,6 +316,11 @@ export const de = {
                 "sidebar.mode.mythic-beast": "Bestiarium & Anatomie",
                 "sidebar.mode.surreal-dream": "Traumlogik-Synthesizer",
                 "sidebar.mode.pantheon-myth": "Theogonie-Weaver",
+                // Meilenstein 48 (v6.0.0)
+                "sidebar.mode.omniverse-architect": "Omniverse-Architekt",
+                "sidebar.mode.writers-guild": "Autoren-Gilde",
+                "sidebar.mode.audio-drama-director": "Hörspiel-Regiepult",
+                "sidebar.mode.flagship60-cockpit": "6.0-Singularitäts-Cockpit",
   "backup.title": "🔒 Backup",
   "backup.now": "⬇ Jetzt sichern",
   "backup.restore": "Wiederherstellen",
@@ -650,6 +655,11 @@ export const de = {
                     "sidebar.modeDesc.mythic-beast": "Anatomie, Bestiarien-Moral, Naturforscher-Tagebuch",
                     "sidebar.modeDesc.surreal-dream": "4 Traum-Dimensionen, prophetische Symbolik, Prosa",
                     "sidebar.modeDesc.pantheon-myth": "4 Kosmogonien, Götter-Stammbaum, Sakraltexte",
+                    // Meilenstein 48 (v6.0.0)
+                    "sidebar.modeDesc.omniverse-architect": "System-Verknüpfung, Inkonsistenz-Warnung, 1-Klick-Sync",
+                    "sidebar.modeDesc.writers-guild": "Lokales P2P, 5 Rollen-Tiers, E2E-CRDT-Deltas",
+                    "sidebar.modeDesc.audio-drama-director": "4-Spur-Master, WebAudio-Vorhören, EDL/Cuesheet-Export",
+                    "sidebar.modeDesc.flagship60-cockpit": "10.000er-Audit, Diamant-Siegel, .aiws60-Archiv",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Kommentare + Reviews",
   "sidebar.modeDesc.condense": "Textverkürzung",
