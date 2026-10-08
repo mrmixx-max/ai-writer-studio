@@ -588,6 +588,11 @@ export const es: TranslationDict = {
                     "sidebar.mode.writers-guild": "Gremio de autores",
                     "sidebar.mode.audio-drama-director": "Director de radioteatro",
                     "sidebar.mode.flagship60-cockpit": "Cabina de singularidad 6.0",
+                    // Meilenstein 49 (v6.1.0)
+                    "sidebar.mode.reader-twin": "Simulador de lector gemelo",
+                    "sidebar.mode.mystery-web": "Matriz de misterio",
+                    "sidebar.mode.alien-phonology": "Fonología alienígena",
+                    "sidebar.mode.agent-pitch": "Presentación a agentes",
 
               "sidebar.editorTextFallback": "(elegir texto del editor)",
   "sidebar.contentFallback": "(contenido)",
@@ -726,6 +731,11 @@ export const es: TranslationDict = {
                     "sidebar.modeDesc.writers-guild": "P2P local, 5 niveles de rol, deltas CRDT E2E",
                     "sidebar.modeDesc.audio-drama-director": "Master de 4 pistas, preescucha WebAudio, exportación EDL/cuesheet",
                     "sidebar.modeDesc.flagship60-cockpit": "Auditoría 10.000, sello de diamante, archivo .aiws60",
+                    // Meilenstein 49 (v6.1.0)
+                    "sidebar.modeDesc.reader-twin": "4 arquetipos de lector, mapa de sacadas, retención",
+                    "sidebar.modeDesc.mystery-web": "4 capas, decálogo de Knox, prueba de juego limpio",
+                    "sidebar.modeDesc.alien-phonology": "3 aparatos vocales, matriz conlang, parámetros WebAudio",
+                    "sidebar.modeDesc.agent-pitch": "Query de 250 palabras, títulos comparables, dossier de envío",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comentarios + revisiones",
   "sidebar.modeDesc.condense": "Abreviar texto",

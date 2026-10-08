@@ -321,6 +321,11 @@ export const de = {
                 "sidebar.mode.writers-guild": "Autoren-Gilde",
                 "sidebar.mode.audio-drama-director": "Hörspiel-Regiepult",
                 "sidebar.mode.flagship60-cockpit": "6.0-Singularitäts-Cockpit",
+                // Meilenstein 49 (v6.1.0)
+                "sidebar.mode.reader-twin": "Reader-Twin-Simulator",
+                "sidebar.mode.mystery-web": "Krimi-Matrix",
+                "sidebar.mode.alien-phonology": "Alien-Phonologie",
+                "sidebar.mode.agent-pitch": "Agentur-Pitch",
   "backup.title": "🔒 Backup",
   "backup.now": "⬇ Jetzt sichern",
   "backup.restore": "Wiederherstellen",
@@ -660,6 +665,11 @@ export const de = {
                     "sidebar.modeDesc.writers-guild": "Lokales P2P, 5 Rollen-Tiers, E2E-CRDT-Deltas",
                     "sidebar.modeDesc.audio-drama-director": "4-Spur-Master, WebAudio-Vorhören, EDL/Cuesheet-Export",
                     "sidebar.modeDesc.flagship60-cockpit": "10.000er-Audit, Diamant-Siegel, .aiws60-Archiv",
+                    // Meilenstein 49 (v6.1.0)
+                    "sidebar.modeDesc.reader-twin": "4 Leser-Archetypen, Sakkaden-Heatmap, Retention",
+                    "sidebar.modeDesc.mystery-web": "4 Schichten, Knox'sche Gebote, Fair-Play-Nachweis",
+                    "sidebar.modeDesc.alien-phonology": "3 Lautapparate, Conlang-Matrix, WebAudio-Parameter",
+                    "sidebar.modeDesc.agent-pitch": "250-Wörter-Query, Comp-Titles, Einreichungs-Dossier",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Kommentare + Reviews",
   "sidebar.modeDesc.condense": "Textverkürzung",

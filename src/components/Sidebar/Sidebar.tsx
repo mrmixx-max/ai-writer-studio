@@ -655,6 +655,19 @@ const AudioDramaMasterDirectorModal = lazy(() =>
 const Flagship60SingularityCockpitModal = lazy(() =>
   import("@/components/publishing/Flagship60SingularityCockpitModal").then((m) => ({ default: m.Flagship60SingularityCockpitModal }))
 );
+// Meilenstein 49 (v6.1.0): Reader-Twin, Krimi-Matrix, Alien-Phonologie, Agentur-Pitch.
+const CognitiveReaderTwinModal = lazy(() =>
+  import("@/components/ai/CognitiveReaderTwinModal").then((m) => ({ default: m.CognitiveReaderTwinModal }))
+);
+const EpistemicMysteryWebModal = lazy(() =>
+  import("@/components/worldbuilding/EpistemicMysteryWebModal").then((m) => ({ default: m.EpistemicMysteryWebModal }))
+);
+const AlienPhonologySynthesizerModal = lazy(() =>
+  import("@/components/audio/AlienPhonologySynthesizerModal").then((m) => ({ default: m.AlienPhonologySynthesizerModal }))
+);
+const LiteraryAgentPitchDeckModal = lazy(() =>
+  import("@/components/publishing/LiteraryAgentPitchDeckModal").then((m) => ({ default: m.LiteraryAgentPitchDeckModal }))
+);
 import {
   renameProject, renameChapter, deleteProject, deleteChapter,
 } from "@/services/project";
@@ -860,6 +873,11 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
                                                                                                 { id: "writers-guild", key: "sidebar.mode.writers-guild", icon: "👥", descKey: "sidebar.modeDesc.writers-guild" },
                                                                                                 { id: "audio-drama-director", key: "sidebar.mode.audio-drama-director", icon: "🎙️", descKey: "sidebar.modeDesc.audio-drama-director" },
                                                                                                 { id: "flagship60-cockpit", key: "sidebar.mode.flagship60-cockpit", icon: "🏆", descKey: "sidebar.modeDesc.flagship60-cockpit" },
+                                                                                                // Meilenstein 49 (v6.1.0): Reader-Twin, Krimi-Matrix, Alien-Phonologie, Agentur-Pitch.
+                                                                                                { id: "reader-twin", key: "sidebar.mode.reader-twin", icon: "👁️", descKey: "sidebar.modeDesc.reader-twin" },
+                                                                                                { id: "mystery-web", key: "sidebar.mode.mystery-web", icon: "🔍", descKey: "sidebar.modeDesc.mystery-web" },
+                                                                                                { id: "alien-phonology", key: "sidebar.mode.alien-phonology", icon: "🛸", descKey: "sidebar.modeDesc.alien-phonology" },
+                                                                                                { id: "agent-pitch", key: "sidebar.mode.agent-pitch", icon: "📮", descKey: "sidebar.modeDesc.agent-pitch" },
                                                                                               ];
 
 export function Sidebar() {
@@ -1376,6 +1394,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
                                                                                                                                                                                                                                                                 if (mode === "writers-guild") return <WritersGuildHubModal />;
                                                                                                                                                                                                                                                                 if (mode === "audio-drama-director") return <AudioDramaMasterDirectorModal />;
                                                                                                                                                                                                                                                                 if (mode === "flagship60-cockpit") return <Flagship60SingularityCockpitModal />;
+                                                                                                                                                                                                                                                                // Meilenstein 49 (v6.1.0): Reader-Twin, Krimi-Matrix, Alien-Phonologie, Agentur-Pitch.
+                                                                                                                                                                                                                                                                if (mode === "reader-twin") return <CognitiveReaderTwinModal />;
+                                                                                                                                                                                                                                                                if (mode === "mystery-web") return <EpistemicMysteryWebModal />;
+                                                                                                                                                                                                                                                                if (mode === "alien-phonology") return <AlienPhonologySynthesizerModal />;
+                                                                                                                                                                                                                                                                if (mode === "agent-pitch") return <LiteraryAgentPitchDeckModal />;
                                                                                                                                 if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }

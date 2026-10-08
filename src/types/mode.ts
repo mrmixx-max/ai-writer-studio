@@ -205,4 +205,9 @@ export type EditorMode =
     | "omniverse-architect"
     | "writers-guild"
     | "audio-drama-director"
-    | "flagship60-cockpit";
+    | "flagship60-cockpit"
+    // Meilenstein 49 (v6.1.0)
+    | "reader-twin"
+    | "mystery-web"
+    | "alien-phonology"
+    | "agent-pitch";

@@ -387,6 +387,11 @@ export const en: TranslationDict = {
                     "sidebar.mode.writers-guild": "Writers' Guild",
                     "sidebar.mode.audio-drama-director": "Audio Drama Director",
                     "sidebar.mode.flagship60-cockpit": "6.0 Singularity Cockpit",
+                    // Meilenstein 49 (v6.1.0)
+                    "sidebar.mode.reader-twin": "Reader Twin Simulator",
+                    "sidebar.mode.mystery-web": "Mystery Matrix",
+                    "sidebar.mode.alien-phonology": "Alien Phonology",
+                    "sidebar.mode.agent-pitch": "Agent Pitch",
 
               // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -723,6 +728,11 @@ export const en: TranslationDict = {
                     "sidebar.modeDesc.writers-guild": "Local P2P, 5 role tiers, E2E CRDT deltas",
                     "sidebar.modeDesc.audio-drama-director": "4-track master, WebAudio preview, EDL/cuesheet export",
                     "sidebar.modeDesc.flagship60-cockpit": "10,000 audit, diamond seal, .aiws60 archive",
+                    // Meilenstein 49 (v6.1.0)
+                    "sidebar.modeDesc.reader-twin": "4 reader archetypes, saccade heatmap, retention",
+                    "sidebar.modeDesc.mystery-web": "4 layers, Knox's Decalogue, fair-play proof",
+                    "sidebar.modeDesc.alien-phonology": "3 vocal apparatuses, conlang matrix, WebAudio params",
+                    "sidebar.modeDesc.agent-pitch": "250-word query, comp titles, submission dossier",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",
