@@ -307,6 +307,18 @@ const EditorialContentCalendarModal = lazy(() =>
 const AuthorNewsletterSequenceModal = lazy(() =>
   import("@/components/marketing/AuthorNewsletterSequenceModal").then((m) => ({ default: m.AuthorNewsletterSequenceModal }))
 );
+const OrbitalAstrodynamicsEngineModal = lazy(() =>
+  import("@/components/worldbuilding/OrbitalAstrodynamicsEngineModal").then((m) => ({ default: m.OrbitalAstrodynamicsEngineModal }))
+);
+const CyberneticAugmentationLedgerModal = lazy(() =>
+  import("@/components/worldbuilding/CyberneticAugmentationLedgerModal").then((m) => ({ default: m.CyberneticAugmentationLedgerModal }))
+);
+const GlitchCyberpunkSoundscapeModal = lazy(() =>
+  import("@/components/audio/GlitchCyberpunkSoundscapeModal").then((m) => ({ default: m.GlitchCyberpunkSoundscapeModal }))
+);
+const WebSerialPublisherModal = lazy(() =>
+  import("@/components/publishing/WebSerialPublisherModal").then((m) => ({ default: m.WebSerialPublisherModal }))
+);
 const ReaderChoicePlaytester = lazy(() =>
   import("@/components/interactive/ReaderChoicePlaytester").then((m) => ({ default: m.ReaderChoicePlaytester }))
 );
@@ -948,6 +960,11 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
                                                                                                 { id: "quote-card", key: "sidebar.mode.quote-card", icon: "🎨", descKey: "sidebar.modeDesc.quote-card" },
                                                                                                 { id: "editorial-calendar", key: "sidebar.mode.editorial-calendar", icon: "📅", descKey: "sidebar.modeDesc.editorial-calendar" },
                                                                                                 { id: "author-newsletter", key: "sidebar.mode.author-newsletter", icon: "✉️", descKey: "sidebar.modeDesc.author-newsletter" },
+                                                                                                // Meilenstein 54 (v6.6.0): Orbital, Cyberware, Glitch-Sound, Web-Serial.
+                                                                                                { id: "orbital-astrodynamics", key: "sidebar.mode.orbital-astrodynamics", icon: "🚀", descKey: "sidebar.modeDesc.orbital-astrodynamics" },
+                                                                                                { id: "cybernetic-augmentation", key: "sidebar.mode.cybernetic-augmentation", icon: "🦾", descKey: "sidebar.modeDesc.cybernetic-augmentation" },
+                                                                                                { id: "glitch-cyberpunk", key: "sidebar.mode.glitch-cyberpunk", icon: "🎛️", descKey: "sidebar.modeDesc.glitch-cyberpunk" },
+                                                                                                { id: "web-serial", key: "sidebar.mode.web-serial", icon: "📖", descKey: "sidebar.modeDesc.web-serial" },
                                                                                               ];
 
 export function Sidebar() {
@@ -1489,6 +1506,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
                                                                                                                                 if (mode === "quote-card") return <QuoteCardGraphicStudioModal />;
                                                                                                                                 if (mode === "editorial-calendar") return <EditorialContentCalendarModal />;
                                                                                                                                 if (mode === "author-newsletter") return <AuthorNewsletterSequenceModal />;
+                                                                                                                                // Meilenstein 54 (v6.6.0): Orbital, Cyberware, Glitch-Sound, Web-Serial.
+                                                                                                                                if (mode === "orbital-astrodynamics") return <OrbitalAstrodynamicsEngineModal />;
+                                                                                                                                if (mode === "cybernetic-augmentation") return <CyberneticAugmentationLedgerModal />;
+                                                                                                                                if (mode === "glitch-cyberpunk") return <GlitchCyberpunkSoundscapeModal />;
+                                                                                                                                if (mode === "web-serial") return <WebSerialPublisherModal />;
                                                                                                                                 if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }

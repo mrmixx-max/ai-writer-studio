@@ -230,4 +230,9 @@ export type EditorMode =
     | "social-media-post"
     | "quote-card"
     | "editorial-calendar"
-    | "author-newsletter";
+    | "author-newsletter"
+    // Meilenstein 54 (v6.6.0)
+    | "orbital-astrodynamics"
+    | "cybernetic-augmentation"
+    | "glitch-cyberpunk"
+    | "web-serial";

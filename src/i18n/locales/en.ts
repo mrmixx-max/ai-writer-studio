@@ -410,6 +410,10 @@ export const en: TranslationDict = {
                     "sidebar.mode.quote-card": "Quote Card Studio",
                     "sidebar.mode.editorial-calendar": "Editorial Calendar",
                     "sidebar.mode.author-newsletter": "Newsletter Sequence",
+                    "sidebar.mode.orbital-astrodynamics": "Orbital Astrodynamics",
+                    "sidebar.mode.cybernetic-augmentation": "Cyberware Ledger",
+                    "sidebar.mode.glitch-cyberpunk": "Glitch Cyberpunk",
+                    "sidebar.mode.web-serial": "Web Serial Studio",
 
               // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -769,6 +773,10 @@ export const en: TranslationDict = {
                     "sidebar.modeDesc.quote-card": "3 formats, 4 themes, SVG layout engine",
                     "sidebar.modeDesc.editorial-calendar": "4 phases, 30 days, CSV/Markdown export",
                     "sidebar.modeDesc.author-newsletter": "5 emails, subject line splitter, author sequence",
+                    "sidebar.modeDesc.orbital-astrodynamics": "Radio delay, brachistochrone, Hohmann transfer, cockpit log",
+                    "sidebar.modeDesc.cybernetic-augmentation": "5 slots, humanity loss, dissociation index, glitch prose",
+                    "sidebar.modeDesc.glitch-cyberpunk": "Multi-oscillator, netrunning effects, WebAudio soundscape",
+                    "sidebar.modeDesc.web-serial": "LitRPG status, cliffhanger score, platform export",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",
