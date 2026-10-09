@@ -434,6 +434,10 @@ export const en: TranslationDict = {
                     "sidebar.mode.sartorial-fashion": "Sartorial Fashion",
                     "sidebar.mode.arming-sequence": "Arming Sequence",
                     "sidebar.mode.character-wardrobe": "Character Wardrobe",
+                    "sidebar.mode.oulipo-constraint": "Oulipo Constraint Engine",
+                    "sidebar.mode.ergodic-footnote": "Ergodic Footnote Labyrinth",
+                    "sidebar.mode.concrete-calligram": "Concrete Poetry & Calligram",
+                    "sidebar.mode.burroughs-cutup": "Burroughs Cut-Up Montage",
 
               // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -817,6 +821,10 @@ export const en: TranslationDict = {
                     "sidebar.modeDesc.sartorial-fashion": "Textile taxonomy, sumptuary law checker, textile prose",
                     "sidebar.modeDesc.arming-sequence": "6 steps, tension weave, arming scene",
                     "sidebar.modeDesc.character-wardrobe": "Wardrobe grid, continuity watcher, lookbook export",
+                    "sidebar.modeDesc.oulipo-constraint": "5 constraint methods, rule checker, synthesizer",
+                    "sidebar.modeDesc.ergodic-footnote": "Recursive footnotes, commentators, reading paths",
+                    "sidebar.modeDesc.concrete-calligram": "Vector shapes, path text, 300 DPI export",
+                    "sidebar.modeDesc.burroughs-cutup": "Multi-source cut, grammar polish, collage",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",

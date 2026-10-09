@@ -260,4 +260,9 @@ export type EditorMode =
     | "armor-metallurgy"
     | "sartorial-fashion"
     | "arming-sequence"
-    | "character-wardrobe";
+    | "character-wardrobe"
+    // Meilenstein 60 (v7.2.0)
+    | "oulipo-constraint"
+    | "ergodic-footnote"
+    | "concrete-calligram"
+    | "burroughs-cutup";

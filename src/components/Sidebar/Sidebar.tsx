@@ -379,6 +379,18 @@ const ArmingSequenceOrchestratorModal = lazy(() =>
 const CharacterWardrobeLookbookModal = lazy(() =>
   import("@/components/publishing/CharacterWardrobeLookbookModal").then((m) => ({ default: m.CharacterWardrobeLookbookModal }))
 );
+const OulipoConstraintEngineModal = lazy(() =>
+  import("@/components/ai/OulipoConstraintEngineModal").then((m) => ({ default: m.OulipoConstraintEngineModal }))
+);
+const ErgodicFootnoteLabyrinthModal = lazy(() =>
+  import("@/components/dramaturgy/ErgodicFootnoteLabyrinthModal").then((m) => ({ default: m.ErgodicFootnoteLabyrinthModal }))
+);
+const ConcreteCalligramEngineModal = lazy(() =>
+  import("@/components/typography/ConcreteCalligramEngineModal").then((m) => ({ default: m.ConcreteCalligramEngineModal }))
+);
+const BurroughsCutUpCollatorModal = lazy(() =>
+  import("@/components/ai/BurroughsCutUpCollatorModal").then((m) => ({ default: m.BurroughsCutUpCollatorModal }))
+);
 const ReaderChoicePlaytester = lazy(() =>
   import("@/components/interactive/ReaderChoicePlaytester").then((m) => ({ default: m.ReaderChoicePlaytester }))
 );
@@ -1050,6 +1062,11 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
                                                                                                 { id: "sartorial-fashion", key: "sidebar.mode.sartorial-fashion", icon: "👘", descKey: "sidebar.modeDesc.sartorial-fashion" },
                                                                                                 { id: "arming-sequence", key: "sidebar.mode.arming-sequence", icon: "🛡️", descKey: "sidebar.modeDesc.arming-sequence" },
                                                                                                 { id: "character-wardrobe", key: "sidebar.mode.character-wardrobe", icon: "👗", descKey: "sidebar.modeDesc.character-wardrobe" },
+                                                                                                // Meilenstein 60 (v7.2.0): Oulipo, Ergodische Fußnoten, Kalligramme, Cut-Up.
+                                                                                                { id: "oulipo-constraint", key: "sidebar.mode.oulipo-constraint", icon: "📐", descKey: "sidebar.modeDesc.oulipo-constraint" },
+                                                                                                { id: "ergodic-footnote", key: "sidebar.mode.ergodic-footnote", icon: "🌀", descKey: "sidebar.modeDesc.ergodic-footnote" },
+                                                                                                { id: "concrete-calligram", key: "sidebar.mode.concrete-calligram", icon: "🔤", descKey: "sidebar.modeDesc.concrete-calligram" },
+                                                                                                { id: "burroughs-cutup", key: "sidebar.mode.burroughs-cutup", icon: "✂️", descKey: "sidebar.modeDesc.burroughs-cutup" },
                                                                                               ];
 
 export function Sidebar() {
@@ -1621,6 +1638,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
                                                                                                                                 if (mode === "sartorial-fashion") return <SartorialFashionLedgerModal />;
                                                                                                                                 if (mode === "arming-sequence") return <ArmingSequenceOrchestratorModal />;
                                                                                                                                 if (mode === "character-wardrobe") return <CharacterWardrobeLookbookModal />;
+                                                                                                                                // Meilenstein 60 (v7.2.0): Oulipo, Ergodische Fußnoten, Kalligramme, Cut-Up.
+                                                                                                                                if (mode === "oulipo-constraint") return <OulipoConstraintEngineModal />;
+                                                                                                                                if (mode === "ergodic-footnote") return <ErgodicFootnoteLabyrinthModal />;
+                                                                                                                                if (mode === "concrete-calligram") return <ConcreteCalligramEngineModal />;
+                                                                                                                                if (mode === "burroughs-cutup") return <BurroughsCutUpCollatorModal />;
                                                                                                                                 if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }
