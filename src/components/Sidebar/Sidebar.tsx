@@ -415,6 +415,18 @@ const NewspaperClippingFabricatorModal = lazy(() =>
 const CipherWheelPropStudioModal = lazy(() =>
   import("@/components/security/CipherWheelPropStudioModal").then((m) => ({ default: m.CipherWheelPropStudioModal }))
 );
+const AntagonistMoralJustificationModal = lazy(() =>
+  import("@/components/ai/AntagonistMoralJustificationModal").then((m) => ({ default: m.AntagonistMoralJustificationModal }))
+);
+const MoralCorruptionLedgerModal = lazy(() =>
+  import("@/components/dramaturgy/MoralCorruptionLedgerModal").then((m) => ({ default: m.MoralCorruptionLedgerModal }))
+);
+const PsychologicalGaslightingWeaverModal = lazy(() =>
+  import("@/components/ai/PsychologicalGaslightingWeaverModal").then((m) => ({ default: m.PsychologicalGaslightingWeaverModal }))
+);
+const NemesisDarkMirrorAnalyzerModal = lazy(() =>
+  import("@/components/analytics/NemesisDarkMirrorAnalyzerModal").then((m) => ({ default: m.NemesisDarkMirrorAnalyzerModal }))
+);
 const ReaderChoicePlaytester = lazy(() =>
   import("@/components/interactive/ReaderChoicePlaytester").then((m) => ({ default: m.ReaderChoicePlaytester }))
 );
@@ -1101,6 +1113,11 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
                                                                                                 { id: "mugshot-dossier", key: "sidebar.mode.mugshot-dossier", icon: "🪪", descKey: "sidebar.modeDesc.mugshot-dossier" },
                                                                                                 { id: "newspaper-clipping", key: "sidebar.mode.newspaper-clipping", icon: "📰", descKey: "sidebar.modeDesc.newspaper-clipping" },
                                                                                                 { id: "cipher-wheel", key: "sidebar.mode.cipher-wheel", icon: "🔐", descKey: "sidebar.modeDesc.cipher-wheel" },
+                                                                                                // Meilenstein 63 (v7.5.0): Antagonisten-Philosophie, Moralverfall, Gaslighting, Nemesis-Spiegel.
+                                                                                                { id: "antagonist-moral", key: "sidebar.mode.antagonist-moral", icon: "🎭", descKey: "sidebar.modeDesc.antagonist-moral" },
+                                                                                                { id: "moral-corruption", key: "sidebar.mode.moral-corruption", icon: "📉", descKey: "sidebar.modeDesc.moral-corruption" },
+                                                                                                { id: "gaslighting", key: "sidebar.mode.gaslighting", icon: "🕯️", descKey: "sidebar.modeDesc.gaslighting" },
+                                                                                                { id: "nemesis-dark-mirror", key: "sidebar.mode.nemesis-dark-mirror", icon: "🪞", descKey: "sidebar.modeDesc.nemesis-dark-mirror" },
                                                                                               ];
 
 export function Sidebar() {
@@ -1687,6 +1704,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
                                                                                                                                 if (mode === "mugshot-dossier") return <PoliceMugshotDossierModal />;
                                                                                                                                 if (mode === "newspaper-clipping") return <NewspaperClippingFabricatorModal />;
                                                                                                                                 if (mode === "cipher-wheel") return <CipherWheelPropStudioModal />;
+                                                                                                                                // Meilenstein 63 (v7.5.0): Antagonisten-Philosophie, Moralverfall, Gaslighting, Nemesis-Spiegel.
+                                                                                                                                if (mode === "antagonist-moral") return <AntagonistMoralJustificationModal />;
+                                                                                                                                if (mode === "moral-corruption") return <MoralCorruptionLedgerModal />;
+                                                                                                                                if (mode === "gaslighting") return <PsychologicalGaslightingWeaverModal />;
+                                                                                                                                if (mode === "nemesis-dark-mirror") return <NemesisDarkMirrorAnalyzerModal />;
                                                                                                                                 if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }

@@ -446,6 +446,10 @@ export const en: TranslationDict = {
                     "sidebar.mode.mugshot-dossier": "Police Mugshot Dossier",
                     "sidebar.mode.newspaper-clipping": "Newspaper Clipping Studio",
                     "sidebar.mode.cipher-wheel": "Cipher Wheel & Cardan Grille",
+                    "sidebar.mode.antagonist-moral": "Villain Philosophy",
+                    "sidebar.mode.moral-corruption": "Moral Corruption Ledger",
+                    "sidebar.mode.gaslighting": "Gaslighting Weaver",
+                    "sidebar.mode.nemesis-dark-mirror": "Nemesis Dark Mirror",
 
               // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -841,6 +845,10 @@ export const en: TranslationDict = {
                     "sidebar.modeDesc.mugshot-dossier": "Mugshot plate, fingerprint card, description",
                     "sidebar.modeDesc.newspaper-clipping": "Multi-column, vintage artifacts, PDF export",
                     "sidebar.modeDesc.cipher-wheel": "Cipher wheel, Cardan grille, assembly guide",
+                    "sidebar.modeDesc.antagonist-moral": "4 philosophies, monologue synthesizer, seduction dial",
+                    "sidebar.modeDesc.moral-corruption": "7 stages, descent curve, point of no return",
+                    "sidebar.modeDesc.gaslighting": "4 tactics, subtext dialogue, manipulation arc",
+                    "sidebar.modeDesc.nemesis-dark-mirror": "Trauma comparison, resonance score, showdown",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",

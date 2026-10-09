@@ -275,4 +275,9 @@ export type EditorMode =
     | "telegram-fabricator"
     | "mugshot-dossier"
     | "newspaper-clipping"
-    | "cipher-wheel";
+    | "cipher-wheel"
+    // Meilenstein 63 (v7.5.0)
+    | "antagonist-moral"
+    | "moral-corruption"
+    | "gaslighting"
+    | "nemesis-dark-mirror";
