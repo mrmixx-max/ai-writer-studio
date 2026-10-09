@@ -438,6 +438,10 @@ export const en: TranslationDict = {
                     "sidebar.mode.ergodic-footnote": "Ergodic Footnote Labyrinth",
                     "sidebar.mode.concrete-calligram": "Concrete Poetry & Calligram",
                     "sidebar.mode.burroughs-cutup": "Burroughs Cut-Up Montage",
+                    "sidebar.mode.direct-bundles": "Direct Sales & Bundles",
+                    "sidebar.mode.rights-pitch": "Film & Foreign Rights",
+                    "sidebar.mode.crowdfunding-profit": "Crowdfunding Maximizer",
+                    "sidebar.mode.ad-copy": "Ad & Blurb Synthesizer",
 
               // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -825,6 +829,10 @@ export const en: TranslationDict = {
                     "sidebar.modeDesc.ergodic-footnote": "Recursive footnotes, commentators, reading paths",
                     "sidebar.modeDesc.concrete-calligram": "Vector shapes, path text, 300 DPI export",
                     "sidebar.modeDesc.burroughs-cutup": "Multi-source cut, grammar polish, collage",
+                    "sidebar.modeDesc.direct-bundles": "3-tier price ladder, margin comparison, Shopify/WooCommerce CSV",
+                    "sidebar.modeDesc.rights-pitch": "Film dossier, foreign rights, PDF export",
+                    "sidebar.modeDesc.crowdfunding-profit": "Net profit calculator, tier architecture, stretch-goal ROI",
+                    "sidebar.modeDesc.ad-copy": "Blurb architecture, 3 Meta ad angles, Amazon ads",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",

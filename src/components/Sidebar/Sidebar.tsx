@@ -391,6 +391,18 @@ const ConcreteCalligramEngineModal = lazy(() =>
 const BurroughsCutUpCollatorModal = lazy(() =>
   import("@/components/ai/BurroughsCutUpCollatorModal").then((m) => ({ default: m.BurroughsCutUpCollatorModal }))
 );
+const DirectSalesProductBundlerModal = lazy(() =>
+  import("@/components/publishing/DirectSalesProductBundlerModal").then((m) => ({ default: m.DirectSalesProductBundlerModal }))
+);
+const FilmAndForeignRightsPitchModal = lazy(() =>
+  import("@/components/publishing/FilmAndForeignRightsPitchModal").then((m) => ({ default: m.FilmAndForeignRightsPitchModal }))
+);
+const CrowdfundingProfitMaximizerModal = lazy(() =>
+  import("@/components/marketing/CrowdfundingProfitMaximizerModal").then((m) => ({ default: m.CrowdfundingProfitMaximizerModal }))
+);
+const HighConvertingAdCopySynthesizerModal = lazy(() =>
+  import("@/components/marketing/HighConvertingAdCopySynthesizerModal").then((m) => ({ default: m.HighConvertingAdCopySynthesizerModal }))
+);
 const ReaderChoicePlaytester = lazy(() =>
   import("@/components/interactive/ReaderChoicePlaytester").then((m) => ({ default: m.ReaderChoicePlaytester }))
 );
@@ -1067,6 +1079,11 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
                                                                                                 { id: "ergodic-footnote", key: "sidebar.mode.ergodic-footnote", icon: "🌀", descKey: "sidebar.modeDesc.ergodic-footnote" },
                                                                                                 { id: "concrete-calligram", key: "sidebar.mode.concrete-calligram", icon: "🔤", descKey: "sidebar.modeDesc.concrete-calligram" },
                                                                                                 { id: "burroughs-cutup", key: "sidebar.mode.burroughs-cutup", icon: "✂️", descKey: "sidebar.modeDesc.burroughs-cutup" },
+                                                                                                // Meilenstein 61 (v7.3.0): Direktvertrieb, Filmrechte, Crowdfunding, Ad-Copy.
+                                                                                                { id: "direct-bundles", key: "sidebar.mode.direct-bundles", icon: "🛒", descKey: "sidebar.modeDesc.direct-bundles" },
+                                                                                                { id: "rights-pitch", key: "sidebar.mode.rights-pitch", icon: "🎬", descKey: "sidebar.modeDesc.rights-pitch" },
+                                                                                                { id: "crowdfunding-profit", key: "sidebar.mode.crowdfunding-profit", icon: "🚀", descKey: "sidebar.modeDesc.crowdfunding-profit" },
+                                                                                                { id: "ad-copy", key: "sidebar.mode.ad-copy", icon: "📣", descKey: "sidebar.modeDesc.ad-copy" },
                                                                                               ];
 
 export function Sidebar() {
@@ -1643,6 +1660,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
                                                                                                                                 if (mode === "ergodic-footnote") return <ErgodicFootnoteLabyrinthModal />;
                                                                                                                                 if (mode === "concrete-calligram") return <ConcreteCalligramEngineModal />;
                                                                                                                                 if (mode === "burroughs-cutup") return <BurroughsCutUpCollatorModal />;
+                                                                                                                                // Meilenstein 61 (v7.3.0): Direktvertrieb, Filmrechte, Crowdfunding, Ad-Copy.
+                                                                                                                                if (mode === "direct-bundles") return <DirectSalesProductBundlerModal />;
+                                                                                                                                if (mode === "rights-pitch") return <FilmAndForeignRightsPitchModal />;
+                                                                                                                                if (mode === "crowdfunding-profit") return <CrowdfundingProfitMaximizerModal />;
+                                                                                                                                if (mode === "ad-copy") return <HighConvertingAdCopySynthesizerModal />;
                                                                                                                                 if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }

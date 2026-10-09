@@ -265,4 +265,9 @@ export type EditorMode =
     | "oulipo-constraint"
     | "ergodic-footnote"
     | "concrete-calligram"
-    | "burroughs-cutup";
+    | "burroughs-cutup"
+    // Meilenstein 61 (v7.3.0)
+    | "direct-bundles"
+    | "rights-pitch"
+    | "crowdfunding-profit"
+    | "ad-copy";
