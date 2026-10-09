@@ -442,6 +442,10 @@ export const en: TranslationDict = {
                     "sidebar.mode.rights-pitch": "Film & Foreign Rights",
                     "sidebar.mode.crowdfunding-profit": "Crowdfunding Maximizer",
                     "sidebar.mode.ad-copy": "Ad & Blurb Synthesizer",
+                    "sidebar.mode.telegram-fabricator": "Telegram & Telex Fabricator",
+                    "sidebar.mode.mugshot-dossier": "Police Mugshot Dossier",
+                    "sidebar.mode.newspaper-clipping": "Newspaper Clipping Studio",
+                    "sidebar.mode.cipher-wheel": "Cipher Wheel & Cardan Grille",
 
               // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -833,6 +837,10 @@ export const en: TranslationDict = {
                     "sidebar.modeDesc.rights-pitch": "Film dossier, foreign rights, PDF export",
                     "sidebar.modeDesc.crowdfunding-profit": "Net profit calculator, tier architecture, stretch-goal ROI",
                     "sidebar.modeDesc.ad-copy": "Blurb architecture, 3 Meta ad angles, Amazon ads",
+                    "sidebar.modeDesc.telegram-fabricator": "4 eras, teleprinter strips, stamps, 300 DPI",
+                    "sidebar.modeDesc.mugshot-dossier": "Mugshot plate, fingerprint card, description",
+                    "sidebar.modeDesc.newspaper-clipping": "Multi-column, vintage artifacts, PDF export",
+                    "sidebar.modeDesc.cipher-wheel": "Cipher wheel, Cardan grille, assembly guide",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",

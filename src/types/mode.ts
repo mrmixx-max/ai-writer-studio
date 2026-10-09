@@ -270,4 +270,9 @@ export type EditorMode =
     | "direct-bundles"
     | "rights-pitch"
     | "crowdfunding-profit"
-    | "ad-copy";
+    | "ad-copy"
+    // Meilenstein 62 (v7.4.0)
+    | "telegram-fabricator"
+    | "mugshot-dossier"
+    | "newspaper-clipping"
+    | "cipher-wheel";

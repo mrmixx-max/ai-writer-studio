@@ -403,6 +403,18 @@ const CrowdfundingProfitMaximizerModal = lazy(() =>
 const HighConvertingAdCopySynthesizerModal = lazy(() =>
   import("@/components/marketing/HighConvertingAdCopySynthesizerModal").then((m) => ({ default: m.HighConvertingAdCopySynthesizerModal }))
 );
+const VintageTelegramFabricatorModal = lazy(() =>
+  import("@/components/publishing/VintageTelegramFabricatorModal").then((m) => ({ default: m.VintageTelegramFabricatorModal }))
+);
+const PoliceMugshotDossierModal = lazy(() =>
+  import("@/components/worldbuilding/PoliceMugshotDossierModal").then((m) => ({ default: m.PoliceMugshotDossierModal }))
+);
+const NewspaperClippingFabricatorModal = lazy(() =>
+  import("@/components/publishing/NewspaperClippingFabricatorModal").then((m) => ({ default: m.NewspaperClippingFabricatorModal }))
+);
+const CipherWheelPropStudioModal = lazy(() =>
+  import("@/components/security/CipherWheelPropStudioModal").then((m) => ({ default: m.CipherWheelPropStudioModal }))
+);
 const ReaderChoicePlaytester = lazy(() =>
   import("@/components/interactive/ReaderChoicePlaytester").then((m) => ({ default: m.ReaderChoicePlaytester }))
 );
@@ -1084,6 +1096,11 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
                                                                                                 { id: "rights-pitch", key: "sidebar.mode.rights-pitch", icon: "🎬", descKey: "sidebar.modeDesc.rights-pitch" },
                                                                                                 { id: "crowdfunding-profit", key: "sidebar.mode.crowdfunding-profit", icon: "🚀", descKey: "sidebar.modeDesc.crowdfunding-profit" },
                                                                                                 { id: "ad-copy", key: "sidebar.mode.ad-copy", icon: "📣", descKey: "sidebar.modeDesc.ad-copy" },
+                                                                                                // Meilenstein 62 (v7.4.0): Telegramm, Mugshot, Zeitungsausschnitt, Chiffrierscheibe.
+                                                                                                { id: "telegram-fabricator", key: "sidebar.mode.telegram-fabricator", icon: "📨", descKey: "sidebar.modeDesc.telegram-fabricator" },
+                                                                                                { id: "mugshot-dossier", key: "sidebar.mode.mugshot-dossier", icon: "🪪", descKey: "sidebar.modeDesc.mugshot-dossier" },
+                                                                                                { id: "newspaper-clipping", key: "sidebar.mode.newspaper-clipping", icon: "📰", descKey: "sidebar.modeDesc.newspaper-clipping" },
+                                                                                                { id: "cipher-wheel", key: "sidebar.mode.cipher-wheel", icon: "🔐", descKey: "sidebar.modeDesc.cipher-wheel" },
                                                                                               ];
 
 export function Sidebar() {
@@ -1665,6 +1682,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
                                                                                                                                 if (mode === "rights-pitch") return <FilmAndForeignRightsPitchModal />;
                                                                                                                                 if (mode === "crowdfunding-profit") return <CrowdfundingProfitMaximizerModal />;
                                                                                                                                 if (mode === "ad-copy") return <HighConvertingAdCopySynthesizerModal />;
+                                                                                                                                // Meilenstein 62 (v7.4.0): Telegramm, Mugshot, Zeitungsausschnitt, Chiffrierscheibe.
+                                                                                                                                if (mode === "telegram-fabricator") return <VintageTelegramFabricatorModal />;
+                                                                                                                                if (mode === "mugshot-dossier") return <PoliceMugshotDossierModal />;
+                                                                                                                                if (mode === "newspaper-clipping") return <NewspaperClippingFabricatorModal />;
+                                                                                                                                if (mode === "cipher-wheel") return <CipherWheelPropStudioModal />;
                                                                                                                                 if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }
