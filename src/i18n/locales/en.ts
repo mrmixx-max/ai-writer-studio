@@ -450,6 +450,10 @@ export const en: TranslationDict = {
                     "sidebar.mode.moral-corruption": "Moral Corruption Ledger",
                     "sidebar.mode.gaslighting": "Gaslighting Weaver",
                     "sidebar.mode.nemesis-dark-mirror": "Nemesis Dark Mirror",
+                    "sidebar.mode.toponymic-etymology": "Toponymy Engine",
+                    "sidebar.mode.character-onomastics": "Character Onomastics",
+                    "sidebar.mode.dialect-isogloss": "Dialect Isoglosses",
+                    "sidebar.mode.onomastic-pronunciation": "Pronunciation Lexicon",
 
               // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -849,6 +853,10 @@ export const en: TranslationDict = {
                     "sidebar.modeDesc.moral-corruption": "7 stages, descent curve, point of no return",
                     "sidebar.modeDesc.gaslighting": "4 tactics, subtext dialogue, manipulation arc",
                     "sidebar.modeDesc.nemesis-dark-mirror": "Trauma comparison, resonance score, showdown",
+                    "sidebar.modeDesc.toponymic-etymology": "5 language strata, terrain compounds, sound shift",
+                    "sidebar.modeDesc.character-onomastics": "4 traditions, harmony filter, meaning resonance",
+                    "sidebar.modeDesc.dialect-isogloss": "4 regions, isoglosses, dialogue modulator",
+                    "sidebar.modeDesc.onomastic-pronunciation": "Name extractor, IPA & simple guide, PDF appendix",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",

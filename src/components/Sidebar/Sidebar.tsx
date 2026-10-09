@@ -427,6 +427,18 @@ const PsychologicalGaslightingWeaverModal = lazy(() =>
 const NemesisDarkMirrorAnalyzerModal = lazy(() =>
   import("@/components/analytics/NemesisDarkMirrorAnalyzerModal").then((m) => ({ default: m.NemesisDarkMirrorAnalyzerModal }))
 );
+const ToponymicEtymologyEngineModal = lazy(() =>
+  import("@/components/worldbuilding/ToponymicEtymologyEngineModal").then((m) => ({ default: m.ToponymicEtymologyEngineModal }))
+);
+const CharacterOnomasticsLedgerModal = lazy(() =>
+  import("@/components/worldbuilding/CharacterOnomasticsLedgerModal").then((m) => ({ default: m.CharacterOnomasticsLedgerModal }))
+);
+const DialectIsoglossWeaverModal = lazy(() =>
+  import("@/components/linguistics/DialectIsoglossWeaverModal").then((m) => ({ default: m.DialectIsoglossWeaverModal }))
+);
+const OnomasticPronunciationGuideModal = lazy(() =>
+  import("@/components/publishing/OnomasticPronunciationGuideModal").then((m) => ({ default: m.OnomasticPronunciationGuideModal }))
+);
 const ReaderChoicePlaytester = lazy(() =>
   import("@/components/interactive/ReaderChoicePlaytester").then((m) => ({ default: m.ReaderChoicePlaytester }))
 );
@@ -1118,6 +1130,11 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
                                                                                                 { id: "moral-corruption", key: "sidebar.mode.moral-corruption", icon: "📉", descKey: "sidebar.modeDesc.moral-corruption" },
                                                                                                 { id: "gaslighting", key: "sidebar.mode.gaslighting", icon: "🕯️", descKey: "sidebar.modeDesc.gaslighting" },
                                                                                                 { id: "nemesis-dark-mirror", key: "sidebar.mode.nemesis-dark-mirror", icon: "🪞", descKey: "sidebar.modeDesc.nemesis-dark-mirror" },
+                                                                                                // Meilenstein 64 (v7.6.0): Toponymie, Onomastik, Dialekt-Isoglossen, Aussprache.
+                                                                                                { id: "toponymic-etymology", key: "sidebar.mode.toponymic-etymology", icon: "🗺️", descKey: "sidebar.modeDesc.toponymic-etymology" },
+                                                                                                { id: "character-onomastics", key: "sidebar.mode.character-onomastics", icon: "📛", descKey: "sidebar.modeDesc.character-onomastics" },
+                                                                                                { id: "dialect-isogloss", key: "sidebar.mode.dialect-isogloss", icon: "🗣️", descKey: "sidebar.modeDesc.dialect-isogloss" },
+                                                                                                { id: "onomastic-pronunciation", key: "sidebar.mode.onomastic-pronunciation", icon: "🔊", descKey: "sidebar.modeDesc.onomastic-pronunciation" },
                                                                                               ];
 
 export function Sidebar() {
@@ -1709,6 +1726,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
                                                                                                                                 if (mode === "moral-corruption") return <MoralCorruptionLedgerModal />;
                                                                                                                                 if (mode === "gaslighting") return <PsychologicalGaslightingWeaverModal />;
                                                                                                                                 if (mode === "nemesis-dark-mirror") return <NemesisDarkMirrorAnalyzerModal />;
+                                                                                                                                // Meilenstein 64 (v7.6.0): Toponymie, Onomastik, Dialekt-Isoglossen, Aussprache.
+                                                                                                                                if (mode === "toponymic-etymology") return <ToponymicEtymologyEngineModal />;
+                                                                                                                                if (mode === "character-onomastics") return <CharacterOnomasticsLedgerModal />;
+                                                                                                                                if (mode === "dialect-isogloss") return <DialectIsoglossWeaverModal />;
+                                                                                                                                if (mode === "onomastic-pronunciation") return <OnomasticPronunciationGuideModal />;
                                                                                                                                 if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }

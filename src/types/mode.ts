@@ -280,4 +280,9 @@ export type EditorMode =
     | "antagonist-moral"
     | "moral-corruption"
     | "gaslighting"
-    | "nemesis-dark-mirror";
+    | "nemesis-dark-mirror"
+    // Meilenstein 64 (v7.6.0)
+    | "toponymic-etymology"
+    | "character-onomastics"
+    | "dialect-isogloss"
+    | "onomastic-pronunciation";
