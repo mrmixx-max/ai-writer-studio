@@ -255,4 +255,9 @@ export type EditorMode =
     | "quantum-narrative"
     | "franchise-encyclopedia"
     | "cinematic-foley"
-    | "flagship70-cockpit";
+    | "flagship70-cockpit"
+    // Meilenstein 59 (v7.1.0)
+    | "armor-metallurgy"
+    | "sartorial-fashion"
+    | "arming-sequence"
+    | "character-wardrobe";

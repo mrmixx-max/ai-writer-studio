@@ -430,6 +430,10 @@ export const en: TranslationDict = {
                     "sidebar.mode.franchise-encyclopedia": "Franchise Encyclopedia",
                     "sidebar.mode.cinematic-foley": "Foley Atmos Engine",
                     "sidebar.mode.flagship70-cockpit": "7.0 Cockpit",
+                    "sidebar.mode.armor-metallurgy": "Armor Metallurgy",
+                    "sidebar.mode.sartorial-fashion": "Sartorial Fashion",
+                    "sidebar.mode.arming-sequence": "Arming Sequence",
+                    "sidebar.mode.character-wardrobe": "Character Wardrobe",
 
               // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -809,6 +813,10 @@ export const en: TranslationDict = {
                     "sidebar.modeDesc.franchise-encyclopedia": "Wiki linker, taxonomy, companion book export",
                     "sidebar.modeDesc.cinematic-foley": "6 foley layers, scene sync, WebAudio mixer",
                     "sidebar.modeDesc.flagship70-cockpit": "7.0 audit, Obsidian seal, Grand Obsidian Archive",
+                    "sidebar.modeDesc.armor-metallurgy": "4 armor layers, weapon hit matrix, combat prose",
+                    "sidebar.modeDesc.sartorial-fashion": "Textile taxonomy, sumptuary law checker, textile prose",
+                    "sidebar.modeDesc.arming-sequence": "6 steps, tension weave, arming scene",
+                    "sidebar.modeDesc.character-wardrobe": "Wardrobe grid, continuity watcher, lookbook export",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",

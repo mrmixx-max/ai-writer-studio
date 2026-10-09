@@ -367,6 +367,18 @@ const CinematicFoleyAtmosComposerModal = lazy(() =>
 const Flagship70SovereignCockpitModal = lazy(() =>
   import("@/components/publishing/Flagship70SovereignCockpitModal").then((m) => ({ default: m.Flagship70SovereignCockpitModal }))
 );
+const ArmorMetallurgySimulatorModal = lazy(() =>
+  import("@/components/worldbuilding/ArmorMetallurgySimulatorModal").then((m) => ({ default: m.ArmorMetallurgySimulatorModal }))
+);
+const SartorialFashionLedgerModal = lazy(() =>
+  import("@/components/worldbuilding/SartorialFashionLedgerModal").then((m) => ({ default: m.SartorialFashionLedgerModal }))
+);
+const ArmingSequenceOrchestratorModal = lazy(() =>
+  import("@/components/ai/ArmingSequenceOrchestratorModal").then((m) => ({ default: m.ArmingSequenceOrchestratorModal }))
+);
+const CharacterWardrobeLookbookModal = lazy(() =>
+  import("@/components/publishing/CharacterWardrobeLookbookModal").then((m) => ({ default: m.CharacterWardrobeLookbookModal }))
+);
 const ReaderChoicePlaytester = lazy(() =>
   import("@/components/interactive/ReaderChoicePlaytester").then((m) => ({ default: m.ReaderChoicePlaytester }))
 );
@@ -1033,6 +1045,11 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
                                                                                                 { id: "franchise-encyclopedia", key: "sidebar.mode.franchise-encyclopedia", icon: "📖", descKey: "sidebar.modeDesc.franchise-encyclopedia" },
                                                                                                 { id: "cinematic-foley", key: "sidebar.mode.cinematic-foley", icon: "🎬", descKey: "sidebar.modeDesc.cinematic-foley" },
                                                                                                 { id: "flagship70-cockpit", key: "sidebar.mode.flagship70-cockpit", icon: "🏆", descKey: "sidebar.modeDesc.flagship70-cockpit" },
+                                                                                                // Meilenstein 59 (v7.1.0): Rüstungs-Metallurgie, Kleiderordnungen, Einkleidungs-Orchestrator, Garderoben.
+                                                                                                { id: "armor-metallurgy", key: "sidebar.mode.armor-metallurgy", icon: "⚔️", descKey: "sidebar.modeDesc.armor-metallurgy" },
+                                                                                                { id: "sartorial-fashion", key: "sidebar.mode.sartorial-fashion", icon: "👘", descKey: "sidebar.modeDesc.sartorial-fashion" },
+                                                                                                { id: "arming-sequence", key: "sidebar.mode.arming-sequence", icon: "🛡️", descKey: "sidebar.modeDesc.arming-sequence" },
+                                                                                                { id: "character-wardrobe", key: "sidebar.mode.character-wardrobe", icon: "👗", descKey: "sidebar.modeDesc.character-wardrobe" },
                                                                                               ];
 
 export function Sidebar() {
@@ -1599,6 +1616,11 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
                                                                                                                                 if (mode === "franchise-encyclopedia") return <UniversalFranchiseEncyclopediaModal />;
                                                                                                                                 if (mode === "cinematic-foley") return <CinematicFoleyAtmosComposerModal />;
                                                                                                                                 if (mode === "flagship70-cockpit") return <Flagship70SovereignCockpitModal />;
+                                                                                                                                // Meilenstein 59 (v7.1.0): Rüstungs-Metallurgie, Kleiderordnungen, Einkleidungs-Orchestrator, Garderoben.
+                                                                                                                                if (mode === "armor-metallurgy") return <ArmorMetallurgySimulatorModal />;
+                                                                                                                                if (mode === "sartorial-fashion") return <SartorialFashionLedgerModal />;
+                                                                                                                                if (mode === "arming-sequence") return <ArmingSequenceOrchestratorModal />;
+                                                                                                                                if (mode === "character-wardrobe") return <CharacterWardrobeLookbookModal />;
                                                                                                                                 if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }
