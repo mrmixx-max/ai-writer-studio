@@ -655,6 +655,7 @@ export const es: TranslationDict = {
                     "sidebar.mode.character-onomastics": "Onomástica de personajes",
                     "sidebar.mode.dialect-isogloss": "Isoglosas dialectales",
                     "sidebar.mode.onomastic-pronunciation": "Léxico de pronunciación",
+                    "sidebar.mode.attribute-progression": "Progresión de Atributos",
 
               "sidebar.editorTextFallback": "(elegir texto del editor)",
   "sidebar.contentFallback": "(contenido)",
@@ -860,6 +861,7 @@ export const es: TranslationDict = {
                     "sidebar.modeDesc.character-onomastics": "4 tradiciones, filtro de armonía, resonancia de significado",
                     "sidebar.modeDesc.dialect-isogloss": "4 regiones, isoglosas, modulador de diálogo",
                     "sidebar.modeDesc.onomastic-pronunciation": "Extractor de nombres, IPA y guía simple, apéndice PDF",
+                    "sidebar.modeDesc.attribute-progression": "3 curvas de escalado, 5 rangos, análisis de power creep, equivalentes físicos",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comentarios + revisiones",
   "sidebar.modeDesc.condense": "Abreviar texto",

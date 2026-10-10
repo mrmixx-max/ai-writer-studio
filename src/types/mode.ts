@@ -285,4 +285,6 @@ export type EditorMode =
     | "toponymic-etymology"
     | "character-onomastics"
     | "dialect-isogloss"
-    | "onomastic-pronunciation";
+    | "onomastic-pronunciation"
+  // Meilenstein 65 (v7.7.0)
+  | "attribute-progression";
