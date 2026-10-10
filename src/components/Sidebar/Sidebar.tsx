@@ -376,6 +376,9 @@ const AttributeProgressionEngineModal = lazy(() =>
 const SkillTreeMatrixModal = lazy(() =>
   import("@/components/worldbuilding/SkillTreeMatrixModal").then((m) => ({ default: m.SkillTreeMatrixModal }))
 );
+const LootRarityMatrixModal = lazy(() =>
+  import("@/components/worldbuilding/LootRarityMatrixModal").then((m) => ({ default: m.LootRarityMatrixModal }))
+);
 const SartorialFashionLedgerModal = lazy(() =>
   import("@/components/worldbuilding/SartorialFashionLedgerModal").then((m) => ({ default: m.SartorialFashionLedgerModal }))
 );
@@ -1144,6 +1147,7 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
                                                                                                 // Meilenstein 65 (v7.7.0): Attributs-Skalierung, Skill-Trees, Loot-Rarität, Kampf-Ledger.
                                                                                                 { id: "attribute-progression", key: "sidebar.mode.attribute-progression", icon: "⚔️", descKey: "sidebar.modeDesc.attribute-progression" },
                                                                                                 { id: "skill-tree", key: "sidebar.mode.skill-tree", icon: "🌳", descKey: "sidebar.modeDesc.skill-tree" },
+                                                                                                { id: "loot-rarity", key: "sidebar.mode.loot-rarity", icon: "💎", descKey: "sidebar.modeDesc.loot-rarity" },
                                                                                               ];
 
 export function Sidebar() {
@@ -1743,6 +1747,7 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
                                                                                                                                 // Meilenstein 65 (v7.7.0): Attributs-Skalierung, Skill-Trees, Loot-Rarität, Kampf-Ledger.
                                                                                                                                 if (mode === "attribute-progression") return <AttributeProgressionEngineModal />;
                                                                                                                                 if (mode === "skill-tree") return <SkillTreeMatrixModal />;
+                                                                                                                                if (mode === "loot-rarity") return <LootRarityMatrixModal />;
                                                                                                                                 if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }

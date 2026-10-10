@@ -288,4 +288,5 @@ export type EditorMode =
     | "onomastic-pronunciation"
   // Meilenstein 65 (v7.7.0)
   | "attribute-progression"
-  | "skill-tree";
+  | "skill-tree"
+  | "loot-rarity";

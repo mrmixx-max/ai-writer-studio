@@ -657,6 +657,7 @@ export const es: TranslationDict = {
                     "sidebar.mode.onomastic-pronunciation": "Léxico de pronunciación",
                     "sidebar.mode.attribute-progression": "Progresión de Atributos",
                     "sidebar.mode.skill-tree": "Árbol de Habilidades y Evolución de Clases",
+                    "sidebar.mode.loot-rarity": "Rareza de Botín y Equipo",
 
               "sidebar.editorTextFallback": "(elegir texto del editor)",
   "sidebar.contentFallback": "(contenido)",
@@ -864,6 +865,7 @@ export const es: TranslationDict = {
                     "sidebar.modeDesc.onomastic-pronunciation": "Extractor de nombres, IPA y guía simple, apéndice PDF",
                     "sidebar.modeDesc.attribute-progression": "3 curvas de escalado, 5 rangos, análisis de power creep, equivalentes físicos",
                     "sidebar.modeDesc.skill-tree": "Árbol de habilidades ramificado, guardianes de sinergia y exclusión, visualización SVG",
+                    "sidebar.modeDesc.loot-rarity": "6 niveles de rareza, bonificaciones de conjunto, tooltips de objetos RPG, generador de botín",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comentarios + revisiones",
   "sidebar.modeDesc.condense": "Abreviar texto",

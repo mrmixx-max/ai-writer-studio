@@ -456,6 +456,7 @@ export const en: TranslationDict = {
                     "sidebar.mode.onomastic-pronunciation": "Pronunciation Lexicon",
                     "sidebar.mode.attribute-progression": "Attribute Progression",
                     "sidebar.mode.skill-tree": "Skill Tree & Class Evolution",
+                    "sidebar.mode.loot-rarity": "Loot Rarity & Equipment",
 
               // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -861,6 +862,7 @@ export const en: TranslationDict = {
                     "sidebar.modeDesc.onomastic-pronunciation": "Name extractor, IPA & simple guide, PDF appendix",
                     "sidebar.modeDesc.attribute-progression": "3 scaling curves, 5 tier ranks, power creep analysis, physics equivalents",
                     "sidebar.modeDesc.skill-tree": "Branching skill tree, synergy & exclusion guards, SVG visualization",
+                    "sidebar.modeDesc.loot-rarity": "6 rarity tiers, set bonuses, RPG item tooltips, loot generator",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",

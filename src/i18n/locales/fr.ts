@@ -657,6 +657,7 @@ export const fr: TranslationDict = {
                     "sidebar.mode.onomastic-pronunciation": "Lexique de prononciation",
                     "sidebar.mode.attribute-progression": "Progression d'Attributs",
                     "sidebar.mode.skill-tree": "Arbre de Compétences et Évolution de Classes",
+                    "sidebar.mode.loot-rarity": "Rareté du Butin et Équipement",
 
               "sidebar.editorTextFallback": "(choisir le texte dans l'éditeur)",
   "sidebar.contentFallback": "(contenu)",
@@ -864,6 +865,7 @@ export const fr: TranslationDict = {
                     "sidebar.modeDesc.onomastic-pronunciation": "Extracteur de noms, API et guide simple, annexe PDF",
                     "sidebar.modeDesc.attribute-progression": "3 courbes de progression, 5 rangs, analyse de power creep, équivalents physiques",
                     "sidebar.modeDesc.skill-tree": "Arbre de compétences ramifié, gardiens de synergie et d'exclusion, visualisation SVG",
+                    "sidebar.modeDesc.loot-rarity": "6 niveaux de rareté, bonus d'ensemble, infobulles d'objets RPG, générateur de butin",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Commentaires + révisions",
   "sidebar.modeDesc.condense": "Abréger le texte",
