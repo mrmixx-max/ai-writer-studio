@@ -289,4 +289,5 @@ export type EditorMode =
   // Meilenstein 65 (v7.7.0)
   | "attribute-progression"
   | "skill-tree"
-  | "loot-rarity";
+  | "loot-rarity"
+  | "combat-ledger";

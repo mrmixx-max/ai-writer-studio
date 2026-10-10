@@ -457,6 +457,7 @@ export const en: TranslationDict = {
                     "sidebar.mode.attribute-progression": "Attribute Progression",
                     "sidebar.mode.skill-tree": "Skill Tree & Class Evolution",
                     "sidebar.mode.loot-rarity": "Loot Rarity & Equipment",
+                    "sidebar.mode.combat-ledger": "Combat Damage Ledger",
 
               // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -863,6 +864,7 @@ export const en: TranslationDict = {
                     "sidebar.modeDesc.attribute-progression": "3 scaling curves, 5 tier ranks, power creep analysis, physics equivalents",
                     "sidebar.modeDesc.skill-tree": "Branching skill tree, synergy & exclusion guards, SVG visualization",
                     "sidebar.modeDesc.loot-rarity": "6 rarity tiers, set bonuses, RPG item tooltips, loot generator",
+                    "sidebar.modeDesc.combat-ledger": "Round-based damage calculator, plausibility scanner, status window",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",

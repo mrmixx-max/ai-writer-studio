@@ -379,6 +379,9 @@ const SkillTreeMatrixModal = lazy(() =>
 const LootRarityMatrixModal = lazy(() =>
   import("@/components/worldbuilding/LootRarityMatrixModal").then((m) => ({ default: m.LootRarityMatrixModal }))
 );
+const LitRpgCombatLedgerModal = lazy(() =>
+  import("@/components/publishing/LitRpgCombatLedgerModal").then((m) => ({ default: m.LitRpgCombatLedgerModal }))
+);
 const SartorialFashionLedgerModal = lazy(() =>
   import("@/components/worldbuilding/SartorialFashionLedgerModal").then((m) => ({ default: m.SartorialFashionLedgerModal }))
 );
@@ -1148,6 +1151,7 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
                                                                                                 { id: "attribute-progression", key: "sidebar.mode.attribute-progression", icon: "⚔️", descKey: "sidebar.modeDesc.attribute-progression" },
                                                                                                 { id: "skill-tree", key: "sidebar.mode.skill-tree", icon: "🌳", descKey: "sidebar.modeDesc.skill-tree" },
                                                                                                 { id: "loot-rarity", key: "sidebar.mode.loot-rarity", icon: "💎", descKey: "sidebar.modeDesc.loot-rarity" },
+                                                                                                { id: "combat-ledger", key: "sidebar.mode.combat-ledger", icon: "⚔️", descKey: "sidebar.modeDesc.combat-ledger" },
                                                                                               ];
 
 export function Sidebar() {
@@ -1748,6 +1752,7 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
                                                                                                                                 if (mode === "attribute-progression") return <AttributeProgressionEngineModal />;
                                                                                                                                 if (mode === "skill-tree") return <SkillTreeMatrixModal />;
                                                                                                                                 if (mode === "loot-rarity") return <LootRarityMatrixModal />;
+                                                                                                                                if (mode === "combat-ledger") return <LitRpgCombatLedgerModal />;
                                                                                                                                 if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }
