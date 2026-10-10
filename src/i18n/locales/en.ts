@@ -455,6 +455,7 @@ export const en: TranslationDict = {
                     "sidebar.mode.dialect-isogloss": "Dialect Isoglosses",
                     "sidebar.mode.onomastic-pronunciation": "Pronunciation Lexicon",
                     "sidebar.mode.attribute-progression": "Attribute Progression",
+                    "sidebar.mode.skill-tree": "Skill Tree & Class Evolution",
 
               // Backup (Sprint 24, Agent 6)
   "backup.title": "🔒 Backup",
@@ -859,6 +860,7 @@ export const en: TranslationDict = {
                     "sidebar.modeDesc.dialect-isogloss": "4 regions, isoglosses, dialogue modulator",
                     "sidebar.modeDesc.onomastic-pronunciation": "Name extractor, IPA & simple guide, PDF appendix",
                     "sidebar.modeDesc.attribute-progression": "3 scaling curves, 5 tier ranks, power creep analysis, physics equivalents",
+                    "sidebar.modeDesc.skill-tree": "Branching skill tree, synergy & exclusion guards, SVG visualization",
               "sidebar.modeDesc.cloud-sync": "Dropbox/GDrive/OneDrive",
   "sidebar.modeDesc.collab": "Comments + reviews",
   "sidebar.modeDesc.condense": "Shorten text",

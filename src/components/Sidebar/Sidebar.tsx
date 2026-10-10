@@ -373,6 +373,9 @@ const ArmorMetallurgySimulatorModal = lazy(() =>
 const AttributeProgressionEngineModal = lazy(() =>
   import("@/components/worldbuilding/AttributeProgressionEngineModal").then((m) => ({ default: m.AttributeProgressionEngineModal }))
 );
+const SkillTreeMatrixModal = lazy(() =>
+  import("@/components/worldbuilding/SkillTreeMatrixModal").then((m) => ({ default: m.SkillTreeMatrixModal }))
+);
 const SartorialFashionLedgerModal = lazy(() =>
   import("@/components/worldbuilding/SartorialFashionLedgerModal").then((m) => ({ default: m.SartorialFashionLedgerModal }))
 );
@@ -1140,6 +1143,7 @@ const MODES: { id: EditorMode; key: string; icon: string; descKey: string }[] = 
                                                                                                 { id: "onomastic-pronunciation", key: "sidebar.mode.onomastic-pronunciation", icon: "🔊", descKey: "sidebar.modeDesc.onomastic-pronunciation" },
                                                                                                 // Meilenstein 65 (v7.7.0): Attributs-Skalierung, Skill-Trees, Loot-Rarität, Kampf-Ledger.
                                                                                                 { id: "attribute-progression", key: "sidebar.mode.attribute-progression", icon: "⚔️", descKey: "sidebar.modeDesc.attribute-progression" },
+                                                                                                { id: "skill-tree", key: "sidebar.mode.skill-tree", icon: "🌳", descKey: "sidebar.modeDesc.skill-tree" },
                                                                                               ];
 
 export function Sidebar() {
@@ -1738,6 +1742,7 @@ function ModePanel({ mode, projectId, chapterId }: { mode: EditorMode; projectId
                                                                                                                                 if (mode === "onomastic-pronunciation") return <OnomasticPronunciationGuideModal />;
                                                                                                                                 // Meilenstein 65 (v7.7.0): Attributs-Skalierung, Skill-Trees, Loot-Rarität, Kampf-Ledger.
                                                                                                                                 if (mode === "attribute-progression") return <AttributeProgressionEngineModal />;
+                                                                                                                                if (mode === "skill-tree") return <SkillTreeMatrixModal />;
                                                                                                                                 if (!projectId || !chapterId) {
       return <div className="mode-placeholder">{t("sidebar.noChapterHint")}</div>;
     }
