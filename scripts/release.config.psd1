@@ -9,7 +9,7 @@
 @{
     # ---- Produkt ----
     AppName        = 'AI Writer Studio'
-    AppVersion     = '1.0.0'
+    AppVersion     = '7.7.0'
     AppPublisher   = 'Erik Gieske'
     AppUrl         = 'https://github.com/mrmixx-max/ai-writer-studio'
     AppSupportUrl  = 'https://github.com/mrmixx-max/ai-writer-studio/issues'

@@ -7,7 +7,7 @@
       "frontendDist": "../dist",
       "devUrl": "http://localhost:1438",
       "beforeDevCommand": "npm run dev:vite",
-      "beforeBuildCommand": "npm run build"
+      "beforeBuildCommand": ""
     },
   "app": {
     "withGlobalTauri": true,
