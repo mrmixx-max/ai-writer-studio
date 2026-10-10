@@ -231,7 +231,8 @@ export function scanCombatForPlausibility(
 
   for (const round of rounds) {
     const { defenderId, damage, hpAfter, mpAfter } = round;
-    const currentHp = hpByCombatant.get(defenderId) ?? 0;
+    // Track HP for consistency checks
+    void hpByCombatant.get(defenderId);
 
     // HP should not go below 0
     if (hpAfter < 0) {

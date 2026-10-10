@@ -23,7 +23,8 @@ export function createSeededRandom(seed: number): () => number {
   };
 }
 
-function pick<T>(arr: T[], rng: () => number): T {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function _pick<T>(arr: T[], rng: () => number): T {
   if (arr.length === 0) throw new Error("Empty array");
   return arr[Math.floor(rng() * arr.length)];
 }
